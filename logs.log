@@ -1,0 +1,752 @@
+
+MeMyself@DESKTOP-BA808PC MINGW64 ~
+$ cd C:\\Users\\MeMyself\\mayhem-firmware
+(base)
+MeMyself@DESKTOP-BA808PC MINGW64 ~/mayhem-firmware (research)
+$ docker run --rm -v "${PWD}:/work" -w /work ubuntu:noble bash -lc "set -euo pipefail
+apt-get update -qq && apt-get install -y -qq cmake ninja-build gcc-arm-none-eabi binutils-arm-none-eabi g++ git ca-certificates python3 make >/dev/null
+cmake -S /work -B /work/build-verify -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build /work/build-verify --target application.elf -j 2
+arm-none-eabi-size /work/build-verify/firmware/application/application.elf
+"
+request returned 500 Internal Server Error for API route and version http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/_ping, check if the server supports the requested API version
+(base)
+MeMyself@DESKTOP-BA808PC MINGW64 ~/mayhem-firmware (research)
+$ cd /mnt/c/Users/MeMyself/mayhem-firmware   # adjust if your clone lives elsewhere
+docker run --rm -v "$PWD:/work" -w /work ubuntu:noble bash -lc 'set -euo pipefail
+apt-get update -qq && apt-get install -y -qq cmake ninja-build gcc-arm-none-eabi binutils-arm-none-eabi g++ git ca-certi
+ficates python3 make >/dev/null
+cmake -S /work -B /work/build-verify -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build /work/build-verify --target application.elf -j 2
+arm-none-eabi-size /work/build-verify/firmware/application/application.elf
+'
+bash: cd: /mnt/c/Users/MeMyself/mayhem-firmware: No such file or directory
+docker: Error response from daemon: the working directory 'C:/Users/MeMyself/AppData/Local/Programs/Git/work' is invalid, it needs to be an absolute path
+
+Run 'docker run --help' for more information
+(base)
+MeMyself@DESKTOP-BA808PC MINGW64 ~/mayhem-firmware (research)
+$ docker run --rm -v "//c/Users/MeMyself/mayhem-firmware:/work" -w //work ubuntu:noble bash -lc 'set -euo pipefail
+apt-get update -qq && apt-get install -y -qq cmake ninja-build gcc-arm-none-eabi binutils-arm-none-eabi g++ git ca-certificates python3 make >/dev/null
+cmake -S /work -B /work/build-verify -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build /work/build-verify --target application.elf -j 2
+arm-none-eabi-size /work/build-verify/firmware/application/application.elf
+'
+debconf: delaying package configuration, since apt-utils is not installed
+Configuring for FLASH_MB_SIZE=2MB
+Configuring for FLASH_MB_LIMIT_SIZE=1MB
+-- Cross-compiling with the gcc-arm-embedded toolchain
+-- Toolchain prefix: /usr/lib/arm-none-eabi
+-- Cross-compiling with the gcc-arm-embedded toolchain
+-- Toolchain prefix: /usr/lib/arm-none-eabi
+-- The C compiler identification is GNU 13.2.1
+-- The CXX compiler identification is GNU 13.2.1
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/arm-none-eabi-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/arm-none-eabi-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+Building version: cf172675 MD5: 0x9043b8c6
+Configuring for FLASH_MB_SIZE=2MB
+Configuring for FLASH_MB_LIMIT_SIZE=1MB
+-- The ASM compiler identification is GNU
+-- Found assembler: /usr/bin/arm-none-eabi-gcc
+-- dfu-suffix not found: not building DFU file
+-- dfu-suffix not found: not building DFU file
+-- -------v ccache info--------
+-- Not using ccache, use `cmake -DUSE_CCACHE=ON ..` (pure cmake) or `cmake -G Ninja -DUSE_CCACHE=ON ..` (cmake with Ninja) to turn on ccache
+-- -------^ ccache info--------
+-- Performing Test cpp20_supported
+-- Performing Test cpp20_supported - Success
+WARNING: Compiler version mismatch, please use the official compiler version 9.2.1 when sharing builds! Current compiler version: 13.2.1
+-- Configuring done (17.9s)
+-- Generating done (47.7s)
+-- Build files have been written to: /work/build-verify
+[1/481] Generating portapack_cpld_20170522_data.cpp
+[2/481] Generating portapack_cpld_20150901_data.cpp
+[3/481] Generating portapack_cpld_h4m_data.cpp
+[4/481] Generating hackrf_cpld_data.cpp
+[5/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/GCC/ARMCMx/crt0.c.obj
+[6/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/vectors.c.obj
+[7/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/GCC/ARMCMx/chcore.c.obj
+[8/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/GCC/ARMCMx/chcore_v6m.c.obj
+[9/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/common/ARMCMx/nvic.c.obj
+[10/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chsys.c.obj
+[11/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chdebug.c.obj
+[12/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chlists.c.obj
+[13/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chvt.c.obj
+[14/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chschd.c.obj
+[15/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chthreads.c.obj
+[16/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chdynamic.c.obj
+[17/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chregistry.c.obj
+[18/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chsem.c.obj
+[19/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmtx.c.obj
+[20/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chcond.c.obj
+[21/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chevents.c.obj
+[22/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmsg.c.obj
+[23/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmboxes.c.obj
+[24/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chqueues.c.obj
+[25/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmemcore.c.obj
+[26/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chheap.c.obj
+[27/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmempools.c.obj
+[28/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testthd.c.obj
+[29/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testsem.c.obj
+[30/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/test.c.obj
+[31/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testmsg.c.obj
+[32/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testmtx.c.obj
+[33/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testmbox.c.obj
+[34/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testevt.c.obj
+[35/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testheap.c.obj
+[36/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testpools.c.obj
+[37/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testdyn.c.obj
+[38/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testqueues.c.obj
+[39/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testbmk.c.obj
+[40/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/hal.c.obj
+[41/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/adc.c.obj
+[42/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/can.c.obj
+[43/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/ext.c.obj
+[44/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/gpt.c.obj
+[45/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/i2c.c.obj
+[46/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/icu.c.obj
+[47/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/mac.c.obj
+[48/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/mmc_spi.c.obj
+[49/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/mmcsd.c.obj
+[50/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/pal.c.obj
+[51/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/pwm.c.obj
+[52/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/rtc.c.obj
+[53/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/sdc.c.obj
+[54/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/serial.c.obj
+[55/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/serial_usb.c.obj
+[56/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/tm.c.obj
+[57/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/spi.c.obj
+[58/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/uart.c.obj
+[59/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/usb.c.obj
+[60/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx_M0/hal_lld.c.obj
+[61/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.c.obj
+[62/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/i2c_lld.c.obj
+[63/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/pal_lld.c.obj
+[64/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/rtc_lld.c.obj
+[65/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/sdc_lld.c.obj
+[66/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/serial_lld.c.obj
+[67/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/spi_lld.c.obj
+[68/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/lpc43xx.c.obj
+[69/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/boards/PORTAPACK_APPLICATION/board.cpp.obj
+[70/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/various/fatfs_bindings/fatfs_diskio.c.obj
+[71/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/various/fatfs_bindings/fatfs_syscall.c.obj
+[72/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/option/unicode.c.obj
+[73/481] Building C object firmware/application/CMakeFiles/application.elf.dir/firmware_info.c.obj
+[74/481] Building C object firmware/application/CMakeFiles/application.elf.dir/usb_serial_cdc.c.obj
+[75/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/ff.c.obj
+[76/481] Building C object firmware/application/CMakeFiles/application.elf.dir/usb_serial_descriptor.c.obj
+[77/481] Building C object firmware/application/CMakeFiles/application.elf.dir/usb_serial_endpoints.c.obj
+[78/481] Building C object firmware/application/CMakeFiles/application.elf.dir/i2c_device_to_host.c.obj
+[79/481] Building C object firmware/application/CMakeFiles/application.elf.dir/usb_serial_device_to_host.c.obj
+[80/481] Building C object firmware/application/CMakeFiles/application.elf.dir/hackrf_core_mini.c.obj
+[81/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/adc.c.obj
+[82/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb.c.obj
+[83/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb_queue.c.obj
+[84/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/hackrf_usb/usb_device.c.obj
+[85/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb_request.c.obj
+[86/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb_standard_request.c.obj
+[87/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/libopencm3/lib/lpc43xx/scu.c.obj
+[88/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/gpio_lpc.c.obj
+[89/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/platform_detect.c.obj
+[90/481] Building C object firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/various/chprintf.c.obj
+[91/481] Building C object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/third_party/tjpgd/tjpgd.c.obj
+[92/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/shell.cpp.obj
+[93/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/main.cpp.obj
+[94/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/adsb_frame.cpp.obj
+[95/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/adsb.cpp.obj
+[96/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ais_baseband.cpp.obj
+[97/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ais_packet.cpp.obj
+[98/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/backlight.cpp.obj
+[99/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ak4951.cpp.obj
+[100/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/baseband_cpld.cpp.obj
+[101/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/bch_code.cpp.obj
+[102/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/buffer.cpp.obj
+[103/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/chibios_cpp.cpp.obj
+[104/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/buffer_exchange.cpp.obj
+[105/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/cpld_max5.cpp.obj
+[106/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/cpld_xilinx.cpp.obj
+[107/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/cpld_update.cpp.obj
+[108/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ert_packet.cpp.obj
+[109/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/event.cpp.obj
+[110/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/gcc.cpp.obj
+[111/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/debug.cpp.obj
+[112/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2c_pp.cpp.obj
+[113/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/jtag.cpp.obj
+[114/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/hackrf_hal.cpp.obj
+[115/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/jtag_tap.cpp.obj
+[116/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/lfsr_random.cpp.obj
+[117/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/lcd_ili9341.cpp.obj
+[118/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/manchester.cpp.obj
+[119/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/message_queue.cpp.obj
+[120/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/morse.cpp.obj
+[121/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/png_writer.cpp.obj
+[122/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag_packet.cpp.obj
+[123/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag.cpp.obj
+[124/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/aprs_packet.cpp.obj
+[125/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/portapack_io.cpp.obj
+[126/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/portapack_shared_memory.cpp.obj
+[127/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/portapack_persistent_memory.cpp.obj
+[128/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/sonde_packet.cpp.obj
+[129/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/tpms_packet.cpp.obj
+[130/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ui.cpp.obj
+[131/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ui_focus.cpp.obj
+[132/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ui_text.cpp.obj
+[133/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ui_painter.cpp.obj
+[134/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ui_language.cpp.obj
+[135/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/ui_widget.cpp.obj
+[136/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/utility.cpp.obj
+[137/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/wm8731.cpp.obj
+[138/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdevmanager.cpp.obj
+[139/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_ads1110.cpp.obj
+[140/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_bh1750.cpp.obj
+[141/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_bmx280.cpp.obj
+[142/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_max17055.cpp.obj
+[143/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_ppmod.cpp.obj
+[144/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_sht3x.cpp.obj
+[145/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_sht4x.cpp.obj
+[146/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/performance_counter.cpp.obj
+[147/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/battery.cpp.obj
+[148/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/common/bmpfile.cpp.obj
+[149/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/app_settings.cpp.obj
+[150/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/audio.cpp.obj
+[151/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/baseband_api.cpp.obj
+[152/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/capture_thread.cpp.obj
+[153/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/clock_manager.cpp.obj
+[154/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/core_control.cpp.obj
+[155/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/database.cpp.obj
+[156/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/gradient.cpp.obj
+[157/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/file_reader.cpp.obj
+[158/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/event_m0.cpp.obj
+[159/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/file_path.cpp.obj
+[160/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/file.cpp.obj
+[161/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/freqman_db.cpp.obj
+[162/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/freqman.cpp.obj
+[163/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/io_convert.cpp.obj
+[164/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/io_file.cpp.obj
+[165/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/io_wave.cpp.obj
+[166/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/iq_trim.cpp.obj
+[167/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/irq_controls.cpp.obj
+[168/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/irq_lcd_frame.cpp.obj
+[169/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/keeloq_common.cpp.obj
+[170/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/irq_rtc.cpp.obj
+[171/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/keeloq_file.cpp.obj
+[172/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/keeloq_keystore.cpp.obj
+[173/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/log_file.cpp.obj
+[174/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/metadata_file.cpp.obj
+[175/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_sector_file_ring.cpp.obj
+[176/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_deinterleave_dispatch_m0.cpp.obj
+[177/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_msumr.cpp.obj
+[178/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_deint_service.cpp.obj
+[179/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/msumr_demux.cpp.obj
+[180/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/jpeg_decode.cpp.obj
+[181/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/meteor_lrpt_g4_preview.cpp.obj
+[182/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/meteor_deinterleaver.cpp.obj
+[183/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/meteor_deinterleaver_reader.cpp.obj
+/work/firmware/baseband/meteor_lrpt/meteor_deinterleaver_reader.cpp: In static member function 'static int meteor_lrpt::MeteorDeinterleaverReader::autocorrelate(unsigned int*, int, uint8_t*, int)':
+/work/firmware/baseband/meteor_lrpt/meteor_deinterleaver_reader.cpp:52:15: warning: unused variable 'avg_sz' [-Wunused-variable]
+   52 |     const int avg_sz = 8 * period_bytes + 8;
+      |               ^~~~~~
+[184/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/meteor_soft_correlate.cpp.obj
+[185/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/external_ring_ram.cpp.obj
+In file included from /work/firmware/baseband/meteor_lrpt/external_ring_ram.cpp:6:
+/work/firmware/baseband/meteor_lrpt/external_ring.hpp:19:7: warning: 'class meteor_lrpt::MeteorDeintRamRing' has pointer data members [-Weffc++]
+   19 | class MeteorDeintRamRing final : public IMeteorDeintRing {
+      |       ^~~~~~~~~~~~~~~~~~
+/work/firmware/baseband/meteor_lrpt/external_ring.hpp:19:7: warning:   but does not declare 'meteor_lrpt::MeteorDeintRamRing(const meteor_lrpt::MeteorDeintRamRing&)' [-Weffc++]
+/work/firmware/baseband/meteor_lrpt/external_ring.hpp:19:7: warning:   or 'operator=(const meteor_lrpt::MeteorDeintRamRing&)' [-Weffc++]
+/work/firmware/baseband/meteor_lrpt/external_ring.hpp:27:13: note: pointer member 'meteor_lrpt::MeteorDeintRamRing::data_' declared here
+   27 |     int8_t* data_{nullptr};
+      |             ^~~~~
+[186/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4_service.cpp.obj
+[187/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/flipper_subfile.cpp.obj
+[188/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/portapack.cpp.obj
+[189/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial_shell_filesystem.cpp.obj
+[190/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial_shell.cpp.obj
+[191/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial_event.cpp.obj
+[192/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial_thread.cpp.obj
+[193/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial.cpp.obj
+[194/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial_host_to_device.cpp.obj
+[195/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/qrcodegen.cpp.obj
+[196/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/usb_serial_asyncmsg.cpp.obj
+[197/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/radio.cpp.obj
+[198/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/receiver_model.cpp.obj
+[199/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/recent_entries.cpp.obj
+[200/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/replay_thread.cpp.obj
+[201/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/rf_path.cpp.obj
+[202/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/rtc_time.cpp.obj
+[203/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/sd_card.cpp.obj
+[204/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/spectrum_color_lut.cpp.obj
+[205/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/serializer.cpp.obj
+[206/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/string_format.cpp.obj
+[207/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/theme.cpp.obj
+[208/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/temperature_logger.cpp.obj
+[209/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/tone_key.cpp.obj
+[210/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/touch.cpp.obj
+[211/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/tuning.cpp.obj
+[212/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/transmitter_model.cpp.obj
+[213/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/debounce.cpp.obj
+[214/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/encoder.cpp.obj
+[215/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/max2837.cpp.obj
+[216/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/max2831.cpp.obj
+[217/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/max2839.cpp.obj
+[218/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/max5864.cpp.obj
+[219/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/rffc507x.cpp.obj
+[220/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/rffc507x_spi.cpp.obj
+[221/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/spi_pp.cpp.obj
+[222/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/si5351.cpp.obj
+[223/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hw/touch_adc.cpp.obj
+[224/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ook_file.cpp.obj
+[225/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_baseband_stats_view.cpp.obj
+[226/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_navigation.cpp.obj
+[227/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_notifications.cpp.obj
+[228/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_record_view.cpp.obj
+[229/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_status_view.cpp.obj
+[230/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_alphanum.cpp.obj
+[231/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_audio.cpp.obj
+[232/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_font_fixed_5x8.cpp.obj
+[233/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_font_fixed_8x16.cpp.obj
+[234/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_channel.cpp.obj
+[235/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_geomap.cpp.obj
+[236/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_qrcode.cpp.obj
+[237/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_menu.cpp.obj
+[238/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_btngrid.cpp.obj
+[239/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_receiver.cpp.obj
+[240/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_rssi.cpp.obj
+[241/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_freqlist.cpp.obj
+[242/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_spectrum.cpp.obj
+[243/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_tabview.cpp.obj
+[244/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_textentry.cpp.obj
+[245/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_tone_key.cpp.obj
+[246/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_transmitter.cpp.obj
+[247/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui/ui_bmpview.cpp.obj
+[248/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ais_app.cpp.obj
+[249/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/analog_audio_app.cpp.obj
+[250/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ble_rx_app.cpp.obj
+[251/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ble_tx_app.cpp.obj
+[252/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/capture_app.cpp.obj
+[253/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/pocsag_app.cpp.obj
+[254/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_about_simple.cpp.obj
+[255/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_adsb_rx.cpp.obj
+[256/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_aprs_rx.cpp.obj
+[257/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_aprs_tx.cpp.obj
+[258/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_battinfo.cpp.obj
+[259/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_bmp_file_viewer.cpp.obj
+[260/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_btle_rx.cpp.obj
+[261/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_debug.cpp.obj
+[262/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_debug_max17055.cpp.obj
+[263/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_dfu_menu.cpp.obj
+[264/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_encoders.cpp.obj
+[265/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_external_module_view.cpp.obj
+[266/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_fileman.cpp.obj
+[267/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_flash_utility.cpp.obj
+[268/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_freqman.cpp.obj
+[269/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_iq_trim.cpp.obj
+[270/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_looking_glass_app.cpp.obj
+[271/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_mictx.cpp.obj
+[272/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_modemsetup.cpp.obj
+[273/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_playlist.cpp.obj
+[274/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_rds.cpp.obj
+[275/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_recon_settings.cpp.obj
+[276/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_recon.cpp.obj
+[277/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_search.cpp.obj
+[278/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_settings.cpp.obj
+[279/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_sonde.cpp.obj
+[280/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_ss_viewer.cpp.obj
+[281/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_standalone_view.cpp.obj
+[282/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_subghzd.cpp.obj
+[283/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_text_editor.cpp.obj
+[284/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_touch_calibration.cpp.obj
+[285/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_touchtunes.cpp.obj
+[286/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/apps/ui_weatherstation.cpp.obj
+[287/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/protocols/aprs.cpp.obj
+[288/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/protocols/ax25.cpp.obj
+[289/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/protocols/dcs.cpp.obj
+[290/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/protocols/encoders.cpp.obj
+[291/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/protocols/modems.cpp.obj
+[292/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/protocols/rds.cpp.obj
+[293/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_debug.cpp.obj
+[294/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/portapack_cpld_20150901_data.cpp.obj
+[295/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/config_mode.cpp.obj
+[296/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/portapack_cpld_20170522_data.cpp.obj
+[297/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/portapack_cpld_h4m_data.cpp.obj
+[298/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/hackrf_cpld_data.cpp.obj
+[299/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/ui_external_items_menu_loader.cpp.obj
+[300/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/afsk_rx/main.cpp.obj
+[301/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/afsk_rx/ui_afsk_rx.cpp.obj
+[302/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/calculator/main.cpp.obj
+[303/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/calculator/ui_calculator.cpp.obj
+[304/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/font_viewer/main.cpp.obj
+[305/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/font_viewer/ui_font_viewer.cpp.obj
+[306/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/blespam/main.cpp.obj
+[307/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/blespam/ui_blespam.cpp.obj
+[308/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/analogtv/main.cpp.obj
+[309/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/analogtv/analog_tv_app.cpp.obj
+[310/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/analogtv/ui_tv.cpp.obj
+[311/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/nrf_rx/main.cpp.obj
+[312/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/nrf_rx/ui_nrf_rx.cpp.obj
+[313/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/coasterp/main.cpp.obj
+[314/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/coasterp/ui_coasterp.cpp.obj
+[315/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/lge/main.cpp.obj
+[316/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/lge/lge_app.cpp.obj
+[317/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/lge/rfm69.cpp.obj
+[318/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/lcr/main.cpp.obj
+[319/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/lcr/ui_lcr.cpp.obj
+[320/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/jammer/main.cpp.obj
+[321/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/jammer/ui_jammer.cpp.obj
+[322/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/gpssim/main.cpp.obj
+[323/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/gpssim/gps_sim_app.cpp.obj
+[324/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/spainter/main.cpp.obj
+[325/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/spainter/ui_spectrum_painter_text.cpp.obj
+[326/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/spainter/ui_spectrum_painter.cpp.obj
+[327/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/keyfob/main.cpp.obj
+[328/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/spainter/ui_spectrum_painter_image.cpp.obj
+[329/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tetris/main.cpp.obj
+[330/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/keyfob/ui_keyfob.cpp.obj
+[331/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tetris/ui_tetris.cpp.obj
+[332/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/extsensors/main.cpp.obj
+[333/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/foxhunt/main.cpp.obj
+[334/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/extsensors/ui_extsensors.cpp.obj
+[335/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/audio_test/main.cpp.obj
+[336/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/foxhunt/ui_foxhunt_rx.cpp.obj
+[337/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/audio_test/ui_audio_test.cpp.obj
+[338/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/wardrivemap/main.cpp.obj
+[339/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tpmsrx/main.cpp.obj
+[340/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/wardrivemap/ui_wardrivemap.cpp.obj
+[341/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tpmstx/main.cpp.obj
+[342/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tpmsrx/tpms_app.cpp.obj
+[343/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/protoview/main.cpp.obj
+[344/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tpmstx/tpms_tx_app.cpp.obj
+[345/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/adsbtx/main.cpp.obj
+[346/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/protoview/ui_protoview.cpp.obj
+[347/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sstvtx/main.cpp.obj
+[348/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/adsbtx/ui_adsb_tx.cpp.obj
+[349/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sstvtx/ui_sstvtx.cpp.obj
+[350/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/same_tx/main.cpp.obj
+[351/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/mdc_tx/main.cpp.obj
+[352/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/same_tx/ui_same_tx.cpp.obj
+[353/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/mdc_tx/ui_mdc_tx.cpp.obj
+[354/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sstvrx/main.cpp.obj
+[355/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/random_password/main.cpp.obj
+[356/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sstvrx/ui_sstvrx.cpp.obj
+[357/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/random_password/sha512.cpp.obj
+[358/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/random_password/ui_random_password.cpp.obj
+[359/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/acars_rx/main.cpp.obj
+[360/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/acars_rx/acars_app.cpp.obj
+[361/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/wefax_rx/main.cpp.obj
+[362/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/wefax_rx/ui_wefax_rx.cpp.obj
+[363/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/noaaapt_rx/main.cpp.obj
+[364/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/noaaapt_rx/ui_noaaapt_rx.cpp.obj
+[365/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/meteor_lrpt_rx/main.cpp.obj
+[366/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/meteor_lrpt_rx/ui_meteor_lrpt_rx.cpp.obj
+[367/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/shoppingcart_lock/main.cpp.obj
+[368/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/ookbrute/main.cpp.obj
+[369/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/shoppingcart_lock/shoppingcart_lock.cpp.obj
+[370/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/ookbrute/ui_ookbrute.cpp.obj
+[371/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/ook_editor/main.cpp.obj
+[372/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/cvs_spam/main.cpp.obj
+[373/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/ook_editor/ui_ook_editor.cpp.obj
+[374/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/flippertx/main.cpp.obj
+[375/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/cvs_spam/cvs_spam.cpp.obj
+[376/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/remote/main.cpp.obj
+[377/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/flippertx/ui_flippertx.cpp.obj
+[378/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/mcu_temperature/main.cpp.obj
+[379/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/remote/ui_remote.cpp.obj
+In file included from /work/firmware/application/external/remote/ui_remote.cpp:25:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'bool ui::external_app::remote::RemoteModel::load(const std::filesystem::path&)' at /work/firmware/application/external/remote/ui_remote.cpp:98:29:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[380/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/mcu_temperature/mcu_temperature.cpp.obj
+[381/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/fmradio/main.cpp.obj
+[382/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/fmradio/ui_fmradio.cpp.obj
+[383/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tuner/main.cpp.obj
+[384/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/metronome/main.cpp.obj
+[385/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/tuner/ui_tuner.cpp.obj
+[386/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/metronome/ui_metronome.cpp.obj
+[387/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/app_manager/main.cpp.obj
+[388/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/hopper/main.cpp.obj
+[389/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/app_manager/ui_app_manager.cpp.obj
+In file included from /work/firmware/application/external/app_manager/ui_app_manager.cpp:31:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'void ui::external_app::app_manager::AppManagerView::get_blacklist(std::vector<std::__cxx11::basic_string<char> >&)' at /work/firmware/application/external/app_manager/ui_app_manager.cpp:198:29:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[390/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/antenna_length/main.cpp.obj
+[391/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/hopper/ui_hopper.cpp.obj
+In file included from /work/firmware/application/external/hopper/ui_hopper.cpp:30:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'ui::external_app::hopper::HopperView::load_list()::<lambda(std::filesystem::path)>' at /work/firmware/application/external/hopper/ui_hopper.cpp:199:33:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[392/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/wav_view/main.cpp.obj
+[393/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/antenna_length/ui_whipcalc.cpp.obj
+In file included from /work/firmware/application/external/antenna_length/ui_whipcalc.cpp:28:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'void ui::external_app::antenna_length::WhipCalcView::load_antenna_db()' at /work/firmware/application/external/antenna_length/ui_whipcalc.cpp:153:29:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[394/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sd_wipe/main.cpp.obj
+[395/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/wav_view/ui_view_wav.cpp.obj
+[396/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/playlist_editor/main.cpp.obj
+[397/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sd_wipe/ui_sd_wipe.cpp.obj
+[398/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/snake/main.cpp.obj
+[399/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/playlist_editor/ui_playlist_editor.cpp.obj
+In file included from /work/firmware/application/external/playlist_editor/ui_playlist_editor.cpp:35:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'void ui::external_app::playlist_editor::PlaylistEditorView::on_file_changed(const std::filesystem::path&)' at /work/firmware/application/external/playlist_editor/ui_playlist_editor.cpp:150:29:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[400/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/snake/ui_snake.cpp.obj
+[401/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/stopwatch/main.cpp.obj
+[402/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/stopwatch/ui_stopwatch.cpp.obj
+[403/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/breakout/main.cpp.obj
+[404/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/breakout/ui_breakout.cpp.obj
+[405/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/dinogame/main.cpp.obj
+[406/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/doom/main.cpp.obj
+[407/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/dinogame/ui_dinogame.cpp.obj
+[408/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/debug_pmem/main.cpp.obj
+[409/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/doom/ui_doom.cpp.obj
+[410/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/scanner/main.cpp.obj
+[411/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/debug_pmem/ui_debug_pmem.cpp.obj
+[412/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/level/main.cpp.obj
+[413/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/scanner/ui_scanner.cpp.obj
+[414/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/level/ui_level.cpp.obj
+[415/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/gfxeq/main.cpp.obj
+[416/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/waterfall_designer/main.cpp.obj
+[417/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/gfxeq/ui_gfxeq.cpp.obj
+[418/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/detector_rx/main.cpp.obj
+[419/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/waterfall_designer/ui_waterfall_designer.cpp.obj
+In file included from /work/firmware/application/external/waterfall_designer/ui_waterfall_designer.cpp:29:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'void ui::external_app::waterfall_designer::WaterfallDesignerView::on_profile_changed(std::filesystem::path)' at /work/firmware/application/external/waterfall_designer/ui_waterfall_designer.cpp:195:29:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[420/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/spaceinv/main.cpp.obj
+[421/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/detector_rx/ui_detector_rx.cpp.obj
+[422/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/blackjack/main.cpp.obj
+[423/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/spaceinv/ui_spaceinv.cpp.obj
+[424/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/battleship/main.cpp.obj
+[425/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/blackjack/ui_blackjack.cpp.obj
+[426/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/ert/main.cpp.obj
+[427/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/battleship/ui_battleship.cpp.obj
+[428/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/ert/ert_app.cpp.obj
+[429/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/epirb_rx/main.cpp.obj
+[430/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/epirb_tx/main.cpp.obj
+[431/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/epirb_rx/ui_epirb_rx.cpp.obj
+[432/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/soundboard/main.cpp.obj
+[433/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/epirb_tx/ui_epirb_tx.cpp.obj
+In file included from /work/firmware/application/external/epirb_tx/ui_epirb_tx.cpp:28:
+In member function 'bool BufferLineReader<BufferType>::read_line(iterator&) [with BufferType = File]',
+    inlined from 'const std::string& BufferLineReader<BufferType>::iterator::operator*() [with BufferType = File]' at /work/firmware/application/./file_reader.hpp:51:45,
+    inlined from 'void ui::external_app::epirb_tx::EPIRBTXAppView::load_beacons()' at /work/firmware/application/external/epirb_tx/ui_epirb_tx.cpp:603:33:
+/work/firmware/application/./file_reader.hpp:117:25: warning: 'char* strncpy(char*, const char*, size_t)' destination unchanged after copying no bytes [-Wstringop-truncation]
+  117 |             std::strncpy(&it.line_data_[offset], buf, len);
+      |             ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[434/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/soundboard/soundboard_app.cpp.obj
+[435/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/game2048/main.cpp.obj
+[436/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/game2048/ui_game2048.cpp.obj
+[437/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/bht_tx/main.cpp.obj
+[438/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/bht_tx/bht.cpp.obj
+[439/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/bht_tx/ui_bht_tx.cpp.obj
+[440/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/morse_practice/main.cpp.obj
+[441/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/morse_practice/ui_morse_practice.cpp.obj
+[442/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/adult_toys_controller/main.cpp.obj
+[443/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/adult_toys_controller/ui_adult_toys_controller.cpp.obj
+[444/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/flex_rx/main.cpp.obj
+[445/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/flex_rx/ui_flex_rx.cpp.obj
+[446/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/subcarrx/main.cpp.obj
+[447/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/subcarrx/ui_subcar.cpp.obj
+[448/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/siggen/main.cpp.obj
+[449/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/siggen/ui_siggen.cpp.obj
+[450/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/morse_radio/main.cpp.obj
+[451/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/morse_radio/ui_morse_radio.cpp.obj
+[452/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/morseradiotx/main.cpp.obj
+[453/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/morseradiotx/ui_morse_radiotx.cpp.obj
+[454/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/keeloqtx/main.cpp.obj
+[455/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/keeloqtx/ui_keeloqtx.cpp.obj
+[456/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/rtty_rx/main.cpp.obj
+[457/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/rtty_rx/baudot.cpp.obj
+[458/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/rtty_rx/ui_rtty_rx.cpp.obj
+[459/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/rtty_tx/main.cpp.obj
+[460/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/rtty_tx/baudot.cpp.obj
+[461/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/rtty_tx/ui_rtty_tx.cpp.obj
+[462/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/pocsag_tx/main.cpp.obj
+[463/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/pocsag_tx/ui_pocsag_tx.cpp.obj
+[464/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/flex_tx/main.cpp.obj
+[465/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/flex_tx/ui_flex_tx.cpp.obj
+[466/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/time_sink/main.cpp.obj
+[467/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/time_sink/ui_time_sink.cpp.obj
+[468/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/kiss_tnc/main.cpp.obj
+[469/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/kiss_tnc/ui_kiss_tnc.cpp.obj
+[470/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/fpv_detect/main.cpp.obj
+[471/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/fpv_detect/ui_fpv_detect.cpp.obj
+[472/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/p25_tx/main.cpp.obj
+[473/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/p25_tx/ui_p25_tx.cpp.obj
+[474/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/two_tone_pager/main.cpp.obj
+[475/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/two_tone_pager/ui_two_tone_pager.cpp.obj
+[476/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/two_tone_rx/main.cpp.obj
+[477/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sdusb/main.cpp.obj
+[478/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/two_tone_rx/ui_two_tone_rx.cpp.obj
+[479/481] Building ASM object firmware/application/CMakeFiles/application.elf.dir/lz4.S.obj
+[480/481] Building CXX object firmware/application/CMakeFiles/application.elf.dir/external/sdusb/ui_sd_over_usb.cpp.obj
+[481/481] Linking CXX executable firmware/application/application.elf
+FAILED: firmware/application/application.elf
+: && /usr/bin/arm-none-eabi-g++ -mcpu=cortex-m0 -Os -g --specs=nano.specs -specs=nosys.specs -ffunction-sections -fdata-sections -fno-common -std=c++20 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile -Wall -Wextra -Wno-psabi -mno-thumb-interwork -mthumb -DTHUMB -O3 -DNDEBUG -nostartfiles -Wl,--library-path=/work/firmware/chibios/os/ports/GCC/ARMCMx,--script=/work/firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/ld/LPC43xx_M0.ld,--gc-sections -mno-thumb-interwork -mthumb     -Wl,--defsym=LD_RAM_SIZE=64k     -Wl,--defsym=LD_M0_LOCAL_HEAP_SIZE=0k     -Wl,--defsym=LD_M0_LOCAL_HEAP_ORIGIN=0     -Wl,--defsym=LD_M4_RAM_LEN=96k     -Wl,--defsym=LD_M4_FLASH_LEN=32752     -Wl,--defsym=LD_USB_RAM_LEN=32k     -Wl,--defsym=LD_FLASH_SIZE=1M    -Wl,--defsym,LD_FLASH_SIZE=1048576 firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/GCC/ARMCMx/crt0.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/vectors.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/GCC/ARMCMx/chcore.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/GCC/ARMCMx/chcore_v6m.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/ports/common/ARMCMx/nvic.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chsys.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chdebug.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chlists.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chvt.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chschd.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chthreads.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chdynamic.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chregistry.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chsem.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmtx.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chcond.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chevents.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmsg.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmboxes.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chqueues.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmemcore.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chheap.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/kernel/src/chmempools.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/test.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testthd.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testsem.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testmtx.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testmsg.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testmbox.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testevt.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testheap.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testpools.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testdyn.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testqueues.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/test/testbmk.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/hal.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/adc.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/can.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/ext.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/gpt.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/i2c.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/icu.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/mac.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/mmc_spi.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/mmcsd.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/pal.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/pwm.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/rtc.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/sdc.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/serial.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/serial_usb.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/spi.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/tm.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/uart.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/hal/src/usb.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx_M0/hal_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/gpt_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/i2c_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/pal_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/rtc_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/sdc_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/serial_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/spi_lld.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/hal/platforms/LPC43xx/lpc43xx.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/boards/PORTAPACK_APPLICATION/board.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/various/fatfs_bindings/fatfs_diskio.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/os/various/fatfs_bindings/fatfs_syscall.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/ff.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios-portapack/ext/fatfs/src/option/unicode.c.obj firmware/application/CMakeFiles/application.elf.dir/firmware_info.c.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_cdc.c.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_descriptor.c.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_endpoints.c.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_device_to_host.c.obj firmware/application/CMakeFiles/application.elf.dir/i2c_device_to_host.c.obj firmware/application/CMakeFiles/application.elf.dir/hackrf_core_mini.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/adc.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb_queue.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/hackrf_usb/usb_device.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb_request.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/usb_standard_request.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/libopencm3/lib/lpc43xx/scu.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/gpio_lpc.c.obj firmware/application/CMakeFiles/application.elf.dir/__/__/hackrf/firmware/common/platform_detect.c.obj firmware/application/CMakeFiles/application.elf.dir/__/chibios/os/various/chprintf.c.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/third_party/tjpgd/tjpgd.c.obj firmware/application/CMakeFiles/application.elf.dir/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/shell.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/adsb.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/adsb_frame.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ais_baseband.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ais_packet.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ak4951.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/backlight.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/baseband_cpld.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/bch_code.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/buffer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/buffer_exchange.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/chibios_cpp.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/cpld_max5.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/cpld_update.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/cpld_xilinx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/debug.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ert_packet.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/event.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/gcc.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/hackrf_hal.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2c_pp.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/jtag.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/jtag_tap.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/lcd_ili9341.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/lfsr_random.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/manchester.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/message_queue.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/morse.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/png_writer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/pocsag_packet.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/aprs_packet.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/portapack_io.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/portapack_persistent_memory.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/portapack_shared_memory.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/sonde_packet.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/tpms_packet.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ui.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ui_focus.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ui_painter.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ui_text.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ui_widget.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/ui_language.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/utility.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/wm8731.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdevmanager.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_ads1110.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_bh1750.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_bmx280.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_max17055.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_ppmod.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_sht3x.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/i2cdev_sht4x.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/battery.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/performance_counter.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/common/bmpfile.cpp.obj firmware/application/CMakeFiles/application.elf.dir/app_settings.cpp.obj firmware/application/CMakeFiles/application.elf.dir/audio.cpp.obj firmware/application/CMakeFiles/application.elf.dir/baseband_api.cpp.obj firmware/application/CMakeFiles/application.elf.dir/capture_thread.cpp.obj firmware/application/CMakeFiles/application.elf.dir/clock_manager.cpp.obj firmware/application/CMakeFiles/application.elf.dir/core_control.cpp.obj firmware/application/CMakeFiles/application.elf.dir/database.cpp.obj firmware/application/CMakeFiles/application.elf.dir/gradient.cpp.obj firmware/application/CMakeFiles/application.elf.dir/event_m0.cpp.obj firmware/application/CMakeFiles/application.elf.dir/file_reader.cpp.obj firmware/application/CMakeFiles/application.elf.dir/file.cpp.obj firmware/application/CMakeFiles/application.elf.dir/file_path.cpp.obj firmware/application/CMakeFiles/application.elf.dir/freqman_db.cpp.obj firmware/application/CMakeFiles/application.elf.dir/freqman.cpp.obj firmware/application/CMakeFiles/application.elf.dir/io_convert.cpp.obj firmware/application/CMakeFiles/application.elf.dir/io_file.cpp.obj firmware/application/CMakeFiles/application.elf.dir/io_wave.cpp.obj firmware/application/CMakeFiles/application.elf.dir/iq_trim.cpp.obj firmware/application/CMakeFiles/application.elf.dir/irq_controls.cpp.obj firmware/application/CMakeFiles/application.elf.dir/irq_lcd_frame.cpp.obj firmware/application/CMakeFiles/application.elf.dir/irq_rtc.cpp.obj firmware/application/CMakeFiles/application.elf.dir/keeloq_common.cpp.obj firmware/application/CMakeFiles/application.elf.dir/keeloq_file.cpp.obj firmware/application/CMakeFiles/application.elf.dir/keeloq_keystore.cpp.obj firmware/application/CMakeFiles/application.elf.dir/log_file.cpp.obj firmware/application/CMakeFiles/application.elf.dir/metadata_file.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_sector_file_ring.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_deinterleave_dispatch_m0.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_deint_service.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_msumr.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/msumr_demux.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/jpeg_decode.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4/meteor_lrpt_g4_preview.cpp.obj firmware/application/CMakeFiles/application.elf.dir/meteor_lrpt_g4_service.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/meteor_deinterleaver.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/meteor_deinterleaver_reader.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/meteor_soft_correlate.cpp.obj firmware/application/CMakeFiles/application.elf.dir/__/baseband/meteor_lrpt/external_ring_ram.cpp.obj firmware/application/CMakeFiles/application.elf.dir/flipper_subfile.cpp.obj firmware/application/CMakeFiles/application.elf.dir/portapack.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_shell.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_shell_filesystem.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_event.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_thread.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_host_to_device.cpp.obj firmware/application/CMakeFiles/application.elf.dir/usb_serial_asyncmsg.cpp.obj firmware/application/CMakeFiles/application.elf.dir/qrcodegen.cpp.obj firmware/application/CMakeFiles/application.elf.dir/radio.cpp.obj firmware/application/CMakeFiles/application.elf.dir/receiver_model.cpp.obj firmware/application/CMakeFiles/application.elf.dir/recent_entries.cpp.obj firmware/application/CMakeFiles/application.elf.dir/replay_thread.cpp.obj firmware/application/CMakeFiles/application.elf.dir/rf_path.cpp.obj firmware/application/CMakeFiles/application.elf.dir/rtc_time.cpp.obj firmware/application/CMakeFiles/application.elf.dir/sd_card.cpp.obj firmware/application/CMakeFiles/application.elf.dir/serializer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/spectrum_color_lut.cpp.obj firmware/application/CMakeFiles/application.elf.dir/string_format.cpp.obj firmware/application/CMakeFiles/application.elf.dir/temperature_logger.cpp.obj firmware/application/CMakeFiles/application.elf.dir/theme.cpp.obj firmware/application/CMakeFiles/application.elf.dir/touch.cpp.obj firmware/application/CMakeFiles/application.elf.dir/tone_key.cpp.obj firmware/application/CMakeFiles/application.elf.dir/transmitter_model.cpp.obj firmware/application/CMakeFiles/application.elf.dir/tuning.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/debounce.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/encoder.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/max2837.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/max2839.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/max2831.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/max5864.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/rffc507x.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/rffc507x_spi.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/si5351.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/spi_pp.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hw/touch_adc.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ook_file.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_baseband_stats_view.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_navigation.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_notifications.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_record_view.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_status_view.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_alphanum.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_audio.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_channel.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_font_fixed_5x8.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_font_fixed_8x16.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_geomap.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_qrcode.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_menu.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_btngrid.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_receiver.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_rssi.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_freqlist.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_spectrum.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_tabview.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_textentry.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_tone_key.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_transmitter.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui/ui_bmpview.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ais_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/analog_audio_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ble_rx_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ble_tx_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/capture_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/pocsag_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_about_simple.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_adsb_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_aprs_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_aprs_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_battinfo.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_bmp_file_viewer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_btle_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_debug.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_debug_max17055.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_dfu_menu.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_encoders.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_external_module_view.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_fileman.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_flash_utility.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_freqman.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_iq_trim.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_looking_glass_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_mictx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_modemsetup.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_playlist.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_rds.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_recon_settings.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_recon.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_search.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_settings.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_sonde.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_ss_viewer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_standalone_view.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_subghzd.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_text_editor.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_touch_calibration.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_touchtunes.cpp.obj firmware/application/CMakeFiles/application.elf.dir/apps/ui_weatherstation.cpp.obj firmware/application/CMakeFiles/application.elf.dir/protocols/aprs.cpp.obj firmware/application/CMakeFiles/application.elf.dir/protocols/ax25.cpp.obj firmware/application/CMakeFiles/application.elf.dir/protocols/dcs.cpp.obj firmware/application/CMakeFiles/application.elf.dir/protocols/encoders.cpp.obj firmware/application/CMakeFiles/application.elf.dir/protocols/modems.cpp.obj firmware/application/CMakeFiles/application.elf.dir/protocols/rds.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_sd_card_debug.cpp.obj firmware/application/CMakeFiles/application.elf.dir/config_mode.cpp.obj firmware/application/CMakeFiles/application.elf.dir/portapack_cpld_20150901_data.cpp.obj firmware/application/CMakeFiles/application.elf.dir/portapack_cpld_20170522_data.cpp.obj firmware/application/CMakeFiles/application.elf.dir/portapack_cpld_h4m_data.cpp.obj firmware/application/CMakeFiles/application.elf.dir/hackrf_cpld_data.cpp.obj firmware/application/CMakeFiles/application.elf.dir/ui_external_items_menu_loader.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/afsk_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/afsk_rx/ui_afsk_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/calculator/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/calculator/ui_calculator.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/font_viewer/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/font_viewer/ui_font_viewer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/blespam/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/blespam/ui_blespam.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/analogtv/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/analogtv/analog_tv_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/analogtv/ui_tv.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/nrf_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/nrf_rx/ui_nrf_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/coasterp/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/coasterp/ui_coasterp.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/lge/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/lge/lge_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/lge/rfm69.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/lcr/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/lcr/ui_lcr.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/jammer/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/jammer/ui_jammer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/gpssim/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/gpssim/gps_sim_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/spainter/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/spainter/ui_spectrum_painter.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/spainter/ui_spectrum_painter_text.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/spainter/ui_spectrum_painter_image.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/keyfob/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/keyfob/ui_keyfob.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tetris/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tetris/ui_tetris.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/extsensors/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/extsensors/ui_extsensors.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/foxhunt/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/foxhunt/ui_foxhunt_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/audio_test/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/audio_test/ui_audio_test.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/wardrivemap/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/wardrivemap/ui_wardrivemap.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tpmsrx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tpmsrx/tpms_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tpmstx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tpmstx/tpms_tx_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/protoview/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/protoview/ui_protoview.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/adsbtx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/adsbtx/ui_adsb_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sstvtx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sstvtx/ui_sstvtx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/same_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/same_tx/ui_same_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/mdc_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/mdc_tx/ui_mdc_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sstvrx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sstvrx/ui_sstvrx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/random_password/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/random_password/ui_random_password.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/random_password/sha512.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/acars_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/acars_rx/acars_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/wefax_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/wefax_rx/ui_wefax_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/noaaapt_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/noaaapt_rx/ui_noaaapt_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/meteor_lrpt_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/meteor_lrpt_rx/ui_meteor_lrpt_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/shoppingcart_lock/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/shoppingcart_lock/shoppingcart_lock.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/ookbrute/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/ookbrute/ui_ookbrute.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/ook_editor/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/ook_editor/ui_ook_editor.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/cvs_spam/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/cvs_spam/cvs_spam.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/flippertx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/flippertx/ui_flippertx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/remote/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/remote/ui_remote.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/mcu_temperature/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/mcu_temperature/mcu_temperature.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/fmradio/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/fmradio/ui_fmradio.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tuner/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/tuner/ui_tuner.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/metronome/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/metronome/ui_metronome.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/app_manager/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/app_manager/ui_app_manager.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/hopper/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/hopper/ui_hopper.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/antenna_length/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/antenna_length/ui_whipcalc.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/wav_view/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/wav_view/ui_view_wav.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sd_wipe/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sd_wipe/ui_sd_wipe.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/playlist_editor/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/playlist_editor/ui_playlist_editor.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/snake/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/snake/ui_snake.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/stopwatch/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/stopwatch/ui_stopwatch.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/breakout/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/breakout/ui_breakout.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/dinogame/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/dinogame/ui_dinogame.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/doom/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/doom/ui_doom.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/debug_pmem/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/debug_pmem/ui_debug_pmem.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/scanner/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/scanner/ui_scanner.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/level/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/level/ui_level.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/gfxeq/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/gfxeq/ui_gfxeq.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/waterfall_designer/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/waterfall_designer/ui_waterfall_designer.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/detector_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/detector_rx/ui_detector_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/spaceinv/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/spaceinv/ui_spaceinv.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/blackjack/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/blackjack/ui_blackjack.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/battleship/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/battleship/ui_battleship.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/ert/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/ert/ert_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/epirb_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/epirb_rx/ui_epirb_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/epirb_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/epirb_tx/ui_epirb_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/soundboard/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/soundboard/soundboard_app.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/game2048/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/game2048/ui_game2048.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/bht_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/bht_tx/ui_bht_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/bht_tx/bht.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/morse_practice/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/morse_practice/ui_morse_practice.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/adult_toys_controller/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/adult_toys_controller/ui_adult_toys_controller.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/flex_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/flex_rx/ui_flex_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/subcarrx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/subcarrx/ui_subcar.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/siggen/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/siggen/ui_siggen.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/morse_radio/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/morse_radio/ui_morse_radio.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/morseradiotx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/morseradiotx/ui_morse_radiotx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/keeloqtx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/keeloqtx/ui_keeloqtx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/rtty_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/rtty_rx/ui_rtty_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/rtty_rx/baudot.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/rtty_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/rtty_tx/ui_rtty_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/rtty_tx/baudot.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/pocsag_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/pocsag_tx/ui_pocsag_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/flex_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/flex_tx/ui_flex_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/time_sink/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/time_sink/ui_time_sink.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/kiss_tnc/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/kiss_tnc/ui_kiss_tnc.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/fpv_detect/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/fpv_detect/ui_fpv_detect.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/p25_tx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/p25_tx/ui_p25_tx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/two_tone_pager/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/two_tone_pager/ui_two_tone_pager.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/two_tone_rx/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/two_tone_rx/ui_two_tone_rx.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sdusb/main.cpp.obj firmware/application/CMakeFiles/application.elf.dir/external/sdusb/ui_sd_over_usb.cpp.obj firmware/application/CMakeFiles/application.elf.dir/lz4.S.obj -o firmware/application/application.elf  -L/work/firmware/application/external  -Wl,-Map=application.map  -Wl,--print-memory-usage && :
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-closer.o): in function `_close_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/closer.c:47:(.text+0xc): warning: _close is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-closer.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-fstatr.o): in function `_fstat_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/fstatr.c:55:(.text+0xe): warning: _fstat is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-fstatr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-signalr.o): in function `_getpid_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/signalr.c:83:(.text+0x2a): warning: _getpid is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-signalr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-isattyr.o): in function `_isatty_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/isattyr.c:52:(.text+0xc): warning: _isatty is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-isattyr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-signalr.o): in function `_kill_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/signalr.c:53:(.text+0xe): warning: _kill is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-signalr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-lseekr.o): in function `_lseek_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/lseekr.c:49:(.text+0x10): warning: _lseek is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-lseekr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-readr.o): in function `_read_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/readr.c:49:(.text+0x10): warning: _read is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-readr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-writer.o): in function `_write_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/writer.c:49:(.text+0x10): warning: _write is not implemented and will always fail
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-writer.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-getentropyr.o): in function `_getentropy_r':
+/build/newlib-38V0JC/newlib-4.4.0.20231231/build_nano/arm-none-eabi/thumb/v6-m/nofp/newlib/../../../../../../newlib/libc/reent/getentropyr.c:48:(.text+0xe): warning: _getentropy is not implemented and will always fail
+lto-wrapper: warning: using serial compilation of 32 LTRANS jobs
+lto-wrapper: note: see the '-flto' option documentation for more information
+In member function 'paint',
+    inlined from 'paint' at /work/firmware/application/ui/ui_bmpview.cpp:107:6:
+/work/firmware/application/ui/ui_bmpview.cpp:119:44: warning: argument 1 value '4294967295' exceeds maximum object size 2147483647 [-Walloc-size-larger-than=]
+  119 |     ui::Color* line = new ui::Color[d_width];
+      |                                            ^
+/work/firmware/common/chibios_cpp.cpp: In member function 'paint':
+/work/firmware/common/chibios_cpp.cpp:28:7: note: in a call to allocation function 'operator new' declared here
+   28 | void* operator new(size_t size) {
+      |       ^
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg_nano.a(libc_a-getentropyr.o): note: the message above does not take linker garbage collection into account
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: firmware/application/application.elf section `.text' will not fit in region `flash'
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: address 0x20010f3c of firmware/application/application.elf section `.bss' is not within region `ram'
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: address 0x20010f3c of firmware/application/application.elf section `.bss' is not within region `ram'
+/usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/bin/ld: region `flash' overflowed by 97560 bytes
+Memory region         Used Size  Region Size  %age Used
+           flash:     1146136 B         1 MB    109.30%
+             ram:       69436 B        64 KB    105.95%
+       ram_local:           0 B          0 B
+ram_external_app_afsk_rx:        7552 B        32 KB     23.05%
+ram_external_app_calculator:       23757 B        32 KB     72.50%
+ram_external_app_font_viewer:        3564 B        32 KB     10.88%
+ram_external_app_blespam:       11693 B        32 KB     35.68%
+ram_external_app_analogtv:        8176 B        32 KB     24.95%
+ram_external_app_nrf_rx:        4392 B        32 KB     13.40%
+ram_external_app_coasterp:        3204 B        32 KB      9.78%
+ram_external_app_lge:       12700 B        32 KB     38.76%
+ram_external_app_lcr:       18476 B        32 KB     56.38%
+ram_external_app_jammer:       19724 B        32 KB     60.19%
+ram_external_app_gpssim:        6556 B        32 KB     20.01%
+ram_external_app_spainter:       13536 B        32 KB     41.31%
+ram_external_app_keyfob:        5608 B        32 KB     17.11%
+ram_external_app_tetris:       12085 B        32 KB     36.88%
+ram_external_app_extsensors:        7792 B        32 KB     23.78%
+ram_external_app_foxhunt_rx:        5374 B        32 KB     16.40%
+ram_external_app_audio_test:        4500 B        32 KB     13.73%
+ram_external_app_wardrivemap:       11236 B        32 KB     34.29%
+ram_external_app_tpmsrx:       29125 B        32 KB     88.88%
+ram_external_app_protoview:        7388 B        32 KB     22.55%
+ram_external_app_adsbtx:       15408 B        32 KB     47.02%
+ram_external_app_morse_tx:           0 B        32 KB      0.00%
+ram_external_app_sstvtx:        8156 B        32 KB     24.89%
+ram_external_app_random_password:       23112 B        32 KB     70.53%
+ram_external_app_acars_rx:       12588 B        32 KB     38.42%
+ram_external_app_shoppingcart_lock:       17384 B        32 KB     53.05%
+ram_external_app_cvs_spam:       13412 B        32 KB     40.93%
+ram_external_app_ookbrute:       10692 B        32 KB     32.63%
+ram_external_app_flippertx:        7704 B        32 KB     23.51%
+ram_external_app_ook_editor:       23472 B        32 KB     71.63%
+ram_external_app_remote:       26796 B        32 KB     81.77%
+ram_external_app_mcu_temperature:        2608 B        32 KB      7.96%
+ram_external_app_fmradio:       18536 B        32 KB     56.57%
+ram_external_app_tuner:       13644 B        32 KB     41.64%
+ram_external_app_metronome:        7448 B        32 KB     22.73%
+ram_external_app_app_manager:       15524 B        32 KB     47.38%
+ram_external_app_hopper:       16976 B        32 KB     51.81%
+ram_external_app_antenna_length:       15596 B        32 KB     47.60%
+ram_external_app_view_wav:       13772 B        32 KB     42.03%
+ram_external_app_sd_wipe:        1688 B        32 KB      5.15%
+ram_external_app_playlist_editor:       23604 B        32 KB     72.03%
+ram_external_app_snake:        5788 B        32 KB     17.66%
+ram_external_app_stopwatch:        5884 B        32 KB     17.96%
+ram_external_app_wefax_rx:        8336 B        32 KB     25.44%
+ram_external_app_breakout:       12412 B        32 KB     37.88%
+ram_external_app_doom:       24470 B        32 KB     74.68%
+ram_external_app_debug_pmem:       16444 B        32 KB     50.18%
+ram_external_app_scanner:       26353 B        32 KB     80.42%
+ram_external_app_level:       18189 B        32 KB     55.51%
+ram_external_app_gfxeq:        8264 B        32 KB     25.22%
+ram_external_app_noaaapt_rx:        6916 B        32 KB     21.11%
+ram_external_app_detector_rx:       11886 B        32 KB     36.27%
+ram_external_app_dinogame:       27600 B        32 KB     84.23%
+ram_external_app_spaceinv:       21196 B        32 KB     64.69%
+ram_external_app_blackjack:       21276 B        32 KB     64.93%
+ram_external_app_battleship:       32184 B        32 KB     98.22%
+ram_external_app_ert:        4392 B        32 KB     13.40%
+ram_external_app_epirb_rx:       26408 B        32 KB     80.59%
+ram_external_app_soundboard:       13128 B        32 KB     40.06%
+ram_external_app_game2048:        7016 B        32 KB     21.41%
+ram_external_app_bht_tx:       12532 B        32 KB     38.24%
+ram_external_app_morse_practice:       12264 B        32 KB     37.43%
+ram_external_app_adult_toys_controller:       14992 B        32 KB     45.75%
+ram_external_app_flex_rx:       10812 B        32 KB     33.00%
+ram_external_app_sstvrx:       10588 B        32 KB     32.31%
+ram_external_app_subcarrx:       24840 B        32 KB     75.81%
+ram_external_app_siggen:        6716 B        32 KB     20.50%
+ram_external_app_sdusb:        1980 B        32 KB      6.04%
+ram_external_app_morse_radio:       20952 B        32 KB     63.94%
+ram_external_app_waterfall_designer:       24976 B        32 KB     76.22%
+ram_external_app_morseradiotx:       25292 B        32 KB     77.19%
+ram_external_app_keeloqtx:       11016 B        32 KB     33.62%
+ram_external_app_rtty_rx:        4996 B        32 KB     15.25%
+ram_external_app_rtty_tx:       10848 B        32 KB     33.11%
+ram_external_app_tpmstx:       29221 B        32 KB     89.18%
+ram_external_app_pocsag_tx:        8812 B        32 KB     26.89%
+ram_external_app_time_sink:        9284 B        32 KB     28.33%
+ram_external_app_same_tx:        5880 B        32 KB     17.94%
+ram_external_app_kiss_tnc:        6556 B        32 KB     20.01%
+ram_external_app_mdc_tx:        6428 B        32 KB     19.62%
+ram_external_app_epirb_tx:       31596 B        32 KB     96.42%
+ram_external_app_fpv_detect:       10924 B        32 KB     33.34%
+ram_external_app_p25_tx:        6936 B        32 KB     21.17%
+ram_external_app_two_tone_pager:       21692 B        32 KB     66.20%
+ram_external_app_two_tone_rx:       24500 B        32 KB     74.77%
+ram_external_app_flex_tx:       29516 B        32 KB     90.08%
+ram_external_app_meteor_lrpt_rx:       26728 B        32 KB     81.57%
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+(base)
+MeMyself@DESKTOP-BA808PC MINGW64 ~/mayhem-firmware (research)
+$

@@ -9,16 +9,16 @@ Use the same SatDump commit as [`firmware/baseband/meteor_lrpt/SATDUMP_VENDOR.md
 - `plugins/meteor_support/meteor/module_meteor_instruments.cpp` — CADU → instruments pipeline.
 - `plugins/meteor_support/meteor/instruments/msumr/*` — MSU-MR LRPT reader / JPEG assembly (e.g. `lrpt_msumr_reader.cpp`, `module_meteor_msumr_lrpt.cpp`).
 
-Mayhem G4 is an **MVP subset**: per-APID reassembly in `msumr_demux` (APIDs **64–69**, one buffer each; `kReassemblyCapBytes` in-tree), fixed **10-byte** secondary header when the CCSDS secondary flag is set (common case; refine vs SatDump when extending).
+Mayhem G4 is an **MVP subset**: per-APID reassembly in `msumr_demux` (APIDs **64–69**, one buffer each; **`kReassemblyCapBytes = 1024`** in-tree), fixed **10-byte** secondary header when the CCSDS secondary flag is set (common case; refine vs SatDump when extending).
 
 ## Memory / RAM budget (M0 + Bank2)
 
-- **Bank2 shared RAM** (`portapack::memory::map::shared_memory`, **14 KiB**): holds `SharedMemory` including `MeteorLrptG4Ipc` (live CADU ring, UTF-8 paths, **RGB888 LCD preview** thumbnail, counters). `sizeof(SharedMemory) <= 14 KiB` is enforced by `static_assert` in [`firmware/common/portapack_shared_memory.cpp`](../../firmware/common/portapack_shared_memory.cpp).
-- **M0 AHB SRAM** (HackRF One: **64 KiB** typical; see [`firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/ld/LPC43xx_M0.ld`](../../firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/ld/LPC43xx_M0.ld) / `LD_RAM_SIZE`): `MsumrDemux` static reassembly is **`kReassemblyStreams * kReassemblyCapBytes`** (see [`msumr_demux.hpp`](../../firmware/application/meteor_lrpt_g4/msumr_demux.hpp)) plus TJpgDec workspace and stacks — if the M0 link fails after raising caps, trim `kReassemblyCapBytes` or M0-only buffers before touching shared RAM.
+- **Bank2 shared RAM** (`portapack::memory::map::shared_memory`, **14 KiB**): holds `SharedMemory` including `MeteorLrptG4Ipc` (live CADU ring **2 slots** × 1020 B, UTF-8 paths, **16×12** RGB888 LCD preview, counters). `sizeof(SharedMemory) <= 14 KiB` is enforced by `static_assert` in [`firmware/common/portapack_shared_memory.cpp`](../../firmware/common/portapack_shared_memory.cpp).
+- **M0 AHB SRAM** (HackRF One: **64 KiB** typical; see [`firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/ld/LPC43xx_M0.ld`](../../firmware/chibios-portapack/os/ports/GCC/ARMCMx/LPC43xx_M0/ld/LPC43xx_M0.ld) / `LD_RAM_SIZE`): `MsumrDemux` static reassembly is **`kReassemblyStreams * kReassemblyCapBytes`** (in-tree **`kReassemblyCapBytes = 1024`** per APID stream in [`msumr_demux.hpp`](../../firmware/application/meteor_lrpt_g4/msumr_demux.hpp)), TJpgDec workspace pool in [`jpeg_decode.cpp`](../../firmware/application/meteor_lrpt_g4/jpeg_decode.cpp) (aligned to `tjpgdcnf.h` / `JD_FASTDECODE`), and ChibiOS **process stack** size in the same linker script. Larger reassembly or preview buffers require proving the M0 link still fits before raising caps.
 
 ## Live CADU ring (M4 → M0, optional)
 
-When **MSU-MR** and **Live** are enabled, M4 pushes each **post-RS 1020 B** CADU into a tiny fixed ring (`kLiveRingSlots` in [`portapack_shared_memory.hpp`](../../firmware/common/portapack_shared_memory.hpp)). This keeps **RAM fixed** (no second full-rate REC buffer in the live path).
+When **MSU-MR** and **Live** are enabled, M4 pushes each **post-RS 1020 B** CADU into a tiny fixed ring (`kLiveRingSlots` **= 2** in [`portapack_shared_memory.hpp`](../../firmware/common/portapack_shared_memory.hpp)). This keeps **RAM fixed** (no second full-rate REC buffer in the live path).
 
 **Overflow policy (SPSC-safe):** if the ring is full (`ring_push - ring_pop == kLiveRingSlots`), M4 **does not** advance `ring_pop` (only M0 may). The new CADU is **dropped**, `live_ring_overflows` increments, and `G4_DROP_RING_OVERFLOW` is OR’d into `drop_bits`. The LRPT status line shows this as `ro` (ring overflow count).
 

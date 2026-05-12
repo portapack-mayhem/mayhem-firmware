@@ -62,6 +62,17 @@ option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes i
 
 project(portapack-h1)
 
+# CMake's default `CMAKE_*_FLAGS_RELEASE` includes `-O3`, which is appended after ChibiOS
+# `USE_OPT` (`-Os`) so the effective C/C++ optimization becomes -O3 (last flag wins). That
+# routinely overflows the M0 `LD_FLASH_SIZE` limit with GCC 13 + G4 / tjpgd.
+foreach(_lang C CXX)
+	if(DEFINED CMAKE_${_lang}_FLAGS_RELEASE)
+		string(REPLACE "-O3" "-Os" CMAKE_${_lang}_FLAGS_RELEASE "${CMAKE_${_lang}_FLAGS_RELEASE}")
+		set(CMAKE_${_lang}_FLAGS_RELEASE "${CMAKE_${_lang}_FLAGS_RELEASE}"
+			CACHE STRING "Mayhem release: size-oriented (-Os), not CMake default -O3" FORCE)
+	endif()
+endforeach()
+
 set(EXPECTED_GCC_VERSION "9.2.1")
 
 set(VERSION "$ENV{VERSION_STRING}")

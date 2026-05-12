@@ -8,12 +8,13 @@
 #include "bmpfile.hpp"
 #include "file.hpp"
 
+#include "ch.h"
+
 extern "C" {
 #include "tjpgd.h"
 }
 
 #include <algorithm>
-#include <array>
 #include <cstdio>
 #include <cstring>
 
@@ -28,7 +29,6 @@ constexpr uint32_t kDropBmp = 1u << 6;
 
 /* Pool passed to jd_prepare; must be >= TJPGD_WORKSPACE_SIZE from tjpgdcnf.h (3100 with JD_FASTDECODE==0). */
 constexpr size_t kJpegWorkpoolBytes = 3120;
-std::array<uint8_t, kJpegWorkpoolBytes> g_jpeg_pool{};
 
 struct JpegDecodeSession {
     const uint8_t* jpg_base{};
@@ -142,6 +142,18 @@ bool decode_jpeg_to_new_bmp_file(
         return false;
     }
 
+    void* const pool_mem = chHeapAlloc(nullptr, kJpegWorkpoolBytes);
+    if (!pool_mem) {
+        drop_bits |= kDropJpegPrepare;
+        jresult_out = (uint8_t)JDR_PAR;
+        return false;
+    }
+    uint8_t* const work_pool = static_cast<uint8_t*>(pool_mem);
+
+    const auto free_pool = [&]() {
+        chHeapFree(pool_mem);
+    };
+
     JDEC jd{};
     JpegDecodeSession session{};
     session.jpg_base = jpg;
@@ -152,10 +164,11 @@ bool decode_jpeg_to_new_bmp_file(
     jd.device = &session;
     jd.swap = 0;
 
-    JRESULT pr = jd_prepare(&jd, tjpg_infunc, g_jpeg_pool.data(), g_jpeg_pool.size(), &session);
+    JRESULT pr = jd_prepare(&jd, tjpg_infunc, work_pool, kJpegWorkpoolBytes, &session);
     jresult_out = (uint8_t)pr;
     if (pr != JDR_OK) {
         drop_bits |= kDropJpegPrepare;
+        free_pool();
         return false;
     }
 
@@ -164,6 +177,7 @@ bool decode_jpeg_to_new_bmp_file(
     if (iw == 0 || ih == 0 || iw > kG4MaxJpegWidth || ih > kG4MaxJpegHeight) {
         drop_bits |= kDropJpegPrepare;
         jresult_out = (uint8_t)JDR_PAR;
+        free_pool();
         return false;
     }
 
@@ -193,6 +207,7 @@ bool decode_jpeg_to_new_bmp_file(
         ppm_file.close();
         drop_bits |= kDropBmp;
         jresult_out = (uint8_t)JDR_PAR;
+        free_pool();
         return false;
     }
 
@@ -204,12 +219,13 @@ bool decode_jpeg_to_new_bmp_file(
     jd.device = &session;
     jd.swap = 0;
 
-    pr = jd_prepare(&jd, tjpg_infunc, g_jpeg_pool.data(), g_jpeg_pool.size(), &session);
+    pr = jd_prepare(&jd, tjpg_infunc, work_pool, kJpegWorkpoolBytes, &session);
     jresult_out = (uint8_t)pr;
     if (pr != JDR_OK) {
         drop_bits |= kDropJpegPrepare;
         bmp.close();
         ppm_file.close();
+        free_pool();
         return false;
     }
 
@@ -217,6 +233,7 @@ bool decode_jpeg_to_new_bmp_file(
     jresult_out = (uint8_t)dr;
     bmp.close();
     ppm_file.close();
+    free_pool();
     if (dr != JDR_OK) {
         drop_bits |= kDropJpegDecomp;
         return false;
