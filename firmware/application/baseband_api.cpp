@@ -443,6 +443,10 @@ void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
 
 static bool baseband_image_running = false;
 
+bool is_image_running() {
+    return baseband_image_running;
+}
+
 void run_image(const spi_flash::image_tag_t image_tag) {
     if (baseband_image_running) {
         chDbgPanic("BBRunning");

@@ -125,6 +125,7 @@ void request_rssi_beep();
 void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);
 
+bool is_image_running();
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void run_prepared_image(const uint32_t m4_code);
 void shutdown();
