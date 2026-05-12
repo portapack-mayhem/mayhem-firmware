@@ -45,6 +45,24 @@ float Location::Angle::getFloatValue() {
     return floatValue;
 }
 
+void Location::Angle::apply_offset(bool positive, long ofmin, long ofsec) {
+    if (positive) {
+        minutes += ofmin;
+        seconds += ofsec;
+    } else {
+        minutes -= ofmin;
+        if (minutes < 0) {
+            minutes += 60;
+            degrees -= 1;
+        }
+        seconds -= ofsec;
+        if (seconds < 0) {
+            seconds += 60;
+            minutes -= 1;
+        }
+    }
+}
+
 void Location::clear() {
     latitude.clear();
     longitude.clear();

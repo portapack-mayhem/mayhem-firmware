@@ -42,6 +42,10 @@ class Location {
 
         float getFloatValue();
 
+        // Apply an offset (minutes / seconds) with sign-based borrow into minutes/degrees.
+        // Out-of-line to keep parseFrame from inlining the same arithmetic 6 times.
+        void apply_offset(bool positive, long ofmin, long ofsec);
+
        private:
         float floatValue = 255.0f;
     };

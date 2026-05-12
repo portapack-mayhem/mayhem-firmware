@@ -750,42 +750,14 @@ class Beacon {
                 location.latitude.minutes = ((frame[8] & 0x3E) >> 1) * 2;
                 latofmin = (frame[14] & 0x60) >> 5;
                 latofsec = ((frame[14] & 0x1E) >> 1) * 4;
-                if (latoffset) {
-                    location.latitude.minutes += latofmin;
-                    location.latitude.seconds += latofsec;
-                } else {
-                    location.latitude.minutes -= latofmin;
-                    if (location.latitude.minutes < 0) {
-                        location.latitude.minutes += 60;
-                        location.latitude.degrees -= 1;
-                    }
-                    location.latitude.seconds -= latofsec;
-                    if (location.latitude.seconds < 0) {
-                        location.latitude.seconds += 60;
-                        location.latitude.minutes -= 1;
-                    }
-                }
+                location.latitude.apply_offset(latoffset, latofmin, latofsec);
                 lonoffset = (frame[14] & 0x01);
                 location.longitude.orientation = (frame[8] & 0x01);
                 location.longitude.degrees = (frame[9]);
                 location.longitude.minutes = ((frame[10] & 0xF8) >> 3) * 2;
                 lonofmin = (frame[15] & 0xC0) >> 6;
                 lonofsec = ((frame[15] & 0x3C) >> 2) * 4;
-                if (lonoffset) {
-                    location.longitude.minutes += lonofmin;
-                    location.longitude.seconds += lonofsec;
-                } else {
-                    location.longitude.minutes -= lonofmin;
-                    if (location.longitude.minutes < 0) {
-                        location.longitude.minutes += 60;
-                        location.longitude.degrees -= 1;
-                    }
-                    location.longitude.seconds -= lonofsec;
-                    if (location.longitude.seconds < 0) {
-                        location.longitude.seconds += 60;
-                        location.longitude.minutes -= 1;
-                    }
-                }
+                location.longitude.apply_offset(lonoffset, lonofmin, lonofsec);
             } else if (protocolIsStandard()) {
                 latoffset = (frame[14] & 0x80) >> 7;
                 location.latitude.orientation = (frame[8] & 0x80) >> 7;
@@ -793,42 +765,14 @@ class Beacon {
                 location.latitude.minutes = ((frame[9] & 0xC0) >> 6) * 15;
                 latofmin = (frame[14] & 0x7C) >> 2;
                 latofsec = ((frame[14] & 0x03) << 2 | (frame[15] & 0xC0) >> 6) * 4;
-                if (latoffset) {
-                    location.latitude.minutes += latofmin;
-                    location.latitude.seconds += latofsec;
-                } else {
-                    location.latitude.minutes -= latofmin;
-                    if (location.latitude.minutes < 0) {
-                        location.latitude.minutes += 60;
-                        location.latitude.degrees -= 1;
-                    }
-                    location.latitude.seconds -= latofsec;
-                    if (location.latitude.seconds < 0) {
-                        location.latitude.seconds += 60;
-                        location.latitude.minutes -= 1;
-                    }
-                }
+                location.latitude.apply_offset(latoffset, latofmin, latofsec);
                 lonoffset = (frame[15] & 0x20) >> 5;
                 location.longitude.orientation = (frame[9] & 0x20) >> 5;
                 location.longitude.degrees = ((frame[9] & 0x1F) << 3 | (frame[10] & 0xE0) >> 5);
                 location.longitude.minutes = ((frame[10] & 0x18) >> 3) * 15;
                 lonofmin = (frame[15] & 0x1F);
                 lonofsec = ((frame[16] & 0xF0) >> 4) * 4;
-                if (lonoffset) {
-                    location.longitude.minutes += lonofmin;
-                    location.longitude.seconds += lonofsec;
-                } else {
-                    location.longitude.minutes -= lonofmin;
-                    if (location.longitude.minutes < 0) {
-                        location.longitude.minutes += 60;
-                        location.longitude.degrees -= 1;
-                    }
-                    location.longitude.seconds -= lonofsec;
-                    if (location.longitude.seconds < 0) {
-                        location.longitude.seconds += 60;
-                        location.longitude.minutes -= 1;
-                    }
-                }
+                location.longitude.apply_offset(lonoffset, lonofmin, lonofsec);
             } else if (protocolIsRlsOrElt()) {
                 latoffset = (frame[14] & 0x20) >> 5;
                 location.latitude.orientation = (frame[8] & 0x20) >> 5;
@@ -836,42 +780,14 @@ class Beacon {
                 location.latitude.minutes = ((frame[9] & 0x20) >> 5) * 30;
                 latofmin = (frame[14] & 0x1E) >> 1;
                 latofsec = ((frame[14] & 0x01) << 3 | (frame[15] & 0xE0) >> 5) * 4;
-                if (latoffset) {
-                    location.latitude.minutes += latofmin;
-                    location.latitude.seconds += latofsec;
-                } else {
-                    location.latitude.minutes -= latofmin;
-                    if (location.latitude.minutes < 0) {
-                        location.latitude.minutes += 60;
-                        location.latitude.degrees -= 1;
-                    }
-                    location.latitude.seconds -= latofsec;
-                    if (location.latitude.seconds < 0) {
-                        location.latitude.seconds += 60;
-                        location.latitude.minutes -= 1;
-                    }
-                }
+                location.latitude.apply_offset(latoffset, latofmin, latofsec);
                 lonoffset = (frame[15] & 0x10) >> 4;
                 location.longitude.orientation = (frame[9] & 0x10) >> 4;
                 location.longitude.degrees = ((frame[9] & 0x0F) << 4 | (frame[10] & 0xF0) >> 4);
                 location.longitude.minutes = ((frame[10] & 0x08) >> 3) * 30;
                 lonofmin = (frame[15] & 0x0F);
                 lonofsec = ((frame[16] & 0xF0) >> 4) * 4;
-                if (lonoffset) {
-                    location.longitude.minutes += lonofmin;
-                    location.longitude.seconds += lonofsec;
-                } else {
-                    location.longitude.minutes -= lonofmin;
-                    if (location.longitude.minutes < 0) {
-                        location.longitude.minutes += 60;
-                        location.longitude.degrees -= 1;
-                    }
-                    location.longitude.seconds -= lonofsec;
-                    if (location.longitude.seconds < 0) {
-                        location.longitude.seconds += 60;
-                        location.longitude.minutes -= 1;
-                    }
-                }
+                location.longitude.apply_offset(lonoffset, lonofmin, lonofsec);
             }
         }
 
