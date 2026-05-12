@@ -20,6 +20,7 @@
  */
 
 #include "ui_beaconlist.hpp"
+#include <algorithm>
 
 namespace ui::external_app::epirb_rx {
 
