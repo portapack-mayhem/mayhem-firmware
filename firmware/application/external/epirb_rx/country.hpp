@@ -101,7 +101,7 @@ class CountryManager {
 
             // Parse SHORT NAME
             int i = 0;
-            while (i < 15 && *p != '\r' && *p != '\n' && *p != '\0') {
+            while (i < static_cast<int>(sizeof(out.shortName) - 1) && *p != '\r' && *p != '\n' && *p != '\0') {
                 out.shortName[i++] = (char)*p++;
             }
             out.shortName[i] = '\0';
