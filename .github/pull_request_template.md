@@ -64,4 +64,6 @@ If you are modifying an existing app, make sure the wiki page reflects your chan
 - [ ] Attached proof of testing on real PortaPack hardware *(or marked N/A as a trusted contributor)*
 - [ ] Attached proof of testing against a real emitter/receiver (if RF-related), or marked N/A with justification
 - [ ] I understand that by getting this PR merged, I am implicitly agreeing to create or update the corresponding wiki page (including a main-screen screenshot, description, controls, and limitations)
+- [ ] I own all rights to this code (i.e., all code contained in this PR), including compliant usage rights for third-party libraries, and I agree that this code is licensed under the license of this project (GPL-3.0). 
+- [ ] If any third-party libraries are used, I confirm that their licenses comply with the requirements for contributing to this repository.
 - [ ] Reviewed the [Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines)
