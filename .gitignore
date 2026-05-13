@@ -87,3 +87,6 @@ venv/
 
 # Meteor LRPT tools
 /tools/meteor_lrpt/
+
+# Local Docker/share packaging (binaries copied from build/)
+/share-out/

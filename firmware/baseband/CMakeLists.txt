@@ -31,8 +31,9 @@ include(CheckCXXCompilerFlag)
 
 project(baseband_shared)
 
-# Compiler options here.
-set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
+# Compiler options here. Use -Os (not -O3): every baseband mode embeds baseband_shared; -O3 bloats each
+# chunk and the concatenated baseband.img, often breaking the default 1MiB SPI image cap when adding modes (e.g. Meteor).
+set(USE_OPT "-Os -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")

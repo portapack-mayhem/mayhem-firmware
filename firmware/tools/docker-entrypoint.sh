@@ -49,10 +49,25 @@ parse_build_args() {
    done
 }
 
+# Windows Git checkouts often use CRLF; bind-mounting /havoc into Linux breaks shebangs (e.g. python3\r).
+normalize_script_lf() {
+	if [[ -d hackrf ]] && [[ -d firmware ]]; then
+		# Include libopencm3/scripts/* (e.g. irq2nvic_h has no .py suffix but uses #!/usr/bin/env python3).
+		find hackrf firmware -type f \( -name '*.py' -o -name '*.sh' -o -path '*/libopencm3/scripts/*' \) \
+			! -path '*/build/*' ! -path '*/.git/*' -print0 \
+			| xargs -0 -r sed -i 's/\r$//' || true
+	fi
+}
+
 build_make() {
    parse_build_args "$@"
+   # `docker run ... -DFOO=1 make -j8` puts `make` in BUILD_ARGS → would run `make make -j8` (no rule `make`).
+   while [[ ${#BUILD_ARGS[@]} -gt 0 ]] && [[ "${BUILD_ARGS[0]}" == "make" ]]; do
+      BUILD_ARGS=("${BUILD_ARGS[@]:1}")
+   done
    echo "Building in workdir: \"$BUILD_DIR\" using CMake options: \"${CMAKE_ARGS[@]}\" and make options: \"${BUILD_ARGS[@]}\""
    cd ..
+   normalize_script_lf
    mkdir -p "$BUILD_DIR"
    cd "$BUILD_DIR"
    cmake "${CMAKE_ARGS[@]}" ..
@@ -62,8 +77,12 @@ build_make() {
 
 build_ninja() {
    parse_build_args "$@"
+   while [[ ${#BUILD_ARGS[@]} -gt 0 ]] && [[ "${BUILD_ARGS[0]}" == "ninja" ]]; do
+      BUILD_ARGS=("${BUILD_ARGS[@]:1}")
+   done
    echo "Building in workdir: \"$BUILD_DIR\" using CMake options: \"${CMAKE_ARGS[@]}\" and ninja options: \"${BUILD_ARGS[@]}\""
    cd ..
+   normalize_script_lf
    mkdir -p "$BUILD_DIR"
    cd "$BUILD_DIR"
    cmake -G Ninja "${CMAKE_ARGS[@]}" ..
