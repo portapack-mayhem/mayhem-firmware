@@ -85,7 +85,7 @@ struct SharedMemory {
     uint16_t volatile m4_stack_usage{0};
     uint32_t volatile m4_heap_usage{0};
     uint16_t volatile m4_buffer_missed{0};
-
+    uint8_t volatile radio_tx_drain{0};  // to indicate the baseband thread to drain the tx buffer, and wait for it, before radio::disable()
 #ifdef PRALINE
     // Phase 0 instrumentation counters for PRALINE radio debugging
     uint32_t volatile m4_dma_xfr_count{0};    // DMA transfer_complete() calls

@@ -217,7 +217,25 @@ set(CPPWARN "-Wall -Wextra")
 if(NOT DEFINED BOARD)
     set(BOARD "HACKRF_ONE")
 endif()
-set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -D${BOARD} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
+
+# Upstream hackrf headers now gate on IS_* macros normally populated by
+# hackrf/firmware/platform-detect.cmake. We don't include that here, so derive
+# the IS_* set from BOARD ourselves. IS_H1_R9 is forced to 0 (compile-time
+# constant) so `if (IS_H1_R9)` branches resolve without needing the runtime
+# detected_platform() symbol, which mayhem doesn't link in.
+if(BOARD STREQUAL "HACKRF_ONE")
+    set(BOARD_IS_DEFS "-DIS_HACKRF_ONE=1 -DIS_NOT_PRALINE=1 -DIS_H1_R9=0 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_H1_OR_RAD1O=1 -DIS_H1_OR_JAWBREAKER=1 -DIS_EXPANSION_COMPATIBLE=1")
+elseif(BOARD STREQUAL "PRALINE")
+    set(BOARD_IS_DEFS "-DIS_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_FOUR_LEDS=1 -DIS_EXPANSION_COMPATIBLE=1")
+elseif(BOARD STREQUAL "RAD1O")
+    set(BOARD_IS_DEFS "-DIS_RAD1O=1 -DIS_NOT_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_RAD1O=1 -DIS_FOUR_LEDS=1")
+elseif(BOARD STREQUAL "JAWBREAKER")
+    set(BOARD_IS_DEFS "-DIS_JAWBREAKER=1 -DIS_NOT_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_H1_OR_JAWBREAKER=1")
+else()
+    set(BOARD_IS_DEFS "")
+endif()
+
+set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -D${BOARD} ${BOARD_IS_DEFS} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -765,7 +783,6 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/si5351c.c
 	${HACKRF_PATH}/firmware/common/i2c_bus.c
 	${HACKRF_PATH}/firmware/common/mixer.c
-	${HACKRF_PATH}/firmware/common/clkin.c
 	${HACKRF_PATH}/firmware/common/spi_bus.c
 	${HACKRF_PATH}/firmware/common/sgpio.c
 	${HACKRF_PATH}/firmware/common/rf_path.c
@@ -773,7 +790,6 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/spi_ssp.c
 	${HACKRF_PATH}/firmware/common/rffc5071_spi.c
 	${HACKRF_PATH}/firmware/common/rffc5071.c
-	${HACKRF_PATH}/firmware/common/clkin.c
 	${HACKRF_PATH}/firmware/common/gpdma.c
 
 	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/nvic.c
