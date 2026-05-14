@@ -20,8 +20,30 @@
  */
 
 #include "usb_serial_cdc.h"
+#include "usb_serial_descriptor.h"
 #include "usb_serial_endpoints.h"
 #include "usb_serial_event.hpp"
+
+#include <string.h>
+
+/* Defined in hackrf/firmware/hackrf_usb/usb_device.c. After upstream commit
+ * 85dfacf6 ("Universalize: firmware/hackrf_usb"), the global `usb_device` is
+ * left zero-initialized and is populated at runtime from per-board
+ * `usb_device_*` constants inside hackrf_usb.c. Mayhem does not link
+ * hackrf_usb.c, so we must populate `usb_device` ourselves before usb_run().
+ * The descriptor fields are const-qualified, so we follow the upstream
+ * pattern of memcpy from a const template. */
+extern usb_configuration_t* usb_configurations[];
+
+static const usb_device_t usb_device_mayhem = {
+    .descriptor = usb_descriptor_device,
+    .descriptor_strings = usb_descriptor_strings,
+    .qualifier_descriptor = usb_descriptor_device_qualifier,
+    .configurations = &usb_configurations,
+    .configuration = 0,
+    .wcid_string_descriptor = wcid_string_descriptor,
+    .wcid_feature_descriptor = wcid_feature_descriptor,
+};
 
 uint32_t EVT_MASK_USB = EVENT_MASK(8);
 
@@ -85,6 +107,8 @@ void usb_configuration_changed(usb_device_t* const device) {
 }
 
 void setup_usb_serial_controller(void) {
+    memcpy(&usb_device, &usb_device_mayhem, sizeof(usb_device_mayhem));
+
     usb_set_configuration_changed_cb(usb_configuration_changed);
     usb_peripheral_reset();
 
@@ -97,7 +121,10 @@ void setup_usb_serial_controller(void) {
     usb_queue_init(&usb_endpoint_bulk_in_queue);
 
     usb_endpoint_init(&usb_endpoint_control_out, false);
-    usb_endpoint_init(&usb_endpoint_control_in, false);
+    /* Control IN needs ZLP for descriptor reads whose length is a multiple of
+     * the max packet size (otherwise the host hangs waiting for the transfer
+     * to terminate). Matches upstream hackrf_usb.c after commit db73ecbf. */
+    usb_endpoint_init(&usb_endpoint_control_in, true);
 
     usb_run(&usb_device);
 }

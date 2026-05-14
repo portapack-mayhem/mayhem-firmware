@@ -118,6 +118,7 @@ void set_bitstream_config(uint32_t deviation, uint8_t mode);                    
 void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload = nullptr, uint16_t payload_length = 0);  // baud*100
 void set_rtty_config(RTTYDataMessage& message);
 void set_epirb_tx_config(EPIRBTXDataMessage& message);
+void set_epirb_rx_config(EPIRBRXConfig& message);
 void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length);
 
 void request_roger_beep();
@@ -125,6 +126,7 @@ void request_rssi_beep();
 void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);
 
+bool is_image_running();
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void run_prepared_image(const uint32_t m4_code);
 void shutdown();
