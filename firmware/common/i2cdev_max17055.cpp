@@ -551,6 +551,13 @@ bool I2cDev_MAX17055::setModelCfg(const uint8_t _Model_ID) {
 }
 
 bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
+    uint16_t config1_reg = read_register(0x1D);
+
+    // (SHDN: 0x80) and (COMMSH: 0x40)
+    config1_reg &= ~(0x0080 | 0x0040);
+
+    write_register(0x1D, config1_reg);
+
     return write_register(0xBA, _Config);
 }
 
