@@ -556,7 +556,9 @@ bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
     // (SHDN: 0x80) and (COMMSH: 0x40) Otherwise it will go into sleep mode after 45 seconds.
     config1_reg &= ~(0x0080 | 0x0040);
 
-    write_register(0x1D, config1_reg);
+    if (!write_register(0x1D, config1_reg)) {
+        return false;
+    }
 
     return write_register(0xBA, _Config);
 }
