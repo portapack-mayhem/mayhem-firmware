@@ -99,7 +99,7 @@ void HardResetView::calculate() {
     }
     chk_pmem.set_value(true);
     txt_wait.hidden(true);
-    text.set("Warning! Checked items will\nbe erased (bad apps, P.Mem,\nsettings). Uncheck to keep.\nTouch calibration is required only if P.Mem is reset.");
+    text.set("Warning! Checked items will beerased (bad apps, P.Mem,      settings). Uncheck to keep.   Touch calibration is required only if P.Mem is reset.");
 }
 
 void HardResetView::focus() {
