@@ -76,7 +76,7 @@ application_information_t _application_information_hard_reset = {
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::dark_cyan().v,
+    /*.icon_color = */ ui::Color::red().v,
     /*.menu_location = */ app_location_t::SETTINGS,
     /*.desired_menu_position = */ -1,
 
