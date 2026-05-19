@@ -62,6 +62,8 @@ HardResetView::HardResetView(ui::NavigationView& nav)
         }
         if (chk_pmem.value()) {
             pmem::cache::defaults();
+            StatusRefreshMessage message{};
+            EventDispatcher::send_message(message);
             nav_.replace<TouchCalibrationView>();
         } else {
             nav_.pop();

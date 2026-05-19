@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __HARD_RESET_H__
-#define __HARD_RESET_H__
+#ifndef __UI_HARD_RESET_H__
+#define __UI_HARD_RESET_H__
 
 #include "ui_navigation.hpp"
 #include "signal.hpp"
@@ -66,4 +66,4 @@ class HardResetView : public ui::View {
 
 }  // namespace ui::external_app::hard_reset
 
-#endif  // __HARD_RESET_H__
+#endif  // __UI_HARD_RESET_H__
