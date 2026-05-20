@@ -320,7 +320,7 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                 }
             } else if (all_channels) {
                 advCount++;
-                if (advCount == 40) {
+                if (advCount == BLT_CHAN_AUTO) {
                     channel_number = 0;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     if (packet_counter > 0) packet_counter--;
@@ -393,8 +393,8 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
-        auto_channel = (i == 40);
-        all_channels = (i == 41);
+        auto_channel = (i == BLT_CHAN_AUTO);
+        all_channels = (i == BLT_CHAN_ALL);
 
         advCount = 0;
 
@@ -414,8 +414,8 @@ BLETxView::BLETxView(NavigationView& nav)
         timer_count = 0;
     };
 
-    options_speed.set_selected_index(0);
-    options_channel.set_selected_index(40);
+    options_speed.set_by_value(0);
+    options_channel.set_by_value(BLT_CHAN_AUTO);
 
     check_rand_mac.set_value(false);
     check_rand_mac.on_select = [this](Checkbox&, bool v) {

@@ -45,6 +45,9 @@
 #include <string>
 #include <memory>
 
+#define BLT_CHAN_AUTO 40
+#define BLT_CHAN_ALL 41
+
 class BLELoggerTx {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
