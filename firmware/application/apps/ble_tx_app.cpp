@@ -299,27 +299,30 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
     if (done) {
         if (is_active()) {
             transmitter_model.disable();
+
             if (auto_channel) {
-                switch (advCount) {
-                    case 0:
-                        channel_number = 37;
-                        break;
-                    case 1:
-                        channel_number = 38;
-                        break;
-                    case 2:
-                        channel_number = 39;
-                        break;
-                }
-
-                field_frequency.set_value(get_freq_by_channel_number(channel_number));
-
                 if (advCount == 3) {
                     channel_number = 37;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     packet_counter--;
                     packetDone = true;
                     advCount = 0;
                 } else {
+                    channel_number = 37 + advCount;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
+                    send_packet();
+                    advCount++;
+                }
+            } else if (all_channels) {
+                if (advCount == 40) {
+                    channel_number = 0;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
+                    packet_counter--;
+                    packetDone = true;
+                    advCount = 0;
+                } else {
+                    channel_number = advCount;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     send_packet();
                     advCount++;
                 }
@@ -327,24 +330,27 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                 packet_counter--;
                 packetDone = true;
             }
+        } else {
+            packet_counter--;
+            packetDone = true;
         }
+    }
 
-        // Reached end of current packet repeats.
-        if (packet_counter == 0) {
-            // Done sending all packets.
-            if (current_packet == (num_packets - 1)) {
-                current_packet = 0;
+    // Reached end of current packet repeats.
+    if (packet_counter == 0) {
+        // Done sending all packets.
+        if (current_packet == (num_packets - 1)) {
+            current_packet = 0;
 
-                // If looping, restart from beginning.
-                if (check_loop.value()) {
-                    update_current_packet(packets[current_packet], current_packet);
-                } else {
-                    stop();
-                }
-            } else {
-                current_packet++;
+            // If looping, restart from beginning.
+            if (check_loop.value()) {
                 update_current_packet(packets[current_packet], current_packet);
+            } else {
+                stop();
             }
+        } else {
+            current_packet++;
+            update_current_packet(packets[current_packet], current_packet);
         }
     }
 }
@@ -385,16 +391,18 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
-        // If we selected Auto don't do anything and Auto will handle changing.
-        if (i == 40) {
-            auto_channel = true;
-            return;
+        auto_channel = (i == 40);
+        all_channels = (i == 41);
+
+        if (auto_channel) {
+            channel_number = 37;
+        } else if (all_channels) {
+            channel_number = 0;
         } else {
-            auto_channel = false;
+            channel_number = i;
         }
 
-        field_frequency.set_value(get_freq_by_channel_number(i));
-        channel_number = i;
+        field_frequency.set_value(get_freq_by_channel_number(channel_number));
     };
 
     options_speed.on_change = [this](size_t, int32_t i) {
