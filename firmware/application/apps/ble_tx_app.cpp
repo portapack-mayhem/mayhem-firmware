@@ -266,6 +266,8 @@ void BLETxView::start() {
     button_play.set_bitmap(&bitmap_stop);
     is_running = true;
 
+    advCount = 0;
+
     send_packet();
 }
 
@@ -301,6 +303,7 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
             transmitter_model.disable();
 
             if (auto_channel) {
+                advCount++;
                 if (advCount == 3) {
                     channel_number = 37;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
@@ -311,9 +314,9 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                     channel_number = 37 + advCount;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     send_packet();
-                    advCount++;
                 }
             } else if (all_channels) {
+                advCount++;
                 if (advCount == 40) {
                     channel_number = 0;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
@@ -324,7 +327,6 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                     channel_number = advCount;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     send_packet();
-                    advCount++;
                 }
             } else {
                 packet_counter--;
@@ -394,6 +396,8 @@ BLETxView::BLETxView(NavigationView& nav)
         auto_channel = (i == 40);
         all_channels = (i == 41);
 
+        advCount = 0;
+
         if (auto_channel) {
             channel_number = 37;
         } else if (all_channels) {
@@ -411,7 +415,7 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_speed.set_selected_index(0);
-    options_channel.set_selected_index(3);
+    options_channel.set_selected_index(40);
 
     check_rand_mac.set_value(false);
     check_rand_mac.on_select = [this](Checkbox&, bool v) {
