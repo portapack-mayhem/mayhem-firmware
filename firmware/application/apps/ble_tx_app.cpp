@@ -298,6 +298,9 @@ void BLETxView::on_timer() {
 void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
     // TODO: make use of progress variable
     (void)progress;
+    if (!is_active()) {
+        return;
+    }
     if (done) {
         if (is_active()) {
             transmitter_model.disable();
@@ -307,7 +310,7 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                 if (advCount == 3) {
                     channel_number = 37;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
-                    packet_counter--;
+                    if (packet_counter > 0) packet_counter--;
                     packetDone = true;
                     advCount = 0;
                 } else {
@@ -320,7 +323,7 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                 if (advCount == 40) {
                     channel_number = 0;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
-                    packet_counter--;
+                    if (packet_counter > 0) packet_counter--;
                     packetDone = true;
                     advCount = 0;
                 } else {
@@ -329,12 +332,9 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                     send_packet();
                 }
             } else {
-                packet_counter--;
+                if (packet_counter > 0) packet_counter--;
                 packetDone = true;
             }
-        } else {
-            packet_counter--;
-            packetDone = true;
         }
     }
 
