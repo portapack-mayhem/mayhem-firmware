@@ -6,11 +6,9 @@
  * ------------------------------------------------------------
  */
 
+#pragma GCC push_options
+#pragma GCC optimize("Os")
 #include "ui_battleship.hpp"
-#include "portapack_shared_memory.hpp"
-#include "utility.hpp"
-#include "modems.hpp"
-#include "bch_code.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -28,7 +26,6 @@ BattleshipView::BattleshipView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
     add_children({&text_title, &text_subtitle,
-                  //&rect_radio_settings, &rect_audio_settings, &rect_team_selection,
                   &label_radio, &button_frequency,
                   &label_rf_amp, &checkbox_rf_amp,
                   &label_lna, &field_lna,
@@ -151,8 +148,6 @@ BattleshipView::BattleshipView(NavigationView& nav)
     field_tx_gain.set_parent_rect({185, 118, 32, 16});
     checkbox_sound.set_parent_rect({17, 187, 80, 24});
     field_volume.set_parent_rect({165, 187, 32, 16});
-    // button_red_team.set_parent_rect({25, 242, 85, 45});
-    // button_blue_team.set_parent_rect({130, 242, 85, 45});
 
     // Make menu elements focusable
     button_frequency.set_focusable(true);
@@ -196,34 +191,22 @@ void BattleshipView::init_game() {
 }
 
 void BattleshipView::show_hide_menu(bool menu_vis) {
-    text_title.hidden(!menu_vis);
-    text_subtitle.hidden(!menu_vis);
-    // rect_radio_settings.hidden(!menu_vis);    rect_audio_settings.hidden(!menu_vis);    rect_team_selection.hidden(!menu_vis);
-    label_radio.hidden(!menu_vis);
-    button_frequency.hidden(!menu_vis);
-    label_rf_amp.hidden(!menu_vis);
-    checkbox_rf_amp.hidden(!menu_vis);
-    label_lna.hidden(!menu_vis);
-    field_lna.hidden(!menu_vis);
-    label_vga.hidden(!menu_vis);
-    field_vga.hidden(!menu_vis);
-    label_tx_gain.hidden(!menu_vis);
-    field_tx_gain.hidden(!menu_vis);
-    label_audio.hidden(!menu_vis);
-    checkbox_sound.hidden(!menu_vis);
-    label_volume.hidden(!menu_vis);
-    field_volume.hidden(!menu_vis);
-    label_team.hidden(!menu_vis);
-    button_red_team.hidden(!menu_vis);
-    button_blue_team.hidden(!menu_vis);
-    rssi.hidden(menu_vis);
-    button_rotate.hidden(menu_vis);
-    button_place.hidden(menu_vis);
-    button_menu.hidden(menu_vis);
+    Widget* const menu_widgets[] = {
+        &text_title, &text_subtitle, &label_radio, &button_frequency,
+        &label_rf_amp, &checkbox_rf_amp, &label_lna, &field_lna,
+        &label_vga, &field_vga, &label_tx_gain, &field_tx_gain,
+        &label_audio, &checkbox_sound, &label_volume, &field_volume,
+        &label_team, &button_red_team, &button_blue_team};
+    for (auto* w : menu_widgets) {
+        w->hidden(!menu_vis);
+    }
 
-    // button_rotate.set_focusable(false); //no need, since can't focus on hidden
-    // button_place.set_focusable(false);
-    // button_menu.set_focusable(false);
+    Widget* const game_widgets[] = {
+        &rssi, &button_rotate, &button_place, &button_menu};
+    for (auto* w : game_widgets) {
+        w->hidden(menu_vis);
+    }
+
     set_dirty();
 }
 
@@ -340,40 +323,23 @@ void BattleshipView::paint(Painter& painter) {
     if (game_state == GameState::MENU) {
         draw_menu_screen(painter);
 
-        // Custom paint team buttons
-        if (!button_red_team.hidden()) {
-            Rect r = button_red_team.screen_rect();
-            painter.fill_rectangle(r, Color::dark_red());
-            painter.draw_rectangle(r, Color::red());
+        auto draw_team_btn = [&painter](Button& btn, Color bg, Color border, const char* name) {
+            if (btn.hidden()) return;
+            Rect r = btn.screen_rect();
+            painter.fill_rectangle(r, bg);
+            painter.draw_rectangle(r, border);
 
-            if (button_red_team.has_focus()) {
+            if (btn.has_focus()) {
                 painter.draw_rectangle({r.location().x() - 1, r.location().y() - 1, r.size().width() + 2, r.size().height() + 2}, Color::yellow());
             }
 
-            auto style_white = Style{
-                .font = ui::font::fixed_8x16,
-                .background = Color::dark_red(),
-                .foreground = Color::white()};
-            painter.draw_string(r.center() - Point(24, 16), style_white, "RED");
-            painter.draw_string(r.center() - Point(24, 0), style_white, "TEAM");
-        }
+            auto style = Style{.font = ui::font::fixed_8x16, .background = bg, .foreground = Color::white()};
+            painter.draw_string(r.center() - Point(24, 16), style, name);
+            painter.draw_string(r.center() - Point(24, 0), style, "TEAM");
+        };
 
-        if (!button_blue_team.hidden()) {
-            Rect r = button_blue_team.screen_rect();
-            painter.fill_rectangle(r, Color::dark_blue());
-            painter.draw_rectangle(r, Color::blue());
-
-            if (button_blue_team.has_focus()) {
-                painter.draw_rectangle({r.location().x() - 1, r.location().y() - 1, r.size().width() + 2, r.size().height() + 2}, Color::yellow());
-            }
-
-            auto style_white = Style{
-                .font = ui::font::fixed_8x16,
-                .background = Color::dark_blue(),
-                .foreground = Color::white()};
-            painter.draw_string(r.center() - Point(24, 16), style_white, "BLUE");
-            painter.draw_string(r.center() - Point(24, 0), style_white, "TEAM");
-        }
+        draw_team_btn(button_red_team, Color::dark_red(), Color::red(), "RED");
+        draw_team_btn(button_blue_team, Color::dark_blue(), Color::blue(), "BLUE");
 
         return;
     }
@@ -417,27 +383,25 @@ void BattleshipView::paint(Painter& painter) {
 void BattleshipView::draw_menu_screen(Painter& painter) {
     painter.draw_hline({12, 20 + 16}, screen_width - 24, Color::dark_cyan());
 
-    painter.fill_rectangle({13, 59, screen_width - 26, 116}, Color::dark_grey());
-    painter.draw_hline({12, 58}, screen_width - 24, Color::cyan());
-    painter.draw_hline({12, 157}, screen_width - 24, Color::cyan());
+    const struct {
+        Rect rect;
+        Point line1_pos;
+        Point line2_pos;
+    } boxes[] = {
+        {{13, 59, screen_width - 26, 116}, {12, 58}, {12, 157}},
+        {{13, 165, screen_width - 24, 57}, {12, 164}, {12, 223}},
+        {{13, 232, screen_width - 26, 67}, {12, 232}, {12, 300}}};
 
-    painter.fill_rectangle({13, 165, screen_width - 24, 57}, Color::dark_grey());
-    painter.draw_hline({12, 164}, screen_width - 24, Color::cyan());
-    painter.draw_hline({12, 223}, screen_width - 24, Color::cyan());
-
-    painter.fill_rectangle({13, 232, screen_width - 26, 67}, Color::dark_grey());
-    painter.draw_hline({12, 232}, screen_width - 24, Color::cyan());
-    painter.draw_hline({12, 300}, screen_width - 24, Color::cyan());
+    for (const auto& box : boxes) {
+        painter.fill_rectangle(box.rect, Color::dark_grey());
+        painter.draw_hline(box.line1_pos, screen_width - 24, Color::cyan());
+        painter.draw_hline(box.line2_pos, screen_width - 24, Color::cyan());
+    }
 
     // Radio status indicator
     Point indicator_pos{UI_POS_MAXWIDTH - 20, 59};
-    if (is_transmitting) {
-        painter.fill_rectangle({indicator_pos, {6, 6}}, Color::red());
-        painter.draw_rectangle({indicator_pos.x() - 1, indicator_pos.y() - 1, 8, 8}, Color::light_grey());
-    } else {
-        painter.fill_rectangle({indicator_pos, {6, 6}}, Color::green());
-        painter.draw_rectangle({indicator_pos.x() - 1, indicator_pos.y() - 1, 8, 8}, Color::light_grey());
-    }
+    painter.fill_rectangle({indicator_pos, {6, 6}}, is_transmitting ? Color::red() : Color::green());
+    painter.draw_rectangle({indicator_pos.x() - 1, indicator_pos.y() - 1, 8, 8}, Color::light_grey());
 }
 
 void BattleshipView::draw_grid(Painter& painter, uint16_t grid_x, uint16_t grid_y, const std::array<std::array<CellState, GRID_SIZE>, GRID_SIZE>& grid, bool show_ships, bool is_offense_grid) {
@@ -464,11 +428,14 @@ void BattleshipView::draw_cell(Painter& painter, uint16_t cell_x, uint16_t cell_
 
     if (game_state == GameState::PLACING_SHIPS && !is_offense_grid && current_ship_index < 5) {
         uint8_t ship_size = my_ships[current_ship_index].size();
+        uint8_t dx = placing_horizontal ? 1 : 0;
+        uint8_t dy = placing_horizontal ? 0 : 1;
+        uint16_t grid_x = (cell_x - 1) / CELL_SIZE;
+        uint16_t grid_y = (cell_y - GRID_OFFSET_Y - 6) / CELL_SIZE;
+
         for (uint8_t i = 0; i < ship_size; i++) {
-            uint16_t preview_x = placing_horizontal ? cursor_x + i : cursor_x;
-            uint16_t preview_y = placing_horizontal ? cursor_y : cursor_y + i;
-            uint16_t grid_x = (cell_x - 1) / CELL_SIZE;
-            uint16_t grid_y = (cell_y - GRID_OFFSET_Y - 6) / CELL_SIZE;
+            uint16_t preview_x = cursor_x + (i * dx);
+            uint16_t preview_y = cursor_y + (i * dy);
             if (grid_x == preview_x && grid_y == preview_y && preview_x < GRID_SIZE && preview_y < GRID_SIZE) {
                 return;
             }
@@ -540,9 +507,12 @@ void BattleshipView::draw_ship_preview(Painter& painter) {
     uint8_t size = ship.size();
     bool can_place = can_place_ship(cursor_x, cursor_y, size, placing_horizontal);
 
+    uint8_t dx = placing_horizontal ? 1 : 0;
+    uint8_t dy = placing_horizontal ? 0 : 1;
+
     for (uint8_t i = 0; i < size; i++) {
-        uint8_t x = placing_horizontal ? cursor_x + i : cursor_x;
-        uint8_t y = placing_horizontal ? cursor_y : cursor_y + i;
+        uint8_t x = cursor_x + (i * dx);
+        uint8_t y = cursor_y + (i * dy);
 
         if (x < GRID_SIZE && y < GRID_SIZE) {
             uint16_t cell_x = GRID_OFFSET_X + x * CELL_SIZE + 1;
@@ -561,18 +531,21 @@ bool BattleshipView::can_place_ship(uint8_t x, uint8_t y, uint8_t size, bool hor
         return false;
     }
 
+    uint8_t dx = horizontal ? 1 : 0;
+    uint8_t dy = horizontal ? 0 : 1;
+
     for (uint8_t i = 0; i < size; i++) {
-        uint8_t check_x = horizontal ? x + i : x;
-        uint8_t check_y = horizontal ? y : y + i;
+        uint8_t check_x = x + (i * dx);
+        uint8_t check_y = y + (i * dy);
 
         if (my_grid[check_y][check_x] != CellState::EMPTY) {
             return false;
         }
 
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                int adj_x = check_x + dx;
-                int adj_y = check_y + dy;
+        for (int ddy = -1; ddy <= 1; ddy++) {
+            for (int ddx = -1; ddx <= 1; ddx++) {
+                int adj_x = check_x + ddx;
+                int adj_y = check_y + ddy;
 
                 if (adj_x >= 0 && adj_x < GRID_SIZE &&
                     adj_y >= 0 && adj_y < GRID_SIZE) {
@@ -604,10 +577,11 @@ void BattleshipView::place_ship() {
     ship.horizontal = placing_horizontal;
     ship.placed = true;
 
+    uint8_t dx = placing_horizontal ? 1 : 0;
+    uint8_t dy = placing_horizontal ? 0 : 1;
+
     for (uint8_t i = 0; i < size; i++) {
-        uint8_t x = placing_horizontal ? cursor_x + i : cursor_x;
-        uint8_t y = placing_horizontal ? cursor_y : cursor_y + i;
-        my_grid[y][x] = CellState::SHIP;
+        my_grid[cursor_y + (i * dy)][cursor_x + (i * dx)] = CellState::SHIP;
     }
 
     current_ship_index++;
@@ -644,9 +618,14 @@ void BattleshipView::place_ship() {
 void BattleshipView::send_message(const GameMessage& msg) {
     static const char* msg_strings[] = {"READY", "SHOT:", "HIT:", "MISS:", "SUNK:", "WIN"};
 
-    std::string message = msg_strings[static_cast<int>(msg.type)];
+    std::string message;
+    message.reserve(16);
+    message.append(msg_strings[static_cast<int>(msg.type)]);
+
     if (msg.type != MessageType::READY && msg.type != MessageType::WIN) {
-        message += to_string_dec_uint(msg.x) + "," + to_string_dec_uint(msg.y);
+        message.append(to_string_dec_uint(msg.x));
+        message.append(",");
+        message.append(to_string_dec_uint(msg.y));
     }
 
     configure_radio_tx();
@@ -836,11 +815,12 @@ void BattleshipView::process_shot(uint8_t x, uint8_t y) {
             if (!ship.placed) continue;
 
             bool hit_this_ship = false;
-            for (uint8_t i = 0; i < ship.size(); i++) {
-                uint8_t check_x = ship.horizontal ? ship.x + i : ship.x;
-                uint8_t check_y = ship.horizontal ? ship.y : ship.y + i;
 
-                if (check_x == x && check_y == y) {
+            uint8_t dx = ship.horizontal ? 1 : 0;
+            uint8_t dy = ship.horizontal ? 0 : 1;
+
+            for (uint8_t i = 0; i < ship.size(); i++) {
+                if ((ship.x + i * dx) == x && (ship.y + i * dy) == y) {
                     hit_this_ship = true;
                     ship.hits++;
                     break;
@@ -852,9 +832,7 @@ void BattleshipView::process_shot(uint8_t x, uint8_t y) {
                 ships_remaining--;
 
                 for (uint8_t i = 0; i < ship.size(); i++) {
-                    uint8_t sunk_x = ship.horizontal ? ship.x + i : ship.x;
-                    uint8_t sunk_y = ship.horizontal ? ship.y : ship.y + i;
-                    my_grid[sunk_y][sunk_x] = CellState::SUNK;
+                    my_grid[ship.y + (i * dy)][ship.x + (i * dx)] = CellState::SUNK;
                 }
                 break;
             }
@@ -887,7 +865,12 @@ void BattleshipView::process_shot(uint8_t x, uint8_t y) {
 }
 
 void BattleshipView::update_score() {
-    current_score = "W:" + to_string_dec_uint(wins) + " L:" + to_string_dec_uint(losses);
+    current_score.clear();
+    current_score.reserve(16);
+    current_score.append("W:");
+    current_score.append(to_string_dec_uint(wins));
+    current_score.append(" L:");
+    current_score.append(to_string_dec_uint(losses));
 }
 
 bool BattleshipView::on_touch(const TouchEvent event) {
@@ -980,3 +963,4 @@ bool BattleshipView::on_key(const KeyEvent key) {
 }
 
 }  // namespace ui::external_app::battleship
+#pragma GCC pop_options
