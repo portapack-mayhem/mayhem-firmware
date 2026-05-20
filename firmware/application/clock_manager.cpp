@@ -427,13 +427,13 @@ void ClockManager::init_clock_generator() {
     // thoese PIN can review platform_scu file
     // have many conflict and modify for clock init
     // P2_10 -> GPIO0[14]  P1_CTRL0
-    LPC_SCU->SFSP[2][10] = 0xF0;  
+    LPC_SCU->SFSP[2][10] = 0xF0;
     // P6_8  -> GPIO5[16]  P1_CTRL1
-    LPC_SCU->SFSP[6][8]  = 0xF4;  
+    LPC_SCU->SFSP[6][8] = 0xF4;
     // P6_9  -> GPIO3[5]   P1_CTRL2
-    LPC_SCU->SFSP[6][9]  = 0xF0;  
+    LPC_SCU->SFSP[6][9] = 0xF0;
     // P1_20 -> GPIO0[15]  CLKIN_CTRL
-    LPC_SCU->SFSP[1][20] = 0xF0;  
+    LPC_SCU->SFSP[1][20] = 0xF0;
 
     constexpr GPIO gpio_p1_ctrl0 = gpio[GPIO0_14];
     constexpr GPIO gpio_p1_ctrl1 = gpio[GPIO5_16];
@@ -487,13 +487,11 @@ void ClockManager::init_clock_generator() {
         clock_generator_output_pro_mcu_clkin,
         si5351_clock_control_common[clock_generator_output_pro_mcu_clkin]
             .clk_src(ClockControl::ClockSource::CLKIN)
-            .clk_pdn(ClockControl::ClockPowerDown::Power_On)
-    );
+            .clk_pdn(ClockControl::ClockPowerDown::Power_On));
     clock_generator.enable_output(clock_generator_output_pro_mcu_clkin);
     chThdSleepMilliseconds(20);
     // should be extern icon and 10MHz
     reference = choose_reference();
-
 
     /* Clock control will be set AFTER multisynth configuration - see below */
 #else
