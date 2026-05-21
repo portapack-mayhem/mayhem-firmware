@@ -517,10 +517,10 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         }
 
         do {
-            readUntil(data_file, packets[num_packets].macAddress, mac_address_size_str, ' ');
-            readUntil(data_file, packets[num_packets].advertisementData, max_packet_size_str, ' ');
-            readUntil(data_file, packets[num_packets].packetType, max_packet_type_str, ' ');
-            readUntil(data_file, packets[num_packets].packetCount, max_packet_repeat_str, '\n');
+            readUntil(data_file, packets[num_packets].macAddress, sizeof(packets[num_packets].macAddress), ' ');
+            readUntil(data_file, packets[num_packets].advertisementData, sizeof(packets[num_packets].advertisementData), ' ');
+            readUntil(data_file, packets[num_packets].packetType, sizeof(packets[num_packets].packetType), ' ');
+            readUntil(data_file, packets[num_packets].packetCount, sizeof(packets[num_packets].packetCount), '\n');
 
             uint64_t macAddressSize = strlen(packets[num_packets].macAddress);
             uint64_t advertisementDataSize = strlen(packets[num_packets].advertisementData);
