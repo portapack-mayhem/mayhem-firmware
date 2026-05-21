@@ -58,7 +58,7 @@ static const Style* get_style_for_gain(uint8_t tot_gain, uint8_t gain) {
 }
 static const Style* get_style_for_amp(uint8_t tot_gain) {
     if (persistent_memory::config_tx_disabled() || persistent_memory::config_tx_amp_disabled()) {
-        return Theme::getInstance()->fg_dark;  // disabled coor
+        return Theme::getInstance()->fg_dark;  // disabled color
     }
 
     if (tot_gain > POWER_THRESHOLD_HIGH) return Theme::getInstance()->fg_red;
