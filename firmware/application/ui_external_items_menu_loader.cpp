@@ -9,13 +9,7 @@
 
 namespace ui {
 
-/* static */ std::vector<std::unique_ptr<DynamicBitmap<16, 16>>> ExternalItemsMenuLoader::bitmaps;
-
-// to save ram when entering an app
-void ExternalItemsMenuLoader::unload_external_items() {
-    bitmaps.clear();
-    bitmaps.shrink_to_fit();
-}
+/* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
 
 // iterates over all possible ext apps-s, and if it is runnable on the current system, it'll call the callback, and pass minimal info. used to print to console, and for autostart setting's app list. where the minimal info is enough
 // please keep in sync with load_external_items
@@ -103,9 +97,8 @@ void ExternalItemsMenuLoader::unload_external_items() {
     }
 }
 
-std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
+/* static */ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
-    bitmaps.shrink_to_fit();
 
     std::vector<GridItemEx> external_apps;
 
@@ -133,8 +126,8 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
 
                 gridItem.color = Color((uint16_t)appInfo->icon_color);
 
-                auto dyn_bmp = std::make_unique<DynamicBitmap<16, 16>>(appInfo->bitmap_data);
-                gridItem.bitmap = dyn_bmp->bitmap();
+                auto dyn_bmp = DynamicBitmap<16, 16>{appInfo->bitmap_data};
+                gridItem.bitmap = dyn_bmp.bitmap();
                 bitmaps.push_back(std::move(dyn_bmp));
 
                 gridItem.on_select = [&nav, appInfo, i]() {
@@ -211,8 +204,8 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         if (versionMatches) {
             gridItem.color = Color((uint16_t)application_information.icon_color);
 
-            auto dyn_bmp = std::make_unique<DynamicBitmap<16, 16>>(application_information.bitmap_data);
-            gridItem.bitmap = dyn_bmp->bitmap();
+            auto dyn_bmp = DynamicBitmap<16, 16>{application_information.bitmap_data};
+            gridItem.bitmap = dyn_bmp.bitmap();
             bitmaps.push_back(std::move(dyn_bmp));
 
             gridItem.on_select = [&nav, app_location, filePath]() {
@@ -262,8 +255,8 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
 
         gridItem.color = Color((uint16_t)application_information.icon_color);
 
-        auto dyn_bmp = std::make_unique<DynamicBitmap<16, 16>>(application_information.bitmap_data);
-        gridItem.bitmap = dyn_bmp->bitmap();
+        auto dyn_bmp = DynamicBitmap<16, 16>{application_information.bitmap_data};
+        gridItem.bitmap = dyn_bmp.bitmap();
         bitmaps.push_back(std::move(dyn_bmp));
 
         gridItem.on_select = [&nav, app_location, filePath]() {
@@ -357,8 +350,6 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
     if (checksum != EXT_APP_EXPECTED_CHECKSUM)
         return false;
 
-    nav.pop();
-    nav.set_last_menu_went_deeper(true);
     application_information.externalAppEntry(nav);
     return true;
 }
@@ -395,8 +386,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         }
     }
 
-    nav.set_last_menu_went_deeper(true);
-    nav.replace<StandaloneView>(app_image);
+    nav.push<StandaloneView>(app_image);
     return true;
 }
 
@@ -410,8 +400,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
         }
     }
 
-    nav.set_last_menu_went_deeper(true);
-    nav.replace<StandaloneView>(app_image);
+    nav.push<StandaloneView>(app_image);
     return true;
 }
 
