@@ -1,6 +1,5 @@
 <!--
 👋 Thank you for your contribution!
-
 ⚠️ Before you start, please review our Contributing Guidelines:
 https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines
 -->
@@ -12,14 +11,19 @@ Don't forget to describe how maintainers can test your modifications!
 -->
 
 
+
+
+
 ---
 
 ## Proof that your changes work
 <!--
 1. PRs without proof will not be merged. Please provide evidence for every section below that applies to your change.
 2. Trusted contributors: If you have a track record of merged PRs that were properly tested and documented, maintainers may waive one or more of the proof sections below at their discretion. You are still encouraged to include whatever evidence you have, but sections may be marked `N/A — trusted contributor` with a short note. 
-3. First-time contributors must provide full proof. See the [Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines) and Trusted Contributors (https://github.com/portapack-mayhem/mayhem-firmware/wiki/Trusted-Contributors) articles for details.
+3. First-time contributors must provide full proof. See the Contributing Guidelines(https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines) and Trusted Contributors (https://github.com/portapack-mayhem/mayhem-firmware/wiki/Trusted-Contributors) articles for details.
 -->
+
+
 
 
 
@@ -29,20 +33,30 @@ Attach a log snippet showing a successful build from the final firmware size/spa
 Paste log below.
 -->
 
+
+
+
+
 ### 📱 Proof of testing on a real device
 <!--
 Attach photos, screenshots, or a short video of your changes running on actual PortaPack hardware. Emulator or simulator output is not a substitute for real-device testing.
 Paste photo / video / screenshot below 
 -->
 
+
+
+
+
 ### 📡 Proof against a real emitter/receiver (if applicable)
-
 <!--
-If your PR involves RX/TX, protocol decoding, signal generation, or any RF-related functionality, you **must** demonstrate it working against a real emitter or receiver. Include photos, videos, logs, or waterfall/spectrum screenshots.
+1. If your PR involves RX/TX, protocol decoding, signal generation, or any RF-related functionality, you **must** demonstrate it working against a real emitter or receiver. Include photos, videos, logs, or waterfall/spectrum screenshots.
+2. If this section does not apply to your PR, write `N/A` below and briefly explain why.
+3. Paste RF evidence, or write N/A with a short justification 
+-->
 
-If this section does not apply to your PR, write `N/A` below and briefly explain why.
 
-Paste RF evidence, or write N/A with a short justification -->
+
+
 
 ---
 
@@ -57,7 +71,11 @@ Your wiki article should include:
 - Anything else a user should know to use the app effectively (dependencies, required hardware, file formats, etc.)
 - If you are modifying an existing app, make sure the wiki page reflects your changes.
 -->
+
+
 - [ ] I will (or already) create(d) wiki document for my newly added feature
+
+
 ---
 
 ## Checklist
