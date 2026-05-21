@@ -97,7 +97,7 @@ struct BLETxPacket {
     char advertisementData[63];
     char packetCount[11];
     char packetType[17];
-    uint32_t packet_count;
+    uint32_t packet_count;  // repeat the same packet count times
     PKT_TYPE pduType;
 };
 
@@ -160,10 +160,10 @@ class BLETxView : public View {
     int16_t auto_channel_period{6};
 
     bool repeatLoop = false;
-    uint32_t packet_counter{0};
-    uint32_t num_packets{0};
-    uint32_t current_packet{0};
-    uint8_t packetTxCount{0};
+    uint32_t packet_counter{0};  // the counter (decr) of the actual packet as it can be sent multiple times
+    uint32_t num_packets{0};     // how many packets in the file
+    uint32_t current_packet{0};  // the actual packet's num, i'm sending if i have multiple packets
+    uint8_t packetTxCount{0};    // not used
     bool packetDone = false;
     bool random_mac = false;
     bool file_override = false;
@@ -285,8 +285,8 @@ class BLETxView : public View {
          {"Ch.37", 37},
          {"Ch.38", 38},
          {"Ch.39", 39},
-         {"Auto", 40},
-         {"All", 41}}};
+         {"Auto", BLT_CHAN_AUTO},
+         {"All", BLT_CHAN_ALL}}};
 
     OptionsField options_adv_type{
         {17 * 8, 6 * 8},

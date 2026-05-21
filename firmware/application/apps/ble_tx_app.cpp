@@ -116,7 +116,7 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
             freq_hz = 2'428'000'000ull + (channel_number - 11) * 2'000'000ull;
             break;
         default:
-            freq_hz = UINT64_MAX;
+            freq_hz = 2'402'000'000ull;  // Default to channel 37 frequency if invalid channel number
     }
 
     return freq_hz;
@@ -254,7 +254,7 @@ void BLETxView::send_packet() {
 }
 
 void BLETxView::start() {
-    if (file_path.empty()) {
+    if (file_path.empty() || num_packets == 0) {
         file_error();
         check_loop.set_value(false);
         return;
@@ -298,7 +298,7 @@ void BLETxView::on_timer() {
 void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
     // TODO: make use of progress variable
     (void)progress;
-    if (!is_active()) {
+    if (!is_active() || num_packets == 0) {
         return;
     }
     if (done) {
@@ -320,7 +320,7 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                 }
             } else if (all_channels) {
                 advCount++;
-                if (advCount == BLT_CHAN_AUTO) {
+                if (advCount == 40) {
                     channel_number = 0;
                     field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     if (packet_counter > 0) packet_counter--;
@@ -341,7 +341,8 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
     // Reached end of current packet repeats.
     if (packet_counter == 0) {
         // Done sending all packets.
-        if (current_packet == (num_packets - 1)) {
+        current_packet++;
+        if (current_packet >= num_packets) {
             current_packet = 0;
 
             // If looping, restart from beginning.
@@ -351,7 +352,6 @@ void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
                 stop();
             }
         } else {
-            current_packet++;
             update_current_packet(packets[current_packet], current_packet);
         }
     }
@@ -414,7 +414,7 @@ BLETxView::BLETxView(NavigationView& nav)
         timer_count = 0;
     };
 
-    options_speed.set_by_value(0);
+    options_speed.set_selected_index(0);
     options_channel.set_by_value(BLT_CHAN_AUTO);
 
     check_rand_mac.set_value(false);
@@ -425,8 +425,7 @@ BLETxView::BLETxView(NavigationView& nav)
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            on_file_changed(new_file_path);
-
+            this->on_file_changed(new_file_path);
             nav_.set_on_pop([this]() { button_play.focus(); });
         };
     };
@@ -439,7 +438,7 @@ BLETxView::BLETxView(NavigationView& nav)
             64,
             ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
-                on_save_file(buffer);
+                this->on_save_file(buffer);
             });
     };
 
@@ -554,10 +553,8 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             num_packets++;
 
         } while (num_packets < max_num_packets);
-
-        update_current_packet(packets[0], 0);
-
         data_file.close();
+        update_current_packet(packets[0], 0);
     }
 }
 
@@ -582,6 +579,9 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     std::vector<std::string> strings = splitIntoStrings(packet.advertisementData);
 
+    packet_counter = packet.packet_count;
+    current_packet = currentIndex;
+
     text_packet_index.set(to_string_dec_uint(current_packet));
 
     text_packets_sent.set(to_string_dec_uint(packet.packet_count));
@@ -589,9 +589,6 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
     text_mac_address.set(formattedMacAddress);
 
     progressbar.set_max(packet.packet_count);
-
-    packet_counter = packet.packet_count;
-    current_packet = currentIndex;
 
     dataFile.create(dataTempFilePath);
 
