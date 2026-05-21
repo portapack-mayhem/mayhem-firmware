@@ -148,8 +148,8 @@ static struct gpio gpio_h1r9_hw_sync_enable = GPIO(5, 5);
 #endif
 // clang-format on
 
-/* i2c0, i2c1, and i2c_config_si5351c_fast_clock are defined in
- * hackrf/firmware/common/i2c_bus.c and si5351c.c; use those instead of
+/* i2c0, i2c1, and i2c_config_fast_clock are defined in
+ * hackrf/firmware/common/i2c_bus.c and i2c_lpc.c; use those instead of
  * redefining them here to avoid multiple-definition link errors. */
 
 si5351c_driver_t clock_gen = {
@@ -553,7 +553,7 @@ void cpu_clock_init(void) {
     /* use IRC as clock source for APB3 */
     CGU_BASE_APB3_CLK = CGU_BASE_APB3_CLK_CLK_SEL(CGU_SRC_IRC);
 
-    i2c_bus_start(clock_gen.bus, &i2c_config_si5351c_fast_clock);
+    i2c_bus_start(clock_gen.bus, &i2c_config_fast_clock);
 
     si5351c_init(&clock_gen);
     si5351c_disable_all_outputs(&clock_gen);
@@ -561,8 +561,7 @@ void cpu_clock_init(void) {
     si5351c_power_down_all_clocks(&clock_gen);
     si5351c_set_crystal_configuration(&clock_gen);
     si5351c_enable_xo_and_ms_fanout(&clock_gen);
-    si5351c_configure_pll_sources(&clock_gen, PLL_SOURCE_XTAL);
-    si5351c_configure_pll_multisynth(&clock_gen, PLL_SOURCE_XTAL);
+    si5351c_configure_pll_multisynth(&clock_gen, SI5351C_INPUT_XTAL);
 
     /*
      * Clocks on HackRF One r9:
@@ -615,14 +614,15 @@ void cpu_clock_init(void) {
     /* Set to 10 MHz, the common rate between Jawbreaker and HackRF One. */
     sample_rate_set(10000000 * (fp_40_24_t)FP_ONE_HZ, true);
 
-    si5351c_set_clock_source(&clock_gen, PLL_SOURCE_XTAL);
+    si5351c_configure_clock_control(&clock_gen);
+    si5351c_change_input(&clock_gen, SI5351C_INPUT_XTAL);
     // soft reset
-    si5351c_reset_pll(&clock_gen, SI5351C_PLL_BOTH);
+    si5351c_reset_plls(&clock_gen, SI5351C_PLL_MASK_BOTH);
     si5351c_enable_clock_outputs(&clock_gen);
 
     // FIXME disable I2C
     /* Kick I2C0 down to 400kHz when we switch over to APB1 clock = 204MHz */
-    i2c_bus_start(clock_gen.bus, &i2c_config_si5351c_fast_clock);
+    i2c_bus_start(clock_gen.bus, &i2c_config_fast_clock);
 
     /*
      * 12MHz clock is entering LPC XTAL1/OSC input now.
@@ -784,9 +784,9 @@ clock_source_t activate_best_clock_source(void) {
         /* No external or PortaPack clock was found. Use HackRF Si5351C crystal. */
     }
 
-    si5351c_set_clock_source(
+    si5351c_change_input(
         &clock_gen,
-        (source == CLOCK_SOURCE_HACKRF) ? PLL_SOURCE_XTAL : PLL_SOURCE_CLKIN);
+        (source == CLOCK_SOURCE_HACKRF) ? SI5351C_INPUT_XTAL : SI5351C_INPUT_CLKIN);
     hackrf_ui()->set_clock_source(source);
     return source;
 }
