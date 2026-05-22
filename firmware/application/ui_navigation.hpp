@@ -69,11 +69,6 @@ enum modal_t {
     ABORT
 };
 
-class CstrCmp {
-   public:
-    bool operator()(const char* a, const char* b) const;
-};
-
 // Should only be used as part of the appList in NavigationView, the viewFactory will never be destroyed.
 class AppInfo {
    public:

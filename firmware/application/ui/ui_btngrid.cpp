@@ -147,7 +147,7 @@ void BtnGridView::clear() {
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items, bool inhibit_update) {
-    for (auto item : new_items) {
+    for (const auto& item : new_items) {
         if (!blacklisted_app(item))
             menu_items.push_back(item);
     }

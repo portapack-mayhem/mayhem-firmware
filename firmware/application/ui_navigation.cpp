@@ -82,10 +82,6 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
-bool CstrCmp::operator()(const char* a, const char* b) const {
-    return strcmp(a, b) < 0;
-}
-
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
