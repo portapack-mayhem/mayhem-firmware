@@ -34,123 +34,92 @@ void MenuItemView::set_item(MenuItem* item_) {
 
 void MenuItemView::highlight() {
     set_highlighted(true);
-    reset_scroll();
+    scroll_offset = 0;
     set_dirty();
 }
 
 void MenuItemView::unhighlight() {
     set_highlighted(false);
-    reset_scroll();
+    scroll_offset = 0;
     set_dirty();
 }
 
-bool MenuItemView::needs_scroll() const {
-    if (!item) return false;
-    std::string left_text = item->text;
-
-    // Find the Tab separator
-    auto tab_pos = left_text.find('\t');
-    if (tab_pos != std::string::npos) {
-        left_text = left_text.substr(0, tab_pos);
-        // If there's a Tab, we enforce the original 20-character limit for the name
-        return left_text.length() > 20;
-    }
-
-    // Standard menu item without Tab
-    Coord offset_x = item->bitmap ? 26 : 0;
-    size_t max_chars = (screen_rect().size().width() - offset_x) / 8;
-    return left_text.length() > max_chars;
-}
-
-void MenuItemView::increment_scroll() {
-    if (highlighted() && needs_scroll()) {
-        scroll_offset++;
-        set_dirty();  // ONLY trigger redraw if the text is genuinely too long!
-    }
-}
-
-void MenuItemView::reset_scroll() {
-    if (scroll_offset != 0) {
-        scroll_offset = 0;
-        // set_dirty() not needed here, unhighlight/highlight handles it
+void MenuItemView::set_scroll_offset(size_t offset) {
+    if (can_scroll && scroll_offset != offset) {
+        scroll_offset = offset;
+        set_dirty();  // Csak akkor frissítünk (rajzolunk újra), ha tényleg kell!
     }
 }
 
 void MenuItemView::paint(Painter& painter) {
-    Coord offset_x{};
-
     if (!item) return;
 
-    const auto r = screen_rect();
-    const auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight)) ? style().invert() : style();
-    const auto font_height = paint_style.font.line_height();
+    const auto rect = screen_rect();
+    auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight)) ? style().invert() : style();
+
+    const int char_width = paint_style.font.char_width();
+    const int line_height = paint_style.font.line_height();
+
+    if (char_width == 0 || line_height == 0) return;
+
+    const int margin_x = char_width / 2;
 
     ui::Color final_item_color = (highlighted() && (parent()->has_focus() || keep_highlight)) ? paint_style.foreground : item->color;
     ui::Color final_bg_color = (highlighted() && (parent()->has_focus() || keep_highlight)) ? item->color : paint_style.background;
 
     if (final_item_color.v == final_bg_color.v) final_item_color = paint_style.foreground;
 
-    painter.fill_rectangle(r, final_bg_color);
+    painter.fill_rectangle(rect, final_bg_color);
+
+    Coord offset_x = 0;
 
     if (item->bitmap) {
-        painter.draw_bitmap(
-            {r.location().x() + 4, r.location().y() + 4},
-            *item->bitmap,
-            final_item_color,
-            final_bg_color);
-        offset_x = 26;
-    } else {
-        offset_x = 0;
+        int bitmap_x = rect.location().x() + margin_x;
+        int bitmap_y = rect.location().y() + (rect.height() - item->bitmap->size.height()) / 2;
+
+        painter.draw_bitmap({bitmap_x, bitmap_y}, *item->bitmap, final_item_color, final_bg_color);
+        offset_x = margin_x + item->bitmap->size.width() + margin_x;
     }
 
-    Style text_style{
-        .font = paint_style.font,
-        .background = final_bg_color,
-        .foreground = final_item_color};
+    Style text_style{.font = paint_style.font, .background = final_bg_color, .foreground = final_item_color};
 
-    // --- FIXED COLUMN LOGIC ---
+    // Szétbontás
     std::string left_text = item->text;
     std::string right_text = "";
-
     auto tab_pos = left_text.find('\t');
     if (tab_pos != std::string::npos) {
         right_text = left_text.substr(tab_pos + 1);
         left_text = left_text.substr(0, tab_pos);
     }
 
-    size_t max_name_chars = (r.size().width() - offset_x) / 8;
+    int available_width_px = rect.width() - offset_x;
+    if (available_width_px <= 0) return;
 
-    // If we have a file size, lock the filename to exactly 20 characters
-    if (!right_text.empty()) {
-        max_name_chars = 20;
+    size_t max_name_chars = available_width_px / char_width;
+    if (!right_text.empty() && max_name_chars > right_text.length()) {
+        max_name_chars = max_name_chars - right_text.length() - 1;
     }
 
-    std::string display_name = left_text;
+    can_scroll = (left_text.length() > max_name_chars);
 
+    std::string display_name = left_text;
     if (left_text.length() > max_name_chars) {
         if (highlighted()) {
             size_t max_scroll = left_text.length() - max_name_chars;
-            size_t actual_offset = scroll_offset % (max_scroll + 2);  // Short pause at the end
-            if (actual_offset > max_scroll) actual_offset = max_scroll;
+            size_t actual_offset = scroll_offset % (max_scroll + 1);
             display_name = left_text.substr(actual_offset, max_name_chars);
         } else {
-            display_name = left_text.substr(0, max_name_chars);  // Truncate cleanly
+            display_name = left_text.substr(0, max_name_chars);
         }
     }
 
-    // Draw the scrolling filename on the left
-    painter.draw_string(
-        {r.location().x() + offset_x, r.location().y() + (r.size().height() - font_height) / 2},
-        text_style,
-        display_name);
+    Coord text_y = rect.location().y() + (rect.height() - line_height) / 2;
 
-    // Draw the static file size locked exactly at character column 21
+    painter.draw_string({rect.location().x() + offset_x, text_y}, text_style, display_name);
+
     if (!right_text.empty()) {
-        Coord right_x = offset_x + (21 * 8);
-        painter.draw_string(
-            {r.location().x() + right_x, r.location().y() + (r.size().height() - font_height) / 2},
-            text_style,
-            right_text);
+        Coord right_x = rect.width() - (right_text.length() * char_width) - margin_x;
+        painter.draw_string({rect.location().x() + right_x, text_y}, text_style, right_text);
     }
 }
 
@@ -206,6 +175,19 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
     update_items();
 }
 
+void MenuView::increment_scroll() {
+    // The MenuView checks if the currently highlighted item needs scrolling
+    scroll_offset++;
+    auto* view = item_view(highlighted_item - offset);
+    if (view) {
+        view->set_scroll_offset(scroll_offset);
+    }
+}
+
+void MenuView::reset_scroll() {
+    scroll_offset = 0;
+}
+
 void MenuView::on_tick_second() {
     if (more && blink)
         arrow_more.set_foreground(Theme::getInstance()->bg_darkest->foreground);
@@ -215,13 +197,7 @@ void MenuView::on_tick_second() {
     blink = !blink;
     arrow_more.set_dirty();
 
-    // --- ADDED: Ask the highlighted item to scroll (it will ignore if not needed) ---
-    if (item_count() > 0) {
-        auto* current_view = item_view(highlighted_item - offset);
-        if (current_view) {
-            current_view->increment_scroll();
-        }
-    }
+    increment_scroll();
 }
 
 void MenuView::clear() {
@@ -303,6 +279,8 @@ bool MenuView::set_highlighted(int32_t new_value) {
         highlighted_item = new_value;
         item_view(highlighted_item - offset)->highlight();
     }
+
+    reset_scroll();
 
     if (on_highlight)
         on_highlight();

@@ -32,7 +32,7 @@ static const char* hackrf_magic = "HACKRFFW";
 #define FIRST_CHECKSUM_NIGHTLY 240125
 
 Thread* FlashUtilityView::thread{nullptr};
-// static constexpr size_t max_filename_length = 26;
+static constexpr size_t max_filename_length = 60;  // max length of filename
 
 bool valid_firmware_file(std::filesystem::path::string_type path) {
     File firmware_file;
@@ -97,7 +97,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
             auto filename = entry.path().filename();
             auto path = entry.path().native();
 
-            menu_view.add_item({filename.string(),
+            menu_view.add_item({filename.string().substr(0, max_filename_length),
                                 color,
                                 &bitmap_icon_peripherals_details,
                                 [this, path](KeyEvent) {
