@@ -410,15 +410,6 @@ void FileManBaseView::refresh_list() {
     menu_view.clear();
 
     for (const auto& entry : entry_list) {
-        // Pass the FULL path, do not truncate with substr here!
-        std::string entry_name = entry.path;
-
-        // Add padding for short names so the size aligns on the right.
-        // For long names, just add one space before the size string.
-        std::string padding = (entry_name.length() <= max_filename_length)
-                                  ? std::string((max_filename_length + 1) - entry_name.length(), ' ')
-                                  : " ";
-
         if (entry.is_directory) {
             std::string size_str{};
             if (entry.path == str_next || entry.path == str_back) {
@@ -427,8 +418,10 @@ void FileManBaseView::refresh_list() {
                 size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
             }
 
+            // CRITICAL: Use "\t" (Tab) to separate the path and the size!
+            // Do not use spaces or padding here. The menu will handle the alignment.
             menu_view.add_item(
-                {entry_name + padding + size_str,
+                {entry.path + "\t" + size_str,
                  Theme::getInstance()->fg_yellow->foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -440,8 +433,9 @@ void FileManBaseView::refresh_list() {
             const auto& assoc = get_assoc(get_extension(entry.path));
             auto size_str = to_string_file_size(entry.size);
 
+            // CRITICAL: Use "\t" (Tab) to separate the path and the size!
             menu_view.add_item(
-                {entry_name + padding + size_str,
+                {entry.path + "\t" + size_str,
                  assoc.color,
                  assoc.icon,
                  [this](KeyEvent key) {

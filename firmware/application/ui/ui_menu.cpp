@@ -46,26 +46,20 @@ void MenuItemView::unhighlight() {
 
 bool MenuItemView::needs_scroll() const {
     if (!item) return false;
-    Coord offset_x = item->bitmap ? 26 : 0;
     std::string left_text = item->text;
-    size_t right_len = 0;
 
     // Find the Tab separator
     auto tab_pos = left_text.find('\t');
     if (tab_pos != std::string::npos) {
-        right_len = left_text.length() - tab_pos - 1;
         left_text = left_text.substr(0, tab_pos);
+        // If there's a Tab, we enforce the original 20-character limit for the name
+        return left_text.length() > 20;
     }
 
-    size_t total_chars = (screen_rect().size().width() - offset_x) / 8;
-    size_t max_name_chars = total_chars;
-
-    // Leave space for the right-side size string and 1 space character
-    if (right_len > 0 && total_chars > right_len) {
-        max_name_chars = total_chars - right_len - 1;
-    }
-
-    return left_text.length() > max_name_chars;
+    // Standard menu item without Tab
+    Coord offset_x = item->bitmap ? 26 : 0;
+    size_t max_chars = (screen_rect().size().width() - offset_x) / 8;
+    return left_text.length() > max_chars;
 }
 
 void MenuItemView::increment_scroll() {
@@ -114,7 +108,7 @@ void MenuItemView::paint(Painter& painter) {
         .background = final_bg_color,
         .foreground = final_item_color};
 
-    // --- NEW SPACE-FILLING LOGIC ---
+    // --- FIXED COLUMN LOGIC ---
     std::string left_text = item->text;
     std::string right_text = "";
 
@@ -124,12 +118,11 @@ void MenuItemView::paint(Painter& painter) {
         left_text = left_text.substr(0, tab_pos);
     }
 
-    // Calculate available characters (8 pixels per character)
-    size_t total_chars = (r.size().width() - offset_x) / 8;
-    size_t max_name_chars = total_chars;
+    size_t max_name_chars = (r.size().width() - offset_x) / 8;
 
-    if (!right_text.empty() && total_chars > right_text.length()) {
-        max_name_chars = total_chars - right_text.length() - 1;  // -1 for the space gap
+    // If we have a file size, lock the filename to exactly 20 characters
+    if (!right_text.empty()) {
+        max_name_chars = 20;
     }
 
     std::string display_name = left_text;
@@ -141,26 +134,24 @@ void MenuItemView::paint(Painter& painter) {
             if (actual_offset > max_scroll) actual_offset = max_scroll;
             display_name = left_text.substr(actual_offset, max_name_chars);
         } else {
-            display_name = left_text.substr(0, max_name_chars);
+            display_name = left_text.substr(0, max_name_chars);  // Truncate cleanly
         }
     }
 
-    // Fill with spaces so the name length is EXACTLY max_name_chars
-    if (display_name.length() < max_name_chars) {
-        display_name += std::string(max_name_chars - display_name.length(), ' ');
-    }
-
-    // Concatenate everything into a single line
-    std::string final_display_text = display_name;
-    if (!right_text.empty()) {
-        final_display_text += " " + right_text;
-    }
-
-    // Draw with a single command so the file size is guaranteed to stay in place
+    // Draw the scrolling filename on the left
     painter.draw_string(
         {r.location().x() + offset_x, r.location().y() + (r.size().height() - font_height) / 2},
         text_style,
-        final_display_text);
+        display_name);
+
+    // Draw the static file size locked exactly at character column 21
+    if (!right_text.empty()) {
+        Coord right_x = offset_x + (21 * 8);
+        painter.draw_string(
+            {r.location().x() + right_x, r.location().y() + (r.size().height() - font_height) / 2},
+            text_style,
+            right_text);
+    }
 }
 
 /* MenuView **************************************************************/
