@@ -390,6 +390,7 @@ std::string get_stem(std::string t) {
         return t.substr(0, index);
     }
 }
+
 std::string get_filename(std::string _s) {
     const auto index = _s.find_last_of("/");
     if (index == _s.npos) {
@@ -398,6 +399,7 @@ std::string get_filename(std::string _s) {
         return _s.substr(index + 1);
     }
 }
+
 void FileManBaseView::refresh_list() {
     if (on_refresh_widgets)
         on_refresh_widgets(false);
@@ -408,18 +410,25 @@ void FileManBaseView::refresh_list() {
     menu_view.clear();
 
     for (const auto& entry : entry_list) {
-        auto entry_name = std::string{entry.path.length() <= max_filename_length ? entry.path : entry.path.substr(0, max_filename_length)};
+        // Pass the FULL path, do not truncate with substr here!
+        std::string entry_name = entry.path;
+
+        // Add padding for short names so the size aligns on the right.
+        // For long names, just add one space before the size string.
+        std::string padding = (entry_name.length() <= max_filename_length)
+                                  ? std::string((max_filename_length + 1) - entry_name.length(), ' ')
+                                  : " ";
 
         if (entry.is_directory) {
             std::string size_str{};
             if (entry.path == str_next || entry.path == str_back) {
-                size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);  // show computed number of pages
+                size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);
             } else {
                 size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
             }
 
             menu_view.add_item(
-                {entry_name.substr(0, max_filename_length) + std::string((max_filename_length + 1) - entry_name.length(), ' ') + size_str,
+                {entry_name + padding + size_str,
                  Theme::getInstance()->fg_yellow->foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -432,7 +441,7 @@ void FileManBaseView::refresh_list() {
             auto size_str = to_string_file_size(entry.size);
 
             menu_view.add_item(
-                {entry_name.substr(0, max_filename_length) + std::string((max_filename_length + 1) - entry_name.length(), ' ') + size_str,
+                {entry_name + padding + size_str,
                  assoc.color,
                  assoc.icon,
                  [this](KeyEvent key) {
@@ -619,9 +628,39 @@ void FileManagerView::on_clean() {
                 std::vector<std::filesystem::path> file_list;
                 file_list = scan_root_files(path_name, u"*");
 
-                for (const auto& file_name : file_list) {
-                    std::filesystem::path current_full_path = path_name / file_name;
-                    delete_file(current_full_path);
+                for (const auto& entry : entry_list) {
+                    if (entry.is_directory) {
+                        std::string size_str{};
+                        if (entry.path == str_next || entry.path == str_back) {
+                            size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);
+                        } else {
+                            size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
+                        }
+
+                        // FULL path + "\t" + size. No manual spaces, no substr!
+                        menu_view.add_item(
+                            {entry.path + "\t" + size_str,
+                             Theme::getInstance()->fg_yellow->foreground,
+                             &bitmap_icon_dir,
+                             [this](KeyEvent key) {
+                                 if (on_select_entry)
+                                     on_select_entry(key);
+                             }});
+
+                    } else {
+                        const auto& assoc = get_assoc(get_extension(entry.path));
+                        auto size_str = to_string_file_size(entry.size);
+
+                        // FULL path + "\t" + size
+                        menu_view.add_item(
+                            {entry.path + "\t" + size_str,
+                             assoc.color,
+                             assoc.icon,
+                             [this](KeyEvent key) {
+                                 if (on_select_entry)
+                                     on_select_entry(key);
+                             }});
+                    }
                 }
                 reload_current(true);
             }

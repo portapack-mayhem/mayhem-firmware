@@ -67,9 +67,17 @@ class MenuItemView : public Widget {
     void highlight();
     void unhighlight();
 
+    // --- ADDED FOR SCROLLING ---
+    void increment_scroll();
+    void reset_scroll();
+    bool needs_scroll() const;  // Only true if the text is too long to fit and the item is highlighted
+
    private:
     MenuItem* item{nullptr};
     bool keep_highlight = false;
+
+    // --- ADDED FOR SCROLLING ---
+    size_t scroll_offset{0};
 };
 
 class MenuView : public View {
@@ -103,6 +111,10 @@ class MenuView : public View {
     bool on_encoder(const EncoderEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
     bool on_touch(const TouchEvent event) override;
+
+    // --- ADDED FOR DYNAMIC TEXT UPDATES ---
+    std::string get_item_text(size_t index) const;
+    void set_item_text(size_t index, const std::string& new_text);
 
    private:
     void update_items();
