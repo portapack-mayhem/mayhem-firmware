@@ -13,6 +13,10 @@
 
 #include "file.hpp"
 
+namespace SharedMemory {
+struct MeteorLrptG4Ipc;
+}
+
 namespace meteor_lrpt_g4 {
 
 /** Hard cap for LRPT MSU-MR product JPEG dimensions (TJpgDec + BMP on M0). */
@@ -24,9 +28,7 @@ bool jpeg_buffer_has_progressive_sof(const uint8_t* jpg, size_t len);
 
 /**
  * Decode baseline JPEG to a new 24 bpp BMP at `path` (overwrites if present).
- * Runs `jd_prepare` before `BMPFile::create` so width matches the SOF; the BMP grows row-by-row
- * (`expand_y`) as TJpgDec emits MCUs (MCU order matches `jd_decomp` scan).
- * If `ppm_path` is non-null and non-empty, also writes a binary P6 RGB sidecar (same dimensions).
+ * When `g4_ipc` is non-null, fills `preview_rgb` during decode (no second BMP read).
  */
 bool decode_jpeg_to_new_bmp_file(
     const uint8_t* jpg,
@@ -34,7 +36,7 @@ bool decode_jpeg_to_new_bmp_file(
     const std::filesystem::path& path,
     uint32_t& drop_bits,
     uint8_t& jresult_out,
-    const std::filesystem::path* ppm_path = nullptr);
+    SharedMemory::MeteorLrptG4Ipc* g4_ipc = nullptr);  // optional live preview IPC (main firmware only)
 
 }  // namespace meteor_lrpt_g4
 

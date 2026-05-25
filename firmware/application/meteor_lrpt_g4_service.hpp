@@ -32,6 +32,8 @@ enum meteor_lrpt_g4_drop_bit : uint32_t {
     G4_DROP_PACKET_CRC = 1u << 10,
     /** CADU tail file seek/read/size mismatch (not BMP encode). */
     G4_DROP_CADU_IO = 1u << 11,
+    /** M0 heap could not allocate `MsumrDemux`. */
+    G4_DROP_DEMUX_OOM = 1u << 12,
 };
 
 /** One-time M0 init: starts the G4 worker thread (idempotent). */

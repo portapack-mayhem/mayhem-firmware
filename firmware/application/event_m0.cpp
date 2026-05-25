@@ -55,6 +55,8 @@ using namespace hackrf::one;
 #include "rffc507x_spi.hpp"
 
 #include <array>
+#include <functional>
+#include <utility>
 
 #include "ui_navigation.hpp"
 
@@ -79,30 +81,34 @@ CH_IRQ_HANDLER(M4Core_IRQHandler) {
 
 class MessageHandlerMap {
    public:
-    using MessageHandler = std::function<void(Message* const p)>;
+    using HandlerFn = void (*)(Message* const p, void* ctx);
 
-    void register_handler(const Message::ID id, MessageHandler&& handler) {
-        if (map_[toUType(id)] != nullptr) {
-            chDbgPanic("MsgDblReg");
-        }
-        map_[toUType(id)] = std::move(handler);
+    struct Slot {
+        HandlerFn fn{nullptr};
+        void* ctx{nullptr};
+    };
+
+    void register_handler(const Message::ID id, HandlerFn fn, void* const ctx) {
+        auto& slot = map_[toUType(id)];
+        slot.fn = fn;
+        slot.ctx = ctx;
     }
 
     void unregister_handler(const Message::ID id) {
-        map_[toUType(id)] = nullptr;
+        map_[toUType(id)] = {};
     }
 
     void send(Message* const message) {
         if (message->id < Message::ID::MAX) {
-            auto& fn = map_[toUType(message->id)];
-            if (fn) {
-                fn(message);
-            }
+            const auto& slot = map_[toUType(message->id)];
+            if (slot.fn)
+                slot.fn(message, slot.ctx);
         }
     }
 
    private:
-    using MapType = std::array<MessageHandler, toUType(Message::ID::MAX)>;
+    using MapType = std::array<Slot, toUType(Message::ID::MAX)>;
+
     MapType map_{};
 };
 
@@ -649,13 +655,31 @@ void EventDispatcher::init_message_queues() {
     new (&shared_memory) SharedMemory;
 }
 
+void MessageHandlerRegistration::thunk(Message* const p, void* const ctx) {
+    auto* const reg = static_cast<MessageHandlerRegistration*>(ctx);
+    if (reg && reg->callback_)
+        reg->callback_(p);
+}
+
 MessageHandlerRegistration::MessageHandlerRegistration(
     const Message::ID message_id,
-    MessageHandlerMap::MessageHandler&& callback)
-    : message_id{message_id} {
-    message_map.register_handler(message_id, std::move(callback));
+    std::function<void(Message* const p)>&& callback)
+    : message_id{message_id},
+      callback_{std::move(callback)} {
+    message_map.register_handler(message_id, &MessageHandlerRegistration::thunk, this);
 }
 
 MessageHandlerRegistration::~MessageHandlerRegistration() {
+    message_map.unregister_handler(message_id);
+}
+
+/* static */ void MessageHandlerRegistration::register_handler(
+    const Message::ID message_id,
+    HandlerFn const fn,
+    void* const ctx) {
+    message_map.register_handler(message_id, fn, ctx);
+}
+
+/* static */ void MessageHandlerRegistration::unregister_id(const Message::ID message_id) {
     message_map.unregister_handler(message_id);
 }

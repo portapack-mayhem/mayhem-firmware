@@ -87,6 +87,9 @@ constexpr region_t shared_memory{m4_code.end(), 14_KiB};
 
 constexpr region_t m4_code_hackrf = local_sram_0;
 
+/* M0 UI for .ppma with bundled M4 image (Meteor LRPT): reserved tail of M0 AHB SRAM. */
+constexpr region_t m0_external_app_runtime{0x20000000u + (64u * 1024u) - (10u * 1024u), 10_KiB};
+
 } /* namespace map */
 } /* namespace memory */
 } /* namespace portapack */

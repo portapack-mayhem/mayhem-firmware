@@ -48,14 +48,21 @@ if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
 	set(GCC_VERSION_MISMATCH 1)
 endif()
 
-#generate h files
-configure_file(flashsize.h.in flashsize.h)
-add_compile_options(-include ${CMAKE_CURRENT_BINARY_DIR}/flashsize.h)
+# flashsize.h must exist before application/baseband compile (-include is global for this tree).
+set(FLASHSIZE_H "${CMAKE_CURRENT_BINARY_DIR}/flashsize.h")
+configure_file(flashsize.h.in "${FLASHSIZE_H}" @ONLY)
+add_custom_target(flashsize_h ALL DEPENDS "${FLASHSIZE_H}")
+add_compile_options(-include "${FLASHSIZE_H}")
 
 add_subdirectory(application)
 add_subdirectory(baseband)
 add_subdirectory(standalone)
 add_subdirectory(test)
+
+# program-external-apps reads baseband/<TAG>.bin; build baseband.img (and external chunks) first.
+if(TARGET baseband AND TARGET application)
+	add_dependencies(application baseband)
+endif()
 
 if(BOARD STREQUAL "PRALINE")
 	math(EXPR PRALINE_FINAL_SIZE "4 * 1024 * 1024")
@@ -126,7 +133,11 @@ add_custom_command(
 	COMMAND cp ${FIRMWARE_FILENAME} firmware_tar/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
 	COMMAND mkdir -p firmware_tar/APPS
 	COMMAND cp application/*.ppma firmware_tar/APPS
-	COMMAND cp standalone/*/*.ppmp firmware_tar/APPS
+	COMMAND rm -f firmware_tar/APPS/meteor_capture.ppma
+	COMMAND cp application/meteor_capture.ppma firmware_tar/APPS/meteor-capture.ppma
+	COMMAND cp standalone/pacman/*.ppmp standalone/digitalrain/*.ppmp firmware_tar/APPS
+	COMMAND cp standalone/meteor_lrpt_decode/meteor_lrpt_decode_app.ppmp firmware_tar/APPS/meteor-decode.ppmp
+	COMMAND cp standalone/meteor_lrpt_view/meteor_lrpt_view_app.ppmp firmware_tar/APPS/meteor-view.ppmp
 	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
 	DEPENDS firmware ${FIRMWARE_FILENAME} standalone_apps
 	# Dont use VERBATIM here as it prevents usage of globbing (*)

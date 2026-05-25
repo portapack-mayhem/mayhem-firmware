@@ -6,16 +6,32 @@
 #include "jpeg_decode.hpp"
 
 #include "bmpfile.hpp"
-#include "file.hpp"
 
+#ifdef METEOR_STANDALONE_NO_CH
+#include <cstdlib>
+#define chHeapAlloc(a, s) std::malloc(s)
+#define chHeapFree(p) std::free(p)
+#define __DMB() ((void)0)
+namespace SharedMemory {
+struct MeteorLrptG4Ipc {
+    uint16_t preview_width{};
+    uint16_t preview_height{};
+    uint32_t preview_seq{};
+    static constexpr unsigned kPreviewWidth = 16;
+    static constexpr unsigned kPreviewHeight = 12;
+    uint8_t preview_rgb[kPreviewWidth * kPreviewHeight * 3]{};
+};
+}  // namespace SharedMemory
+#else
+#include "portapack_shared_memory.hpp"
 #include "ch.h"
+#endif
 
 extern "C" {
 #include "tjpgd.h"
 }
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 
 namespace meteor_lrpt_g4 {
@@ -35,11 +51,31 @@ struct JpegDecodeSession {
     size_t jpg_len{};
     size_t jpg_pos{};
     BMPFile* bmp{};
-    File* ppm{};
-    uint32_t ppm_stride{0};
-    /** Byte offset in `ppm` where raster data begins (after P6 ASCII header). */
-    uint32_t ppm_data_start{0};
+    SharedMemory::MeteorLrptG4Ipc* g4_ipc{};
+    uint32_t img_w{};
+    uint32_t img_h{};
 };
+
+void preview_store_rgb(
+    JpegDecodeSession* s,
+    unsigned px,
+    unsigned y,
+    uint8_t r,
+    uint8_t g,
+    uint8_t b) {
+    if (!s || !s->g4_ipc || s->img_w < 2 || s->img_h < 2)
+        return;
+    constexpr uint16_t pw = (uint16_t)SharedMemory::MeteorLrptG4Ipc::kPreviewWidth;
+    constexpr uint16_t ph = (uint16_t)SharedMemory::MeteorLrptG4Ipc::kPreviewHeight;
+    const unsigned pxi = (px * (pw - 1u)) / (s->img_w - 1u);
+    const unsigned pyi = (y * (ph - 1u)) / (s->img_h - 1u);
+    if (pxi >= pw || pyi >= ph)
+        return;
+    const size_t o = ((size_t)pyi * (size_t)pw + (size_t)pxi) * 3u;
+    s->g4_ipc->preview_rgb[o + 0] = r;
+    s->g4_ipc->preview_rgb[o + 1] = g;
+    s->g4_ipc->preview_rgb[o + 2] = b;
+}
 
 size_t tjpg_infunc(JDEC* jd, uint8_t* buf, size_t n) {
     auto* s = static_cast<JpegDecodeSession*>(jd->device);
@@ -51,7 +87,6 @@ size_t tjpg_infunc(JDEC* jd, uint8_t* buf, size_t n) {
     const size_t m = std::min(n, rem);
     if (m == 0)
         return 0;
-    /* ChaN: `buf == nullptr` skips segment payload without copying (still must advance). */
     if (buf == nullptr) {
         s->jpg_pos += m;
         return m;
@@ -85,28 +120,13 @@ int tjpg_outfunc(JDEC* jd, void* bitmap, JRECT* rect) {
                 return 0;
             const uint8_t* p = rgb + (size_t)row * (size_t)w * 3u;
             for (unsigned x = 0; x < w; x++) {
-                ui::Color px{p[(size_t)x * 3u + 2], p[(size_t)x * 3u + 1], p[(size_t)x * 3u + 0]};
+                const uint8_t r = p[(size_t)x * 3u + 2];
+                const uint8_t g = p[(size_t)x * 3u + 1];
+                const uint8_t b = p[(size_t)x * 3u + 0];
+                ui::Color px{r, g, b};
                 if (!bmp.write_next_px(px))
                     return 0;
-            }
-        }
-    }
-    if (s->ppm && s->ppm_stride > 0) {
-        File& ppm = *s->ppm;
-        for (unsigned row = 0; row < h; row++) {
-            const unsigned y = top + row;
-            const uint8_t* p = rgb + (size_t)row * (size_t)w * 3u;
-            for (unsigned x = 0; x < w; x++) {
-                const unsigned px = left + x;
-                const uint8_t tri[3] = {p[(size_t)x * 3u + 2], p[(size_t)x * 3u + 1], p[(size_t)x * 3u + 0]};
-                const uint64_t off =
-                    (uint64_t)s->ppm_data_start +
-                    (((uint64_t)y * (uint64_t)s->ppm_stride + (uint64_t)px) * 3u);
-                if (!ppm.seek(off))
-                    return 0;
-                const auto wr = ppm.write(tri, 3);
-                if (!wr.is_ok() || wr.value() != 3)
-                    return 0;
+                preview_store_rgb(s, left + x, y, r, g, b);
             }
         }
     }
@@ -131,7 +151,7 @@ bool decode_jpeg_to_new_bmp_file(
     const std::filesystem::path& path,
     uint32_t& drop_bits,
     uint8_t& jresult_out,
-    const std::filesystem::path* ppm_path) {
+    SharedMemory::MeteorLrptG4Ipc* g4_ipc) {
     jresult_out = (uint8_t)JDR_PAR;
     if (!jpg || len < 4)
         return false;
@@ -159,7 +179,7 @@ bool decode_jpeg_to_new_bmp_file(
     session.jpg_base = jpg;
     session.jpg_len = len;
     session.jpg_pos = 0;
-    session.bmp = nullptr;
+    session.g4_ipc = g4_ipc;
 
     jd.device = &session;
     jd.swap = 0;
@@ -181,30 +201,8 @@ bool decode_jpeg_to_new_bmp_file(
         return false;
     }
 
-    File ppm_file{};
-    bool ppm_active = false;
-    if (ppm_path && !ppm_path->empty()) {
-        const auto cre = ppm_file.create(*ppm_path);
-        if (!cre.is_valid()) {
-            char hdr[72];
-            const int hn = std::snprintf(hdr, sizeof hdr, "P6\n%u %u\n255\n", (unsigned)iw, (unsigned)ih);
-            if (hn > 0 && (size_t)hn < sizeof hdr) {
-                const auto hw = ppm_file.write(hdr, (File::Size)hn);
-                if (hw.is_ok() && hw.value() == (File::Size)hn)
-                    ppm_active = true;
-            }
-            if (!ppm_active)
-                ppm_file.close();
-        }
-    }
-
-    const uint32_t ppm_data_start =
-        ppm_active ? (uint32_t)ppm_file.tell() : 0u;
-
     BMPFile bmp{};
-    /* Row-streaming file growth: start at 1 scanline; `tjpg_outfunc` expands as MCUs advance. */
     if (!bmp.create(path, iw, 1)) {
-        ppm_file.close();
         drop_bits |= kDropBmp;
         jresult_out = (uint8_t)JDR_PAR;
         free_pool();
@@ -213,30 +211,26 @@ bool decode_jpeg_to_new_bmp_file(
 
     session.jpg_pos = 0;
     session.bmp = &bmp;
-    session.ppm = ppm_active ? &ppm_file : nullptr;
-    session.ppm_stride = ppm_active ? iw : 0;
-    session.ppm_data_start = ppm_data_start;
-    jd.device = &session;
-    jd.swap = 0;
-
-    pr = jd_prepare(&jd, tjpg_infunc, work_pool, kJpegWorkpoolBytes, &session);
-    jresult_out = (uint8_t)pr;
-    if (pr != JDR_OK) {
-        drop_bits |= kDropJpegPrepare;
-        bmp.close();
-        ppm_file.close();
-        free_pool();
-        return false;
+    session.img_w = iw;
+    session.img_h = ih;
+    if (g4_ipc) {
+        g4_ipc->preview_width = (uint16_t)SharedMemory::MeteorLrptG4Ipc::kPreviewWidth;
+        g4_ipc->preview_height = (uint16_t)SharedMemory::MeteorLrptG4Ipc::kPreviewHeight;
     }
+    jd.device = &session;
 
     const JRESULT dr = jd_decomp(&jd, tjpg_outfunc, 0);
     jresult_out = (uint8_t)dr;
     bmp.close();
-    ppm_file.close();
     free_pool();
     if (dr != JDR_OK) {
         drop_bits |= kDropJpegDecomp;
         return false;
+    }
+    if (g4_ipc) {
+        __DMB();
+        g4_ipc->preview_seq = g4_ipc->preview_seq + 1u;
+        __DMB();
     }
     return true;
 }

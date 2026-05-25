@@ -1,0 +1,34 @@
+Stable Mayhem + Meteor — frozen scope (update this file when you intentionally expand Meteor)
+===============================================================================================
+
+Recorded baseline (git at time of plan implementation):
+  Branch:  build
+  Commit:  c962dd4d33b3b5f99f05568d13a4635c57ac85b9
+
+Optional upstream reset (messy diffs): see .cursor/plans/official_cmake_+_docker_meteor_af9265b6.plan.md
+
+Meteor-related paths (keep in sync when refactoring):
+  firmware/baseband/meteor_lrpt/          (DSP / deframer / deinterleave sources)
+  firmware/baseband/proc_meteor_lrpt_rx.cpp
+  firmware/cmake/MeteorLrptDeintSources.cmake
+  firmware/application/CMakeLists.txt     (M0 + G4 sources, includes)
+  firmware/baseband/CMakeLists.txt        (DeclareTargets PMLR meteor_lrpt_rx; USE_OPT)
+  firmware/application/external/external.cmake
+  firmware/application/external/external.ld
+  firmware/application/external/meteor_lrpt_rx/
+  firmware/tools/external_app_info.py     (must match external.ld address range)
+  firmware/tools/export_external_apps.py
+  firmware/common/portapack_shared_memory.hpp  (MeteorLrptIpc — M0/M4 ABI)
+
+PMLR baseband tag: PMLR (chunk in baseband.img)
+External app id:   meteor_lrpt_rx (.ppma on SD under APPS/)
+
+Golden packaging rule:
+  Never mix portapack-mayhem-firmware.bin from build A with .ppma from build B.
+  Prefer portapack-mayhem_OCI.ppfw.tar from one build for Flash Utility (FIRMWARE/ on SD).
+
+Canonical Docker commands: see scripts/stable-meteor-docker.ps1 (-UseWsl if Windows bind mounts fail), scripts/stable-meteor-docker.sh. Logs and copies: share-out/logs/, share-out/artifacts/.
+
+SPI pack (H4M / W25Q80): use -DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=1 (1048576-byte .bin). Do NOT use LIMIT=2 on 1 MiB hardware. See scripts/H4M_METEOR_BUILD.txt.
+
+Host: Docker Desktop needs enough RAM for parallel arm-none-eabi-g++; if builds die with "Cannot allocate memory", use MAYHEM_MAKE_JOBS=1 or give the VM more memory.

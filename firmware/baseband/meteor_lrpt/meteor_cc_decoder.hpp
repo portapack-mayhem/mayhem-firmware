@@ -16,6 +16,7 @@ class MeteorCcDecoder {
    public:
     /* frame_bits: decoded information bit count (e.g. 8192 for 1024-byte LRPT frame). */
     explicit MeteorCcDecoder(unsigned int frame_bits);
+    ~MeteorCcDecoder();
     MeteorCcDecoder(const MeteorCcDecoder&) = delete;
     MeteorCcDecoder& operator=(const MeteorCcDecoder&) = delete;
 
@@ -33,6 +34,7 @@ class MeteorCcDecoder {
 
     static int parity_int(int x);
     void create_viterbi();
+    bool ensure_decisions_buffer();
     int init_viterbi_unbiased();
     int init_viterbi(int starting_state);
     int find_endstate();
@@ -59,8 +61,8 @@ class MeteorCcDecoder {
     unsigned char* new_metrics{nullptr};
 
     static constexpr size_t max_veclen = 8200;
-    static constexpr size_t max_decisions = max_veclen * 8;
-    std::array<unsigned char, max_decisions> decisions{};
+    unsigned char* decisions_{nullptr};
+    size_t decisions_bytes_{0};
 
     int d_start_state_chaining{0};
     int d_end_state_chaining{0};

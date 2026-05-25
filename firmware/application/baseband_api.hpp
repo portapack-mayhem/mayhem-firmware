@@ -129,7 +129,15 @@ void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_m
 
 bool is_image_running();
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
+bool run_image_checked(const portapack::spi_flash::image_tag_t image_tag, uint32_t timeout_ms = 3000);
+/** PMLR from SPI when present, else prepared image in m4_code (loaded from .ppma). */
+void run_meteor_lrpt_rx_image();
+/** Start Meteor M4 after .ppma copy; returns false if baseband_ready times out. */
+/** @param prepared_only If true, always run M4 from m4_code (e.g. after .ppma load); ignore SPI PMLR. */
+bool start_meteor_lrpt_baseband_checked(uint32_t timeout_ms = 5000, bool prepared_only = false);
 void run_prepared_image(const uint32_t m4_code);
+/** Returns false if baseband_ready is not set within timeout_ms (no panic). */
+bool run_prepared_image_checked(const uint32_t m4_code, uint32_t timeout_ms = 3000, bool full_reset = false);
 void shutdown();
 
 void spectrum_streaming_start();

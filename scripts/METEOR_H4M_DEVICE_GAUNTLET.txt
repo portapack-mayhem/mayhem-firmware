@@ -1,0 +1,23 @@
+Meteor LRPT H4M device validation gauntlet
+Run on HackRF One + PortaPack H4M after flashing build artifacts from validate_meteor_artifacts.sh.
+
+Phase A — Boot / RX menu
+  Power cycle. Open RX menu. Pass: no Guru Meditation.
+
+Phase B — Meteor open (M2-x, non-interleaved)
+  Open Meteor LRPT. Default M2-x, Interlv off. Pass: view stable 60+ seconds, status line updates.
+
+Phase C — Interleaved
+  Enable Interlv with M2-x on. Pass: status shows [Intlv:M0SD+M4] or alloc-failure modal (not silent hang).
+
+Phase D — Re-enter
+  Back out and open Meteor 10 times. Pass: no MsgDblReg, preview/status work each time.
+
+Phase E — CADU record
+  Start CADU recording to SD. Pass: file grows; exit without Guru.
+
+Phase F — Mode matrix
+  Exercise M2-x, Diff, Leg.corr, 80k sym, Interlv combinations. Pass: each opens and closes cleanly.
+
+Phase G — Long soak
+  Leave Meteor running 10+ minutes at 3.072 MHz. Pass: no SV#8; ipc dropped count stable.

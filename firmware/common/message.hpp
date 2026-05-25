@@ -164,7 +164,7 @@ class Message {
         MeteorLrptRxConfigure = 106,
         MeteorLrptRxStatusData = 107,
         MeteorLrptRxPreviewLine = 108,
-        EPIRBRXConfig = 106,
+        EPIRBRXConfig = 109,
         MAX
     };
 

@@ -92,6 +92,11 @@ class MultiDecimatorMeteor16 {
 
 class MeteorLrptRx : public BasebandProcessor {
    public:
+    static constexpr size_t soft_buf_cap = 16384;
+    static constexpr size_t soft_bytes_needed = 16384;
+    static constexpr size_t interleaved_soft_bytes = 8192;
+
+    MeteorLrptRx();
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
@@ -101,6 +106,7 @@ class MeteorLrptRx : public BasebandProcessor {
     void capture_config(const CaptureConfigMessage& message);
     void try_decode_block();
     void finish_interleaved_from_m0();
+    bool ensure_interleaved_post();
     bool interleaved_ipc_ready() const;
     size_t soft_bytes_target() const;
     bool process_soft_to_frame(const int8_t* soft, std::array<uint8_t, 1024>& frame);
@@ -113,8 +119,6 @@ class MeteorLrptRx : public BasebandProcessor {
 
     static constexpr size_t baseband_fs = 3072000;
     static constexpr uint32_t fs_sym_path = 192000;
-    static constexpr size_t soft_bytes_needed = 16384;
-    static constexpr size_t interleaved_soft_bytes = 8192;
 
     bool configured{false};
     uint8_t flags_{0};
@@ -144,15 +148,16 @@ class MeteorLrptRx : public BasebandProcessor {
     float sym_ci_hist_[4]{};
     float sym_cq_hist_[4]{};
 
-    std::array<int8_t, 17000> soft_buf_{};
-    std::array<int8_t, 17000> soft_rot_work_{};
+    int8_t* soft_buf_{nullptr};
+    int8_t* soft_rot_work_{nullptr};
     size_t soft_fill_{0};
 
     MeteorCcDecoder viterbi_{8192};
     MeteorNrzmByteDecoder nrzm_{};
     MeteorNrzmBitDecoder nrzm_bits_{};
     MeteorBpskCcsdsDeframer bpsk_deframer_{};
-    meteor_lrpt::M2xInterleavedPostDeintPipeline interleaved_post_{};
+    /** Allocated on demand (~27 KiB); keeps M4 heap headroom at app launch. */
+    std::unique_ptr<meteor_lrpt::M2xInterleavedPostDeintPipeline> interleaved_post_{};
     std::array<uint8_t, 8192> m2x_bits_{};
     std::array<uint8_t, 2048> deframer_batch_out_{};
 
@@ -167,8 +172,10 @@ class MeteorLrptRx : public BasebandProcessor {
     MeteorLrptRxStatusDataMessage status_{};
     MeteorLrptRxPreviewLineMessage preview_{};
 
-    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
-    RSSIThread rssi_thread{};
+    /* Threads start in ctor after soft buffers exist (see proc_meteor_lrpt_rx.cpp). */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive, false, NORMALPRIO - 4};
+    RSSIThread rssi_thread{false};
 };
+
 
 #endif /*__PROC_METEOR_LRPT_RX_HPP__*/

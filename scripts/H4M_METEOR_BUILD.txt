@@ -1,0 +1,101 @@
+PortaPack H4M + Meteor LRPT — 1 MiB SPI build and flash
+=========================================================
+
+Hardware
+  HackRF One + PortaPack H4M (AGM CPLD idcode 0x25610).
+  SPI: 1 MiB (W25Q80-class) — confirmed if mayhem_flasher option 2 with a
+  1048576-byte release bin recovers your unit.
+  NOT HackRF Pro / PRALINE — do not use -DBOARD=PRALINE.
+
+Firmware at boot (portapack.cpp)
+  CPLD 0x25610 → PortaPackModel::AGM; factory CPLD (no JTAG reflash on boot).
+  Backlight: CAT4004 for AGM.
+
+Build (1 MiB SPI pack — required for W25Q80 / H4M)
+  Use upstream Mayhem pairing (same as official 1048576-byte release):
+    -DFLASH_MB_SIZE=2          (SPI memory map / runtime)
+    -DFLASH_MB_LIMIT_SIZE=1    (packed portapack-mayhem-firmware.bin)
+
+  Do NOT set both to 1 — that mismatches official 1 MiB images and can prevent boot.
+  Do NOT set LIMIT=2 on 1 MiB hardware (2097152-byte .bin bricks the unit).
+
+  WSL (recommended on Windows):
+    sed -i 's/\r$//' scripts/*.sh
+    ./scripts/wsl-build-share-out.sh
+    (builds artifacts only; does not run make program / program-external-apps)
+
+  program-external-apps copies .ppma to a PortaPack over SD-over-USB — use on host with device attached, not in Docker.
+
+  PowerShell (delegates to WSL if bind mounts fail):
+    .\scripts\stable-meteor-docker.ps1 -UseWsl
+    $env:MAYHEM_FLASH_MB_SIZE='2'; $env:MAYHEM_FLASH_MB_LIMIT='1'
+
+  Docker died mid-build (exit 125, "unexpected EOF" at ~80-90% application compile)?
+    Restart Docker Desktop, then resume (keeps build/ on WSL ext4; no clean):
+      MAYHEM_RESUME_MAKE=1 ./scripts/wsl-build-share-out.sh
+    Keep MAYHEM_MAKE_JOBS=1. If it repeats, raise memory in %UserProfile%\.wslconfig
+    (e.g. memory=8GB) and restart WSL: wsl --shutdown
+
+  Artifacts (must be 1048576-byte .bin; one build set):
+    share-out/artifacts/portapack-mayhem-firmware.bin
+    share-out/artifacts/portapack-mayhem_OCI.ppfw.tar
+    share-out/artifacts/meteor-capture.ppma
+    share-out/artifacts/meteor-decode.ppmp
+    share-out/artifacts/meteor-view.ppmp
+
+  After build:
+    ./scripts/spi-gate-check.sh
+    ./scripts/validate_meteor_artifacts.sh
+
+SPI gate
+  Log must NOT contain "SPI flash image size ... exceeds".
+  Success line: "Space remaining in flash ROM: <N> bytes".
+  A 2 MiB image (2097152 bytes) must NOT be flashed on 1 MiB SPI.
+
+1 MiB build profile (MAYHEM_SPI_1MB)
+  Omits large SPI chunks from baseband.img (still built as baseband/*.bin for .ppma export):
+    PWTH, PSGD, PTST, PSON, PMLR, PFSR, PUSB, PATX, PMRS, PRTR, PRTT, PERT, PMRT, PTON, PTSK,
+    PPVW, PWFX, PNOA, PSCD, PTNE.
+  Use external .ppma on SD for those modes (same idea as upstream 1 MiB Mayhem trimming).
+  Meteor live RX: meteor-capture.ppma bundles PMLS M4 only (no full FEC in SPI).
+  Offline: meteor-decode.ppmp (soft→CADU), meteor-view.ppmp (CADU→BMP).
+  PGPS stays built for the gpssim external app (not packed into baseband.img).
+
+Flash on H4M — canonical: PC USB + hackrf_spiflash
+  .\scripts\flash-h4m-share-out.ps1
+  (requires exactly 1048576-byte bin; hackrf_spiflash from the host is the reference path)
+
+  Flash OCI tar (includes APPS\) or copy from the SAME build:
+    meteor-capture.ppma, meteor-decode.ppmp, meteor-view.ppmp  →  SD APPS\
+
+SD + Flash Utility (experimental until read-back is proven)
+  Treat as optional; use the same .ppfw.tar from the build as for hackrf_spiflash above.
+  1. FAT32 SD; copy ONLY to FIRMWARE\ at card root:
+       X:\FIRMWARE\portapack-mayhem_OCI.ppfw.tar
+  2. Mayhem → Flash Utility → select the .ppfw.tar.
+  3. Confirm unpack shows FIRMWARE\ and APPS\ on the SD.
+  4. Wait several minutes while LED RX is on (1 MiB program).
+  5. Reboot; Receive menu: Meteor Capture, Meteor Decode, Meteor View (from ppfw APPS\).
+
+Recovery (blank screen / bad flash)
+  DFU + flashing\mayhem_flasher.bat option 2 (official 1 MiB Mayhem).
+  Do not retry a 2 MiB *image* (LIMIT=2) on 1 MiB SPI.
+  See scripts/BOOT_FAILURE_H4M.md for causes and fixes.
+
+SD card boot hang (Mayhem OK without SD, stuck on loading with SD)
+  Not a bad SPI flash — fix settings on the device (boot once without SD):
+    SETTINGS → P.Memory Mgmt → Load mem defaults → reboot
+    SETTINGS → SD Card → "enable high speed IO" OFF → Save
+  Firmware (this tree): boot always mounts SD at 25 MHz first, then applies high speed only
+  after a successful mount. See wiki Won't-boot § "HackRF does not boot with sd-card inserted".
+
+Before flashing a custom share-out .bin
+  ./scripts/validate_meteor_artifacts.sh   (must exit 0)
+  python -c "d=open('share-out/artifacts/portapack-mayhem-firmware.bin','rb').read(); exit(d.find(b'PMLR')>=0)"
+  (exit 0 = no PMLR tag — required on 1 MiB H4M Meteor profile)
+  Prefer MAYHEM_CLEAN_BUILD=1 for wsl-build-share-out.sh after baseband CMake changes.
+  MAYHEM_RESUME_MAKE=1 still runs spi-prep-1mb.sh (drops stale PMLR.img).
+
+Smoke test (see validate_meteor_artifacts.sh gauntlet A0–A6)
+  Boot Mayhem; Receive → Meteor Capture (PMLS in .ppma), record soft .C8.
+  Meteor Decode → /LRPT/dec_cadu.C8; Meteor View → BMP under /LRPT/.

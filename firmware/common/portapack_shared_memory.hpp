@@ -66,6 +66,10 @@ struct SharedMemory {
 
     char m4_panic_msg[32]{0};
 
+    /* Flash Utility (PFUT): UTF-16 path in [0..255], 256-byte SD read buffer at [256..511]. */
+    static constexpr size_t flash_utility_path_bytes = 256;
+    static constexpr size_t flash_utility_data_offset = 256;
+
     union {
         ToneData tones_data;
         struct {
@@ -160,6 +164,17 @@ struct SharedMemory {
         volatile uint16_t preview_height{0};
         volatile uint8_t preview_rgb[kPreviewRgbBytes]{};
     } meteor_lrpt_g4_ipc{};
+
+    /** M0→M4 configure handshake (seq/ack); polled on M4 — avoids Message pointer IPC on H4M. */
+    struct MeteorLrptRxM0Command {
+        static constexpr uint32_t kMagic = 0x4D4C4346u; /* 'MLCF' */
+        volatile uint32_t magic{0};
+        volatile uint32_t seq{0};
+        volatile uint8_t flags{0};
+        volatile uint8_t symbol_rate_k{72};
+        volatile uint8_t ack{0};
+        uint8_t pad[3]{};
+    } meteor_lrpt_rx_m0_command{};
 
     uint8_t volatile radio_tx_drain{0};  // to indicate the baseband thread to drain the tx buffer, and wait for it, before radio::disable()
 #ifdef PRALINE

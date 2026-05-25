@@ -29,6 +29,8 @@ import subprocess
 from external_app_info import maximum_application_size
 from external_app_info import external_apps_address_start
 from external_app_info import external_apps_address_end
+from external_app_info import external_m0_load_base_with_m4
+from external_app_info import external_m0_max_bytes
 
 usage_message = """
 PortaPack external app image creator
@@ -94,12 +96,19 @@ externalAppEntry_header_position = 4
 m4_app_tag_header_position = 76
 m4_app_offset_header_position = 80
 
+# EXTAPPLIST id (output .ppma basename) -> linker OUTPUT section in external.ld
+EXTERNAL_APP_LINKER_SECTION = {
+	"meteor_capture": "meteor_lrpt_capture",
+}
+
 for external_image_prefix in sys.argv[4:]:
 
+	linker_section = EXTERNAL_APP_LINKER_SECTION.get(external_image_prefix, external_image_prefix)
 	# COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
 	himg = "{}/external_app_{}.himg".format(binary_dir, external_image_prefix)
 	print("Creating external application image for {}".format(external_image_prefix))
-	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)])
+	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg,
+		"--only-section=.external_app_{}".format(linker_section)])
 
 	external_application_image = read_image(himg)
 
@@ -107,7 +116,7 @@ for external_image_prefix in sys.argv[4:]:
 	chunk_data = external_application_image[m4_app_tag_header_position:m4_app_tag_header_position+4]
 
 	# skip m4 if not set
-	if (chunk_data[0] == 0 and chunk_data[1] == 0 and chunk_data[2] == 0 and chunk_data[3] == 0):
+	if len(chunk_data) < 4 or (chunk_data[0] == 0 and chunk_data[1] == 0 and chunk_data[2] == 0 and chunk_data[3] == 0):
 		replace_address = 0x10080000
 		search_address = int.from_bytes(external_application_image[externalAppEntry_header_position:externalAppEntry_header_position+4], byteorder='little') & 0xFFFF0000
 		external_application_image = patch_image(himg, external_application_image, search_address, replace_address)
@@ -136,12 +145,22 @@ for external_image_prefix in sys.argv[4:]:
 		print("m4 file size not divideable by 4")
 		sys.exit(-1)
 
-	replace_address = 0x10080000 + len(m4_image)
+	# M0 UI in AHB SRAM tail (see external_app_info.py). bank2_base + len(m4) overlaps SharedMemory.
+	replace_address = external_m0_load_base_with_m4
 	search_address = int.from_bytes(external_application_image[externalAppEntry_header_position:externalAppEntry_header_position+4], byteorder='little') & 0xFFFF0000
 	external_application_image = patch_image(himg, external_application_image, search_address, replace_address)
 
 	external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 	external_application_image[m4_app_offset_header_position:m4_app_offset_header_position+4] = app_image_len.to_bytes(4, byteorder='little')
+
+	if app_image_len > external_m0_max_bytes:
+		if external_image_prefix in ("meteor_lrpt_rx", "meteor_lrpt_capture", "meteor_capture"):
+			print("application {} M0 section {} bytes exceeds reserved AHB slot {} bytes".format(
+				external_image_prefix, app_image_len, external_m0_max_bytes))
+			sys.exit(-1)
+		print("WARNING: H4M Meteor profile skipping bundled-M4 app {}: M0 section {} bytes exceeds reserved AHB slot {} bytes".format(
+			external_image_prefix, app_image_len, external_m0_max_bytes))
+		continue
 
 	if (len(external_application_image) > maximum_application_size) != 0:
 		print("application {} can not exceed {} bytes: {} bytes used".format(

@@ -58,6 +58,11 @@ else()
     math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 endif()
 
+# 1 MiB SPI pack (H4M / W25Q80): trim baseband modes in firmware/baseband/CMakeLists.txt.
+if(FLASH_MB_LIMIT_SIZE EQUAL 1)
+    set(MAYHEM_SPI_1MB TRUE CACHE INTERNAL "1 MiB SPI image profile")
+endif()
+
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
 project(portapack-h1)

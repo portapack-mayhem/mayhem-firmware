@@ -27,12 +27,12 @@
 #include "tonesets.hpp"
 #include "dsp_iir_config.hpp"
 
-#include "meteor_lrpt_deint_service.hpp"
-#include "meteor_lrpt_g4_service.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "memory_map.hpp"
 
 #include "core_control.hpp"
+#include "lpc43xx_cpp.hpp"
 
 /* Set true to enable additional checks to ensure
  * M4 and M0 are synchronized before passing messages. */
@@ -48,6 +48,41 @@ using namespace portapack;
 
 namespace baseband {
 
+static bool wait_baseband_ready(const uint32_t timeout_ms);
+
+static bool m4_prepared_image_looks_valid(const uint32_t m4_code_base) {
+    const auto* const hdr = reinterpret_cast<const uint32_t*>(m4_code_base);
+    const uint32_t sp = hdr[0];
+    const uint32_t reset = hdr[1];
+    if (sp < 0x10000000u || sp > 0x10020000u)
+        return false;
+    if ((reset & 1u) == 0u)
+        return false;
+    return true;
+}
+
+/** Like send_message but never panics; returns false on timeout. */
+static bool send_message_timed(const Message* const message, const uint32_t timeout_ms) {
+    shared_memory.baseband_message = message;
+    __DMB();
+    creg::m0apptxevent::assert_event();
+
+    auto count = timeout_ms;
+    while (count--) {
+        __DMB();
+        if (!shared_memory.baseband_message)
+            return true;
+        chThdSleepMilliseconds(1);
+    }
+
+    __DMB();
+    if (shared_memory.baseband_message) {
+        shared_memory.baseband_message = nullptr;
+        return false;
+    }
+    return true;
+}
+
 static void send_message(const Message* const message) {
     // If message is only sent by this function via one thread, no need to check if
     // another message is present before setting new message.
@@ -59,10 +94,13 @@ static void send_message(const Message* const message) {
         /* Timeout: ~3 seconds at typical clock speeds */
         auto count = 200'000'000u;
 #else
-        auto count = UINT32_MAX;
+        /* Bounded wait (~3 s): unbounded spin on M0 freezes the UI if M4 is busy in DSP. */
+        auto count = 200'000'000u;
 #endif
-        while (shared_memory.baseband_message && --count)
-            /* spin */;
+        while (shared_memory.baseband_message && --count) {
+            if ((count & 0x3fff) == 0)
+                chThdSleepMilliseconds(1);
+        }
 
         if (count == 0)
 #ifdef PRALINE
@@ -364,12 +402,40 @@ void set_noaaapt_config() {
 }
 
 void set_meteor_lrpt_rx_config(uint8_t flags, uint8_t symbol_rate_k) {
-    meteor_lrpt::deint_service_configure(flags);
-    meteor_lrpt::deint_service_start_thread();
-    meteor_lrpt_g4_init();
-    meteor_lrpt_g4_configure(flags);
-    const MeteorLrptRxConfigureMessage message{flags, symbol_rate_k};
-    send_message(&message);
+    /* Live M0 deinterleave disabled on device; capture-only RX (offline post-process). */
+    flags = static_cast<uint8_t>(flags & ~0x02u);
+
+    if (!is_image_running() || !wait_baseband_ready(3000))
+        chDbgPanic("Baseband Sync Fail");
+
+    auto& cmd = shared_memory.meteor_lrpt_rx_m0_command;
+    cmd.magic = SharedMemory::MeteorLrptRxM0Command::kMagic;
+    cmd.ack = 0;
+    cmd.flags = flags;
+    cmd.symbol_rate_k = symbol_rate_k;
+    __DMB();
+    cmd.seq++;
+
+    static MeteorLrptRxConfigureMessage message{};
+    message.flags = flags;
+    message.symbol_rate_k = symbol_rate_k;
+
+    creg::m0apptxevent::assert_event();
+    if (send_message_timed(&message, 2000))
+        return;
+
+    for (uint32_t i = 0; i < 1000; i++) {
+        __DMB();
+        if (cmd.ack)
+            return;
+        if ((i & 3u) == 0u)
+            creg::m0apptxevent::assert_event();
+        chThdSleepMilliseconds(1);
+    }
+
+    if (shared_memory.m4_panic_msg[0] != 0)
+        chDbgPanic(shared_memory.m4_panic_msg);
+    chDbgPanic("Meteor cfg timeout");
 }
 
 void set_flex_config() {
@@ -462,52 +528,84 @@ bool is_image_running() {
     return baseband_image_running;
 }
 
-void run_image(const spi_flash::image_tag_t image_tag) {
-    if (baseband_image_running) {
-        chDbgPanic("BBRunning");
-    }
+static bool wait_baseband_ready(const uint32_t timeout_ms) {
+    if constexpr (!enforce_core_sync)
+        return true;
+
+    auto count = timeout_ms;
+    while (!shared_memory.baseband_ready && count--)
+        chThdSleepMilliseconds(1);
+
+    return shared_memory.baseband_ready;
+}
+
+bool run_image_checked(const spi_flash::image_tag_t image_tag, const uint32_t timeout_ms) {
+    if (baseband_image_running)
+        return false;
 
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
+    shared_memory.baseband_message = nullptr;
 
     m4_init(image_tag, memory::map::m4_code, false);
     baseband_image_running = true;
 
     creg::m4txevent::enable();
 
-    if constexpr (enforce_core_sync) {
-        // Wait up to 3 seconds for baseband to start handling events.
-        auto count = 3'000u;
-        while (!shared_memory.baseband_ready && --count)
-            chThdSleepMilliseconds(1);
+    if (wait_baseband_ready(timeout_ms))
+        return true;
 
-        if (count == 0)
-            chDbgPanic("Baseband Sync Fail");
-    }
+    creg::m4txevent::disable();
+    baseband_image_running = false;
+    return false;
 }
 
-void run_prepared_image(const uint32_t m4_code) {
-    if (baseband_image_running) {
-        chDbgPanic("BBRunning");
-    }
+void run_image(const spi_flash::image_tag_t image_tag) {
+    if (!run_image_checked(image_tag, 3000))
+        chDbgPanic("Baseband Sync Fail");
+}
+
+bool run_prepared_image_checked(const uint32_t m4_code, const uint32_t timeout_ms, const bool full_reset) {
+    if (baseband_image_running)
+        return false;
+
+    if (!m4_prepared_image_looks_valid(m4_code))
+        return false;
 
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
+    shared_memory.baseband_message = nullptr;
+    shared_memory.meteor_lrpt_rx_m0_command.magic = 0;
+    shared_memory.meteor_lrpt_rx_m0_command.seq = 0;
+    shared_memory.meteor_lrpt_rx_m0_command.ack = 0;
 
-    m4_init_prepared(m4_code, false);
+    m4_init_prepared(m4_code, full_reset);
     baseband_image_running = true;
 
     creg::m4txevent::enable();
 
-    if constexpr (enforce_core_sync) {
-        // Wait up to 3 seconds for baseband to start handling events.
-        auto count = 3'000u;
-        while (!shared_memory.baseband_ready && --count)
-            chThdSleepMilliseconds(1);
+    if (wait_baseband_ready(timeout_ms))
+        return true;
 
-        if (count == 0)
-            chDbgPanic("Baseband Sync Fail");
-    }
+    creg::m4txevent::disable();
+    baseband_image_running = false;
+    return false;
+}
+
+void run_prepared_image(const uint32_t m4_code) {
+    if (!run_prepared_image_checked(m4_code, 5000, false))
+        chDbgPanic("Baseband Sync Fail");
+}
+
+bool start_meteor_lrpt_baseband_checked(const uint32_t timeout_ms, const bool prepared_only) {
+    if (!prepared_only && spi_flash_has_image(spi_flash::image_tag_meteor_lrpt_rx))
+        return run_image_checked(spi_flash::image_tag_meteor_lrpt_rx, timeout_ms);
+    return run_prepared_image_checked(portapack::memory::map::m4_code.base(), timeout_ms, false);
+}
+
+void run_meteor_lrpt_rx_image() {
+    if (!start_meteor_lrpt_baseband_checked(5000))
+        chDbgPanic("Baseband Sync Fail");
 }
 
 void shutdown() {
@@ -517,16 +615,17 @@ void shutdown() {
 
     creg::m4txevent::disable();
 
-    ShutdownMessage message;
-    send_message(&message);
+    const ShutdownMessage message{};
+    (void)send_message_timed(&message, 500);
 
     shared_memory.application_queue.reset();
+    shared_memory.clear_baseband_ready();
+    shared_memory.baseband_message = nullptr;
     // Allow time for the shutdown message to be processed and for the baseband
     // core to stop before starting another image. Otherwise, the M4 may still be
     // running and cause a crash when the next image is started.
-#ifdef PRALINE
     chThdSleepMilliseconds(20);
-#endif
+    m4_hold_reset();
     baseband_image_running = false;
 }
 
@@ -543,18 +642,22 @@ void spectrum_streaming_stop() {
 }
 
 void set_sample_rate(uint32_t sample_rate, OversampleRate oversample_rate) {
+    if (!is_image_running())
+        return;
     SampleRateConfigMessage message{sample_rate, oversample_rate};
-    send_message(&message);
+    (void)send_message_timed(&message, 2000);
 }
 
 void capture_start(CaptureConfig* const config) {
     CaptureConfigMessage message{config};
-    send_message(&message);
+    if (!send_message_timed(&message, 3000))
+        chDbgPanic("Baseband Send Fail");
 }
 
 void capture_stop() {
     CaptureConfigMessage message{nullptr};
-    send_message(&message);
+    if (!send_message_timed(&message, 3000))
+        chDbgPanic("Baseband Send Fail");
 }
 
 void replay_start(ReplayConfig* const config) {

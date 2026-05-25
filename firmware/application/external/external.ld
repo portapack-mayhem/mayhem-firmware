@@ -630,9 +630,9 @@ SECTIONS
         *(*ui*external_app*flex_tx*);
     } > ram_external_app_flex_tx
 
-    .external_app_meteor_lrpt_rx : ALIGN(4) SUBALIGN(4)
+    .external_app_meteor_lrpt_capture : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_meteor_lrpt_rx.application_information));
+        KEEP(*(.external_app.app_meteor_lrpt_capture.application_information));
         *(*ui*external_app*meteor_lrpt_rx*);
     } > ram_external_app_meteor_lrpt_rx
 }

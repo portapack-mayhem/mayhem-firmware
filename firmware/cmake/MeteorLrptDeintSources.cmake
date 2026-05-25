@@ -20,7 +20,6 @@ set(METEOR_LRPT_DEINT_CPPSRC_APPLICATION
 	../baseband/meteor_lrpt/meteor_deinterleaver.cpp
 	../baseband/meteor_lrpt/meteor_deinterleaver_reader.cpp
 	../baseband/meteor_lrpt/meteor_soft_correlate.cpp
-	../baseband/meteor_lrpt/external_ring_ram.cpp
 )
 # M0 links `meteor_lrpt_deinterleave_dispatch_m0.cpp` from application/CMakeLists.txt (not this list)
 # so `meteor_lrpt_deinterleave_dispatch.cpp` is not duplicated in application.elf.

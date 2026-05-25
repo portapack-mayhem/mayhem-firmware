@@ -50,4 +50,7 @@ inline uint32_t get_free_stack_space() {
     }                                                         \
     __asm__ __volatile__("bkpt 1")
 
+struct extctx;
+void write_m4_panic_msg(const char* panic_message, struct extctx* ctxp);
+
 #endif /*__DEBUG_H__*/

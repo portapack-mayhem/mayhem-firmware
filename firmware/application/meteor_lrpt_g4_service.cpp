@@ -7,7 +7,6 @@
 #include "meteor_lrpt_g4_service.hpp"
 #include "file.hpp"
 #include "jpeg_decode.hpp"
-#include "meteor_lrpt_g4_preview.hpp"
 #include "msumr_demux.hpp"
 #include "portapack_shared_memory.hpp"
 
@@ -19,11 +18,21 @@
 
 #include <array>
 #include <cstring>
+#include <new>
 #include <string>
 
 namespace {
 
-meteor_lrpt_g4::MsumrDemux g_demux{};
+meteor_lrpt_g4::MsumrDemux* g_demux{nullptr};
+
+static meteor_lrpt_g4::MsumrDemux* demux_ptr() {
+    if (!g_demux) {
+        void* const mem = chHeapAlloc(nullptr, sizeof(meteor_lrpt_g4::MsumrDemux));
+        if (mem)
+            g_demux = new (mem) meteor_lrpt_g4::MsumrDemux();
+    }
+    return g_demux;
+}
 
 static void copy_path_utf8_volatile(volatile char* dst, const size_t dst_max, const std::filesystem::path& path) {
     if (!dst || dst_max == 0)
@@ -79,28 +88,15 @@ void g4_jpeg_handler(void* /*ctx*/, const uint16_t apid, const uint8_t* jpeg, co
     const std::string name = "msumr_" + ap + "_" + to_string_timestamp(rtc_time::now()) + ".bmp";
     const auto path = std::filesystem::path{u"/LRPT"} / name;
 
-    std::filesystem::path ppm_sidecar{};
-    const std::filesystem::path* ppm_arg = nullptr;
-    if ((g4.debug_flags & 1u) != 0) {
-        std::string ppm_name = name;
-        if (ppm_name.size() > 4 && ppm_name.compare(ppm_name.size() - 4, 4, ".bmp") == 0)
-            ppm_name.replace(ppm_name.size() - 4, 4, ".ppm");
-        else
-            ppm_name.append(".ppm");
-        ppm_sidecar = std::filesystem::path{u"/LRPT"} / ppm_name;
-        ppm_arg = &ppm_sidecar;
-    }
-
     uint32_t local_drops = 0;
     uint8_t jr = 0;
-    const bool ok = meteor_lrpt_g4::decode_jpeg_to_new_bmp_file(jpeg, len, path, local_drops, jr, ppm_arg);
+    const bool ok = meteor_lrpt_g4::decode_jpeg_to_new_bmp_file(jpeg, len, path, local_drops, jr, &g4);
     (void)jr;
     g4.drop_bits |= local_drops;
     if (ok) {
         g4.jpeg_ok_count++;
         g4.bmp_write_count++;
         copy_path_utf8_volatile(g4.last_bmp_utf8, sizeof(g4.last_bmp_utf8), path);
-        (void)meteor_lrpt_g4::publish_decoded_bmp_preview(g4, path);
     }
     g4.last_jresult = jr;
 }
@@ -127,7 +123,8 @@ static msg_t g4_worker_thd(void* /*arg*/) {
                 cadu_open = false;
             }
             cadu_off = 0;
-            g_demux.reset();
+            if (auto* const d = demux_ptr())
+                d->reset();
             sd_backoff_count = 0;
             continue;
         }
@@ -157,13 +154,15 @@ static msg_t g4_worker_thd(void* /*arg*/) {
                 }
                 cadu_open = true;
                 cadu_off = 0;
-                g_demux.reset();
+                if (auto* const d = demux_ptr())
+                    d->reset();
             }
 
             const auto sz = cadu_file.size();
             if (cadu_off > sz) {
                 cadu_off = 0;
-                g_demux.reset();
+                if (auto* const d = demux_ptr())
+                    d->reset();
             }
             if (sz < cadu_off + meteor_lrpt::kMeteorCaduRecBytes) {
                 continue;
@@ -193,8 +192,13 @@ static msg_t g4_worker_thd(void* /*arg*/) {
 
         g4.cadus_processed++;
 
+        auto* const d = demux_ptr();
+        if (!d) {
+            g4.drop_bits |= G4_DROP_DEMUX_OOM;
+            continue;
+        }
         uint32_t drop = 0;
-        g_demux.feed_cadu_1020(cadu.data(), g4_jpeg_handler, nullptr, drop);
+        d->feed_cadu_1020(cadu.data(), g4_jpeg_handler, nullptr, drop);
         g4.drop_bits |= drop;
     }
     return 0;

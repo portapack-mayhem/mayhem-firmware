@@ -49,13 +49,17 @@
 #include "ui_recon.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
+#ifndef MAYHEM_SPI_1MB
 #include "ui_sonde.hpp"
+#endif
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_touchtunes.hpp"
+#ifndef MAYHEM_SPI_1MB
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
+#endif
 #include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
@@ -103,10 +107,14 @@ const NavigationView::AppList NavigationView::appList = {
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<AnalogAudioView>(nav); }},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<BLERxView>(nav); }},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<POCSAGAppView>(nav); }},
+#ifndef MAYHEM_SPI_1MB
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SondeView>(nav); }},
+#endif
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SearchView>(nav); }},
+#ifndef MAYHEM_SPI_1MB
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SubGhzDView>(nav); }},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<WeatherView>(nav); }},
+#endif
 
     /* TX ********************************************************************/
     {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<APRSTXView>(nav); }},
@@ -205,8 +213,10 @@ SystemStatusView::SystemStatusView(
     // configure CLKOUT per pmem setting
     portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());
 
-    // force apply of selected sdcard speed override at UI startup
-    pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io(), false);
+    /* Safe SDIO first (portapack::init already mounted at 25 MHz); re-apply high speed only if mounted. */
+    pmem::set_config_sdcard_high_speed_io(false, false);
+    if (sd_card::status() == sd_card::Status::Mounted && pmem::config_sdcard_high_speed_io())
+        pmem::set_config_sdcard_high_speed_io(true, false);
 
     button_back.id = -1;  // Special ID used by FocusManager
     title.set_style(Theme::getInstance()->bg_dark);

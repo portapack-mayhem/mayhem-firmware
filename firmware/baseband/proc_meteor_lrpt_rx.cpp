@@ -9,7 +9,10 @@
  */
 #include "proc_meteor_lrpt_rx.hpp"
 
+#include "meteor_lrpt_m0_configure_ipc.hpp"
+#include "debug.hpp"
 #include "hal.h"
+#include "ch.h"
 #include "audio_dma.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
@@ -32,6 +35,24 @@ using namespace lpc43xx;
 
 namespace {
 constexpr meteor_lrpt::MeteorLrptSymbolTimingGains kSymTimingGains{};
+
+/* 32 KiB soft capture blocks in .bss so launch heap stays small for make_unique + DMA. */
+std::array<int8_t, MeteorLrptRx::soft_buf_cap> g_meteor_soft_buf{};
+std::array<int8_t, MeteorLrptRx::soft_buf_cap> g_meteor_soft_rot{};
+
+}  // namespace
+
+MeteorLrptRx::MeteorLrptRx()
+    : soft_buf_{g_meteor_soft_buf.data()},
+      soft_rot_work_{g_meteor_soft_rot.data()} {
+    baseband_thread.start();
+    rssi_thread.start();
+}
+
+bool MeteorLrptRx::ensure_interleaved_post() {
+    if (!interleaved_post_)
+        interleaved_post_ = std::make_unique<meteor_lrpt::M2xInterleavedPostDeintPipeline>();
+    return interleaved_post_ != nullptr;
 }
 
 /* CCSDS ASM 0x1ACFFC1D (big-endian marker); file prefix matches SatDump CADU export */
@@ -105,8 +126,20 @@ complex16_t MeteorLrptRx::dc_and_rrc(complex16_t s) {
 }
 
 void MeteorLrptRx::configure(const MeteorLrptRxConfigureMessage& message) {
+    shared_memory.meteor_lrpt_rx_m0_command.ack = 1;
+    __DMB();
+
     flags_ = message.flags;
-    interleaved_post_.reset();
+    if (message.flags & (1u << 1)) {
+        if (!ensure_interleaved_post()) {
+            write_m4_panic_msg("Meteor deint OOM", nullptr);
+            while (true) {
+            }
+        }
+        interleaved_post_->reset();
+    } else {
+        interleaved_post_.reset();
+    }
     m4_ipc_post_seq_ = 0;
     if (!(message.flags & (1u << 1))) {
         shared_memory.meteor_lrpt_ipc.magic = 0;
@@ -136,6 +169,11 @@ void MeteorLrptRx::configure(const MeteorLrptRxConfigureMessage& message) {
     decim_1.set<dsp::decimate::FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
 
     configured = true;
+
+    shared_memory.meteor_lrpt_rx_m0_command.ack = 1;
+    __DMB();
+    shared_memory.baseband_message = nullptr;
+    __DMB();
 }
 
 void MeteorLrptRx::capture_config(const CaptureConfigMessage& message) {
@@ -245,19 +283,21 @@ void MeteorLrptRx::finish_interleaved_from_m0() {
     std::array<uint8_t, 1024> frame{};
     int8_t* da = const_cast<int8_t*>(ipc.deint_a);
     int8_t* db = const_cast<int8_t*>(ipc.deint_b);
-    bool asm_ok = interleaved_post_.process(da, db, diff, frame);
+    if (!ensure_interleaved_post())
+        return;
+    bool asm_ok = interleaved_post_->process(da, db, diff, frame);
     if (asm_ok)
         asm_ok = post_fec_frame_checks(frame);
 
-    status_.m2x_vit_winner = interleaved_post_.last_viterbi_winner();
-    status_.m2x_vit_state_a = (uint8_t)interleaved_post_.viterbi_state_a();
-    status_.m2x_vit_state_b = (uint8_t)interleaved_post_.viterbi_state_b();
+    status_.m2x_vit_winner = interleaved_post_->last_viterbi_winner();
+    status_.m2x_vit_state_a = (uint8_t)interleaved_post_->viterbi_state_a();
+    status_.m2x_vit_state_b = (uint8_t)interleaved_post_->viterbi_state_b();
     {
-        const float bwin = interleaved_post_.last_viterbi_winner() ? interleaved_post_.viterbi_ber_b()
-                                                                   : interleaved_post_.viterbi_ber_a();
+        const float bwin = interleaved_post_->last_viterbi_winner() ? interleaved_post_->viterbi_ber_b()
+                                                                    : interleaved_post_->viterbi_ber_a();
         const int cs = (int)(bwin * 200.f);
         status_.corr_score = (uint8_t)std::max(0, std::min(cs, 63));
-        status_.corr_lock = (interleaved_post_.viterbi_state_a() == 1 || interleaved_post_.viterbi_state_b() == 1) ? 1 : 0;
+        status_.corr_lock = (interleaved_post_->viterbi_state_a() == 1 || interleaved_post_->viterbi_state_b() == 1) ? 1 : 0;
         status_.soft_align_skip = (uint16_t)std::min((size_t)(int)(bwin * 1000.f), (size_t)65535);
     }
 
@@ -278,7 +318,7 @@ void MeteorLrptRx::finish_interleaved_from_m0() {
     status_.soft_rotate_shift = 0;
     status_.fec_lock = 1;
     status_.viterbi_sync = 1;
-    status_.deframer_sync = (interleaved_post_.bpsk_deframer_state() == MeteorBpskCcsdsDeframer::kStateSynced) ? 1 : 0;
+    status_.deframer_sync = (interleaved_post_->bpsk_deframer_state() == MeteorBpskCcsdsDeframer::kStateSynced) ? 1 : 0;
 
     std::array<uint8_t, 1020> pre_rs{};
     std::memcpy(pre_rs.data(), &frame[4], pre_rs.size());
@@ -333,7 +373,8 @@ void MeteorLrptRx::try_decode_block() {
 
     /* SOFT REC block size matches `soft_bytes_target()` (SatDump SOFT block layout parity). */
     if (soft_stream_) {
-        (void)soft_stream_->write(soft_buf_.data(), soft_bytes_target());
+        if (soft_buf_)
+            (void)soft_stream_->write(soft_buf_, soft_bytes_target());
     }
 
     std::array<uint8_t, 1024> frame{};
@@ -348,14 +389,14 @@ void MeteorLrptRx::try_decode_block() {
 
     if (!m2x) {
         /* Legacy SatDump: QPSK soft correlator + rotate_soft on full 16k block, then Viterbi. */
-        std::memcpy(soft_rot_work_.data(), soft_buf_.data(), soft_bytes_needed);
-        meteor_lrpt::correlate_rotate_qpsk_legacy(soft_rot_work_.data(), soft_bytes_needed, diff, &corr_out);
-        asm_ok = process_soft_to_frame(soft_rot_work_.data(), frame);
+        std::memcpy(soft_rot_work_, soft_buf_, soft_bytes_needed);
+        meteor_lrpt::correlate_rotate_qpsk_legacy(soft_rot_work_, soft_bytes_needed, diff, &corr_out);
+        asm_ok = process_soft_to_frame(soft_rot_work_, frame);
         if (!asm_ok && leg_corr_fallback) {
             for (unsigned sh = 2; sh < 64; sh += 2) {
-                soft_circular_shift(soft_buf_.data(), soft_bytes_needed, sh, soft_rot_work_.data());
-                meteor_lrpt::correlate_rotate_qpsk_legacy(soft_rot_work_.data(), soft_bytes_needed, diff, &corr_out);
-                if (process_soft_to_frame(soft_rot_work_.data(), frame)) {
+                soft_circular_shift(soft_buf_, soft_bytes_needed, sh, soft_rot_work_);
+                meteor_lrpt::correlate_rotate_qpsk_legacy(soft_rot_work_, soft_bytes_needed, diff, &corr_out);
+                if (process_soft_to_frame(soft_rot_work_, frame)) {
                     asm_ok = true;
                     win_shift = (uint8_t)sh;
                     break;
@@ -370,7 +411,7 @@ void MeteorLrptRx::try_decode_block() {
                 soft_fill_ = 0;
                 return;
             }
-            std::memcpy((void*)ipc.soft_in, soft_buf_.data(), interleaved_soft_bytes);
+            std::memcpy((void*)ipc.soft_in, soft_buf_, interleaved_soft_bytes);
             __DMB();
             ipc.seq++;
             m4_ipc_post_seq_ = ipc.seq;
@@ -381,11 +422,11 @@ void MeteorLrptRx::try_decode_block() {
             soft_fill_ = 0;
             return;
         }
-        asm_ok = process_soft_to_frame(soft_buf_.data(), frame);
+        asm_ok = process_soft_to_frame(soft_buf_, frame);
         win_shift = 0;
     } else {
         /* M2-x non-interleaved: Viterbi bytes → bits → optional NRZ-M bits → CCSDS deframer (SatDump BPSK_CCSDS_Deframer). */
-        asm_ok = process_m2x_noninterleaved(soft_buf_.data(), diff, frame);
+        asm_ok = process_m2x_noninterleaved(soft_buf_, diff, frame);
         win_shift = 0;
     }
 
@@ -450,6 +491,7 @@ void MeteorLrptRx::try_decode_block() {
 }
 
 void MeteorLrptRx::execute(const buffer_c8_t& buffer) {
+    meteor_lrpt_rx_poll_m0_configure(this);
     if (!configured)
         return;
 
@@ -525,7 +567,7 @@ void MeteorLrptRx::execute(const buffer_c8_t& buffer) {
             if (adj < -kSymTimingGains.rate_clamp)
                 adj = -kSymTimingGains.rate_clamp;
             sym_rate_fine_ = adj;
-            if (soft_fill_ + 2 <= soft_buf_.size()) {
+            if (soft_fill_ + 2 <= soft_buf_cap) {
                 soft_buf_[soft_fill_++] = clamp8((int)(ir_mid / 1024));
                 soft_buf_[soft_fill_++] = clamp8((int)(q_mid / 1024));
             }
@@ -544,7 +586,7 @@ void MeteorLrptRx::execute(const buffer_c8_t& buffer) {
     if (soft_fill_ >= soft_bytes_target())
         try_decode_block();
 
-    if ((execute_count_ & 0x3f) == 0) {
+    if ((execute_count_ & 0x1ff) == 0) {
         status_.soft_sym_count = (uint32_t)soft_fill_;
         status_.demod_lock = soft_fill_ > 8000 ? 1 : 0;
         status_.sym_timing_err = (int16_t)std::max(-32767, std::min(32767, (int)(sym_last_ted_ * 20000.f)));
@@ -571,6 +613,9 @@ void MeteorLrptRx::on_message(const Message* const message) {
         case Message::ID::CaptureConfig:
             capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
             break;
+        case Message::ID::SampleRateConfig:
+            /* Capture path uses fixed decimation; acknowledge so M0 does not hang. */
+            break;
         default:
             break;
     }
@@ -578,7 +623,14 @@ void MeteorLrptRx::on_message(const Message* const message) {
 
 int main() {
     audio::dma::init_audio_out();
-    EventDispatcher event_dispatcher{std::make_unique<MeteorLrptRx>()};
+    meteor_lrpt_rx_reset_m0_configure_state();
+    auto processor = std::make_unique<MeteorLrptRx>();
+    if (!processor) {
+        write_m4_panic_msg("Meteor OOM", nullptr);
+        while (true) {
+        }
+    }
+    EventDispatcher event_dispatcher{std::move(processor)};
     event_dispatcher.run();
     return 0;
 }

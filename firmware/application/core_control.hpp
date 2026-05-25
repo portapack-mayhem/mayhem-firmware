@@ -27,8 +27,12 @@
 #include "memory_map.hpp"
 #include "spi_image.hpp"
 
+bool spi_flash_has_image(const portapack::spi_flash::image_tag_t image_tag);
+
 void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to, const bool full_reset);
 void m4_init_prepared(const uint32_t m4_code, const bool full_reset);
+/** Hold M4 in reset without loading an image (used when ShutdownMessage is not acked). */
+void m4_hold_reset();
 void m4_request_shutdown();
 
 void m0_halt();

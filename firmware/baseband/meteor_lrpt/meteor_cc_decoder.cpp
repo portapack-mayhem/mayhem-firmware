@@ -9,6 +9,14 @@
 
 #include "volk_k7_r2_generic_fixed.h"
 
+#ifdef METEOR_STANDALONE_NO_CH
+#include <cstdlib>
+#define chHeapAlloc(a, s) std::malloc(s)
+#define chHeapFree(p) std::free(p)
+#else
+#include "ch.h"
+#endif
+
 #include <algorithm>
 #include <cstring>
 
@@ -41,6 +49,51 @@ void MeteorCcDecoder::create_viterbi() {
             d_branchtab[i * d_numstates / 2 + state] = (unsigned char)((inv ^ par) ? 255 : 0);
         }
     }
+}
+
+namespace {
+
+#if defined(METEOR_STANDALONE_NO_CH) && defined(METEOR_LRPT_DECODE_PPMP)
+/* Viterbi decisions (~64 KiB) — not in .ppmp BSS (96 KiB slot); use local SRAM1 scratch while M4 RX is off. */
+constexpr uintptr_t kStandaloneViterbiDecisionsAddr = 0x10080000u;
+constexpr size_t kStandaloneViterbiDecisionsCap = 8u * 8200u;
+
+bool decisions_is_standalone_scratch(unsigned char* p) {
+    return p == reinterpret_cast<unsigned char*>(kStandaloneViterbiDecisionsAddr);
+}
+#endif
+
+}  // namespace
+
+MeteorCcDecoder::~MeteorCcDecoder() {
+    if (!decisions_)
+        return;
+#if defined(METEOR_STANDALONE_NO_CH) && defined(METEOR_LRPT_DECODE_PPMP)
+    if (!decisions_is_standalone_scratch(decisions_))
+        chHeapFree(decisions_);
+#else
+    chHeapFree(decisions_);
+#endif
+}
+
+bool MeteorCcDecoder::ensure_decisions_buffer() {
+    const size_t need = (size_t)d_decision_t_size * (size_t)d_veclen;
+    if (decisions_ && decisions_bytes_ >= need)
+        return true;
+#if defined(METEOR_STANDALONE_NO_CH) && defined(METEOR_LRPT_DECODE_PPMP)
+    if (need <= kStandaloneViterbiDecisionsCap) {
+        decisions_ = reinterpret_cast<unsigned char*>(kStandaloneViterbiDecisionsAddr);
+        decisions_bytes_ = kStandaloneViterbiDecisionsCap;
+        return true;
+    }
+    return false;
+#else
+    if (decisions_)
+        chHeapFree(decisions_);
+    decisions_ = static_cast<unsigned char*>(chHeapAlloc(nullptr, need));
+    decisions_bytes_ = decisions_ ? need : 0;
+    return decisions_ != nullptr;
+#endif
 }
 
 MeteorCcDecoder::MeteorCcDecoder(unsigned int frame_bits)
@@ -91,11 +144,15 @@ int MeteorCcDecoder::find_endstate() {
 }
 
 int MeteorCcDecoder::update_viterbi_blk(unsigned char* syms, int nbits) {
-    (void)memset(decisions.data(), 0, (size_t)d_decision_t_size * (size_t)nbits);
+    if (!decisions_ || !ensure_decisions_buffer())
+        return -1;
+    if (!d_kernel)
+        return -1;
+    (void)memset(decisions_, 0, (size_t)d_decision_t_size * (size_t)nbits);
     d_kernel(new_metrics,
              old_metrics,
              syms,
-             decisions.data(),
+             decisions_,
              (unsigned int)(nbits - (int)(d_k - 1)),
              d_k - 1,
              d_branchtab.data());
@@ -106,7 +163,7 @@ int MeteorCcDecoder::chainback_viterbi(unsigned char* data,
                                        unsigned int nbits,
                                        unsigned int endstate,
                                        unsigned int tailsize) {
-    unsigned char* d = decisions.data();
+    unsigned char* d = decisions_;
     endstate = (endstate % d_numstates) << d_ADDSHIFT;
     d += tailsize * d_decision_t_size;
     int retval = 0;
@@ -131,12 +188,15 @@ int MeteorCcDecoder::chainback_viterbi(unsigned char* data,
 }
 
 void MeteorCcDecoder::decode_soft(const int8_t* soft_in, uint8_t* out_bytes, size_t out_len_bytes) {
+    if (!ensure_decisions_buffer())
+        return;
+
     static Vp vp{};
     old_metrics = vp.metrics1;
     new_metrics = vp.metrics2;
 
     const size_t need_syms = (size_t)d_veclen * 2U;
-    std::array<unsigned char, max_veclen * 2> syms{};
+    static std::array<unsigned char, max_veclen * 2> syms{};
     constexpr size_t soft_in_cap = 16384;
     for (size_t i = 0; i < need_syms; i++) {
         const int8_t v = (i < soft_in_cap) ? soft_in[i] : 0;
@@ -147,7 +207,7 @@ void MeteorCcDecoder::decode_soft(const int8_t* soft_in, uint8_t* out_bytes, siz
     update_viterbi_blk(syms.data(), (int)d_veclen);
     d_end_state_chaining = find_endstate();
 
-    std::array<unsigned char, 9000> bit_out{};
+    static std::array<unsigned char, 9000> bit_out{};
     d_start_state_chaining = chainback_viterbi(
         bit_out.data(),
         d_frame_size,

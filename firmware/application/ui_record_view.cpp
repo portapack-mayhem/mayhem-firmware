@@ -21,8 +21,12 @@
 
 #include "ui_record_view.hpp"
 
+#include "event_m0.hpp"
 #include "portapack.hpp"
 using namespace portapack;
+
+#include <algorithm>
+#include <vector>
 
 #include "io_file.hpp"
 #include "io_wave.hpp"
@@ -39,6 +43,66 @@ using namespace portapack;
 #include <vector>
 
 namespace ui {
+
+namespace {
+
+std::vector<RecordView*>& record_view_instances() {
+    static std::vector<RecordView*> instances;
+    return instances;
+}
+
+std::unique_ptr<MessageHandlerRegistration>& record_view_capture_handler() {
+    static std::unique_ptr<MessageHandlerRegistration> handler;
+    return handler;
+}
+
+std::unique_ptr<MessageHandlerRegistration>& record_view_gps_handler() {
+    static std::unique_ptr<MessageHandlerRegistration> handler;
+    return handler;
+}
+
+void install_record_view_handlers() {
+    if (record_view_capture_handler())
+        return;
+
+    record_view_capture_handler() = std::make_unique<MessageHandlerRegistration>(
+        Message::ID::CaptureThreadDone,
+        [](Message* const p) {
+            const auto& message = *reinterpret_cast<const CaptureThreadDoneMessage*>(p);
+            for (auto* view : record_view_instances()) {
+                if (view->is_active())
+                    view->handle_capture_thread_done(message.error);
+            }
+        });
+
+    record_view_gps_handler() = std::make_unique<MessageHandlerRegistration>(
+        Message::ID::GPSPosData,
+        [](Message* const p) {
+            const auto message = static_cast<const GPSPosDataMessage*>(p);
+            for (auto* view : record_view_instances())
+                view->on_gps(message);
+        });
+}
+
+void uninstall_record_view_handlers() {
+    record_view_capture_handler().reset();
+    record_view_gps_handler().reset();
+}
+
+}  // namespace
+
+void RecordView::attach_shared_message_handlers() {
+    auto& instances = record_view_instances();
+    instances.push_back(this);
+    install_record_view_handlers();
+}
+
+void RecordView::detach_shared_message_handlers() {
+    auto& instances = record_view_instances();
+    instances.erase(std::remove(instances.begin(), instances.end(), this), instances.end());
+    if (instances.empty())
+        uninstall_record_view_handlers();
+}
 
 /*void RecordView::toggle_pitch_rssi() {
         pitch_rssi_enabled = !pitch_rssi_enabled;
@@ -71,6 +135,7 @@ RecordView::RecordView(
       write_size_{write_size},
       buffer_count{buffer_count} {
     ensure_directory(folder);
+    attach_shared_message_handlers();
     add_children({
         &rect_background,
         //&button_pitch_rssi,
@@ -98,6 +163,7 @@ RecordView::RecordView(
 }
 
 RecordView::~RecordView() {
+    detach_shared_message_handlers();
     rtc_time::signal_tick_second -= signal_token_tick_second;
     if (is_active()) {
         capture_thread.reset();

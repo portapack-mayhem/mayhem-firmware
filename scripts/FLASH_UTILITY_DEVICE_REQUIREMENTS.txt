@@ -1,0 +1,54 @@
+Flash Utility — what the UI step does, and why it can “hang”
+============================================================
+
+What you see on screen (ui_flash_utility.cpp)
+  After validation, the UI shows “Please wait while LED RX is on and TX is
+  flashing” then hands off to the M4 baseband image `flash_utility` (PFUT)
+  and halts the M0 (flash_firmware → m4_init → m0_halt).
+
+What the M4 actually does (firmware/baseband/proc_flash_utility.cpp)
+  1) Mount SD, open firmware path (UTF-16 in shared bb_data[0..255])
+  2) Refuse if file size != LIMIT bytes (e.g. 1048576 on 1 MiB H4M)
+  3) Detect SPI device ID; refuse if image exceeds die capacity (e.g. 2 MiB
+     image on W25Q80 0x13)
+  4) LED RX on, SPI chip erase (full die)
+  5) LED TX on: read 256 B from SD into bb_data[256..511], program each page
+  6) Read-back checksum over programmed region; reset only if sum is 0
+  7) Clear LEDs, soft reset (LPC_RGU)
+
+How many bytes get programmed?
+  NUM_PAGES = 4096U * FLASH_SIZE_LIMIT_MB
+  Bytes written = NUM_PAGES * 256 = FLASH_SIZE_LIMIT_MB * 1024 * 1024
+  (loop also stops when the firmware file ends)
+
+  For 1 MiB H4M Mayhem builds use -DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=1
+  (official 1 MiB release pairing; see scripts/BOOT_FAILURE_H4M.md).
+
+SPI parts supported by the driver (w25q80bv.cpp wait_for_device_bounded)
+  Device ID 0x13 — W25Q80BV  → 8 Mbit  = 1 MiB  (4096 pages)
+  Device ID 0x14 — W25Q16DV → 16 Mbit = 2 MiB  (8192 pages)
+  Device ID 0x15 — W25Q32JV → 32 Mbit (Praline path)
+
+Mismatch = failure mode
+  If LIMIT=2 (2097152-byte .bin) on a 1 MiB W25Q80BV, programming goes past the
+  end of the part → hang or corrupt SPI (blank screen). Recovery: DFU + official 1 MiB.
+
+1 MiB H4M Meteor build (this track)
+  portapack-mayhem-firmware.bin must be exactly 1048576 bytes (LIMIT=1).
+  Build: scripts/stable-meteor-docker-1mb.sh (SIZE=2 LIMIT=1).
+  Flash Utility programs 4096 pages (~several minutes). PC flash: hackrf_spiflash -R -w
+  (do not use -i unless you intentionally skip the compatibility check).
+
+2 MiB images on 1 MiB hardware
+  A 2097152-byte .bin from FLASH_MB_LIMIT_SIZE=2 will not boot on W25Q80-class SPI.
+  Recovery: DFU + flashing\mayhem_flasher.bat option 2 (official 1 MiB Mayhem).
+
+Recovery
+  DFU + official tools (see flashing/README.txt): restore a known-good image
+  from the project release flow, then flash only a 1048576-byte build from the
+  same share-out/artifacts tree as meteor_lrpt_rx.ppma.
+
+Preferred flash path (1 MiB H4M until SD path is re-validated on hardware)
+  PC: scripts/flash-h4m-share-out.ps1 with share-out/artifacts/portapack-mayhem-firmware.bin
+  SD Flash Utility: experimental — validates exact 1 MiB + checksum, capacity
+  gate, and post-program read-back before reset; still test against PC flash.

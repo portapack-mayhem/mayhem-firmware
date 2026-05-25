@@ -72,13 +72,30 @@ void setup() {
     palOutputPad(W25Q80BV_WP_PORT, W25Q80BV_WP_PAD);
 }
 
-void wait_for_device() {
-    uint8_t device_id;
-    do {
-        device_id = get_device_id();
-    } while (device_id != W25Q80BV_DEVICE_ID_RES &&
-             device_id != W25Q16DV_DEVICE_ID_RES &&
-             device_id != W25Q32JV_DEVICE_ID_RES);
+bool wait_for_device_bounded() {
+    constexpr uint32_t kMaxPolls = 1000000;
+    for (uint32_t poll = 0; poll < kMaxPolls; poll++) {
+        const uint8_t device_id = get_device_id();
+        if (device_id == W25Q80BV_DEVICE_ID_RES ||
+            device_id == W25Q16DV_DEVICE_ID_RES ||
+            device_id == W25Q32JV_DEVICE_ID_RES) {
+            return true;
+        }
+    }
+    return false;
+}
+
+uint32_t capacity_bytes_for_device_id(const uint8_t device_id) {
+    switch (device_id) {
+        case W25Q80BV_DEVICE_ID_RES:
+            return 1024U * 1024U;
+        case W25Q16DV_DEVICE_ID_RES:
+            return 2U * 1024U * 1024U;
+        case W25Q32JV_DEVICE_ID_RES:
+            return 4U * 1024U * 1024U;
+        default:
+            return 0;
+    }
 }
 
 void wait_not_busy() {
@@ -148,6 +165,25 @@ void erase_chip() {
 
     for (size_t j = 0; j < 1; j++) {
         data[j] = spi_ssp_transfer_word(data[j]);
+    }
+
+    palSetPad(W25Q80BV_SELECT_PORT, W25Q80BV_SELECT_PAD);
+}
+
+void read(const size_t address, uint8_t* data_buffer, const size_t length) {
+    const uint8_t header[] = {
+        W25Q80BV_READ_DATA,
+        static_cast<uint8_t>((address & 0xFF0000) >> 16),
+        static_cast<uint8_t>((address & 0xFF00) >> 8),
+        static_cast<uint8_t>(address & 0xFF)};
+
+    palClearPad(W25Q80BV_SELECT_PORT, W25Q80BV_SELECT_PAD);
+    for (size_t j = 0; j < 4; j++) {
+        spi_ssp_transfer_word(header[j]);
+    }
+
+    for (size_t j = 0; j < length; j++) {
+        data_buffer[j] = static_cast<uint8_t>(spi_ssp_transfer_word(0xFF));
     }
 
     palSetPad(W25Q80BV_SELECT_PORT, W25Q80BV_SELECT_PAD);

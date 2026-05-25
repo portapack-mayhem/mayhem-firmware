@@ -1,0 +1,29 @@
+Device procedure — run on hardware when you have a green build
+
+  [ ] H4M (HackRF + PortaPack H4M): scripts/H4M_METEOR_BUILD.txt — 1 MiB SPI only
+      (1048576-byte portapack-mayhem-firmware.bin). NOT HackRF Pro / PRALINE.
+
+  [ ] SPI capacity vs image: 1 MiB W25Q80-class SPI requires the 1 MiB Meteor build
+      (stable-meteor-docker-1mb.sh). Do not flash 2097152-byte (2 MiB) artifacts.
+
+  [ ] Copy from the same build only: share-out/artifacts/portapack-mayhem-firmware.bin
+      + meteor-capture.ppma, meteor-decode.ppmp, meteor-view.ppmp (same CMakeCache SIZE=2 LIMIT=1).
+
+  [ ] Primary flash (recommended): PC hackrf_spiflash via scripts/flash-h4m-share-out.ps1
+      using share-out/artifacts/portapack-mayhem-firmware.bin (1048576 bytes).
+
+  [ ] SD Flash Utility (experimental, after PFUT hardening): FAT32 SD
+      FIRMWARE\portapack-mayhem_OCI.ppfw.tar or FIRMWARE\portapack-mayhem-firmware.bin;
+      image must be exactly 1048576 bytes; UI warns on 1 MiB LIMIT builds.
+      Record: unpack OK? LED RX/TX pattern? reboot? boot checksum OK?
+
+  [ ] Meteor LRPT (3 apps): SPI has no PMLR tag; SD APPS\meteor-capture.ppma (PMLS),
+      meteor-decode.ppmp, meteor-view.ppmp from same build.
+  [ ] Recovery: DFU + flashing\mayhem_flasher.bat option 2 (official 1 MiB Mayhem).
+  [ ] Pre-flash: validate_meteor_artifacts.sh PASS; no PMLR in .bin; capture .ppma > 1 KiB.
+
+  [ ] Boot test: power on WITH SD card — must reach main menu (not stuck on loading icons).
+      If SD boot hangs: boot without SD → SETTINGS → P.Memory Mgmt → Load mem defaults;
+      SETTINGS → SD Card → disable "enable high speed IO" → Save → reboot with SD.
+
+  [ ] Smoke test: boot, Meteor Capture/Decode/View; no Guru on open; rollback test when possible.

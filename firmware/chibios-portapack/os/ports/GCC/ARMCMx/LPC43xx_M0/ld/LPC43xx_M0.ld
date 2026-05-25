@@ -19,8 +19,8 @@
  * LPC43xx M0 memory setup.
  */
 __main_stack_size__     = 0x0400;   /* Exceptions/interrupts stack */
-/* main() / ChibiOS idle stack; trimmed to keep M0 AHB RAM (64 KiB) under budget with Meteor LRPT + G4 BSS. */
-__process_stack_size__  = 0x0a00;   /* was 0x1000; tightened for G4 demux/JPEG BSS */
+/* main() / ChibiOS idle stack. Keep 4 KiB: 8 KiB here steals heap and OOMs RX/TX menus on H4M. */
+__process_stack_size__  = 0x1000;
 
 MEMORY
 {
@@ -163,7 +163,7 @@ _end            = .;
 /*
  * Heap configuration:
  * - If ram_local has size > 0: use Local SRAM for heap (larger, Praline)
- * - Otherwise: use remaining AHB SRAM after bss (HackRF One)
+ * - Otherwise: use remaining AHB SRAM after bss, excluding the external app slot.
  */
 __heap_base__ = (LD_M0_LOCAL_HEAP_SIZE > 0) ? ORIGIN(ram_local) : _end;
-__heap_end__  = (LD_M0_LOCAL_HEAP_SIZE > 0) ? (ORIGIN(ram_local) + LENGTH(ram_local)) : __ram_end__;
+__heap_end__  = (LD_M0_LOCAL_HEAP_SIZE > 0) ? (ORIGIN(ram_local) + LENGTH(ram_local)) : (__ram_end__ - LD_M0_EXT_APP_SLOT_BYTES);

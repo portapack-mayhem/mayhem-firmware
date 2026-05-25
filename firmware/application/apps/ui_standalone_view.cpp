@@ -255,42 +255,53 @@ void StandaloneView::focus() {
 void StandaloneView::paint(Painter& painter) {
     (void)painter;
 
-    if (initialized &&
-        get_application_information()->header_version > 1) {
-        get_application_information()->PaintViewMirror();
+    if (initialized && get_application_information()->header_version > 1) {
+        const auto paint_mirror = get_application_information()->PaintViewMirror;
+        if (paint_mirror)
+            paint_mirror();
     }
 }
 
 void StandaloneView::on_focus() {
     if (get_application_information()->header_version > 1) {
-        get_application_information()->OnFocus();
+        const auto on_focus_fn = get_application_information()->OnFocus;
+        if (on_focus_fn)
+            on_focus_fn();
     }
 }
 
 bool StandaloneView::on_key(const KeyEvent key) {
     if (get_application_information()->header_version > 1) {
-        return get_application_information()->OnKeyEvent((uint8_t)key);
+        const auto on_key = get_application_information()->OnKeyEvent;
+        if (on_key)
+            return on_key((uint8_t)key);
     }
     return true;
 }
 
 bool StandaloneView::on_encoder(const EncoderEvent event) {
     if (get_application_information()->header_version > 1) {
-        return get_application_information()->OnEncoder((int32_t)event);
+        const auto on_encoder = get_application_information()->OnEncoder;
+        if (on_encoder)
+            return on_encoder((int32_t)event);
     }
     return true;
 }
 
 bool StandaloneView::on_touch(const TouchEvent event) {
     if (get_application_information()->header_version > 1) {
-        return get_application_information()->OnTouchEvent(event.point.x(), event.point.y(), (uint32_t)event.type);
+        const auto on_touch = get_application_information()->OnTouchEvent;
+        if (on_touch)
+            return on_touch(event.point.x(), event.point.y(), (uint32_t)event.type);
     }
     return false;
 }
 
 bool StandaloneView::on_keyboard(const KeyboardEvent event) {
     if (get_application_information()->header_version > 1) {
-        return get_application_information()->OnKeyboard((uint8_t)event);
+        const auto on_keyboard = get_application_information()->OnKeyboard;
+        if (on_keyboard)
+            return on_keyboard((uint8_t)event);
     }
     return false;
 }
@@ -300,7 +311,9 @@ void StandaloneView::frame_sync() {
     if (!initialized) {
         initialized = true;
     } else {
-        get_application_information()->on_event(1);
+        const auto on_event_fn = get_application_information()->on_event;
+        if (on_event_fn)
+            on_event_fn(1);
     }
 }
 

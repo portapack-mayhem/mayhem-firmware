@@ -52,7 +52,7 @@ set(USE_LINK_GC yes)
 # Linker extra options here.
 set(USE_LDOPT)
 
-# Enable this if you want link time optimizations (LTO) - this flag affects chibios only
+# LTO on application breaks ChibiOS link (chThdExit / firmware_info); keep off even for 1 MiB SPI.
 set(USE_LTO no)
 
 # If enabled, this option allows to compile the application in THUMB mode.
@@ -132,7 +132,6 @@ set(CSRC
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
 	${HACKRF_PATH}/firmware/common/platform_detect.c
 	${CHIBIOS}/os/various/chprintf.c
-	meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
 )
 
 #look for all i2cdev_ files
@@ -221,15 +220,6 @@ set(CPPSRC
 	keeloq_keystore.cpp
 	log_file.cpp
 	metadata_file.cpp
-	meteor_lrpt_sector_file_ring.cpp
-	meteor_lrpt_deinterleave_dispatch_m0.cpp
-	meteor_lrpt_deint_service.cpp
-	meteor_lrpt_msumr.cpp
-	meteor_lrpt_g4/msumr_demux.cpp
-	meteor_lrpt_g4/jpeg_decode.cpp
-	meteor_lrpt_g4/meteor_lrpt_g4_preview.cpp
-	meteor_lrpt_g4_service.cpp
-	${METEOR_LRPT_DEINT_CPPSRC_APPLICATION}
 	flipper_subfile.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
@@ -345,6 +335,29 @@ set(CPPSRC
 	${HACKRF_CPLD_DATA_CPP}
 	ui_external_items_menu_loader.cpp
 )
+
+# 1 MiB SPI: baseband omits PSON/PWTH/PSGD — drop matching built-in RX apps to save M0 flash.
+if(MAYHEM_SPI_1MB)
+	list(REMOVE_ITEM CPPSRC
+		apps/ui_sonde.cpp
+		apps/ui_weatherstation.cpp
+		apps/ui_subghzd.cpp
+		${COMMON}/sonde_packet.cpp
+		meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
+	)
+	list(APPEND CPPSRC meteor_lrpt_capture_stub.cpp)
+else()
+	list(APPEND CPPSRC
+		meteor_lrpt_sector_file_ring.cpp
+		meteor_lrpt_deinterleave_dispatch_m0.cpp
+		meteor_lrpt_deint_service.cpp
+		meteor_lrpt_msumr.cpp
+		meteor_lrpt_g4/msumr_demux.cpp
+		meteor_lrpt_g4/jpeg_decode.cpp
+		meteor_lrpt_g4_service.cpp
+		${METEOR_LRPT_DEINT_CPPSRC_APPLICATION}
+	)
+endif()
 
 # Historically we forced `-flto` on internal C++ objects even when ChibiOS `USE_LTO` was `no`.
 # That spikes compiler RAM (LTO streaming) and breaks lean Docker builds with misleading errors
@@ -463,7 +476,11 @@ set(DLIBS)
 #
 
 # List all user C define here, like -D_DEBUG=1
-set(UDEFS)
+if(MAYHEM_SPI_1MB)
+	set(UDEFS -DMAYHEM_SPI_1MB=1)
+else()
+	set(UDEFS)
+endif()
 
 # Define ASM defines here
 set(UADEFS)
@@ -511,10 +528,15 @@ add_custom_command(
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
-set_source_files_properties(
-	meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
-	PROPERTIES COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:C>:-Os>"
-)
+if(TARGET flashsize_h)
+	add_dependencies(${PROJECT_NAME}.elf flashsize_h)
+endif()
+if(NOT MAYHEM_SPI_1MB)
+	set_source_files_properties(
+		meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
+		PROPERTIES COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:C>:-Os>"
+	)
+endif()
 target_compile_options(${PROJECT_NAME}.elf PRIVATE
 	"$<$<COMPILE_LANGUAGE:C,CXX>:-idirafter${CHIBIOS_PORTAPACK}/ext/fatfs/src>"
 )

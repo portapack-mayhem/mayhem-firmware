@@ -133,9 +133,10 @@ set(EXTCPPSRC
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
-	#meteor_lrpt_rx
+	#meteor_lrpt_capture (M0 slot tail + push_view — .external_app_* only, not SPI application.bin)
 	external/meteor_lrpt_rx/main.cpp
 	external/meteor_lrpt_rx/ui_meteor_lrpt_rx.cpp
+	meteor_lrpt_m0_storage.cpp
 
 	#shoppingcart_lock 272 bytes
 	external/shoppingcart_lock/main.cpp
@@ -396,7 +397,7 @@ set(EXTAPPLIST
 	acars_rx
 	wefax_rx
 	noaaapt_rx
-	meteor_lrpt_rx
+	meteor_capture
 	shoppingcart_lock
 	ookbrute
 	ook_editor

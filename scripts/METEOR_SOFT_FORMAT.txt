@@ -1,0 +1,27 @@
+Meteor LRPT soft capture file format (H4M staged pipeline)
+============================================================
+
+Capture app: meteor-capture.ppma + PMLS M4 baseband
+Output path:   /LRPT/<stem>.C8  (RecordView RawS8; stem pattern "SOFT")
+Block size:    16384 bytes int8 (legacy non-M2-x) or 8192 bytes (M2-x)
+
+Each block is interleaved int8 I/Q soft symbols from Gardner timing (no FEC on M4).
+
+Metadata:
+  SETTINGS/rx_meteor_lrpt.ini  lrpt_flags=<pm_flags>
+  PM flags (no live interleaved bit1):
+    bit0 M2-x
+    bit2 differential
+    bit3 legacy QPSK correlator fallback
+    bit4 80k sym (else 72k)
+
+Sample rate: 3072000 Hz (configured in capture UI)
+
+Decode app: meteor-decode.ppmp
+  Reads soft .C8 blocks, runs offline Viterbi/RS/deframer (see meteor_offline_fec.cpp)
+  Writes /LRPT/dec_cadu.C8 — 1020-byte CADU REC records (Mayhem REC body)
+
+View app: meteor-view.ppmp
+  Reads CADU .C8 (1020 B records), MSU-MR demux APIDs 64–69, JPEG → /LRPT/ms<apid>.bmp
+
+Golden rule: flash portapack-mayhem_OCI.ppfw.tar + all three APPS from one build.

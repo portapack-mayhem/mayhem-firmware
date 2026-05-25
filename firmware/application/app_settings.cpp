@@ -256,9 +256,8 @@ SettingsManager::SettingsManager(
     settings_.mode = mode;
     settings_.options = options;
 
-    // Pre-alloc enough for app settings and additional settings.
-    additional_settings.reserve(COMMON_APP_SETTINGS_COUNT + additional_settings.size());
     bindings_ = std::move(additional_settings);
+    bindings_.reserve(COMMON_APP_SETTINGS_COUNT + bindings_.size());
 
     // Settings should always be loaded because apps now rely
     // on being able to store UI settings, config, etc.
