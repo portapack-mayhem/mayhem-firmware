@@ -16,17 +16,21 @@ extern "C" {
 
 #ifdef PRALINE
 
-/* FPGA Register Map Address 0x03 (Dual Purpose) */
+/* RX path (legacy PRALINE software map kept for compatibility) */
 #define FPGA_REG_RX_DIGITAL_GAIN 0x03 /* Digital Shift / scaling (RX Mode) */
-#define FPGA_REG_TX_CONTROL 0x03      /* NCO_EN and TX flags (TX Mode) */
-
-/* FPGA Register Map Address 0x04 (Shared) */
 #define FPGA_REG_RX_DC_BLOCK_WIDTH 0x04 /* Notch filter cutoff (RX Mode) */
-#define FPGA_REG_TX_INTERP 0x04         /* Interpolation ratio (TX Mode) */
-
-/* FPGA Register Map Address 0x05 (Shared) */
 #define FPGA_REG_RX_DC_ADAPT_RATE 0x05 /* Settle time/Integration (RX Mode) */
-#define FPGA_REG_TX_PHASE_STEP 0x05    /* NCO frequency step (TX Mode) */
+
+/*
+ * TX path must match the currently built PRALINE standard gateware in
+ * hackrf/firmware/fpga/top/standard.py:
+ *   0x04 tx_ctrl
+ *   0x05 tx_intrp
+ *   0x06 tx_pstep
+ */
+#define FPGA_REG_TX_CONTROL 0x04
+#define FPGA_REG_TX_INTERP 0x05
+#define FPGA_REG_TX_PHASE_STEP 0x06
 
 /*
  * FPGA Operating Mode
@@ -39,13 +43,21 @@ typedef enum {
 
 /*
  * FPGA Register Addresses
- * Note: Registers 3-5 are dual-purpose (meaning depends on RX/TX mode)
+ * NOTE:
+ * The currently loaded PRALINE standard gateware uses:
+ *   0x01 CTRL
+ *   0x02 RX_DECIM
+ *   0x03 RX_PSTEP
+ *   0x04 TX_CTRL
+ *   0x05 TX_INTRP
+ *   0x06 TX_PSTEP
  */
 #define FPGA_REG_CTRL 0x01     /* Control register */
-#define FPGA_REG_DECIM 0x02    /* Decimation (RX) / unused (TX) */
-#define FPGA_REG_SHARED_3 0x03 /* Dual-purpose register */
-#define FPGA_REG_SHARED_4 0x04 /* Dual-purpose register */
-#define FPGA_REG_SHARED_5 0x05 /* Dual-purpose register */
+#define FPGA_REG_DECIM 0x02    /* RX decimation */
+#define FPGA_REG_SHARED_3 0x03 /* Legacy shared register */
+#define FPGA_REG_SHARED_4 0x04 /* Legacy shared register */
+#define FPGA_REG_SHARED_5 0x05 /* Legacy shared register */
+#define FPGA_REG_SHARED_6 0x06 /* TX phase step */
 
 /*
  * Register 1 (CTRL) Bit Definitions
@@ -77,7 +89,7 @@ typedef enum {
 #define FPGA_RX_DC_WIDTH_MASK 0x07 /* Bits [2:0] */
 
 /* TX Mode: Interpolation ratio */
-#define FPGA_REG4_TX_INTERP 0x04
+#define FPGA_REG4_TX_INTERP 0x05
 #define FPGA_TX_INTERP_MASK 0x07 /* Bits [2:0] */
 
 /*
@@ -88,7 +100,7 @@ typedef enum {
 #define FPGA_RX_DC_RATE_MASK 0xFF /* Bits [7:0] */
 
 /* TX Mode: NCO phase step (frequency) */
-#define FPGA_REG5_TX_PHASE_STEP 0x05
+#define FPGA_REG5_TX_PHASE_STEP 0x06
 #define FPGA_TX_PHASE_STEP_MASK 0xFF /* Bits [7:0] */
 
 /* Export default values so other methods can use them */

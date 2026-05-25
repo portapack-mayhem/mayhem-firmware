@@ -363,17 +363,19 @@ static void set_cpu_clock_speed() {
     /* PRALINE: Enable and use 12MHz XTAL directly (no GP_CLKIN from Si5351) */
 
     /* Step 1: Enable the crystal oscillator */
-    LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;  // 0 = enable (active low)
-    LPC_CGU->XTAL_OSC_CTRL.HF = 0;      // 0 = low frequency mode (1-20MHz)
+    // LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;  // 0 = enable (active low)
+    // LPC_CGU->XTAL_OSC_CTRL.HF = 0;      // 0 = low frequency mode (1-20MHz)
 
-    /* Step 2: Wait for oscillator to stabilize (~250us at IRC speed) */
-    volatile uint32_t delay = 3000;  // ~250us at 12MHz IRC
-    while (delay--);
+    // /* Step 2: Wait for oscillator to stabilize (~250us at IRC speed) */
+    // volatile uint32_t delay = 3000;  // ~250us at 12MHz IRC
+    // while (delay--);
 
     /* Step 3: Configure PLL1 from XTAL
      *   Fclkin = 12M, /N=1 = 12M, Fcco = 12M * 17 = 204M
      *   Fclk = Fcco / (2*(P=1)) = 102M
      */
+    // 
+    // only use GP_CLKIN
     cgu::pll1::ctrl({
         .pd = 1,
         .bypass = 0,
@@ -381,10 +383,11 @@ static void set_cpu_clock_speed() {
         .direct = 0,
         .psel = 0,
         .autoblock = 1,
-        .nsel = 0,   // N = 1
-        .msel = 16,  // M = 17, so 12MHz * 17 = 204MHz
-        .clk_sel = cgu::CLK_SEL::XTAL,
+        .nsel = 1UL,  // N = 2
+        .msel = 9UL,  // M = 10
+        .clk_sel = cgu::CLK_SEL::GP_CLKIN,
     });
+
 #else
     /* OG:
      * 	Fclkin = 40M, /N=2 = 20M, Fcco = 20M * 10 = 200M
@@ -613,6 +616,7 @@ init_status_t init() {
     cgu::pll1::disable();
 
     set_cpu_clock_speed();
+
     /* sample max: 1023 sample_t AKA uint16_t
      * touch_sensitivity: range: 1 to 128
      * threshold range: 1023/1 to 1023/128  =  1023 to 8
