@@ -565,7 +565,7 @@ void ClockManager::init_clock_generator() {
     // CLK2: MCU_CLK 40 MHz
     clock_generator.write_ms_single_byte(
         2,
-        si5351_ms_afe_40m); 
+        si5351_ms_afe_40m);
 
     // CLK3: P2 clock mux, disabled below
     clock_generator.write_ms_single_byte(
@@ -576,7 +576,7 @@ void ClockManager::init_clock_generator() {
     clock_generator.write_ms_single_byte(
         4,
         si5351_ms_afe_40m);
-        
+
     // CLK5: DMIX_CLK 40 MHz
     clock_generator.write_ms_single_byte(
         5,
@@ -894,7 +894,7 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
         fpga_tx_set_nco_enable(false);
         fpga_tx_set_phase_step(0);
     }
-    // for RX mode 
+    // for RX mode
     else {
         // RX path keeps CLK1 at 2x AFE for receive timing / SGPIO alignment.
         clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_afe_f, 0);

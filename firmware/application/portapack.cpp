@@ -374,7 +374,7 @@ static void set_cpu_clock_speed() {
      *   Fclkin = 12M, /N=1 = 12M, Fcco = 12M * 17 = 204M
      *   Fclk = Fcco / (2*(P=1)) = 102M
      */
-    // 
+    //
     // only use GP_CLKIN
     cgu::pll1::ctrl({
         .pd = 1,
