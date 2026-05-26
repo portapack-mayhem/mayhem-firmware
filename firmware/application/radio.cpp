@@ -390,11 +390,13 @@ void set_baseband_rate(const uint32_t rate) {
 }
 
 void set_antenna_bias(const bool on) {
-    /* Pull MOSFET gate low to turn on antenna bias. */
 #ifdef PRALINE
-    // Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW)
-    LPC_GPIO->CLR[1] = on ? (1 << 12) : 0;
-    LPC_GPIO->SET[1] = on ? 0 : (1 << 12);
+    /* Keep bias control inside the PRALINE RF path state machine so later
+     * band/direction/amp updates don't silently force ANT_BIAS_EN_N off.
+     * Reassert output mode here because this pin is safety-critical and
+     * direct GPIO writes on an input-configured pad have no effect. */
+    gpio_ant_bias_disable.output();
+    rf_path.set_antenna_bias(on);
 #else
     if (hackrf_r9) {
         gpio_r9_not_ant_pwr.write(on ? 0 : 1);

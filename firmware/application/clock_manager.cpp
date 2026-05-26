@@ -722,13 +722,13 @@ void ClockManager::shutdown() {
 
 void ClockManager::enable_codec_clocks() {
 #ifdef PRALINE
-    /* PRALINE: CLK0 (AFE_CLK) for codec/FPGA, CLK1 (SCT_CLK) for FPGA timing.
-     * Reference hackrf_core.c shows PRALINE needs both CLK0 and CLK1. */
+    /* PRALINE: only gate the clocks owned by the RF datapath here.
+     * CLK2 is MCU_CLKIN and must stay independent of runtime RX/TX clock
+     * management or the SGPIO/GPIO subsystem can glitch mid-stream. */
     clock_generator.enable_clock(clock_generator_output_og_codec); /* CLK0 MAX5864*/
     clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 iCE40 FPGA*/
-    clock_generator.enable_clock(clock_generator_output_og_sgpio); /* CLK2 LPC43xx*/
     clock_generator.enable_output_mask(
-        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld));
 #else
     if (hackrf_r9) {
         clock_generator.enable_clock(clock_generator_output_r9_sgpio);
@@ -756,12 +756,11 @@ void ClockManager::disable_codec_clocks() {
      * CLKx_DISABLE_STATE.
      */
 #ifdef PRALINE
-    /* PRALINE: CLK0 (AFE_CLK), CLK1 (SCT_CLK), and CLK2 MCU used for codec/FPGA */
+    /* PRALINE: leave CLK2/MCU_CLKIN alone; only disable datapath-owned clocks. */
     clock_generator.disable_output_mask(
-        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld));
     clock_generator.disable_clock(clock_generator_output_og_codec);
     clock_generator.disable_clock(clock_generator_output_og_cpld);
-    clock_generator.disable_clock(clock_generator_output_og_sgpio);
 #else
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_sgpio);
@@ -849,13 +848,10 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     // CLK0 always drives the AFE/MAX5864 clock.
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_afe_f, 1);
 
-    // === Reset PLL A for phase alignment ===
-    clock_generator.write_register(si5351::Register::PLLReset, 0x20);
-
-    // Brief delay for PLL lock and clock stability ===
-    // ~1ms at 96MHz = ~96000 cycles, use 10ms for safety
-    volatile uint32_t delay = 240000;  // ~2.5ms
-    while (delay--);
+    /* Do not reset PLLA here. On PRALINE, CLK2/MCU_CLKIN is sourced from PLLA,
+     * so a runtime PLLA reset can glitch the LPC43xx peripheral clock tree and
+     * break SGPIO-driven RX apps such as ADSB/APRS. Updating the multisynths is
+     * sufficient for sample-rate changes. */
 
     if (radio::debug::get_cached_direction() == rf::Direction::Transmit) {
         /*
