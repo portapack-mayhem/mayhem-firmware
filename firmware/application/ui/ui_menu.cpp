@@ -74,42 +74,44 @@ void MenuItemView::paint(Painter& painter) {
     Coord offset_x = 0;
 
     if (item->bitmap) {
-        int bitmap_x = rect.location().x() + margin_x;
-        int bitmap_y = rect.location().y() + (rect.height() - item->bitmap->size.height()) / 2;
-
-        painter.draw_bitmap({bitmap_x, bitmap_y}, *item->bitmap, final_item_color, final_bg_color);
-        offset_x = margin_x + item->bitmap->size.width() + margin_x;
+        painter.draw_bitmap(
+            {rect.location().x() + 4, rect.location().y() + 4},
+            *item->bitmap,
+            final_item_color,
+            final_bg_color);
+        offset_x = 26;
+    } else {
+        offset_x = 0;
     }
 
     Style text_style{.font = paint_style.font, .background = final_bg_color, .foreground = final_item_color};
 
-    // Szétbontás
-    std::string left_text = item->text;
-    std::string right_text = "";
-    auto tab_pos = left_text.find('\t');
+    std::string file_name = item->text;
+    std::string file_size = "";
+    auto tab_pos = file_name.find('\t');
     if (tab_pos != std::string::npos) {
-        right_text = left_text.substr(tab_pos + 1);
-        left_text = left_text.substr(0, tab_pos);
+        file_size = file_name.substr(tab_pos + 1);
+        file_name = file_name.substr(0, tab_pos);
     }
 
     int available_width_px = rect.width() - offset_x;
     if (available_width_px <= 0) return;
 
     size_t max_name_chars = available_width_px / char_width;
-    if (!right_text.empty() && max_name_chars > right_text.length()) {
-        max_name_chars = max_name_chars - right_text.length() - 1;
+    if (!file_size.empty() && max_name_chars > file_size.length()) {
+        max_name_chars = max_name_chars - file_size.length() - 1;
     }
 
-    can_scroll = (left_text.length() > max_name_chars);
+    can_scroll = (file_name.length() > max_name_chars);
 
-    std::string display_name = left_text;
-    if (left_text.length() > max_name_chars) {
+    std::string display_name = file_name;
+    if (file_name.length() > max_name_chars) {
         if (highlighted()) {
-            size_t max_scroll = left_text.length() - max_name_chars;
+            size_t max_scroll = file_name.length() - max_name_chars;
             size_t actual_offset = scroll_offset % (max_scroll + 1);
-            display_name = left_text.substr(actual_offset, max_name_chars);
+            display_name = file_name.substr(actual_offset, max_name_chars);
         } else {
-            display_name = left_text.substr(0, max_name_chars);
+            display_name = file_name.substr(0, max_name_chars);
         }
     }
 
@@ -117,9 +119,9 @@ void MenuItemView::paint(Painter& painter) {
 
     painter.draw_string({rect.location().x() + offset_x, text_y}, text_style, display_name);
 
-    if (!right_text.empty()) {
-        Coord right_x = rect.width() - (right_text.length() * char_width) - margin_x;
-        painter.draw_string({rect.location().x() + right_x, text_y}, text_style, right_text);
+    if (!file_size.empty()) {
+        Coord right_x = rect.width() - (file_size.length() * char_width) - margin_x;
+        painter.draw_string({rect.location().x() + right_x, text_y}, text_style, file_size);
     }
 }
 

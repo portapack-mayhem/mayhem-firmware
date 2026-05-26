@@ -413,7 +413,7 @@ void FileManBaseView::refresh_list() {
         if (entry.is_directory) {
             std::string size_str{};
             if (entry.path == str_next || entry.path == str_back) {
-                size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);
+                size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);  // show computed number of pages
             } else {
                 size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
             }
@@ -622,39 +622,9 @@ void FileManagerView::on_clean() {
                 std::vector<std::filesystem::path> file_list;
                 file_list = scan_root_files(path_name, u"*");
 
-                for (const auto& entry : entry_list) {
-                    if (entry.is_directory) {
-                        std::string size_str{};
-                        if (entry.path == str_next || entry.path == str_back) {
-                            size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);
-                        } else {
-                            size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
-                        }
-
-                        // FULL path + "\t" + size. No manual spaces, no substr!
-                        menu_view.add_item(
-                            {entry.path + "\t" + size_str,
-                             Theme::getInstance()->fg_yellow->foreground,
-                             &bitmap_icon_dir,
-                             [this](KeyEvent key) {
-                                 if (on_select_entry)
-                                     on_select_entry(key);
-                             }});
-
-                    } else {
-                        const auto& assoc = get_assoc(get_extension(entry.path));
-                        auto size_str = to_string_file_size(entry.size);
-
-                        // FULL path + "\t" + size
-                        menu_view.add_item(
-                            {entry.path + "\t" + size_str,
-                             assoc.color,
-                             assoc.icon,
-                             [this](KeyEvent key) {
-                                 if (on_select_entry)
-                                     on_select_entry(key);
-                             }});
-                    }
+                for (const auto& file_name : file_list) {
+                    std::filesystem::path current_full_path = path_name / file_name;
+                    delete_file(current_full_path);
                 }
                 reload_current(true);
             }
