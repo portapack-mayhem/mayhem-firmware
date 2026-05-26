@@ -337,8 +337,8 @@ enum GPIOs {
     GPIO4_14,
     // Power control and LED4
     GPIO4_1,
-    GPIO8_4,
-    GPIO8_5,
+    GPIO4_4,  // VBUS_IN_EN
+    GPIO4_5,  // VIN_IN_EN
     GPIO4_6,
     GPIO4_7,
     // RF path control
@@ -451,8 +451,8 @@ constexpr GPIO gpio[] = {
 #ifdef PRALINE
     [GPIO4_14] = {pins[P9_2], 4, 14, 0},   // RFFC5072 mixer data
     [GPIO4_1] = {pins[P8_1], 4, 1, 0},     // VAA disable
-    [GPIO8_4] = {pins[P8_4], 8, 4, 0},     // VBUS_IN_EN
-    [GPIO8_5] = {pins[P8_5], 8, 5, 0},     // VIN_IN_EN
+    [GPIO4_4] = {pins[P8_4], 4, 4, 0},     // VBUS_IN_EN
+    [GPIO4_5] = {pins[P8_5], 4, 5, 0},     // VIN_IN_EN
     [GPIO4_6] = {pins[P8_6], 4, 6, 0},     // LED4
     [GPIO4_7] = {pins[P8_7], 4, 7, 0},     // 1V2 enable
     [GPIO4_8] = {pins[PA_1], 4, 8, 0},     // LPF enable

@@ -62,7 +62,11 @@ const PALConfig pal_default_config = {
               | (1 << 14)  // P2_10: AMP_BYPASS
               | (0 << 13)  // P1_18: SGPIO12, HOST_Q_INVERT
               | (0 << 12)  // P1_17: SGPIO11, HOST_DIRECTION
+#ifdef PRALINE
+              | (0 << 11)  // P1_4:  AA_EN (Start low / disabled)
+#else
               | (1 << 11)  // P1_4:  SSP1_MOSI
+#endif
               | (1 << 10)  // P1_3:  SSP1_MISO
               | (0 << 9)   // P1_2:  Varies by revision, float until detection
               | (0 << 8)   // P1_1:  Varies by revision, float until detection
@@ -84,7 +88,11 @@ const PALConfig pal_default_config = {
               | (1 << 14)  // P2_10: AMP_BYPASS
               | (1 << 13)  // P1_18: SGPIO12, HOST_Q_INVERT
               | (0 << 12)  // P1_17: SGPIO11, HOST_DIRECTION
+#ifdef PRALINE
+              | (1 << 11)  // P1_4:  AA_EN (Output)
+#else
               | (0 << 11)  // P1_4:  SSP1_MOSI
+#endif
               | (0 << 10)  // P1_3:  SSP1_MISO
               | (0 << 9)   // P1_2:  Varies by revision, float until detection
               | (0 << 8)   // P1_1:  Varies by revision, float until detection
@@ -102,8 +110,13 @@ const PALConfig pal_default_config = {
             .data = (1 << 15)    // P3_5:  SPIFI_SIO2
                     | (1 << 14)  // P3_4:  SPIFI_SIO3
                     | (1 << 13)  // P2_13: PortaPack DIR
-                    | (1 << 12)  // P2_12: !RX_AMP_PWR
+#ifdef PRALINE
+                    | (1 << 12)  // P2_12: BIAS_EN (Start low / disabled)
+                    | (0 << 11)  // P2_11: BIAS_OC (Input)
+#else
+                    | (1 << 12)  // P2_12: !RX_AMP_PWR (Active low, starts disabled)
                     | (0 << 11)  // P2_11: RX_AMP
+#endif
                     | (0 << 10)  // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
                     | (1 << 9)   // P1_6:  SD_CMD
                     | (1 << 8)   // P1_5:  SD_POW, PortaPack CPLD.TDO(O) (input with pull up)
@@ -119,8 +132,13 @@ const PALConfig pal_default_config = {
             .dir = (0 << 15)    // P3_5:  SPIFI_SIO2
                    | (0 << 14)  // P3_4:  SPIFI_SIO3
                    | (0 << 13)  // P2_13: PortaPack DIR
-                   | (1 << 12)  // P2_12: !RX_AMP_PWR
-                   | (1 << 11)  // P2_11: RX_AMP
+#ifdef PRALINE
+                   | (1 << 12)  // P2_12: BIAS_EN (Output)
+                   | (0 << 11)  // P2_11: BIAS_OC (Input)
+#else
+                   | (1 << 12)  // P2_12: !RX_AMP_PWR (Output)
+                   | (1 << 11)  // P2_11: RX_AMP (Output)
+#endif
                    | (0 << 10)  // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
                    | (0 << 9)   // P1_6:  SD_CMD
                    | (0 << 8)   // P1_5:  SD_POW, PortaPack CPLD.TDO(O) (input with pull up)
@@ -191,14 +209,20 @@ const PALConfig pal_default_config = {
                     | (1 << 10)  // P7_2:  PortaPack GPIO3_10(IO)
                     | (1 << 9)   // P7_1:  PortaPack GPIO3_9(IO)
                     | (1 << 8)   // P7_0:  PortaPack GPIO3_8(IO)
-                    | (1 << 7)   // P6_11: VREGMODE
-                    | (0 << 6)   // P6_10: Varies by revision, float until detection
-                    | (1 << 5)   // P6_9:  !TX_AMP_PWR, 10K PU
-                    | (1 << 4)   // P6_5:  HackRF CPLD.TMS(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
-                    | (1 << 3)   // P6_4:  MIXER_SDATA
-                    | (1 << 2)   // P6_3:  SGPIO4, HOST_DATA4
-                    | (1 << 1)   // P6_2:  HackRF CPLD.TDI(I), PortaPack I2S0_RX_SDA(O), PortaPack CPLD.TDI(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
-                    | (1 << 0)   // P6_1:  HackRF CPLD.TCK(I), PortaPack CPLD.TCK(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
+#ifdef PRALINE
+                    | (0 << 7)  // P6_11: 3V3AUX_OC (Input pull-up state)
+                    | (0 << 4)  // GPIO3_4: TX_ENABLE (LOW = OFF)
+                    | (1 << 2)  // GPIO3_2: MIX_ENABLE_N (HIGH = OFF)
+#else
+                    | (1 << 7)  // P6_11: VREGMODE
+#endif
+                    | (0 << 6)  // P6_10: Varies by revision, float until detection
+                    | (1 << 5)  // P6_9:  !TX_AMP_PWR, 10K PU
+                    | (1 << 4)  // P6_5:  HackRF CPLD.TMS(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
+                    | (1 << 3)  // P6_4:  MIXER_SDATA
+                    | (1 << 2)  // P6_3:  SGPIO4, HOST_DATA4
+                    | (1 << 1)  // P6_2:  HackRF CPLD.TDI(I), PortaPack I2S0_RX_SDA(O), PortaPack CPLD.TDI(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
+                    | (1 << 0)  // P6_1:  HackRF CPLD.TCK(I), PortaPack CPLD.TCK(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
             ,
             .dir = (0 << 15)    // P7_7:  PortaPack GPIO3_15(IO)
                    | (0 << 14)  // P7_6:  PortaPack GPIO3_14(IO)
@@ -208,20 +232,46 @@ const PALConfig pal_default_config = {
                    | (0 << 10)  // P7_2:  PortaPack GPIO3_10(IO)
                    | (0 << 9)   // P7_1:  PortaPack GPIO3_9(IO)
                    | (0 << 8)   // P7_0:  PortaPack GPIO3_8(IO)
-                   | (1 << 7)   // P6_11: VREGMODE
-                   | (0 << 6)   // P6_10: Varies by revision, float until detection
-                   | (1 << 5)   // P6_9:  !TX_AMP_PWR, 10K PU
-                   | (0 << 4)   // P6_5:  HackRF CPLD.TMS(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
-                   | (0 << 3)   // P6_4:  MIXER_SDATA
-                   | (0 << 2)   // P6_3:  SGPIO4, HOST_DATA4
-                   | (0 << 1)   // P6_2:  HackRF CPLD.TDI(I), PortaPack I2S0_RX_SDA(O), PortaPack CPLD.TDI(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
-                   | (0 << 0)   // P6_1:  HackRF CPLD.TCK(I), PortaPack CPLD.TCK(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
+#ifdef PRALINE
+                   | (0 << 7)  // P6_11: 3V3AUX_OC (Input)
+                   | (1 << 4)  // GPIO3_4: TX_ENABLE (Output)
+                   | (1 << 2)  // GPIO3_2: MIX_ENABLE_N (Output)
+#else
+                   | (1 << 7)  // P6_11: VREGMODE
+#endif
+                   | (0 << 6)  // P6_10: Varies by revision, float until detection
+                   | (1 << 5)  // P6_9:  !TX_AMP_PWR, 10K PU
+                   | (0 << 4)  // P6_5:  HackRF CPLD.TMS(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
+                   | (0 << 3)  // P6_4:  MIXER_SDATA
+                   | (0 << 2)  // P6_3:  SGPIO4, HOST_DATA4
+                   | (0 << 1)  // P6_2:  HackRF CPLD.TDI(I), PortaPack I2S0_RX_SDA(O), PortaPack CPLD.TDI(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
+                   | (0 << 0)  // P6_1:  HackRF CPLD.TCK(I), PortaPack CPLD.TCK(I) (output only when needed, pull-up internal to CPLD when 1V8 present)
         },
         {
-            // GPIO4
-            .data = (1 << 11)  // P9_6:  SGPIO8, SGPIO_CLK
+            .data =
+#ifdef PRALINE
+                (0 << 9)    // PA_2: RF_AMP_EN (Low)
+                | (0 << 8)  // PA_1: LPF_EN (Low)
+                | (0 << 7)  // P8_7: 1V2_EN (Low)
+                | (0 << 6)  // P8_6: LED4 (Low)
+                | (0 << 5)  // P8_5: VIN_IN_EN (Low)
+                | (0 << 4)  // P8_4: VBUS_IN_EN (Low)
+                | (0 << 1)  // P8_1: VAA_EN (Low)
+                |
+#endif
+                (1 << 11)  // P9_6:  SGPIO8, SGPIO_CLK
             ,
-            .dir = (0 << 11)  // P9_6:  SGPIO8, SGPIO_CLK
+#ifdef PRALINE
+            (1 << 9)        // PA_2: RF_AMP_EN (Output)
+                | (1 << 8)  // PA_1: LPF_EN (Output)
+                | (1 << 7)  // P8_7: 1V2_EN (Output)
+                | (1 << 6)  // P8_6: LED4 (Output)
+                | (1 << 5)  // P8_5: VIN_IN_EN (Output)
+                | (1 << 4)  // P8_4: VBUS_IN_EN (Output)
+                | (1 << 1)  // P8_1: VAA_EN (Output)
+                |
+#endif
+                (0 << 11)  // P9_6:  SGPIO8, SGPIO_CLK
         },
         {
             // GPIO5
@@ -419,8 +469,26 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
         .dir = (1 << 6)  // P6_10: EN1V8, 10K PD
     },
     {// GPIO4
-     .data = 0,
-     .dir = 0},
+     .data =
+#ifdef PRALINE
+         (0 << 9)    // GPIO4_9: RF_AMP_ENABLE (LOW = OFF)
+         | (0 << 8)  // GPIO4_8: LPF_ENABLE (LOW = OFF)
+         | (0 << 7)  // GPIO4_7: 1V2_ENABLE (LOW = OFF)
+         | (0 << 6)  // GPIO4_6: LED4 (LOW = OFF)
+         | (0 << 5)  // GPIO4_5: VIN_IN_EN (LOW = OFF)
+         | (1 << 4)  // GPIO4_4: VBUS_IN_EN (HIGH = OFF)
+         | (1 << 1)  // GPIO4_1: VAA_DISABLE (HIGH = OFF)
+#else
+// ...
+#endif
+     ,
+     .dir =
+#ifdef PRALINE
+         (1 << 9) | (1 << 8) | (1 << 7) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 1)
+#else
+// ...
+#endif
+    },
     {
         // GPIO5
         .data = (0 << 15)    // P6_7:  TX

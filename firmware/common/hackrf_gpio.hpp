@@ -128,14 +128,18 @@ constexpr GPIO gpio_q_invert = gpio[GPIO0_13];
 constexpr GPIO gpio_vaa_disable = gpio[GPIO4_1];      // VAA disable (P8_1)
 constexpr GPIO gpio_1v2_enable = gpio[GPIO4_7];       // 1V2 enable (P8_7)
 constexpr GPIO gpio_3v3aux_disable = gpio[GPIO5_15];  // 3V3 aux disable (P6_7)
-constexpr GPIO gpio_vbus_enable = gpio[GPIO8_4];      // VBUS_IN_EN P8_4 ->LOW
-constexpr GPIO gpio_vin_enable = gpio[GPIO8_5];       // VIN_IN_EN P8_5 ->HIGH
+constexpr GPIO gpio_3v3aux_oc = gpio[GPIO1_11];       // 3.3V aux overcurrent input (P2_11)
+constexpr GPIO gpio_vbus_enable = gpio[GPIO4_4];      // VBUS_IN_EN P8_4 ->LOW
+constexpr GPIO gpio_vin_enable = gpio[GPIO4_5];       // VIN_IN_EN P8_5 ->HIGH
 // PRALINE RF path control
 constexpr GPIO gpio_tx_enable = gpio[GPIO3_4];  // TX enable (P6_5)
 // constexpr GPIO gpio_mix_enable_n = gpio[GPIO3_2];       // Mixer enable inverted (P6_3)
 constexpr GPIO gpio_lpf_enable = gpio[GPIO4_8];         // LPF enable (PA_1)
 constexpr GPIO gpio_rf_amp_enable = gpio[GPIO4_9];      // RF amp enable (PA_2)
 constexpr GPIO gpio_ant_bias_disable = gpio[GPIO1_12];  // Antenna bias disable (P2_12)
+constexpr GPIO gpio_bias_oc = gpio[GPIO3_7];            // Bias tee overcurrent input (P6_11)
+
+constexpr GPIO gpio_aa_en = gpio[GPIO0_11];  // Anti-aliasing filter enable (P1_4)
 
 // PRALINE mixer lock detect (gpio_max2831_ld defined above at line 93)
 constexpr GPIO gpio_rffc5072_ld = gpio[GPIO6_25];  // Mixer lock detect (PD_11)
@@ -155,6 +159,7 @@ constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];  // CLKIN control (P1_20)
 constexpr GPIO gpio_trigger_in = gpio[GPIO6_26];  // Trigger input (PD_12)
 constexpr GPIO gpio_trigger_out = gpio[GPIO5_6];  // Trigger output (P2_6)
 constexpr GPIO gpio_pps_out = gpio[GPIO5_5];      // PPS output (P2_5)
+
 #endif
 
 #ifdef PRALINE
