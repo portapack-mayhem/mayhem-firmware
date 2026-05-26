@@ -55,7 +55,7 @@ void MenuItemView::paint(Painter& painter) {
     if (!item) return;
 
     const auto rect = screen_rect();
-    auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight)) ? style().invert() : style();
+    const auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight)) ? style().invert() : style();
 
     const int char_width = paint_style.font.char_width();
     const int line_height = paint_style.font.line_height();
@@ -210,6 +210,7 @@ void MenuView::clear() {
     menu_items.shrink_to_fit();
     highlighted_item = 0;
     offset = 0;
+    reset_scroll();
 }
 
 size_t MenuView::item_count() const {
