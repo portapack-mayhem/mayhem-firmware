@@ -785,9 +785,9 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
 
         for (auto const& gridItem : externalItems) {
             if (gridItem.desired_position < 0) {
-                grid.add_item(gridItem, true);
+                grid.add_item(std::move(gridItem), true);
             } else {
-                grid.insert_item(gridItem, gridItem.desired_position, true);
+                grid.insert_item(std::move(gridItem), gridItem.desired_position, true);
             }
 
         }
@@ -969,7 +969,8 @@ void SystemView::toggle_overlay() {
     static uint8_t last_perf_counter_status = shared_memory.request_m4_performance_counter;
     switch (++overlay_active) {
         case 1:
-            this->add_child(&this->overlay);
+            overlay = std::make_unique<DfuMenu>(navigation_view);
+            this->add_child(overlay.get());
             this->set_dirty();
             shared_memory.request_m4_performance_counter = 1;
             shared_memory.m4_performance_counter = 0;
@@ -977,17 +978,19 @@ void SystemView::toggle_overlay() {
             shared_memory.m4_stack_usage = 0;
             break;
         case 2:
-            this->remove_child(&this->overlay);
-            this->add_child(&this->overlay2);
+            this->remove_child(overlay.get());
+            overlay.reset();
+            overlay2 = std::make_unique<DfuMenu2>(navigation_view);
+            this->add_child(overlay2.get());
             this->set_dirty();
             shared_memory.request_m4_performance_counter = 2;
             break;
         case 3:
-            this->remove_child(&this->overlay2);
+            this->remove_child(overlay2.get());
+            overlay2.reset();
             this->set_dirty();
             shared_memory.request_m4_performance_counter = last_perf_counter_status;
             overlay_active = 0;
-            break;
     }
 }
 
@@ -999,10 +1002,10 @@ void SystemView::paint_overlay() {
             return;
 
         last_paint_state = !last_paint_state;
-        if (overlay_active == 1)
-            this->overlay.set_dirty();
-        else
-            this->overlay2.set_dirty();
+        if (overlay_active == 1 && overlay)
+            overlay->set_dirty();
+        else if (overlay_active == 2 && overlay2)
+            overlay2->set_dirty();
     }
 }
 
