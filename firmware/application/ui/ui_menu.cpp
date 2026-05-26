@@ -22,6 +22,7 @@
 
 #include "ui_menu.hpp"
 #include "rtc_time.hpp"
+#include <string_view>
 
 namespace ui {
 
@@ -30,6 +31,7 @@ namespace ui {
 void MenuItemView::set_item(MenuItem* item_) {
     item = item_;
     scroll_offset = 0;
+    can_scroll = false;
 }
 
 void MenuItemView::highlight() {
@@ -86,25 +88,31 @@ void MenuItemView::paint(Painter& painter) {
 
     Style text_style{.font = paint_style.font, .background = final_bg_color, .foreground = final_item_color};
 
-    std::string file_name = item->text;
-    std::string file_size = "";
-    auto tab_pos = file_name.find('\t');
-    if (tab_pos != std::string::npos) {
-        file_size = file_name.substr(tab_pos + 1);
-        file_name = file_name.substr(0, tab_pos);
+    std::string_view full_text = item->text;
+    std::string_view file_name = full_text;
+    std::string_view file_size_text = "";
+
+    auto tab_pos = full_text.find('\t');
+    if (tab_pos != std::string_view::npos) {
+        file_size_text = full_text.substr(tab_pos + 1);
+        file_name = full_text.substr(0, tab_pos);
     }
 
     int available_width_px = rect.width() - offset_x;
     if (available_width_px <= 0) return;
 
     size_t max_name_chars = available_width_px / char_width;
-    if (!file_size.empty() && max_name_chars > file_size.length()) {
-        max_name_chars = max_name_chars - file_size.length() - 1;
+    if (max_name_chars == 0) return;
+
+    if (!file_size_text.empty() && max_name_chars > file_size_text.length()) {
+        max_name_chars = max_name_chars - file_size_text.length() - 1;
     }
+
+    if (max_name_chars == 0) return;
 
     can_scroll = (file_name.length() > max_name_chars);
 
-    std::string display_name = file_name;
+    std::string_view display_name = file_name;
     if (file_name.length() > max_name_chars) {
         if (highlighted()) {
             size_t max_scroll = file_name.length() - max_name_chars;
@@ -119,9 +127,14 @@ void MenuItemView::paint(Painter& painter) {
 
     painter.draw_string({rect.location().x() + offset_x, text_y}, text_style, display_name);
 
-    if (!file_size.empty()) {
-        Coord right_x = rect.width() - (file_size.length() * char_width) - margin_x;
-        painter.draw_string({rect.location().x() + right_x, text_y}, text_style, file_size);
+    if (!file_size_text.empty()) {
+        int file_size_width = static_cast<int>(file_size_text.length()) * char_width;
+        int file_size_x = rect.width() - file_size_width - margin_x;
+
+        // Csak akkor rajzoljuk ki, ha pozitív koordinátára esik és nem takarja el az ikont/nevet
+        if (file_size_x > offset_x) {
+            painter.draw_string({rect.location().x() + static_cast<Coord>(file_size_x), text_y}, text_style, file_size_text);
+        }
     }
 }
 
@@ -178,16 +191,13 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 void MenuView::increment_scroll() {
+    if (menu_items.empty()) return;
     // The MenuView checks if the currently highlighted item needs scrolling
     scroll_offset++;
     auto* view = item_view(highlighted_item - offset);
     if (view) {
         view->set_scroll_offset(scroll_offset);
     }
-}
-
-void MenuView::reset_scroll() {
-    scroll_offset = 0;
 }
 
 void MenuView::on_tick_second() {

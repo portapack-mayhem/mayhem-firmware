@@ -114,7 +114,7 @@ class MenuView : public View {
 
     // SCROLLING
     void increment_scroll();
-    inline void reset_scroll();
+    inline void reset_scroll() { scroll_offset = 0; }
 
     bool keep_highlight{false};
 
