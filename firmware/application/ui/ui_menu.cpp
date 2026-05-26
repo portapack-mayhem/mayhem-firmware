@@ -47,7 +47,7 @@ void MenuItemView::unhighlight() {
 void MenuItemView::set_scroll_offset(size_t offset) {
     if (can_scroll && scroll_offset != offset) {
         scroll_offset = offset;
-        set_dirty();  // Csak akkor frissítünk (rajzolunk újra), ha tényleg kell!
+        set_dirty();
     }
 }
 
@@ -313,25 +313,6 @@ bool MenuView::on_touch(const TouchEvent event) {
         i++;
     }
     return false;
-}
-
-std::string MenuView::get_item_text(size_t index) const {
-    if (index < menu_items.size()) {
-        return menu_items[index].text;
-    }
-    return "";
-}
-
-void MenuView::set_item_text(size_t index, const std::string& new_text) {
-    if (index < menu_items.size()) {
-        menu_items[index].text = new_text;
-
-        // Find the visual view for this item and mark only this row for redraw
-        auto* view = item_view(index - offset);
-        if (view) {
-            view->set_dirty();
-        }
-    }
 }
 
 bool MenuView::on_key(const KeyEvent key) {

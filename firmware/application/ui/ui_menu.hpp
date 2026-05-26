@@ -108,10 +108,6 @@ class MenuView : public View {
     bool on_keyboard(const KeyboardEvent event) override;
     bool on_touch(const TouchEvent event) override;
 
-    // --- ADDED FOR DYNAMIC TEXT UPDATES ---
-    std::string get_item_text(size_t index) const;
-    void set_item_text(size_t index, const std::string& new_text);
-
    private:
     void update_items();
     void on_tick_second();
