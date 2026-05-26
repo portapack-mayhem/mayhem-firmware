@@ -337,10 +337,10 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
     was_charging = msg->on_charger;
 
     if (!pmem::ui_hide_numeric_battery()) {
-        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger, msg->battMayChanged);
     }
     if (!pmem::ui_hide_battery_icon()) {
-        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger, msg->battMayChanged);
     }
 }
 

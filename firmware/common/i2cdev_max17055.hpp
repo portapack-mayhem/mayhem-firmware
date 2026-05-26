@@ -130,7 +130,7 @@
 // Enable alert on battery insertion when the IC is mounted host side.
 // When Bei = 1, a battery-insertion condition, as detected by the AIN pin voltage, triggers an alert.
 #ifndef MAX17055_Bei
-#define MAX17055_Bei 0
+#define MAX17055_Bei 1
 #endif
 
 // When Aen = 1, violation of any of the alert threshold register values
@@ -283,15 +283,18 @@ class I2cDev_MAX17055 : public I2cDev {
     void update() override;
     bool detect();
 
-    void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+    void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& battMayChanged);
     bool reset_learned();
 
     float getValue(const char* entityName);
     uint16_t averageMVoltage(void);
     int32_t instantCurrent(void);
     uint16_t stateOfCharge(void);
-    bool reInit();  // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
+    bool reInit();                                    // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
+    bool getIsBattChanged() { return battChanged; }   // true it the ic thinks we have a new battery
+    void resetChangedFlag() { battChanged = false; }  // reset the flag
    private:
+    bool battChanged = false;  // to signal the ui we have modification on battery, so need to check it.
     const RegisterEntry* findEntry(const char* name) const;
 
     bool needsInitialization();

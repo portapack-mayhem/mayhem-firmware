@@ -238,7 +238,8 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
             // --- Battery Status Check (I2C) ---
             detect = battery::BatteryManagement::isDetected();
             if (detect) {
-                battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
+                bool dummy;
+                battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current, dummy);
 
                 bool is_full = (valid_mask == 31 && percent == 100 && current <= 10) ||
                                (valid_mask == 1 && percent == 100);

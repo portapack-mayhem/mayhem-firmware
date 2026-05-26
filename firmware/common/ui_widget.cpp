@@ -2184,7 +2184,7 @@ bool TextField::on_touch(TouchEvent event) {
 
 BatteryIcon::BatteryIcon(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(percent <= 100 ? 1 : 0, percent, false);
+    this->set_battery(percent <= 100 ? 1 : 0, percent, false, false);
     set_focusable(true);
 }
 
@@ -2195,11 +2195,13 @@ void BatteryIcon::getWidgetName(std::string& result) {
     result = "Battery percent";
 }
 
-void BatteryIcon::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
-    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask) return;
+void BatteryIcon::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge, bool batt_changed) {
+    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask && batt_changed == batt_changed_) return;
     percent_ = percentage;
     charge_ = charge;
     valid_ = valid_mask;
+    batt_changed_ = batt_changed;
+
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }
@@ -2227,6 +2229,7 @@ void BatteryIcon::paint(Painter& painter) {
     ui::Rect rect = screen_rect();                                                                                                                        // 10, 1 * 16
     painter.fill_rectangle(rect, has_focus() || highlighted() ? Theme::getInstance()->fg_light->foreground : Theme::getInstance()->bg_dark->background);  // clear
     ui::Color battColor = (charge_) ? Theme::getInstance()->fg_blue->foreground : Theme::getInstance()->fg_green->foreground;
+    if (batt_changed_) battColor = Theme::getInstance()->fg_orange->foreground;
     // batt body:
     painter.draw_vline({rect.left() + 1, rect.top() + 2}, rect.height() - 4, battColor);
     painter.draw_vline({rect.right() - 2, rect.top() + 2}, rect.height() - 4, battColor);
@@ -2251,6 +2254,7 @@ void BatteryIcon::paint(Painter& painter) {
         else
             battColor = Theme::getInstance()->fg_red->foreground;
     }
+    if (batt_changed_) battColor = Theme::getInstance()->fg_orange->foreground;
     // fill the bars
     for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
@@ -2261,7 +2265,7 @@ void BatteryIcon::paint(Painter& painter) {
 
 BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(percent <= 100 ? 1 : 0, percent, false);
+    this->set_battery(percent <= 100 ? 1 : 0, percent, false, false);
     set_focusable(true);
 }
 
@@ -2275,8 +2279,11 @@ void BatteryTextField::paint(Painter& painter) {
         xdelta = 5;
     else if (txt_batt.length() == 2)
         xdelta = 2;
+    std::string post = " %";
+    if (charge_) post = "+%";
+    if (batt_changed_) post = "*%";
     painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, txt_batt);
-    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, (charge_) ? "+%" : " %");
+    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, post);
 }
 
 void BatteryTextField::getAccessibilityText(std::string& result) {
@@ -2286,11 +2293,12 @@ void BatteryTextField::getWidgetName(std::string& result) {
     result = "Battery percent";
 }
 
-void BatteryTextField::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
-    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask) return;
+void BatteryTextField::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge, bool batt_changed) {
+    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask && batt_changed == batt_changed_) return;
     charge_ = charge;
     percent_ = percentage;
     valid_ = valid_mask;
+    batt_changed_ = batt_changed;
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }

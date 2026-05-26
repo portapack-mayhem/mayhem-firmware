@@ -189,10 +189,26 @@ void I2cDev_MAX17055::update() {
     uint8_t batteryPercentage = 102;
     uint16_t voltage = 0;
     int32_t current = 0;
-    getBatteryInfo(validity, batteryPercentage, voltage, current);
+    bool requires_reset = false;
+
+    // Check Battery Insertion flag (Hot-swap via AIN pin)
+    if (statusControl(MAX17055_Bat_Insert)) {
+        requires_reset = true;
+        // The IC does not auto-clear this flag. We must clear Bit 11 manually.
+        uint16_t status = read_register(0x00);
+        status &= ~(1 << 11);
+        write_register(0x00, status);
+    }
+    // Execute the reset if either flag was tripped
+    if (requires_reset) {
+        reInit();  // todo maybe don't do it automatically, just signal
+        battChanged = true;
+    }
+    bool dummy;
+    getBatteryInfo(validity, batteryPercentage, voltage, current, dummy);
 
     // send local message
-    BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage};
+    BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage, battChanged};
     EventDispatcher::send_message(msg);
 }
 
@@ -206,6 +222,7 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
         if (needsInitialization()) {
             // First-time or POR initialization
             return_status = full_reset_and_init();
+            battChanged = true;
         }
         partialInit();  // If you always want hibernation disabled
         // statusClear();  // I am not sure if this should be here or not (Clear all bits in the Status register (0x00))
@@ -253,7 +270,7 @@ bool I2cDev_MAX17055::initialize_custom_parameters() {
     if (!write_register(0x1E, 0x03C0)) return false;                                  // IChgTerm
     if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty
     if (!write_register(0x60, 0x0090)) return false;                                  // Unknown register
-    if (!write_register(0x46, ((designcap / 32) * 44138) * designcap)) return false;  // dPAcc
+    if (!write_register(0x46, ((designcap / 32) * 44138) / designcap)) return false;  // dPAcc = dQAcc * 44138 / DesignCap (Maxim EZ config)
     if (!write_register(0xDB, 0x8000)) return false;                                  // ModelCfg  --we should wait till it loads here. While (ReadRegister(0xDB)&0x8000) Wait(10)；//do not continue until ModelCFG.Refresh == 0
     if (!write_register(0x40, 0x0001)) return false;                                  // Set user mem to 1
     return true;
@@ -284,12 +301,7 @@ bool I2cDev_MAX17055::clear_por() {
 }
 
 bool I2cDev_MAX17055::needsInitialization() {
-    uint16_t UserMem1 = read_register(0x40);
-
-    if (UserMem1 == 0) {
-        return true;
-    }
-    return false;
+    return (read_register(0x00) & 0x0002) != 0;
 }
 
 void I2cDev_MAX17055::partialInit() {
@@ -354,7 +366,7 @@ bool I2cDev_MAX17055::write_register(const uint8_t reg, const uint16_t value) {
     return success;
 }
 
-void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& battMayChanged) {
     // Read Status Register
     uint16_t status = read_register(0x00);
     voltage = averageMVoltage();
@@ -369,6 +381,7 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
         valid_mask &= ~battery::BatteryManagement::BATT_VALID_PERCENT;  // indicate it is voltage based
         batteryPercentage = battery::BatteryManagement::calc_percent_voltage(voltage);
     }
+    battMayChanged = battChanged;
 }
 
 float I2cDev_MAX17055::getValue(const char* entityName) {

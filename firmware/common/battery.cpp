@@ -30,10 +30,11 @@ uint8_t BatteryManagement::calc_percent_voltage(uint16_t voltage) {
 }
 
 // helper function to get data from ANY batt management ic
-void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& percent, uint16_t& voltage, int32_t& current) {
+void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& percent, uint16_t& voltage, int32_t& current, bool& battMayChanged) {
     auto dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_MAX17055);
+    battMayChanged = false;
     if (dev) {
-        ((i2cdev::I2cDev_MAX17055*)dev)->getBatteryInfo(valid_mask, percent, voltage, current);
+        ((i2cdev::I2cDev_MAX17055*)dev)->getBatteryInfo(valid_mask, percent, voltage, current, battMayChanged);
         return;
     }
     dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_ADS1110);
@@ -45,6 +46,13 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& percent, ui
     }
 
     valid_mask = 0;
+}
+
+void BatteryManagement::reset_changed_flag() {
+    auto dev = i2cdev::I2CDevManager::get_dev_by_model(I2CDEVMDL_MAX17055);
+    if (dev) {
+        ((i2cdev::I2cDev_MAX17055*)dev)->resetChangedFlag();
+    }
 }
 
 // helper function to get data from ANY batt management ic

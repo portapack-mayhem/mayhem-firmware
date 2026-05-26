@@ -60,7 +60,8 @@ void BattinfoView::update_result() {
     }
     bool uichg = false;
     uint8_t valid_mask = 0;
-    battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
+    bool battMayChanged = false;
+    battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current, battMayChanged);
     // update text fields
     if (percent <= 100 && (valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) == battery::BatteryManagement::BATT_VALID_VOLTAGE)
         text_percent.set(to_string_dec_uint(percent) + " %");
@@ -143,9 +144,10 @@ void BattinfoView::update_result() {
     } else {
         text_method.set("Voltage");
     }
+    if (battMayChanged) text_capacity.set_style(Theme::getInstance()->fg_red);
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
-    BatteryStateMessage msg{valid_mask, percent, current >= 25, voltage};
+    BatteryStateMessage msg{valid_mask, percent, current >= 25, voltage, battMayChanged};
     EventDispatcher::send_message(msg);
 }
 
