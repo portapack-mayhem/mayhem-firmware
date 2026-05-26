@@ -130,7 +130,7 @@ bool NavigationView::StartAppByName(const char* name) {
 
     for (const auto& app : appList) {
         if (app.id != nullptr && strcmp(app.id, name) == 0) {
-            push_view(std::unique_ptr<View>(app.viewFactory->produce(*this)));
+            push_view(app.viewFactory->produce(*this));
             return true;
         }
     }
@@ -756,7 +756,7 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
                            [&nav, &app]() {
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
-                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
+                            nav.push_view(app.viewFactory->produce(nav)); }},
                           true);
         }
     };
