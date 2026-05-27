@@ -189,23 +189,8 @@ void I2cDev_MAX17055::update() {
     uint8_t batteryPercentage = 102;
     uint16_t voltage = 0;
     int32_t current = 0;
-    bool requires_reset = false;
 
-    // Check Battery Insertion flag (Hot-swap via AIN pin)
-    if (statusControl(MAX17055_Bat_Insert)) {
-        requires_reset = true;
-        // The IC does not auto-clear this flag. We must clear Bit 11 manually.
-        uint16_t status = read_register(0x00);
-        status &= ~(1 << 11);
-        write_register(0x00, status);
-    }
-    // Execute the reset if either flag was tripped
-    if (requires_reset) {
-        reInit();  // todo maybe don't do it automatically, just signal
-        battChanged = true;
-    }
-    bool dummy;
-    getBatteryInfo(validity, batteryPercentage, voltage, current, dummy);
+    getBatteryInfo(validity, batteryPercentage, voltage, current, battChanged);
 
     // send local message
     BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage, battChanged};
@@ -393,7 +378,35 @@ bool I2cDev_MAX17055::write_register(const uint8_t reg, const uint16_t value) {
 void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& battMayChanged) {
     // Read Status Register
     uint16_t status = read_register(0x00);
+    bool requires_reset = false;
+    // Check Battery Insertion flag (Hot-swap via AIN pin)
+    if (statusControl(MAX17055_POR)) {
+        requires_reset = true;
+        clear_por();  // Clear the POR flag
+    }
+    if (statusControl(MAX17055_Bat_Insert)) {
+        requires_reset = true;
+        // The IC does not auto-clear this flag. We must clear Bit 11 manually.
+        status &= ~(1 << 11);
+        write_register(0x00, status);
+    }
+    if (statusControl(MAX17055_VMin)) {  // voltage dropped, so maybe batt removed while powered on
+        requires_reset = true;
+        // The IC does not auto-clear this flag. We must clear Bit 8 manually.
+        status &= ~(1 << 8);
+        write_register(0x00, status);
+    }
+    // Execute the reset if either flag was tripped
+    if (requires_reset) {
+        reInit();  // todo maybe don't do it automatically, just signal
+        battMayChanged = battChanged = true;
+    }
     voltage = averageMVoltage();
+    if (voltage > 0 && voltage < 2500) {
+        // If voltage is very low, it might indicate a battery removal or failure, so we treat it as invalid.
+        battMayChanged = battChanged = true;
+        return;
+    }
     if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
         valid_mask = 0;
         return;
@@ -588,7 +601,6 @@ bool I2cDev_MAX17055::setModelCfg(const uint8_t _Model_ID) {
 }
 
 bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
-    uint16_t config1_reg = read_register(0x1D);
     return write_register(0xBA, _Config);
 }
 

@@ -130,7 +130,7 @@
 // Enable alert on battery insertion when the IC is mounted host side.
 // When Bei = 1, a battery-insertion condition, as detected by the AIN pin voltage, triggers an alert.
 #ifndef MAX17055_Bei
-#define MAX17055_Bei 1
+#define MAX17055_Bei 0
 #endif
 
 // When Aen = 1, violation of any of the alert threshold register values
