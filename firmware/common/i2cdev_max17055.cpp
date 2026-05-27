@@ -200,16 +200,16 @@ void I2cDev_MAX17055::update() {
 void I2cDev_MAX17055::sleep_config(bool enable_sleep) {
     uint16_t config1 = read_register(0x1D);
     if (enable_sleep) {
-        // A SHDN bit (bit 7)
-        config1 |= 0x0080;
+        // A COMMSH bit (bit 6)
+        config1 |= 0x0040;
         // ShdnTimer (0x3F):
         // THR = 0 -> ~45 sec (def, 0x0000)
         // THR = 1 -> ~90 sec (0x1000)
         // THR = 2 -> ~180 sec (0x2000)
         write_register(0x3F, 0x2000);
     } else {
-        // A SHDN bit del
-        config1 &= ~0x0080;
+        // A COMMSH bit (bit 6)
+        config1 &= ~0x0040;
     }
     // write config register
     write_register(0x1D, config1);
@@ -308,13 +308,18 @@ bool I2cDev_MAX17055::clear_por() {
 }
 
 bool I2cDev_MAX17055::needsInitialization() {
-    return (read_register(0x00) & 0x0002) != 0;
+    uint16_t status = read_register(0x00);
+    if (status == 0xFFFF) {
+        chThdSleepMilliseconds(15);
+        status = read_register(0x00);
+    }
+    return (status & 0x0002) != 0;
 }
 
 void I2cDev_MAX17055::partialInit() {
     // Only update necessary volatile settings
-    setHibCFG(0x0000);   // If you always want hibernation disabled. this is a lower resolution mode, when the ic is on, and measuring, but on lower freq. depends un tha current (mA). loses precision. we don't need it.
-    sleep_config(true);  // by default we enable sleep after 3 min. no measuring during that. this happens only after no i2c communication. so while you charge or use, it won't sleep. only on the shelf, turned off.
+    // setHibCFG(0x0000);   // If you always want hibernation disabled. this is a lower resolution mode, when the ic is on, and measuring, but on lower freq. depends un tha current (mA).
+    sleep_config(true);  // shut down the comm
     // Add any other volatile settings that need updating
 }
 
@@ -396,8 +401,8 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
         write_register(0x00, status);
     }*/
     if (statusControl(MAX17055_VMin)) {  // voltage dropped, so maybe batt removed while powered on
-        requires_reset = true;
-        // The IC does not auto-clear this flag. We must clear Bit 8 manually.
+        // requires_reset = true;
+        //  The IC does not auto-clear this flag. We must clear Bit 8 manually.
         status &= ~(1 << 8);
         write_register(0x00, status);
     }
@@ -407,11 +412,11 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
         battMayChanged = battChanged = true;
     }
     voltage = averageMVoltage();
-    if (voltage > 0 && voltage < 2500) {
+    /*if (voltage > 0 && voltage < 2500) {
         // If voltage is very low, it might indicate a battery removal or failure, so we treat it as invalid.
         battMayChanged = battChanged = true;
         return;
-    }
+    }*/
     if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
         valid_mask = 0;
         return;
