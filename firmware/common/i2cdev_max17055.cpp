@@ -227,6 +227,10 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
             return_status = full_reset_and_init();
             battChanged = true;
         }
+        chThdSleepMilliseconds(300);  // wait for adc to fully wake up!
+        uint16_t status = read_register(0x00);
+        status &= ~(1 << 8);  // 8. bit (VMin) removal, bc of slow adc may hit it
+        write_register(0x00, status);
         partialInit();  // If you always want hibernation disabled
         // statusClear();  // I am not sure if this should be here or not (Clear all bits in the Status register (0x00))
         return return_status;
@@ -384,12 +388,13 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
         requires_reset = true;
         clear_por();  // Clear the POR flag
     }
+    /* --not in use, since it detect battery with the thermistor pin, but we don't have that
     if (statusControl(MAX17055_Bat_Insert)) {
         requires_reset = true;
         // The IC does not auto-clear this flag. We must clear Bit 11 manually.
         status &= ~(1 << 11);
         write_register(0x00, status);
-    }
+    }*/
     if (statusControl(MAX17055_VMin)) {  // voltage dropped, so maybe batt removed while powered on
         requires_reset = true;
         // The IC does not auto-clear this flag. We must clear Bit 8 manually.
@@ -398,7 +403,7 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
     }
     // Execute the reset if either flag was tripped
     if (requires_reset) {
-        reInit();  // todo maybe don't do it automatically, just signal
+        reInit();  // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
         battMayChanged = battChanged = true;
     }
     voltage = averageMVoltage();
