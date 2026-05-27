@@ -293,6 +293,7 @@ class I2cDev_MAX17055 : public I2cDev {
     bool reInit();                                    // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
     bool getIsBattChanged() { return battChanged; }   // true it the ic thinks we have a new battery
     void resetChangedFlag() { battChanged = false; }  // reset the flag
+    void sleep_config(bool enable_sleep);             // if true, the ic can sleep after 3 minutes of inactivity (over i2c). can be waken up on any i2c communication (first packet may be dropped)
    private:
     bool battChanged = false;  // to signal the ui we have modification on battery, so need to check it.
     const RegisterEntry* findEntry(const char* name) const;

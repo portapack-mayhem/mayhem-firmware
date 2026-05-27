@@ -212,6 +212,24 @@ void I2cDev_MAX17055::update() {
     EventDispatcher::send_message(msg);
 }
 
+void I2cDev_MAX17055::sleep_config(bool enable_sleep) {
+    uint16_t config1 = read_register(0x1D);
+    if (enable_sleep) {
+        // A SHDN bit (bit 7)
+        config1 |= 0x0080;
+        // ShdnTimer (0x3F):
+        // THR = 0 -> ~45 sec (def, 0x0000)
+        // THR = 1 -> ~90 sec (0x1000)
+        // THR = 2 -> ~180 sec (0x2000)
+        write_register(0x3F, 0x2000);
+    } else {
+        // A SHDN bit del
+        config1 &= ~0x0080;
+    }
+    // write config register
+    write_register(0x1D, config1);
+}
+
 bool I2cDev_MAX17055::init(uint8_t addr_) {
     if (addr_ != I2CDEV_MAX17055_ADDR_1) return false;
     addr = addr_;
@@ -306,7 +324,8 @@ bool I2cDev_MAX17055::needsInitialization() {
 
 void I2cDev_MAX17055::partialInit() {
     // Only update necessary volatile settings
-    setHibCFG(0x0000);  // If you always want hibernation disabled
+    setHibCFG(0x0000);   // If you always want hibernation disabled. this is a lower resolution mode, when the ic is on, and measuring, but on lower freq. depends un tha current (mA). loses precision. we don't need it.
+    sleep_config(true);  // by default we enable sleep after 3 min. no measuring during that. this happens only after no i2c communication. so while you charge or use, it won't sleep. only on the shelf, turned off.
     // Add any other volatile settings that need updating
 }
 
@@ -324,7 +343,12 @@ bool I2cDev_MAX17055::detect() {
     if (dev_name == 0x4010) {
         return true;
     }
-
+    // try again, we we just woke up.
+    chThdSleepMilliseconds(5);
+    dev_name = read_register(0x21);
+    if (dev_name == 0x4010) {
+        return true;
+    }
     // If DevName doesn't match, try reading Status register as a fallback
     uint16_t status = read_register(0x00);
     if (status != 0xFFFF && status != 0x0000) {
@@ -565,14 +589,6 @@ bool I2cDev_MAX17055::setModelCfg(const uint8_t _Model_ID) {
 
 bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
     uint16_t config1_reg = read_register(0x1D);
-
-    // (SHDN: 0x80) and (COMMSH: 0x40) Otherwise it will go into sleep mode after 45 seconds.
-    config1_reg &= ~(0x0080 | 0x0040);
-
-    if (!write_register(0x1D, config1_reg)) {
-        return false;
-    }
-
     return write_register(0xBA, _Config);
 }
 
