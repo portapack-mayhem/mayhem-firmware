@@ -64,7 +64,7 @@ class BattinfoView : public View {
         {{UI_POS_X(2), UI_POS_Y(5)}, "Current:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(6)}, "Charge:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(7)}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
-        // {{UI_POS_X(2), UI_POS_Y(8)}, "Cycles:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(8)}, "State:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(10)}, "Change settings:", Theme::getInstance()->fg_light->foreground},
     };
 
@@ -90,13 +90,14 @@ class BattinfoView : public View {
         {UI_POS_X(13), UI_POS_Y(7), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
         "-"};
 
-    /* Text text_cycles{
-        {UI_POS_X(13), UI_POS_Y(8), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},
-        "-"};
-
+    Text text_state{
+        {UI_POS_X(13), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(13), UI_POS_HEIGHT(1)},
+        "ok"};
+    /*
     Text text_warn{
         {UI_POS_X(1), UI_POS_Y(9), screen_width, UI_POS_HEIGHT(2)},
-        ""}; */
+        ""};
+    */
 
     Button button_settings{
         {UI_POS_X(2), UI_POS_Y(11) + 5, UI_POS_WIDTH(10), UI_POS_HEIGHT(2)},
