@@ -252,9 +252,10 @@ bool I2cDev_MAX17055::full_reset_and_init() {
     if (!load_custom_parameters()) {
         return false;
     }
-    if (!clear_por()) {
+    /*if (!clear_por()) {
         return false;
-    }
+    }*/
+    // don't clear it, we'll need to know the state
     return true;
 }
 
