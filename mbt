@@ -71,14 +71,14 @@ mbt_install_deps() {
         mbt_run_privileged apt-get update
         mbt_run_privileged apt-get install -y --no-install-recommends \
             git tar wget dfu-util cmake make python3 bzip2 lz4 curl hackrf \
-            python3-setuptools python3-yaml python3-setuptools ccache ninja-build
+            python3-setuptools python3-yaml binutils python3-setuptools ccache ninja-build
         ;;
     arch)
         mbt_log "detected Arch-like environment; installing required packages."
         mbt_run_privileged pacman -Sy --needed --noconfirm \
             git tar wget dfu-util cmake make python3 bzip2 lz4 curl hackrf \
             python-distutils-extra python-setuptools python-pip python-yaml \
-            ninja ccache
+            ninja ccache binutils
         ;;
     *)
         mbt_die "unsupported distribution. Install dependencies manually (see wiki on github), or you can send PR to support for your distro. Detected distro: $distro"
