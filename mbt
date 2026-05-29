@@ -70,7 +70,7 @@ mbt_install_deps() {
         mbt_log "detected Debian-like environment; installing required packages."
         mbt_run_privileged apt-get update
         mbt_run_privileged apt-get install -y --no-install-recommends \
-            git tar wget dfu-util cmake python3 bzip2 lz4 curl hackrf \
+            git tar wget dfu-util cmake make python3 bzip2 lz4 curl hackrf \
             python3-setuptools python3-setuptools ccache ninja-build
         ;;
     arch)
