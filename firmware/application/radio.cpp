@@ -404,11 +404,11 @@ void set_antenna_bias(const bool on) {
 #endif
 }
 
-bool get_mixer_q_invert() {
+bool get_mixer_invert() {
     return mixer_invert;
 }
 
-bool get_baseband_q_invert() {
+bool get_baseband_invert() {
     return baseband_invert;
 }
 

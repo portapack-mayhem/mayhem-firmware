@@ -119,9 +119,9 @@ void DfuMenu2::paint(Painter& painter) {
     text_info_line_9.set(to_string_dec_uint(portapack::transmitter_model.target_frequency(), 10));
     text_info_line_10.set(to_string_dec_uint(portapack::transmitter_model.baseband_bandwidth(), 10));
     text_info_line_11.set(to_string_dec_uint(portapack::transmitter_model.sampling_rate(), 10));
-    text_info_line_12.set(std::string("M") + (radio::get_mixer_q_invert() ? "Y" : "N") +
-                          " B" + (radio::get_baseband_q_invert() ? "Y" : "N") +
-                          " IQ" + ((radio::get_mixer_q_invert() ^ radio::get_baseband_q_invert()) ? "Y" : "N"));
+    text_info_line_12.set(std::string("M") + (radio::get_mixer_invert() ? "Y" : "N") +
+                          " B" + (radio::get_baseband_invert() ? "Y" : "N") +
+                          " IQ" + ((radio::get_mixer_invert() ^ radio::get_baseband_invert()) ? "Y" : "N"));
 
     constexpr auto margin = 5;
     constexpr auto lines = 12 + 2;
