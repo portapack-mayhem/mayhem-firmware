@@ -424,17 +424,34 @@ using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
 #ifdef PRALINE
-    // PRALINE: Configure clock input mux GPIO
-    // GPIO0_15 (clkin_ctrl) selects GP_CLKIN source:
-    //   0 = P1 connector (external)
-    //   1 = P22 (internal Si5351 CLK2)
-    constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];
-    gpio_clkin_ctrl.output();
-    gpio_clkin_ctrl.write(1);  // CLKIN_SIGNAL_P22 = 1 = internal Si5351 CLK2
+    // thoese PIN can review platform_scu file
+    // have many conflict and modify for clock init
+    // P2_10 -> GPIO0[14]  P1_CTRL0
+    LPC_SCU->SFSP[2][10] = 0xF0;
+    // P6_8  -> GPIO5[16]  P1_CTRL1
+    LPC_SCU->SFSP[6][8] = 0xF4;
+    // P6_9  -> GPIO3[5]   P1_CTRL2
+    LPC_SCU->SFSP[6][9] = 0xF0;
+    // P1_20 -> GPIO0[15]  CLKIN_CTRL
+    LPC_SCU->SFSP[1][20] = 0xF0;
 
-    // Also enable MCU clock gate (GPIO0_8)
-    gpio_r9_mcu_clk_en.output();
-    gpio_r9_mcu_clk_en.write(1);
+    constexpr GPIO gpio_p1_ctrl0 = gpio[GPIO0_14];
+    constexpr GPIO gpio_p1_ctrl1 = gpio[GPIO5_16];
+    constexpr GPIO gpio_p1_ctrl2 = gpio[GPIO3_5];
+    constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];
+
+    gpio_p1_ctrl0.output();
+    gpio_p1_ctrl1.output();
+    gpio_p1_ctrl2.output();
+    gpio_clkin_ctrl.output();
+
+    // P1 control = 100 and choose P22 clock external clock on portapack
+    gpio_p1_ctrl0.write(0);
+    gpio_p1_ctrl1.write(0);
+    gpio_p1_ctrl2.write(1);
+    gpio_clkin_ctrl.write(1);
+    chThdSleepMilliseconds(20);
+
 #else
     // HackRF One r9: GPIO0_8 (mcu_clk_en) gates Si5351 CLK2/CLK7 to GP_CLKIN
     if (hackrf_r9) {
@@ -458,10 +475,23 @@ void ClockManager::init_clock_generator() {
      * 4. Reset PLLs
      * 5. Enable outputs
      */
-    clock_generator.set_pll_input_sources(si5351a_pll_input_sources);
-
-    /* Skip MCU CLKIN setup and reference detection for PRALINE - not applicable */
-    reference = Reference{ReferenceSource::Xtal, 0};  // PLLA
+    // change there detect method same as hackrf one
+    // PLLA -> XTAL，PLLB -> CLKIN
+    clock_generator.set_pll_input_sources(si5351c_pll_input_sources);
+    // although the name a and the branch define CLK2 MCU CLOCK
+    // only use CLK2
+    auto si5351_clock_control_common = si5351a_clock_control_common;
+    constexpr size_t clock_generator_output_pro_mcu_clkin = 2;
+    // clk_src define CLKIN
+    clock_generator.set_clock_control(
+        clock_generator_output_pro_mcu_clkin,
+        si5351_clock_control_common[clock_generator_output_pro_mcu_clkin]
+            .clk_src(ClockControl::ClockSource::CLKIN)
+            .clk_pdn(ClockControl::ClockPowerDown::Power_On));
+    clock_generator.enable_output(clock_generator_output_pro_mcu_clkin);
+    chThdSleepMilliseconds(20);
+    // should be extern icon and 10MHz
+    reference = choose_reference();
 
     /* Clock control will be set AFTER multisynth configuration - see below */
 #else

@@ -153,6 +153,9 @@ class CodewordExtractor {
     /* Returns true if the batch has as sync frame. */
     bool has_sync() const { return has_sync_; }
 
+    /* Returns true if the signal was received with inverted polarity. */
+    bool inverted() const { return inverted_; }
+
    private:
     /* Sync frame codeword. */
     static constexpr uint32_t sync_codeword = 0x7cd215d8;

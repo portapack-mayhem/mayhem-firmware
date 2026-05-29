@@ -90,7 +90,7 @@ void BasebandThread::run() {
 #ifdef PRALINE
     shared_memory.m4_streaming_marker = 0xAA;  // Phase 0 instrumentation
 #endif
-
+    uint8_t buffer_drained = 0;  // to count how many dma buffers we already emptied
     while (!chThdShouldTerminate()) {
 #ifdef PRALINE
         shared_memory.m4_baseband_loops++;  // Phase 0 instrumentation
@@ -101,31 +101,6 @@ void BasebandThread::run() {
         if (buffer_tmp) {
             buffer_c8_t buffer{
                 buffer_tmp.p, buffer_tmp.count, sampling_rate_};
-
-#ifdef PRALINE
-            /*
-             * Software RSSI: Copy 8 I/Q samples spread across buffer.
-             *
-             * Just pack and copy - no computation here.
-             * rssi_thread does __SMUAD power and rssi calculation.
-             * 8 samples avoids zero-crossing artifacts.
-             */
-            if (direction_ == baseband::Direction::Receive && buffer_tmp.count >= 32) {
-                const size_t step = buffer_tmp.count / 8;
-
-                for (size_t i = 0; i < 8; i++) {
-                    const size_t idx = i * step + (step / 2);
-                    const auto sample = buffer_tmp.p[idx];
-
-                    // Pack into 32 bits: Q in high 16 bits, I in low 16 bits, the safe approach:
-                    // 1. Cast to uint16_t to capture the raw 16-bit pattern (e.g., -1 becomes 0xFFFF)
-                    // 2. OR them together. The uint16_t will be promoted to uint32_t cleanly.
-                    // This is accomplished with the specific hardware instruction designed
-                    // for this __PKHBT (Pack Halfword Bottom Top).
-                    shared_memory.software_rssi_iq[i] = __PKHBT(sample.real(), sample.imag(), 16);
-                }
-            }
-#endif
 
             if (shared_memory.request_m4_performance_counter == 0x02) {
                 uint8_t max = shared_memory.m4_performance_counter;
@@ -142,11 +117,20 @@ void BasebandThread::run() {
             }
 
             if (baseband_processor_) {
-                baseband_processor_->execute(buffer);
+                if (shared_memory.radio_tx_drain == 0) {  // only generate if not draining.
+                    baseband_processor_->execute(buffer);
+                }
+            }
+            if (shared_memory.radio_tx_drain == 1) {
+                buffer_drained++;
+                if (buffer_drained >= 4) {             // We have 4 buffers, so after draining 4 we should be safe to disable.
+                    shared_memory.radio_tx_drain = 0;  // Clear the drain request to allow normal operation to resume.
+                    buffer_drained = 0;
+                }
             }
         }
     }
-
+    shared_memory.radio_tx_drain = 0;
     i2s::i2s0::tx_mute();
     baseband::dma::disable();
     baseband_sgpio.streaming_disable();

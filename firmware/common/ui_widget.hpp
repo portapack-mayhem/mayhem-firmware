@@ -360,8 +360,8 @@ class Console : public Widget {
     Console(Rect parent_rect);
 
     void clear(bool clear_buffer);
-    void write(std::string message);
-    void writeln(std::string message);
+    void write(const std::string& message);
+    void writeln(const std::string& message);
 
     void paint(Painter&) override;
 
@@ -401,7 +401,7 @@ class Checkbox : public Widget {
     Checkbox& operator=(const Checkbox&) = delete;
     Checkbox& operator=(Checkbox&&) = delete;
 
-    void set_text(const std::string value);
+    void set_text(const std::string& value);
     bool set_value(const bool value);
     bool value() const;
 
@@ -439,7 +439,7 @@ class Button : public Widget {
         : Button{{}, {}} {
     }
 
-    void set_text(const std::string value);
+    void set_text(const std::string& value);
     std::string text() const;
 
     void paint(Painter& painter) override;
@@ -477,7 +477,7 @@ class ButtonWithEncoder : public Widget {
 
     std::function<void()> on_change{};
 
-    void set_text(const std::string value);
+    void set_text(const std::string& value);
     int32_t get_encoder_delta();
     void set_encoder_delta(const int32_t delta);
     std::string text() const;
@@ -516,7 +516,7 @@ class NewButton : public Widget {
     }
 
     void set_bitmap(const Bitmap* bitmap);
-    void set_text(const std::string value);
+    void set_text(const std::string& value);
     void set_color(Color value);
     void set_bg_color(Color value);
     void set_vertical_center(bool value);

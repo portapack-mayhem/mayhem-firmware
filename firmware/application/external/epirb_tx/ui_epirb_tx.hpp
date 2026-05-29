@@ -37,7 +37,25 @@
 #define BEACON_HEXA_HALF_SIZE 18
 #define BEACON_SIZE 18
 
+#define AM_TEST_FREQUENCY 121375000
+#define AM_REAL_FREQUENCY 121500000
+
+#define BPSK_FREQUENCY_HAM 433025000
+#define BPSK_FREQUENCY_B 406025000
+#define BPSK_FREQUENCY_C 406028000
+#define BPSK_FREQUENCY_F 406037000
+#define BPSK_FREQUENCY_G 406040000
+#define BPSK_FREQUENCY_J 406049000
+#define BPSK_FREQUENCY_K 406052000
+#define BPSK_FREQUENCY_N 406061000
+#define BPSK_FREQUENCY_O 406064000
+
 namespace ui::external_app::epirb_tx {
+
+enum class BeaconMode {
+    FILE = 0,
+    MODE_MANUAL = 1
+};
 
 enum class BeaconType {
     EPIRB = 0,
@@ -51,17 +69,36 @@ enum class BeaconProtocol {
     NATIONAL = 2
 };
 
+enum class AmChannel {
+    TEST = 0,
+    REAL = 1,
+    MANUAL = 2
+};
+
+enum class BpskChannel {
+    HAM = 0,
+    B = 1,
+    C = 2,
+    F = 3,
+    G = 4,
+    J = 5,
+    K = 6,
+    N = 7,
+    O = 8,
+    MANUAL = 10
+};
+
 struct Location {
     std::string locator;
     bool south;
-    uint16_t lat_deg;
-    uint8_t lat_min;
-    uint8_t lat_sec;
+    int16_t lat_deg;
+    int8_t lat_min;
+    int8_t lat_sec;
     float latitude;
     bool west;
-    uint16_t long_deg;
-    uint8_t long_min;
-    uint8_t long_sec;
+    int16_t long_deg;
+    int8_t long_min;
+    int8_t long_sec;
     float longitude;
 };
 
@@ -95,6 +132,8 @@ class EPIRBTXAppView : public View {
     std::string frame_to_hex_string(bool start);
     void generate_frame(BeaconParams params);
     void update_frame(bool updateConfig = true);
+    void update_bpsk_frequency();
+    void update_am_transmission();
     void update_mode();
     void update_location(bool updateLocatorField = true);
 
@@ -103,6 +142,8 @@ class EPIRBTXAppView : public View {
         std::string description{};
         std::string frame{};
     };
+    NavigationView& nav_;
+
     std::vector<Beacon> beacons{};
     Beacon default_beacon{"Self test", "Serial User Location Protocol", "FFFED0D6E6202820000C29FF51041775302D"};
 
@@ -114,25 +155,35 @@ class EPIRBTXAppView : public View {
     // Frequency of the transmitter before starting the app (used to restore frequency when leaving)
     rf::Frequency original_frequency{0};
     // Frequency of the AM emergency signal
-    rf::Frequency am_frequency{121500000};
+    rf::Frequency am_frequency{AM_TEST_FREQUENCY};
     // Frequency of the 406 MHz BPSK signal
-    rf::Frequency bpsk_frequency{406025000};
+    rf::Frequency bpsk_frequency{BPSK_FREQUENCY_HAM};
+    // Selected am channel
+    uint8_t am_channel{(uint8_t)AmChannel::TEST};
+    // Selected bpsk channel
+    uint8_t bpsk_channel{(uint8_t)BpskChannel::HAM};
+    // Manual AM frequency value
+    rf::Frequency manual_am_frequency{AM_TEST_FREQUENCY};
+    // Manual BPSK frequency value
+    rf::Frequency manual_bpsk_frequency{BPSK_FREQUENCY_HAM};
 
     // True when using a beacon from the BEACONS.TXT file
-    bool mode_file{true};
+    bool mode_file{false};
+    // True when slideshow is enabled for file mode (change beacon after every transmission)
+    bool slideshow_enabled{false};
     // True when looping on sending beacons is enabled
     bool loop_enabled{true};
     // True if AM emergency signal transmission is enabled
     bool am_enabled{true};
     // True if we want to send a new frame each time the user changes the current beacon
-    bool send_on_change{false};
+    bool send_on_change{true};
     // The current locator string
     std::string locator{"JN03RO"};
     // The delay between each frame when on loop mode
     uint32_t delay{50};
-    uint8_t beacon_type{0};
+    uint8_t beacon_type{(uint8_t)BeaconType::EPIRB};
     // Currently selected beacon protocol
-    uint8_t beacon_protocol{0};
+    uint8_t beacon_protocol{(uint8_t)BeaconProtocol::USER};
     // Currently selected beacon country
     uint32_t beacon_country{227};
     // Current beacon's internal state (true for internal location system)
@@ -150,9 +201,12 @@ class EPIRBTXAppView : public View {
             {"sbeacon"sv, &selected_beacon},
             {"amfreq"sv, &am_frequency},
             {"bpskfreq"sv, &bpsk_frequency},
+            {"amchan"sv, &am_channel},
+            {"bpskchan"sv, &bpsk_channel},
             {"loop"sv, &loop_enabled},
             {"delay"sv, &delay},
             {"file"sv, &mode_file},
+            {"slideshow"sv, &slideshow_enabled},
             {"am"sv, &am_enabled},
             {"soc"sv, &send_on_change},
             {"type"sv, &beacon_type},
@@ -166,6 +220,8 @@ class EPIRBTXAppView : public View {
     uint32_t last_frame_time{0};
     // True when transmission is enabled
     bool transmitting{false};
+    // True when transmitting a BPSK frame
+    bool transmitting_bpsk{false};
     // True when currently looping on sending beacons
     bool loop{false};
 
@@ -179,27 +235,37 @@ class EPIRBTXAppView : public View {
         {{UI_POS_X(0), UI_POS_Y(0)}, "Source:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(10)}, "Next frame in   s.", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(12)}, "AM frequency          MHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(12)}, "AM frequency:         MHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(14)}, "AM   chan.:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(15)}, "BPSK chan.:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
 
     // For file mode
-    Text text_beacon{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
-        "Beacon:"};
-    // Beacon selection from BEACONS.TXT
-    OptionsField options_frame{
-        {UI_POS_X(7), UI_POS_Y(1)},
-        30,
-        {}};
-    Text text_description_label{
-        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
-        "Description:"};
-    Text text_description{
-        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
-        ""};
-    Text text_description_end{
-        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
-        ""};
+    struct FileModeWidgets {
+        Text text_beacon{
+            {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
+            "Beacon:"};
+        // Beacon selection from BEACONS.TXT
+        OptionsField options_frame{
+            {UI_POS_X(7), UI_POS_Y(1)},
+            30,
+            {}};
+        Text text_description_label{
+            {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+            "Description:"};
+        Text text_description{
+            {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+            ""};
+        Text text_description_end{
+            {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+            ""};
+        Checkbox checkbox_slideshow{
+            {UI_POS_X(0), UI_POS_Y(5)},
+            9,
+            "Slideshow",
+            true};
+    };
+    std::unique_ptr<FileModeWidgets> file_mode_ui{};
 
     // For manual mode
     Text text_beacon_type{
@@ -231,15 +297,15 @@ class EPIRBTXAppView : public View {
     OptionsField options_beacon_type{
         {UI_POS_X(9), UI_POS_Y(1)},
         7,
-        {{"EPIRB", 0},
-         {"ELT", 1},
-         {"PLB", 2}}};
+        {{"EPIRB", (uint8_t)BeaconType::EPIRB},
+         {"ELT", (uint8_t)BeaconType::ELT},
+         {"PLB", (uint8_t)BeaconType::PLB}}};
     OptionsField options_beacon_protocol{
         {UI_POS_X(9 + 7), UI_POS_Y(1)},
         30,
-        {{"User", 0},
-         {"Standard", 1},
-         {"National", 2}}};
+        {{"User", (uint8_t)BeaconProtocol::USER},
+         {"Standard", (uint8_t)BeaconProtocol::STANDARD},
+         {"National", (uint8_t)BeaconProtocol::NATIONAL}}};
     OptionsField options_beacon_country{
         {UI_POS_X(9), UI_POS_Y(2)},
         7,
@@ -261,8 +327,8 @@ class EPIRBTXAppView : public View {
     OptionsField options_mode{
         {UI_POS_X(7), UI_POS_Y(0)},
         30,
-        {{"File (BEACONS.TXT)", 0},
-         {"Manual (Editor)", 1}}};
+        {{"File (BEACONS.TXT)", (uint8_t)BeaconMode::FILE},
+         {"Manual (Editor)", (uint8_t)BeaconMode::MODE_MANUAL}}};
 
     // Frame content
     Text text_frame{
@@ -305,6 +371,25 @@ class EPIRBTXAppView : public View {
         "START"};
     const Style& style_tx_start = *Theme::getInstance()->fg_green;
     const Style& style_tx_stop = *Theme::getInstance()->fg_red;
+    OptionsField options_am_channel{
+        {UI_POS_X(11), UI_POS_Y(14)},
+        20,
+        {{"121.375 MHz (Test)", 0},
+         {"121.500 MHz /!\\Real", 1},
+         {"Manual", 2}}};
+    OptionsField options_bpsk_channel{
+        {UI_POS_X(11), UI_POS_Y(15)},
+        20,
+        {{"433.025 MHz (Ham)", (uint8_t)BpskChannel::HAM},
+         {"406.025 MHz (B)", (uint8_t)BpskChannel::B},
+         {"406.028 MHz (C)", (uint8_t)BpskChannel::C},
+         {"406.037 MHz (F)", (uint8_t)BpskChannel::F},
+         {"406.040 MHz (G)", (uint8_t)BpskChannel::G},
+         {"406.049 MHz (J)", (uint8_t)BpskChannel::J},
+         {"406.052 MHz (K)", (uint8_t)BpskChannel::K},
+         {"406.061 MHz (N)", (uint8_t)BpskChannel::N},
+         {"406.064 MHz (O)", (uint8_t)BpskChannel::O},
+         {"Manual", (uint8_t)BpskChannel::MANUAL}}};
 
     // Transmitter view
     TransmitterView tx_view{

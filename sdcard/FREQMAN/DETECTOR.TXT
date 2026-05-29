@@ -1,0 +1,21 @@
+# Around 315 MHz (common for older remotes, key fobs in some regions)
+# Window centered on 315 MHz, covers 314.625 - 315.375 MHz
+f=315000000,d=Remotes 315M
+
+# Around 433.92 MHz (very common for remotes, sensors, key fobs globally)
+# Window centered on 433.92 MHz, covers 433.545 - 434.295 MHz
+f=433920000,d=Remotes 433.92M
+
+# EU433 Band (Europe, typically 433.05 MHz to 434.79 MHz)
+# Scanning the approximate range 433.0 MHz to 434.8 MHz with 750kHz steps
+a=433375000,b=434875000,s=750kHz,d=LoRa EU433
+
+# EU868 Band (Europe, typically 863 MHz to 870 MHz, specific channels around 868 MHz)
+# Targeting common LoRaWAN channel groups (approx 867.0 - 868.6 MHz) with 750kHz steps
+a=867375000,b=868875000,s=750kHz,d=LoRa EU868
+
+# US915 Band (North America, typically 902 MHz to 928 MHz, specific channels around 915 MHz)
+a=902000000,b=928250000,s=750kHz,d=LoRa US915
+
+# TETRA Band starts at 380,000,000 Hz, ends at 390,000,000 Hz.
+a=380375000,b=390125000,s=750kHz,d=TETRA UP

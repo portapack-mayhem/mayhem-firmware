@@ -158,6 +158,10 @@ class Message {
         TimeSinkConfig = 100,
         EPIRBTXData = 101,
         P25TxConfigure = 102,
+        ToneDetectData = 103,
+        ToneDetectConfig = 104,
+        FlexTosend = 105,
+        EPIRBRXConfig = 106,
         MAX
     };
 
@@ -385,6 +389,16 @@ class EPIRBPacketMessage : public Message {
     }
 
     baseband::Packet packet;
+};
+
+class EPIRBRXConfig : public Message {
+   public:
+    constexpr EPIRBRXConfig()
+        : Message{ID::EPIRBRXConfig} {
+    }
+    bool spectrum_on = false;
+    bool audio_on = true;
+    uint8_t squelch{50};
 };
 
 class TPMSPacketMessage : public Message {
@@ -1567,8 +1581,8 @@ class PocsagTosendMessage : public Message {
     constexpr PocsagTosendMessage(
         uint16_t baud = 1200,
         uint8_t type = 2,
-        char function = 'D',
-        char phase = 'N',
+        char function = 'A',
+        char polarity = 'S', /* 'S' = Standard (CCIR Rec. 584), 'I' = Inverted */
         uint8_t msglen = 0,
         uint8_t msg[31] = {0},
         uint64_t addr = 0)
@@ -1576,15 +1590,15 @@ class PocsagTosendMessage : public Message {
           baud{baud},
           type{type},
           function{function},
-          phase{phase},
+          polarity{polarity},
           msglen{msglen},
           addr{addr} {
         memcpy(this->msg, msg, 31);
     }
     uint16_t baud = 1200;
     uint8_t type = 2;
-    char function = 'D';
-    char phase = 'N';
+    char function = 'A';
+    char polarity = 'S'; /* 'S' = Standard, 'I' = Inverted */
     uint8_t msglen = 0;
     uint8_t msg[31] = {0};
     uint64_t addr = 0;
@@ -1859,6 +1873,47 @@ class NotificationDataMessage : public Message {
     char message[300]{0};    // message, null-terminated, max 299 chars + null
     uint8_t icon = 0;
     uint16_t timeout = 10000;
+};
+
+// Sent M0→M4: a tone detection event (tone ended, or periodic update while active)
+class ToneDetectDataMessage : public Message {
+   public:
+    constexpr ToneDetectDataMessage()
+        : Message{ID::ToneDetectData} {}
+    uint32_t freq_hz{0};      // Dominant audio frequency in Hz (0 = silence)
+    uint32_t duration_ms{0};  // How long the tone lasted in milliseconds
+    bool tone_end{false};     // True = tone just ended; False = tone still active (periodic update)
+};
+
+// Sent M4→M0: configure the tone detector
+class ToneDetectConfigureMessage : public Message {
+   public:
+    constexpr ToneDetectConfigureMessage(uint8_t squelch = 0, uint32_t ctcss_freq_x10 = 0)
+        : Message{ID::ToneDetectConfig},
+          squelch_level{squelch},
+          ctcss_freq_x10{ctcss_freq_x10} {}
+    uint8_t squelch_level{0};
+    uint32_t ctcss_freq_x10{0};  // CTCSS frequency × 10 (e.g. 1000 = 100.0 Hz); 0 = None
+};
+
+class FlexTosendMessage : public Message {
+   public:
+    constexpr FlexTosendMessage(
+        uint64_t capcode = 0,
+        uint8_t type = 0,
+        uint8_t msglen = 0,
+        const uint8_t* msg = nullptr)
+        : Message{ID::FlexTosend},
+          capcode{capcode},
+          type{type},
+          msglen{msglen} {
+        if (msg)
+            memcpy(this->msg, msg, 240);
+    }
+    uint64_t capcode = 0;
+    uint8_t type = 0;
+    uint8_t msglen = 0;
+    uint8_t msg[240] = {0};
 };
 
 #endif /*__MESSAGE_H__*/

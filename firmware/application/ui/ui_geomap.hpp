@@ -247,7 +247,7 @@ class GeoMap : public Widget {
     ui::Point item_rect_pixel(GeoMarker& item);
     GeoPoint lat_lon_to_map_pixel(float lat, float lon);
     void draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor = Color::white(), const Color backColor = Color::black());
-    void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
+    void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string& itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
     void draw_mypos(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
@@ -264,6 +264,9 @@ class GeoMap : public Widget {
     double lat_to_pixel_y_tile(double lat, int zoom);
     double tile_pixel_x_to_lon(int x, int zoom);
     double tile_pixel_y_to_lat(int y, int zoom);
+
+    std::vector<ui::Color> map_line_buffer{};
+
     uint8_t map_osm_zoom{5};
     uint8_t map_osm_real_zoom{5};
     double viewport_top_left_px = 0;

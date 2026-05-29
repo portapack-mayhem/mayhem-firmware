@@ -39,7 +39,13 @@ using namespace portapack;
 namespace ui {
 
 /* Gets a style indicating total TX gain level. */
-static const Style* get_style_for_gain(uint8_t tot_gain) {
+static const Style* get_style_for_gain(uint8_t tot_gain, uint8_t gain) {
+    if (persistent_memory::config_tx_disabled()) {
+        return Theme::getInstance()->fg_dark;  // disabled color
+    }
+    if (gain == persistent_memory::config_tx_gain_max_db() && gain != max2837::tx::gain_db_range.maximum) {  // only if limited
+        return Theme::getInstance()->fg_cyan;
+    }
     if (tot_gain > POWER_THRESHOLD_HIGH) return Theme::getInstance()->fg_red;
 
     if (tot_gain > POWER_THRESHOLD_MED)
@@ -50,7 +56,21 @@ static const Style* get_style_for_gain(uint8_t tot_gain) {
 
     return nullptr;  // Uses default.
 }
+static const Style* get_style_for_amp(uint8_t tot_gain) {
+    if (persistent_memory::config_tx_disabled() || persistent_memory::config_tx_amp_disabled()) {
+        return Theme::getInstance()->fg_dark;  // disabled color
+    }
 
+    if (tot_gain > POWER_THRESHOLD_HIGH) return Theme::getInstance()->fg_red;
+
+    if (tot_gain > POWER_THRESHOLD_MED)
+        return Theme::getInstance()->fg_orange;
+
+    if (tot_gain > POWER_THRESHOLD_LOW)
+        return Theme::getInstance()->fg_yellow;
+
+    return nullptr;  // Uses default.
+}
 /* TransmitterView *******************************************************/
 
 void TransmitterView::paint(Painter& painter) {
@@ -95,12 +115,12 @@ void TransmitterView::on_tx_amp_changed(bool rf_amp) {
 
 void TransmitterView::update_gainlevel_styles() {
     int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
-    auto style = get_style_for_gain(tot_gain);
-
+    auto style = get_style_for_gain(tot_gain, transmitter_model.tx_gain());
+    auto styleamp = get_style_for_amp(tot_gain);
     field_gain.set_style(style);
     text_gain.set_style(style);
-    field_amp.set_style(style);
-    text_amp.set_style(style);
+    field_amp.set_style(styleamp);
+    text_amp.set_style(styleamp);
 }
 
 void TransmitterView::set_transmitting(const bool transmitting) {
@@ -199,6 +219,24 @@ TransmitterView::TransmitterView(
                 on_start();
         }
     };
+
+    if (persistent_memory::config_tx_amp_disabled() || persistent_memory::config_tx_disabled()) {  // amp disabled / tx disabled
+        field_amp.set_value(0);
+        field_amp.set_focusable(false);
+    }
+
+    if (persistent_memory::config_tx_disabled()) {  // tx disabled
+        field_gain.set_value(0);
+        field_gain.set_focusable(false);
+    } else {
+        if (persistent_memory::config_tx_gain_max_db() < max2837::tx::gain_db_range.maximum) {
+            field_gain.set_range(max2837::tx::gain_db_range.minimum, persistent_memory::config_tx_gain_max_db());
+            if (field_gain.value() > persistent_memory::config_tx_gain_max_db()) {
+                field_gain.set_value(persistent_memory::config_tx_gain_max_db());
+            }
+        }
+    }
+    update_gainlevel_styles();
 }
 
 TransmitterView::~TransmitterView() {
@@ -252,16 +290,34 @@ TransmitterView2::TransmitterView2(Point pos, bool short_ui) {
         update_gainlevel_styles();
     };
 
+    if (persistent_memory::config_tx_amp_disabled() || persistent_memory::config_tx_disabled()) {  // amp disabled / tx disabled
+        field_amp.set_value(0);
+        field_amp.set_focusable(false);
+    }
+
+    if (persistent_memory::config_tx_disabled()) {  // tx disabled
+        field_gain.set_value(0);
+        field_gain.set_focusable(false);
+    } else {
+        if (persistent_memory::config_tx_gain_max_db() < max2837::tx::gain_db_range.maximum) {
+            field_gain.set_range(max2837::tx::gain_db_range.minimum, persistent_memory::config_tx_gain_max_db());
+            if (field_gain.value() > persistent_memory::config_tx_gain_max_db()) {
+                field_gain.set_value(persistent_memory::config_tx_gain_max_db());
+            }
+        }
+    }
+
     update_gainlevel_styles();
 }
 
 void TransmitterView2::update_gainlevel_styles() {
     int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
-    auto style = get_style_for_gain(tot_gain);
+    auto style = get_style_for_gain(tot_gain, transmitter_model.tx_gain());
+    auto styleamp = get_style_for_amp(tot_gain);
 
     text_labels.set_style(style);
     field_gain.set_style(style);
-    field_amp.set_style(style);
+    field_amp.set_style(styleamp);
 }
 
 } /* namespace ui */

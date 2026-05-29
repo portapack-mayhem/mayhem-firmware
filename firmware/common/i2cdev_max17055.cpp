@@ -214,6 +214,14 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
     return false;
 }
 
+bool I2cDev_MAX17055::reInit() {
+    if (!full_reset_and_init()) {
+        return false;
+    }
+    partialInit();
+    return true;
+}
+
 bool I2cDev_MAX17055::full_reset_and_init() {
     if (!soft_reset()) {
         return false;
@@ -235,12 +243,12 @@ bool I2cDev_MAX17055::soft_reset() {
 }
 
 bool I2cDev_MAX17055::initialize_custom_parameters() {
-    if (!write_register(0xD0, 0x03E8)) return false;                                                                                                  // Unknown register, possibly related to battery profile
-    if (!write_register(0xDB, 0x0000)) return false;                                                                                                  // ModelCfg
-    if (!write_register(0x05, 0x0000)) return false;                                                                                                  // RepCap
-    uint32_t designcap = portapack::device_type == portapack::DEV_PORTARF ? __MAX17055_Design_Capacity_PRF__ * 2 : __MAX17055_Design_Capacity__ * 2;  // the original design has a 2x multiplier here, so i keep it
-    if (!write_register(0x18, designcap)) return false;                                                                                               // DesignCap
-    if (!write_register(0x45, designcap / 32)) return false;                                                                                          // dQAcc  =  DesignCap / 32
+    if (!write_register(0xD0, 0x03E8)) return false;                           // Unknown register, possibly related to battery profile
+    if (!write_register(0xDB, 0x0000)) return false;                           // ModelCfg
+    if (!write_register(0x05, 0x0000)) return false;                           // RepCap
+    uint32_t designcap = portapack::persistent_memory::battery_cap_mah() * 2;  // the original design has a 2x multiplier here, so i keep it
+    if (!write_register(0x18, designcap)) return false;                        // DesignCap
+    if (!write_register(0x45, designcap / 32)) return false;                   // dQAcc  =  DesignCap / 32
 
     if (!write_register(0x1E, 0x03C0)) return false;                                  // IChgTerm
     if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty
@@ -543,6 +551,15 @@ bool I2cDev_MAX17055::setModelCfg(const uint8_t _Model_ID) {
 }
 
 bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
+    uint16_t config1_reg = read_register(0x1D);
+
+    // (SHDN: 0x80) and (COMMSH: 0x40) Otherwise it will go into sleep mode after 45 seconds.
+    config1_reg &= ~(0x0080 | 0x0040);
+
+    if (!write_register(0x1D, config1_reg)) {
+        return false;
+    }
+
     return write_register(0xBA, _Config);
 }
 

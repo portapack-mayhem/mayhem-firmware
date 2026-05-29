@@ -22,6 +22,11 @@
 #ifndef __IPC_RTC_H__
 #define __IPC_RTC_H__
 
+#include <cstdint>
+
 void rtc_interrupt_enable();
+void rtc_reset_default();
+void rtc_wakeup_init();
+void rtc_wakeup(uint32_t sleep_seconds);
 
 #endif /*__IPC_RTC_H__*/

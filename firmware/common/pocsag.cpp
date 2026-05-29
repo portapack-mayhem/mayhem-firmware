@@ -39,8 +39,6 @@ std::string bitrate_str(BitRate bitrate) {
             return "1200bps";
         case BitRate::FSK2400:
             return "2400bps";
-        case BitRate::FSK3200:
-            return "3200bps";
         default:
             return "????";
     }
@@ -352,30 +350,228 @@ int EccContainer::error_correct(uint32_t& val) {
     return errl;
 }
 
+// ----------------------------------------------------------------------------
+// Numeric character table: 4-bit BCD -> ASCII
+// ----------------------------------------------------------------------------
+static const char numeric_chars[16] = {
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'R', 'U', ' ', '-', ']', '['};
+
+// Extract and bit-reverse a 4-bit nibble from a message codeword.
+// POCSAG numeric digits are transmitted LSB first, so bit 30 (first transmitted)
+// is the LSB of the digit value, not the MSB.
+static uint8_t decode_nibble(uint32_t codeword, int nibble_idx) {
+    int bit_pos = 30 - nibble_idx * 4;
+    // bit_pos is the first transmitted bit (LSB of digit)
+    // bit_pos-3 is the last transmitted bit (MSB of digit)
+    uint8_t n = 0;
+    n |= ((codeword >> (bit_pos - 3)) & 1) << 3;  // MSB of digit
+    n |= ((codeword >> (bit_pos - 2)) & 1) << 2;
+    n |= ((codeword >> (bit_pos - 1)) & 1) << 1;
+    n |= ((codeword >> (bit_pos - 0)) & 1) << 0;  // LSB of digit
+    return n;
+}
+
+// ----------------------------------------------------------------------------
+// Heuristic message type detection (first batch only)
+// ----------------------------------------------------------------------------
+
+// Count trailing fill characters in alpha buffer (NULL or space).
+static int count_alpha_fill(const std::string& data) {
+    if (data.empty()) return 0;
+    int fill = 0;
+    for (int i = data.size() - 1; i >= 0; --i) {
+        char c = data[i];
+        if (c == '\0' || c == ' ')
+            fill++;
+        else
+            break;
+    }
+    return fill;
+}
+
+// Count trailing fill nibbles (0xC = space) in numeric buffer.
+static int count_numeric_fill(const uint8_t* nibbles, int count) {
+    int fill = 0;
+    for (int i = count - 1; i >= 0; --i) {
+        if (nibbles[i] == 0x0C)
+            fill++;
+        else
+            break;
+    }
+    return fill;
+}
+
+// Score alpha interpretation: +3 alphanumeric/space, -2 other printable, -5 control.
+static int score_alpha(const std::string& data, int fill) {
+    int score = 0;
+    int content = 0;
+    int len = data.size();
+
+    for (int i = 0; i < len; ++i) {
+        unsigned char c = data[i];
+
+        // Skip trailing fill
+        if (i >= len - fill && (c == 0 || c == ' '))
+            continue;
+        if (c == 0)
+            continue;
+
+        content++;
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+            (c >= '0' && c <= '9') || c == ' ')
+            score += 3;
+        else if (c >= 0x20 && c <= 0x7E)
+            score -= 2;
+        else if (c == '\n' || c == '\r' || c == '\t' || c == 0x04)
+            score += 0;
+        else
+            score -= 5;
+    }
+
+    if (content > 0)
+        score += fill * fill * 3 + fill * 5;
+
+    return score;
+}
+
+// Score numeric interpretation on raw nibbles.
+static int score_numeric(const uint8_t* nibbles, int count, int fill) {
+    int raw_score = 0;
+    int scored = 0;
+    int digits = 0;
+    int u_count = 0;
+
+    // Pre-scan for U nibbles
+    for (int i = 0; i < count; ++i) {
+        if (nibbles[i] == 0x0C && i >= count - fill)
+            continue;
+        if (nibbles[i] == 0x0B)
+            u_count++;
+    }
+
+    bool urgent_prefix = (u_count == 1);
+
+    for (int i = 0; i < count; ++i) {
+        uint8_t n = nibbles[i];
+        if (n == 0x0C && i >= count - fill)
+            continue;
+
+        scored++;
+        if (n <= 0x09) {
+            raw_score += 3;
+            digits++;
+        } else if (n == 0x0B) {
+            raw_score += urgent_prefix ? -1 : -15;
+        } else if (n == 0x0A) {
+            raw_score -= 5;
+        } else {
+            raw_score -= 2;
+        }
+    }
+
+    int score = scored > 0 ? raw_score * 4 / 7 : 0;
+
+    // Phone numbers have at most ~15 digits
+    if (digits > 15)
+        score -= (digits - 15) * 5;
+
+    // Fill bonus (weaker than alpha: 1/16 vs 1/128 coincidence rate)
+    score += fill * fill;
+
+    return score;
+}
+
+DetectedType detect_message_type(const std::string& alpha,
+                                 const uint8_t* nibbles,
+                                 uint8_t nibble_count,
+                                 uint8_t msg_codewords) {
+    if (alpha.empty() && nibble_count == 0)
+        return DET_TONE;
+
+    // Long messages can't be numeric (phone numbers are short)
+    if (msg_codewords >= 8)
+        return DET_ALPHA;
+
+    int alpha_fill = count_alpha_fill(alpha);
+    int numeric_fill = count_numeric_fill(nibbles, nibble_count);
+
+    int sa = score_alpha(alpha, alpha_fill) + 2;  // Alpha prior bias
+    int sn = score_numeric(nibbles, nibble_count, numeric_fill);
+
+    // Short message boost for alpha (1-2 data codewords)
+    if (msg_codewords <= 3)
+        sa += 3;
+
+    return (sn > sa) ? DET_NUMERIC : DET_ALPHA;
+}
+
+// ----------------------------------------------------------------------------
+// Batch decoder
+// ----------------------------------------------------------------------------
+
 bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
     constexpr uint8_t codeword_max = 16;
     state.output.clear();
+
+    /* Only reset numeric accumulator when starting a new message,
+     * not on continuation batches — numeric_buf must be cumulative
+     * across multi-batch messages. */
+    const bool continuing_numeric =
+        (state.mode != STATE_HAVE_ADDRESS) &&
+        (state.out_type == MESSAGE) &&
+        state.type_decided &&
+        (state.detected == DET_NUMERIC);
+    if (!continuing_numeric)
+        state.numeric_len = 0;
+
+    /* Preserve new_message across batch boundary when STATE_HAVE_ADDRESS
+     * persists — the address was at the end of the previous batch and
+     * we haven't displayed it yet. Otherwise reset for this batch. */
+    if (state.mode != STATE_HAVE_ADDRESS)
+        state.new_message = false;
+
+    // Temporary nibble buffer for first-batch numeric decode.
+    uint8_t nibbles[max_batch_nibbles];
+    uint8_t nibble_count = 0;
+    uint8_t msg_codewords = 0;
+    // Also build raw alpha for heuristic (before non-printable replacement).
+    std::string raw_alpha{};
+    // Track whether any characters came from uncorrectable codewords.
+    // If so, heuristic scoring is unreliable — skip it and default to alpha.
+    bool has_bad_chars = false;
 
     while (state.codeword_index < codeword_max) {
         auto codeword = batch[state.codeword_index];
         bool is_address = (codeword & 0x80000000U) == 0;
 
-        // Error correct twice. First time to fix any errors it can,
-        // second time to count number of errors that couldn't be fixed.
-        state.ecc->error_correct(codeword);
+        // Single ECC call: fix errors and get error count.
         auto error_count = state.ecc->error_correct(codeword);
 
         switch (state.mode) {
             case STATE_CLEAR:
                 if (is_address && codeword != POCSAG_IDLEWORD) {
                     state.function = (codeword >> 11) & 3;
-                    state.address = (codeword >> 10) & 0x1FFFF8U;  // 18 MSBs are transmitted
+                    state.address = (codeword >> 10) & 0x1FFFF8U;
+                    /* Frame number = lower 3 bits of RIC, derived from the
+                     * address codeword's position in the batch (not the
+                     * message codeword's position). codeword_index 0-15
+                     * maps to frames 0-7 via index >> 1. */
+                    state.address |= (state.codeword_index >> 1);
                     state.mode = STATE_HAVE_ADDRESS;
                     state.out_type = ADDRESS;
                     state.errors = error_count;
+                    state.new_message = true;
+                    state.type_decided = false;
+                    state.detected = DET_UNKNOWN;
 
                     state.ascii_idx = 0;
                     state.ascii_data = 0;
+                    state.prev_cw_err = 0;
+                    state.cur_cw_err = 0;
+                    nibble_count = 0;
+                    msg_codewords = 0;
+                    raw_alpha.clear();
                 } else if (codeword == POCSAG_IDLEWORD) {
                     state.out_type = IDLE;
                 }
@@ -383,52 +579,140 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
 
             case STATE_HAVE_ADDRESS:
                 if (is_address) {
-                    // Got another address, return the current state.
+                    // Got another address. Run heuristic before returning if we have pending data.
+                    if (!state.type_decided && msg_codewords > 0) {
+                        state.detected = has_bad_chars
+                                             ? DET_ALPHA
+                                             : detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
+                        state.type_decided = true;
+                        state.msg_codewords = msg_codewords;
+                        if (state.detected == DET_NUMERIC) {
+                            state.numeric_len = 0;
+                            for (uint8_t ni = 0; ni < nibble_count && state.numeric_len < sizeof(state.numeric_buf); ++ni)
+                                state.numeric_buf[state.numeric_len++] = numeric_chars[nibbles[ni] & 0x0F];
+                        }
+                    }
                     state.mode = STATE_CLEAR;
                     return true;
                 }
 
-                // First message codeword, complete the address.
-                state.address |= (state.codeword_index >> 1);  // Add in the 3 LSBs (frame #).
+                /* Frame number already applied in STATE_CLEAR.
+                 * Transition to message decoding. */
                 state.mode = STATE_GETTING_MSG;
                 [[fallthrough]];
 
             case STATE_GETTING_MSG:
                 if (is_address) {
-                    // Codeword isn't a message, return the current state.
+                    // Message ended. Run heuristic before returning.
+                    if (!state.type_decided && msg_codewords > 0) {
+                        state.detected = has_bad_chars
+                                             ? DET_ALPHA
+                                             : detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
+                        state.type_decided = true;
+                        state.msg_codewords = msg_codewords;
+                        if (state.detected == DET_NUMERIC) {
+                            state.numeric_len = 0;
+                            for (uint8_t ni = 0; ni < nibble_count && state.numeric_len < sizeof(state.numeric_buf); ++ni)
+                                state.numeric_buf[state.numeric_len++] = numeric_chars[nibbles[ni] & 0x0F];
+                        }
+                    }
                     state.mode = STATE_CLEAR;
                     return true;
                 }
 
                 state.out_type = MESSAGE;
                 state.errors += error_count;
-                state.ascii_data |= (codeword >> 11) & 0xFFFFF;  // Get 20 message bits.
+                msg_codewords++;
+
+                // Track per-codeword error level for character coloring.
+                // 0=clean, 1-2=corrected, 3=uncorrectable.
+                state.prev_cw_err = state.cur_cw_err;
+                state.cur_cw_err = (error_count >= 3) ? 3 : error_count;
+
+                // --- Alpha decode (always) ---
+                // Bits remaining from previous codeword inherit prev_cw_err.
+                // New 20 bits from this codeword use cur_cw_err.
+                // Characters spanning boundary get the worst of both.
+                uint32_t bits_from_prev = state.ascii_idx;  // leftover bits before adding new ones
+
+                state.ascii_data |= ((uint64_t)((codeword >> 11) & 0xFFFFF)) << (44 - state.ascii_idx);
                 state.ascii_idx += 20;
 
-                // Raw 20 bits to 7 bit reversed ASCII.
-                // NB: This is processed MSB first, any remaining bits are shifted
-                // up so a whole 7 bits are processed with the next codeword.
                 while (state.ascii_idx >= 7) {
+                    // Per-character error level from codeword error tracking.
+                    // Characters spanning a codeword boundary get the worst level.
+                    uint8_t char_err;
+                    if (bits_from_prev >= 7) {
+                        // Entire character from previous codeword's leftover bits.
+                        char_err = state.prev_cw_err;
+                        bits_from_prev -= 7;
+                    } else if (bits_from_prev > 0) {
+                        // Character spans boundary.
+                        char_err = std::max(state.prev_cw_err, state.cur_cw_err);
+                        bits_from_prev = 0;
+                    } else {
+                        // Entirely from current codeword.
+                        char_err = state.cur_cw_err;
+                    }
+
+                    // Extract top 7 bits from accumulator
+                    char ascii_char = (state.ascii_data >> 57) & 0x7F;
+                    state.ascii_data <<= 7;
                     state.ascii_idx -= 7;
-                    char ascii_char = (state.ascii_data >> state.ascii_idx) & 0x7F;
 
-                    // Reverse the bits. (TODO: __RBIT?)
-                    ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;  // 01234567 -> 45670123
-                    ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;  // 45670123 -> 67452301
-                    ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);       // 67452301 -> 76543210
+                    // Reverse bits (LSB-first encoding)
+                    ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;
+                    ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;
+                    ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);
 
-                    // Translate non-printable chars. TODO: Leave CRLF?
-                    if (ascii_char < 32 || ascii_char > 126)
+                    // Store raw char for heuristic
+                    if (!state.type_decided)
+                        raw_alpha += ascii_char;
+
+                    // Substitute '?' for characters from uncorrectable codewords
+                    if (char_err >= 3) {
+                        state.output += "?";
+                        has_bad_chars = true;
+                    } else if (ascii_char < 32 || ascii_char > 126)
                         state.output += ".";
                     else
                         state.output += ascii_char;
                 }
 
-                state.ascii_data <<= 20;  // Remaining bits are for next iteration...
+                // --- Numeric decode ---
+                // First batch: accumulate nibbles locally for heuristic scoring.
+                // Continuation batches: if already decided numeric, decode directly
+                // into numeric_buf for the app layer.
+                if (!state.type_decided && nibble_count + 5 <= max_batch_nibbles) {
+                    for (int n = 0; n < 5; ++n) {
+                        nibbles[nibble_count++] = decode_nibble(codeword, n);
+                    }
+                } else if (state.type_decided && state.detected == DET_NUMERIC &&
+                           state.numeric_len + 5 <= (uint8_t)sizeof(state.numeric_buf)) {
+                    for (int n = 0; n < 5; ++n) {
+                        uint8_t nib = decode_nibble(codeword, n);
+                        state.numeric_buf[state.numeric_len++] = numeric_chars[nib & 0x0F];
+                    }
+                }
+
                 break;
         }
 
         state.codeword_index++;
+    }
+
+    // End of batch. If we have message data and type not yet decided, run heuristic.
+    if (state.out_type == MESSAGE && !state.type_decided && msg_codewords > 0) {
+        state.detected = has_bad_chars
+                             ? DET_ALPHA
+                             : detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
+        state.type_decided = true;
+        state.msg_codewords = msg_codewords;
+        if (state.detected == DET_NUMERIC) {
+            state.numeric_len = 0;
+            for (uint8_t ni = 0; ni < nibble_count && state.numeric_len < sizeof(state.numeric_buf); ++ni)
+                state.numeric_buf[state.numeric_len++] = numeric_chars[nibbles[ni] & 0x0F];
+        }
     }
 
     return false;

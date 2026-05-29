@@ -38,14 +38,7 @@ using namespace std;
 namespace {
 /* Count of bits that differ between the two values. */
 uint8_t diff_bit_count(uint32_t left, uint32_t right) {
-    uint32_t diff = left ^ right;
-    uint8_t count = 0;
-    for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
-        if (((diff >> i) & 0x1) == 1)
-            ++count;
-    }
-
-    return count;
+    return __builtin_popcount(left ^ right);
 }
 }  // namespace
 
@@ -426,6 +419,7 @@ void POCSAGProcessor::send_packet() {
     packet.set_flag(pocsag::PacketFlag::NORMAL);
     packet.set_timestamp(Timestamp::now());
     packet.set_bitrate(bit_extractor.baud_rate());
+    packet.set_inverted(word_extractor.inverted());
     packet.set(word_extractor.batch());
 
     POCSAGPacketMessage message(packet);

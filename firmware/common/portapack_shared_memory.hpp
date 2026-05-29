@@ -55,19 +55,6 @@ struct ToneData {
 
 /* NOTE: These structures must be located in the same location in both M4 and M0 binaries */
 struct SharedMemory {
-#ifdef PRALINE
-    /*
-     * Software RSSI: 8 packed I/Q samples from baseband_thread.
-     *
-     * baseband_thread copies 8 samples spread across buffer (no computation).
-     * Each sample is packed: Q in high 16 bits, I in low 16 bits.
-     * rssi_thread uses __SMUAD on each to compute I²+Q², finds peak.
-     *
-     * 8 samples avoids zero-crossing artifacts from single-sample approach.
-     */
-    volatile uint32_t software_rssi_iq[8]{0};  // 8 packed I/Q samples
-#endif
-
     static constexpr size_t application_queue_k = 11;
     static constexpr size_t app_local_queue_k = 11;
 
@@ -98,7 +85,7 @@ struct SharedMemory {
     uint16_t volatile m4_stack_usage{0};
     uint32_t volatile m4_heap_usage{0};
     uint16_t volatile m4_buffer_missed{0};
-
+    uint8_t volatile radio_tx_drain{0};  // to indicate the baseband thread to drain the tx buffer, and wait for it, before radio::disable()
 #ifdef PRALINE
     // Phase 0 instrumentation counters for PRALINE radio debugging
     uint32_t volatile m4_dma_xfr_count{0};    // DMA transfer_complete() calls

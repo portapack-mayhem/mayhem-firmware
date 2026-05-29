@@ -82,12 +82,19 @@ void EPIRBTXAppView::on_timer() {
             // chTimeNow() returns milliseconds on our version of ChibiOS / Hardware
             auto now = chTimeNow();
             auto elapsed = ((now - last_frame_time) / 1000);
-            std::string timeout = std::to_string((uint32_t)(delay > elapsed ? delay - elapsed : 0));
+            std::string timeout = to_string_dec_uint((uint32_t)(delay > elapsed ? delay - elapsed : 0));
             if (timeout != text_timeout.get()) {
                 // Update timeout text every seconds
                 text_timeout.set(timeout);
             }
             if (now > (last_frame_time + (delay * 1000))) {
+                if (mode_file && slideshow_enabled) {
+                    // Move on to next frame
+                    selected_beacon++;
+                    if (selected_beacon >= beacons.size()) selected_beacon = 0;
+                    // Update selection
+                    file_mode_ui->options_frame.set_selected_index(selected_beacon);
+                }
                 // Send a new frame after the delay
                 start_tx();
             }
@@ -98,13 +105,46 @@ void EPIRBTXAppView::on_timer() {
     }
 }
 
+void EPIRBTXAppView::update_bpsk_frequency() {
+    bool was_transmitting = false;
+    if (transmitting && (am_enabled || transmitting_bpsk)) {
+        // We need to stop transmission before changing frequency
+        transmitter_model.disable();
+        was_transmitting = true;
+    }
+    transmitter_model.set_target_frequency(bpsk_frequency);
+    // Update displayed frequency
+    tx_view.on_show();
+    if (was_transmitting) {
+        // Start over
+        start_tx();
+    }
+}
+
+void EPIRBTXAppView::update_am_transmission() {
+    if (am_enabled && transmitting && !transmitting_bpsk) {
+        // Start am transmission
+        // Restore am frequency
+        epirb_tx_message.mode_bpsk = false;
+        transmitter_model.set_target_frequency(am_frequency);
+        // Send config to baseband
+        baseband::set_epirb_tx_config(epirb_tx_message);
+        // Start transmitting
+        transmitter_model.enable();
+    } else if (transmitting && !transmitting_bpsk) {
+        // Stop am transmission
+        transmitter_model.disable();
+        tx_view.set_transmitting(false);
+    }
+}
+
 void EPIRBTXAppView::update_frame(bool updateConfig) {
     if (mode_file) {
         // In file mode, currently selected beacon has changed => load the new one
         Beacon& beacon = beacons[selected_beacon];
         // Set desciption
-        text_description.set(beacon.description.substr(0, max_text_width_ext));
-        text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
+        file_mode_ui->text_description.set(beacon.description.substr(0, max_text_width_ext));
+        file_mode_ui->text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
         // Udapte frame content on display
         text_frame.set(beacon.frame.substr(0, 18));
         text_frame_end.set(beacon.frame.size() > 18 ? beacon.frame.substr(18, 36) : "");
@@ -136,17 +176,17 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
 }
 
 void EPIRBTXAppView::update_config() {
-    if (epirb_tx_message.mode_bpsk) {
-        // Already in BPSK mode => backup bpsk frequency
-        bpsk_frequency = transmitter_model.target_frequency();
-    } else {
+    if (!epirb_tx_message.mode_bpsk) {
         // Previously in AM mode => restore bpsk frequency
         transmitter_model.set_target_frequency(bpsk_frequency);
+        // Update displayed frequency
+        tx_view.on_show();
     }
     // Set mode to bpsk
     epirb_tx_message.mode_bpsk = true;
+    transmitting_bpsk = true;
     // Set pre/post count
-    epirb_tx_message.pre_count = (150 * TONES_SAMPLERATE) / 1000;   // 150 ms
+    epirb_tx_message.pre_count = (160 * TONES_SAMPLERATE) / 1000;   // 160 ms carrier (COSPAS spec.)
     epirb_tx_message.post_count = (100 * TONES_SAMPLERATE) / 1000;  // 100 ms
     // Send config to baseband
     baseband::set_epirb_tx_config(epirb_tx_message);
@@ -178,15 +218,12 @@ void EPIRBTXAppView::stop_tx() {
 void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
     (void)progress;
     if (done) {
+        transmitting_bpsk = false;
         if (am_enabled) {
             // BPSK frame sent, switch back to 121.5 AM signal
             epirb_tx_message.mode_bpsk = false;
-            // Backup bpsk frequency for next run
-            bpsk_frequency = transmitter_model.target_frequency();
-            // Restore am frequency
-            transmitter_model.set_target_frequency(am_frequency);
-            // Send config to baseband
-            baseband::set_epirb_tx_config(epirb_tx_message);
+            // Start am transmission
+            update_am_transmission();
         } else {
             // End of BPSK frame
             transmitter_model.disable();
@@ -209,11 +246,58 @@ void EPIRBTXAppView::update_location(bool updateLocatorField) {
 
 void EPIRBTXAppView::update_mode() {
     // Hide / show widgets for file mode or manual mode
-    text_beacon.hidden(!mode_file);
-    text_description_label.hidden(!mode_file);
-    options_frame.hidden(!mode_file);
-    text_description.hidden(!mode_file);
-    text_description_end.hidden(!mode_file);
+    using option_t = std::pair<std::string, int32_t>;
+    using options_t = std::vector<option_t>;
+    if (mode_file) {
+        // Load available beacons from BEACONS.TXT files (or default).
+        load_beacons();
+        if (!file_mode_ui) {
+            file_mode_ui = std::make_unique<FileModeWidgets>();
+            // Setup options_frame content with loaded beacons
+            options_t entries;
+            for (const auto& beacon : beacons)
+                entries.emplace_back(beacon.title, entries.size());
+
+            file_mode_ui->options_frame.set_options(entries);
+            if (selected_beacon >= beacons.size())
+                // BEACONS.TXT file has changed since last launch, default index to 0
+                selected_beacon = 0;
+            file_mode_ui->options_frame.set_selected_index(selected_beacon);
+
+            file_mode_ui->options_frame.on_change = [this](size_t index, OptionsField::value_t) {
+                selected_beacon = index;
+                update_frame();
+                set_dirty();
+            };
+            file_mode_ui->text_beacon.set_style(Theme::getInstance()->fg_light);
+            file_mode_ui->text_description_label.set_style(Theme::getInstance()->fg_light);
+            add_child(&file_mode_ui->text_beacon);
+            add_child(&file_mode_ui->options_frame);
+            add_child(&file_mode_ui->text_description_label);
+            add_child(&file_mode_ui->text_description);
+            add_child(&file_mode_ui->text_description_end);
+            add_child(&file_mode_ui->checkbox_slideshow);
+            // Restore settings
+            file_mode_ui->checkbox_slideshow.set_value(slideshow_enabled);
+            // Add callback
+            file_mode_ui->checkbox_slideshow.on_select = [this](Checkbox&, bool v) {
+                slideshow_enabled = v;
+            };
+        }
+    } else {
+        // Clear beacons to save ram for Map display and Locatior editor
+        if (file_mode_ui) {
+            remove_child(&file_mode_ui->text_beacon);
+            remove_child(&file_mode_ui->options_frame);
+            remove_child(&file_mode_ui->text_description_label);
+            remove_child(&file_mode_ui->text_description);
+            remove_child(&file_mode_ui->text_description_end);
+            remove_child(&file_mode_ui->checkbox_slideshow);
+            file_mode_ui.reset();
+        }
+        beacons.clear();
+        beacons.shrink_to_fit();
+    }
     text_beacon_type.hidden(mode_file);
     text_beacon_country.hidden(mode_file);
     checkbox_beacon_internal.hidden(mode_file);
@@ -230,13 +314,12 @@ void EPIRBTXAppView::update_mode() {
 }
 
 EPIRBTXAppView::EPIRBTXAppView(
-    NavigationView& nav) {
+    NavigationView& nav)
+    : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&labels,
                   &options_mode,
-                  &text_beacon,
-                  &text_description_label,
                   &text_beacon_type,
                   &options_beacon_type,
                   &options_beacon_protocol,
@@ -250,9 +333,6 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_beacon_longitude_value,
                   &button_mangps,
                   &text_field_beacon_locator,
-                  &options_frame,
-                  &text_description,
-                  &text_description_end,
                   &text_frame,
                   &text_frame_end,
                   &text_timeout,
@@ -262,10 +342,10 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &checkbox_am,
                   &field_am_frequency,
                   &checkbox_send_on_change,
+                  &options_am_channel,
+                  &options_bpsk_channel,
                   &tx_view});
 
-    text_beacon.set_style(Theme::getInstance()->fg_light);
-    text_description_label.set_style(Theme::getInstance()->fg_light);
     text_beacon_type.set_style(Theme::getInstance()->fg_light);
     text_beacon_country.set_style(Theme::getInstance()->fg_light);
     text_beacon_locator.set_style(Theme::getInstance()->fg_light);
@@ -279,6 +359,11 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_mode.set_by_value(!mode_file);
     transmitter_model.set_target_frequency(bpsk_frequency);
     field_am_frequency.set_value(am_frequency);
+    options_am_channel.set_by_value(am_channel);
+    options_am_channel.set_style((am_channel == (uint8_t)AmChannel::REAL) ? Theme::getInstance()->fg_red : Theme::getInstance()->bg_darkest);
+    manual_am_frequency = am_frequency;
+    options_bpsk_channel.set_by_value(bpsk_channel);
+    manual_bpsk_frequency = bpsk_frequency;
     field_delay.set_value(delay);
     options_beacon_type.set_by_value(beacon_type);
     options_beacon_protocol.set_by_value(beacon_protocol);
@@ -292,23 +377,23 @@ EPIRBTXAppView::EPIRBTXAppView(
     update_mode();
     update_location();
 
-    options_mode.on_change = [this](size_t index, OptionsField::value_t) {
-        mode_file = (index == 0);
+    options_mode.on_change = [this](size_t, OptionsField::value_t value) {
+        mode_file = (((BeaconMode)value) == BeaconMode::FILE);
         update_mode();
         update_frame();
         set_dirty();
     };
 
-    options_beacon_type.on_change = [this](size_t index, OptionsField::value_t) {
-        beacon_params.type = (BeaconType)index;
-        beacon_type = index;
+    options_beacon_type.on_change = [this](size_t, OptionsField::value_t value) {
+        beacon_params.type = (BeaconType)value;
+        beacon_type = value;
         update_frame();
         set_dirty();
     };
 
-    options_beacon_protocol.on_change = [this](size_t index, OptionsField::value_t) {
-        beacon_params.protocol = (BeaconProtocol)index;
-        beacon_protocol = index;
+    options_beacon_protocol.on_change = [this](size_t, OptionsField::value_t value) {
+        beacon_params.protocol = (BeaconProtocol)value;
+        beacon_protocol = value;
         update_frame();
         set_dirty();
     };
@@ -320,6 +405,71 @@ EPIRBTXAppView::EPIRBTXAppView(
         set_dirty();
     };
 
+    options_am_channel.on_change = [this](size_t, OptionsField::value_t v) {
+        bool is_real = false;
+        switch ((AmChannel)v) {
+            case AmChannel::REAL:
+                is_real = true;
+                am_frequency = AM_REAL_FREQUENCY;
+                break;
+            case AmChannel::MANUAL:
+                am_frequency = manual_am_frequency;
+                break;
+            default:
+                v = (uint8_t)AmChannel::TEST;
+                // fallthrough
+            case AmChannel::TEST:
+                am_frequency = AM_TEST_FREQUENCY;
+                break;
+        }
+        // Actual frequency change will be done by field_am_frequency.on_change()
+        field_am_frequency.set_value(am_frequency);
+        am_channel = v;
+        options_am_channel.set_style(is_real ? Theme::getInstance()->fg_red : Theme::getInstance()->bg_darkest);
+        set_dirty();
+    };
+
+    options_bpsk_channel.on_change = [this](size_t, OptionsField::value_t v) {
+        switch ((BpskChannel)v) {
+            case BpskChannel::MANUAL:
+                bpsk_frequency = manual_bpsk_frequency;
+                break;
+            case BpskChannel::B:
+                bpsk_frequency = BPSK_FREQUENCY_B;
+                break;
+            case BpskChannel::C:
+                bpsk_frequency = BPSK_FREQUENCY_C;
+                break;
+            case BpskChannel::F:
+                bpsk_frequency = BPSK_FREQUENCY_F;
+                break;
+            case BpskChannel::G:
+                bpsk_frequency = BPSK_FREQUENCY_G;
+                break;
+            case BpskChannel::J:
+                bpsk_frequency = BPSK_FREQUENCY_J;
+                break;
+            case BpskChannel::K:
+                bpsk_frequency = BPSK_FREQUENCY_K;
+                break;
+            case BpskChannel::N:
+                bpsk_frequency = BPSK_FREQUENCY_N;
+                break;
+            case BpskChannel::O:
+                bpsk_frequency = BPSK_FREQUENCY_O;
+                break;
+            default:
+                v = (uint8_t)BpskChannel::HAM;
+                // fallthrough
+            case BpskChannel::HAM:
+                bpsk_frequency = BPSK_FREQUENCY_HAM;
+                break;
+        }
+        bpsk_channel = v;
+        update_bpsk_frequency();
+        set_dirty();
+    };
+
     checkbox_beacon_internal.on_select = [this](Checkbox&, bool v) {
         beacon_internal = v;
         beacon_params.is_internal = v;
@@ -327,8 +477,8 @@ EPIRBTXAppView::EPIRBTXAppView(
         set_dirty();
     };
 
-    text_field_beacon_locator.on_select = [this, &nav](TextField&) mutable {
-        auto te_view = nav.push<AlphanumView>(locator, 10, ENTER_KEYBOARD_MODE_ALPHA);
+    text_field_beacon_locator.on_select = [this](TextField&) mutable {
+        auto te_view = nav_.push<AlphanumView>(locator, 10, ENTER_KEYBOARD_MODE_ALPHA);
         te_view->on_changed = [this](std::string& value) {
             beacon_params.location.locator = value;
             init_from_locator(beacon_params.location);
@@ -338,8 +488,8 @@ EPIRBTXAppView::EPIRBTXAppView(
         };
     };
 
-    button_mangps.on_select = [this, &nav](Button&) {
-        nav.push<GeoMapView>(
+    button_mangps.on_select = [this](Button&) {
+        nav_.push<GeoMapView>(
             0,
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::HIDDEN,
@@ -358,29 +508,9 @@ EPIRBTXAppView::EPIRBTXAppView(
 
     field_am_frequency.on_change = [this](rf::Frequency freq) {
         am_frequency = freq;
-        if (transmitting && !epirb_tx_message.mode_bpsk && am_enabled)
+        if (transmitting && !transmitting_bpsk && am_enabled)
             // Update transmitter frequency
             transmitter_model.set_target_frequency(am_frequency);
-    };
-
-    // Load available beacons from BEACONS.TXT files (or default).
-    load_beacons();
-    // Setup options_frame content with loaded beacons
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    options_t entries;
-    for (const auto& beacon : beacons)
-        entries.emplace_back(beacon.title, entries.size());
-
-    options_frame.set_options(std::move(entries));
-    if (selected_beacon >= beacons.size())
-        // BEACONS.TXT file has changed since last launch, default index to 0
-        selected_beacon = 0;
-    options_frame.set_selected_index(selected_beacon);
-    options_frame.on_change = [this](size_t index, OptionsField::value_t) {
-        selected_beacon = index;
-        update_frame();
-        set_dirty();
     };
 
     // Init frame content / baseband param with currently setup beacon
@@ -397,14 +527,30 @@ EPIRBTXAppView::EPIRBTXAppView(
     checkbox_am.on_select = [this](Checkbox&, bool v) {
         beacon_params.has_121_5 = v;
         am_enabled = v;
+        update_am_transmission();
+        // We update the additional location device data in the frame based on this
         if (!mode_file) update_frame(false);
     };
 
     // AM frequency field edit
-    field_am_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(field_am_frequency.value());
+    field_am_frequency.on_edit = [this]() {
+        auto new_view = nav_.push<FrequencyKeypadView>(field_am_frequency.value());
         new_view->on_changed = [this](rf::Frequency f) {
-            field_am_frequency.set_value(f);
+            switch (f) {
+                case AM_REAL_FREQUENCY:
+                    am_channel = (uint8_t)AmChannel::REAL;
+                    break;
+                case AM_TEST_FREQUENCY:
+                    am_channel = (uint8_t)AmChannel::TEST;
+                    break;
+                default:
+                    manual_am_frequency = f;
+                    am_channel = (uint8_t)AmChannel::MANUAL;
+                    break;
+            }
+            // Actual frequency change will be done by options_am_channel.on_change()
+            options_am_channel.set_by_value(am_channel);
+            set_dirty();
         };
     };
 
@@ -412,11 +558,46 @@ EPIRBTXAppView::EPIRBTXAppView(
         send_on_change = v;
     };
 
-    tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
+    tx_view.on_edit_frequency = [this]() {
+        auto new_view = nav_.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            transmitter_model.set_target_frequency(f);
             bpsk_frequency = f;
+            switch (f) {
+                case BPSK_FREQUENCY_HAM:
+                    bpsk_channel = (uint8_t)BpskChannel::HAM;
+                    break;
+                case BPSK_FREQUENCY_B:
+                    bpsk_channel = (uint8_t)BpskChannel::B;
+                    break;
+                case BPSK_FREQUENCY_C:
+                    bpsk_channel = (uint8_t)BpskChannel::C;
+                    break;
+                case BPSK_FREQUENCY_F:
+                    bpsk_channel = (uint8_t)BpskChannel::F;
+                    break;
+                case BPSK_FREQUENCY_G:
+                    bpsk_channel = (uint8_t)BpskChannel::G;
+                    break;
+                case BPSK_FREQUENCY_J:
+                    bpsk_channel = (uint8_t)BpskChannel::J;
+                    break;
+                case BPSK_FREQUENCY_K:
+                    bpsk_channel = (uint8_t)BpskChannel::K;
+                    break;
+                case BPSK_FREQUENCY_N:
+                    bpsk_channel = (uint8_t)BpskChannel::N;
+                    break;
+                case BPSK_FREQUENCY_O:
+                    bpsk_channel = (uint8_t)BpskChannel::O;
+                    break;
+                default:
+                    bpsk_channel = (uint8_t)BpskChannel::MANUAL;
+                    manual_bpsk_frequency = bpsk_frequency;
+                    break;
+            }
+            // Actual frequency change will be done by options_bpsk_channel.on_change()
+            options_bpsk_channel.set_by_value(bpsk_channel);
+            set_dirty();
         };
     };
 

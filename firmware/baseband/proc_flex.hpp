@@ -66,6 +66,11 @@ struct FlexStateInfo {
     unsigned int fiwcount = 0;
     State Current = State::SYNC1;
     State Previous = State::SYNC1;
+
+    // S2 C-pattern detection
+    uint16_t sync2_shiftreg = 0;  // 16-bit shift register for C match
+    int sync2_c_pos = -1;         // symbol position where C was found (-1=not found)
+    int sync2_cinv_pos = -1;      // symbol position where inv.C was found
 };
 
 struct FlexSync {
@@ -81,7 +86,9 @@ struct FlexFIW {
     unsigned int checksum = 0;
     unsigned int cycleno = 0;
     unsigned int frameno = 0;
-    unsigned int fix3 = 0;
+    unsigned int roaming = 0;  // bit 15: n (1=roaming provided)
+    unsigned int repeat = 0;   // bit 16: r (1=multiple transmission)
+    unsigned int traffic = 0;  // bits 17-20: t3-t0
 };
 
 struct FlexPhase {
@@ -98,10 +105,23 @@ struct FlexData {
     FlexPhase PhaseD;
 };
 
+enum class AddrType : uint8_t {
+    SHORT,      // normal individual
+    LONG,       // 9-10 digit
+    TEMPORARY,  // 0x1F7800-0F (16 group slots)
+    OPERATOR,   // 0x1F7810-1F (system messages)
+    NETWORK,    // 0x1F6800-77FF (NID)
+    INFO_SVC,   // 0x1F2800-67FF (under study)
+    RESERVED,   // reserved ranges
+    UNKNOWN
+};
+
 struct FlexDecode {
     PageType type = PageType::ALPHANUMERIC;
     int long_address = 0;
     int64_t capcode = 0;
+    AddrType addr_type = AddrType::SHORT;
+    int is_priority = 0;
 };
 
 }  // namespace flex
@@ -161,8 +181,8 @@ class FlexProcessor : public BasebandProcessor {
 
     // Parsing
     void parse_capcode(uint32_t aw1);
-    void parse_alphanumeric(uint32_t* phaseptr, char PhaseNo, int mw1, int mw2, int flex_groupmessage);
-    void parse_numeric(uint32_t* phaseptr, char PhaseNo, int j);
+    void parse_alphanumeric(uint32_t* phaseptr, const uint8_t* word_bad, char PhaseNo, int mw1, int mw2, int flex_groupmessage);
+    void parse_numeric(uint32_t* phaseptr, const uint8_t* word_bad, char PhaseNo, int j);
     void parse_tone_only(uint32_t* phaseptr, char PhaseNo, int j);
     void parse_unknown(uint32_t* phaseptr, char PhaseNo, int mw1, int mw2);
 

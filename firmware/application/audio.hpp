@@ -49,7 +49,7 @@ class Codec {
     virtual void headphone_enable() = 0;
     virtual void headphone_disable() = 0;
     virtual volume_range_t headphone_gain_range() const = 0;
-    virtual void set_headphone_volume(const volume_t volume) = 0;
+    virtual bool set_headphone_volume(const volume_t volume) = 0;
 
     virtual void microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled) = 0;  // added user-GUI  AK4951 ,selected ALC mode.
     virtual void microphone_disable() = 0;
@@ -93,7 +93,7 @@ namespace headphone {
 
 volume_range_t volume_range();
 
-void set_volume(const volume_t volume);
+bool set_volume(const volume_t volume);
 
 } /* namespace headphone */
 

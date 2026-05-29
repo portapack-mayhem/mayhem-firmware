@@ -157,7 +157,7 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     // call nav with flash
     auto open_view = nav->push<ui::FlashUtilityView>();
     chprintf(chp, "Flashing started\r\n");
-    chThdSleepMilliseconds(50);     // to give display some time to paint the screen
+    chThdSleepMilliseconds(150);    // to give display some time to paint the screen
     open_view->wait_till_loaded();  // also wait for first frame sync
     if (!open_view->flash_firmware(path.native())) {
         chprintf(chp, "error\r\n");
@@ -704,6 +704,7 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
 }
 
 static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) {
+    if (element.id == nullptr) return;
     if (strlen(element.id) == 0) return;
     chprintf(chp, element.id);
     chprintf(chp, " ");
@@ -740,9 +741,9 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    // TODO(u-foka): Somehow order static and dynamic app lists together
-    for (auto& element : ui::NavigationView::appMap) {  // Use the map as its ordered by id
-        printAppInfo(chp, element.second);
+    // todo U-foka : sort the list
+    for (auto& element : ui::NavigationView::appList) {
+        printAppInfo(chp, element);
     }
     ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
         printAppInfo(chp, info);
@@ -1262,7 +1263,7 @@ static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[])
 }
 
 static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [phase] \r\n";
+    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [polarity:S|I] \r\n";
     (void)argv;
     if (argc < 2) {
         chprintf(chp, usage);
@@ -1293,34 +1294,48 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         }
     }
 
-    char function = 'D';
+    char function = 'A';
     if (argc >= 5) {
         function = *argv[4];
-        if (function < 'A' && function > 'D') {
+        if (function < 'A' || function > 'D') {
             chprintf(chp, "error, function can be A, B, C or D\r\n");
             return;
         }
     }
 
-    char phase = 'P';
+    char polarity = 'S'; /* Standard = CCIR Rec. 584 (bit 1 = negative deviation) */
     if (argc >= 6) {
-        phase = *argv[5];
-        if (phase != 'P' && phase != 'N') {
-            chprintf(chp, "error, phase can be P or N\r\n");
+        polarity = *argv[5];
+        /*
+         * Legacy compatibility: old firmware used 'P'/'N' with opposite semantics.
+         *   Old 'P' (phase=positive) = inverted codewords = standard POCSAG = new 'S' (Standard)
+         *   Old 'N' (phase=negative) = no inversion = inverted POCSAG = new 'I' (Inverted)
+         * New firmware uses 'S'/'I':
+         *   'S' = Standard (CCIR Rec. 584, bit 1 = negative deviation)
+         *   'I' = Inverted (bit 1 = positive deviation)
+         */
+        if (polarity == 'P') polarity = 'S'; /* legacy 'P' maps to Standard */
+        if (polarity == 'N') polarity = 'I'; /* legacy 'N' maps to Inverted */
+        if (polarity != 'S' && polarity != 'I') {
+            chprintf(chp, "error, polarity can be S (Standard) or I (Inverted)\r\n");
             return;
         }
     }
 
-    uint8_t msg[81] = {0};
-    if (msglen > 0) {
-        chprintf(chp, "send %d bytes\r\n", msglen);
-        do {
-            size_t bytes_to_read = msglen > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : msglen;
-            size_t bytes_read = chSequentialStreamRead(chp, &msg[0], bytes_to_read);
+    uint8_t msg[31] = {0};
+    uint8_t original_msglen = (msglen > 31) ? 31 : msglen;
+    if (original_msglen > 0) {
+        chprintf(chp, "send %d bytes\r\n", original_msglen);
+        size_t offset = 0;
+        size_t remaining = original_msglen;
+        while (remaining > 0) {
+            size_t bytes_to_read = remaining > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : remaining;
+            size_t bytes_read = chSequentialStreamRead(chp, &msg[offset], bytes_to_read);
             if (bytes_read != bytes_to_read)
                 return;
-            msglen -= bytes_read;
-        } while (msglen > 0);
+            offset += bytes_read;
+            remaining -= bytes_read;
+        }
     }
 
     auto evtd = getEventDispatcherInstance();
@@ -1334,7 +1349,54 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
     chThdSleepMilliseconds(1000);  // wait for app to start
-    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, phase, (uint8_t)msglen, msg, addr};
+    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, polarity, original_msglen, msg, addr};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_sendflex(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: sendflex <capcode> <type> <msglen>\r\n  type: 0=alpha 1=numeric 2=short/tone 3=short numeric\r\n";
+    if (argc < 3) {
+        chprintf(chp, usage);
+        return;
+    }
+    uint64_t capcode = strtoull(argv[0], nullptr, 10);
+    if (capcode < 1 || capcode > 4297068542ULL) {
+        chprintf(chp, "error, capcode 1-4297068542\r\n");
+        return;
+    }
+    int type = atoi(argv[1]);
+    if (type < 0 || type > 3) {
+        chprintf(chp, "error, type 0=alpha 1=numeric 2=short/tone 3=short numeric\r\n");
+        return;
+    }
+    int msglen = atoi(argv[2]);
+    if (msglen < 0 || msglen > 240) {
+        chprintf(chp, "error, msglen max 240\r\n");
+        return;
+    }
+
+    uint8_t msg[240] = {0};
+    if (msglen > 0) {
+        chprintf(chp, "send %d bytes\r\n", msglen);
+        int offset = 0;
+        do {
+            size_t bytes_to_read = (msglen - offset) > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : (msglen - offset);
+            size_t bytes_read = chSequentialStreamRead(chp, &msg[offset], bytes_to_read);
+            if (bytes_read != bytes_to_read)
+                return;
+            offset += bytes_read;
+        } while (offset < msglen);
+    }
+
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+
+    FlexTosendMessage message{capcode, (uint8_t)type, (uint8_t)msglen, msg};
     EventDispatcher::send_message(message);
     chprintf(chp, "ok\r\n");
 }
@@ -1486,6 +1548,7 @@ static const ShellCommand commands[] = {
     {"pmemreset", cmd_pmemreset},
     {"settingsreset", cmd_settingsreset},
     {"sendpocsag", cmd_sendpocsag},
+    {"sendflex", cmd_sendflex},
     {"asyncmsg", cmd_asyncmsg},
     {"setfreq", cmd_setfreq},
     {"getres", cmd_getres},

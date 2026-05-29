@@ -263,6 +263,10 @@ set(EXTCPPSRC
 	#epirb_rx 168 byte flash 
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
+	external/epirb_rx/ui_beaconlist.cpp
+	external/epirb_rx/beacon_db.cpp
+	external/epirb_rx/beacon.cpp
+	external/epirb_rx/location.cpp
 
 	#epirb_tx
 	external/epirb_tx/main.cpp
@@ -309,8 +313,10 @@ set(EXTCPPSRC
 	external/morseradiotx/main.cpp
 	external/morseradiotx/ui_morse_radiotx.cpp
 
+	#keeloqtx
   	external/keeloqtx/main.cpp
   	external/keeloqtx/ui_keeloqtx.cpp
+
 	#rtty_rx
 	external/rtty_rx/main.cpp
 	external/rtty_rx/ui_rtty_rx.cpp
@@ -324,6 +330,10 @@ set(EXTCPPSRC
     #pocsag_tx
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
+
+	#flex_tx
+	external/flex_tx/main.cpp
+	external/flex_tx/ui_flex_tx.cpp
 
 	#time_sink
 	external/time_sink/main.cpp
@@ -340,6 +350,18 @@ set(EXTCPPSRC
 	#p25_tx
 	external/p25_tx/main.cpp
 	external/p25_tx/ui_p25_tx.cpp
+
+	#two_tone_pager
+	external/two_tone_pager/main.cpp
+	external/two_tone_pager/ui_two_tone_pager.cpp
+
+	#two_tone_rx
+	external/two_tone_rx/main.cpp
+	external/two_tone_rx/ui_two_tone_rx.cpp
+
+	#hard_reset
+	external/hard_reset/main.cpp
+	external/hard_reset/ui_hard_reset.cpp
 )
 
 set(EXTAPPLIST
@@ -422,9 +444,13 @@ set(EXTAPPLIST
 	rtty_rx
 	rtty_tx
 	pocsag_tx
+	flex_tx
 	time_sink
 	kiss_tnc
 	p25_tx
+	two_tone_pager
+	two_tone_rx
+	hard_reset
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
