@@ -192,9 +192,13 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 
 void MenuView::increment_scroll() {
     if (menu_items.empty()) return;
+    const size_t view_index = highlighted_item - offset;
+    if (view_index >= menu_item_views.size()) {
+        return;
+    }
     // The MenuView checks if the currently highlighted item needs scrolling
     scroll_offset++;
-    auto* view = item_view(highlighted_item - offset);
+    auto* view = item_view(view_index);
     if (view) {
         view->set_scroll_offset(scroll_offset);
     }
