@@ -317,9 +317,15 @@ mbt_build() {
     local target="$6"
     local clean_build="$7"
     shift 7
-    local -a cmake_extra_args=("${!1}")
+    if [[ "$#" -lt 2 ]]; then
+        mbt_die "internal error: mbt_build expected extra arg array names"
+    fi
+
+    local -n cmake_extra_args_ref="$1"
+    local -a cmake_extra_args=("${cmake_extra_args_ref[@]}")
     shift
-    local -a build_extra_args=("${!1}")
+    local -n build_extra_args_ref="$1"
+    local -a build_extra_args=("${build_extra_args_ref[@]}")
     local -a cmake_args build_args device_args
     local marker_file="$build_dir/.mbt_device"
     local previous_device=""
