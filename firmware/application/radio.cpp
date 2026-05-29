@@ -404,8 +404,12 @@ void set_antenna_bias(const bool on) {
 #endif
 }
 
-bool get_q_invert() {
-    return mixer_invert ^ baseband_invert;
+bool get_mixer_q_invert() {
+    return mixer_invert;
+}
+
+bool get_baseband_q_invert() {
+    return baseband_invert;
 }
 
 void set_tx_max283x_iq_phase_calibration(const size_t v) {
