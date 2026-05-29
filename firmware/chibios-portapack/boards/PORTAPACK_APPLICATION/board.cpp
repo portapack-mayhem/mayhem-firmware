@@ -55,18 +55,15 @@ const PALConfig pal_default_config = {
             // GPIO0
             .data
 #ifdef PRALINE
-            = (0 << 15)  // P1_20: CLKIN_CTRL - start low
+            = (0 << 15)    // P1_20: CLKIN_CTRL - start low
+              | (0 << 11)  // P1_4:  AA_EN (Start low / disabled)
 #else
-            = (1 << 15)  // P1_20: CS_XCVR
+            = (1 << 15)    // P1_20: CS_XCVR
+              | (1 << 11)  // P1_4:  SSP1_MOSI
 #endif
               | (1 << 14)  // P2_10: AMP_BYPASS
               | (0 << 13)  // P1_18: SGPIO12, HOST_Q_INVERT
               | (0 << 12)  // P1_17: SGPIO11, HOST_DIRECTION
-#ifdef PRALINE
-              | (0 << 11)  // P1_4:  AA_EN (Start low / disabled)
-#else
-              | (1 << 11)  // P1_4:  SSP1_MOSI
-#endif
               | (1 << 10)  // P1_3:  SSP1_MISO
               | (0 << 9)   // P1_2:  Varies by revision, float until detection
               | (0 << 8)   // P1_1:  Varies by revision, float until detection
@@ -81,18 +78,15 @@ const PALConfig pal_default_config = {
             ,
             .dir
 #ifdef PRALINE
-            = (1 << 15)  // P1_20: CLKIN_CTRL - output
+            = (1 << 15)    // P1_20: CLKIN_CTRL - output
+              | (1 << 11)  // P1_4:  AA_EN (Output)
 #else
-            = (1 << 15)  // P1_20: CS_XCVR
+            = (1 << 15)    // P1_20: CS_XCVR
+              | (0 << 11)  // P1_4:  SSP1_MOSI
 #endif
               | (1 << 14)  // P2_10: AMP_BYPASS
               | (1 << 13)  // P1_18: SGPIO12, HOST_Q_INVERT
               | (0 << 12)  // P1_17: SGPIO11, HOST_DIRECTION
-#ifdef PRALINE
-              | (1 << 11)  // P1_4:  AA_EN (Output)
-#else
-              | (0 << 11)  // P1_4:  SSP1_MOSI
-#endif
               | (0 << 10)  // P1_3:  SSP1_MISO
               | (0 << 9)   // P1_2:  Varies by revision, float until detection
               | (0 << 8)   // P1_1:  Varies by revision, float until detection
@@ -210,7 +204,7 @@ const PALConfig pal_default_config = {
                     | (1 << 9)   // P7_1:  PortaPack GPIO3_9(IO)
                     | (1 << 8)   // P7_0:  PortaPack GPIO3_8(IO)
 #ifdef PRALINE
-                    | (0 << 7)  // P6_11: 3V3AUX_OC (Input pull-up state)
+                    | (1 << 7)  // P6_11: 3V3AUX_OC (Input pull-up state)
                     | (0 << 4)  // GPIO3_4: TX_ENABLE (LOW = OFF)
                     | (1 << 2)  // GPIO3_2: MIX_ENABLE_N (HIGH = OFF)
 #else
@@ -252,8 +246,8 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
                 (0 << 9)    // PA_2: RF_AMP_EN (Low)
                 | (0 << 8)  // PA_1: LPF_EN (Low)
-                | (0 << 7)  // P8_7: 1V2_EN (Low)
-                | (0 << 6)  // P8_6: LED4 (Low)
+                | (1 << 7)  // P8_7: 1V2_EN (High)
+                | (1 << 6)  // P8_6: LED4 (High)
                 | (0 << 5)  // P8_5: VIN_IN_EN (Low)
                 | (0 << 4)  // P8_4: VBUS_IN_EN (Low)
                 | (0 << 1)  // P8_1: VAA_EN (Low)
@@ -261,8 +255,9 @@ const PALConfig pal_default_config = {
 #endif
                 (1 << 11)  // P9_6:  SGPIO8, SGPIO_CLK
             ,
+            .dir =
 #ifdef PRALINE
-            (1 << 9)        // PA_2: RF_AMP_EN (Output)
+                (1 << 9)    // PA_2: RF_AMP_EN (Output)
                 | (1 << 8)  // PA_1: LPF_EN (Output)
                 | (1 << 7)  // P8_7: 1V2_EN (Output)
                 | (1 << 6)  // P8_6: LED4 (Output)
@@ -471,13 +466,13 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
     {// GPIO4
      .data =
 #ifdef PRALINE
-         (0 << 9)    // GPIO4_9: RF_AMP_ENABLE (LOW = OFF)
-         | (0 << 8)  // GPIO4_8: LPF_ENABLE (LOW = OFF)
-         | (0 << 7)  // GPIO4_7: 1V2_ENABLE (LOW = OFF)
-         | (0 << 6)  // GPIO4_6: LED4 (LOW = OFF)
-         | (0 << 5)  // GPIO4_5: VIN_IN_EN (LOW = OFF)
-         | (1 << 4)  // GPIO4_4: VBUS_IN_EN (HIGH = OFF)
-         | (1 << 1)  // GPIO4_1: VAA_DISABLE (HIGH = OFF)
+         (0 << 9)    // GPIO4_9: RF_AMP_ENABLE
+         | (0 << 8)  // GPIO4_8: LPF_ENABLE
+         | (0 << 7)  // GPIO4_7: 1V2_ENABLE
+         | (0 << 6)  // GPIO4_6: LED4
+         | (1 << 5)  // GPIO4_5: VIN_IN_EN
+         | (1 << 4)  // GPIO4_4: VBUS_IN_EN
+         | (0 << 1)  // GPIO4_1: VAA_DISABLE
 #else
 // ...
 #endif
@@ -963,30 +958,32 @@ extern "C" void __late_init(void) {
  */
 extern "C" void boardInit(void) {
 #ifdef PRALINE
-    /* HackRF Pro Specific: Initialize and Load FPGA */
     hackrf_r9 = false;
-    /* Enable 3.3V aux power - P6_7 = GPIO5[15], active LOW (clear to enable) */
-    LPC_SCU->SFSP[6][7] = 0xF4; /* SCU_GPIO_FAST | FUNCTION4 */
+
+    // Setup LED pin directions
+    // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
+    LPC_GPIO->DIR[2] |= (1 << 1) | (1 << 2) | (1 << 8);
+    LPC_GPIO->DIR[4] |= (1 << 6);  // LED4
+
+    // POWER SYSTEM INITIALIZATION
+
+    /* 1. 3.3V Aux - P6_7 = GPIO5[15], active HIGH (Clear = ON) */
+    /* Must be enabled first as it powers the core systems */
+    LPC_SCU->SFSP[6][7] = 0xF4;
     LPC_GPIO->DIR[5] |= (1 << 15);
-    LPC_GPIO->CLR[5] = (1 << 15); /* Clear = enable 3.3V aux */
+    LPC_GPIO->CLR[5] = (1 << 15);
+
     {
         volatile uint32_t delay = 200000;
         while (delay--);
     }
 
-    /* Enable 1.2V for FPGA - P8_7 = GPIO4[7], active high */
+    /* 2. 1.2V FPGA - P8_7 = GPIO4[7], active HIGH (Set = ON) */
+    /* TPS62410 EN pin is active HIGH */
     LPC_SCU->SFSP[8][7] = 0x10;
     LPC_GPIO->DIR[4] |= (1 << 7);
     LPC_GPIO->SET[4] = (1 << 7);
-    {
-        volatile uint32_t delay = 200000;
-        while (delay--);
-    }
 
-    /* Enable VAA for RF - P8_1 = GPIO4[1], active low */
-    LPC_SCU->SFSP[8][1] = 0x10;
-    LPC_GPIO->DIR[4] |= (1 << 1);
-    LPC_GPIO->CLR[4] = (1 << 1);
     {
         volatile uint32_t delay = 200000;
         while (delay--);
@@ -1148,17 +1145,9 @@ extern "C" void boardInit(void) {
     // Trigger FPGA bitstream loading via fpga bridge in portapack.cpp
     // Use LEDs to check if boardInit initialization is successful.
 
-    // Setup LED pin directions
-    // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
-    LPC_GPIO->DIR[2] |= (1 << 1) | (1 << 2) | (1 << 8);
-
     // Turn off all LEDs to start
     // PRALINE LEDs are active-low: SET (HIGH) = OFF, CLR (LOW) = ON
     LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
-    {
-        volatile uint32_t delay = 200000;
-        while (delay--);
-    }
 
 #else
 

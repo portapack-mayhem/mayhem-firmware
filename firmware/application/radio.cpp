@@ -392,9 +392,8 @@ void set_baseband_rate(const uint32_t rate) {
 void set_antenna_bias(const bool on) {
     /* Pull MOSFET gate low to turn on antenna bias. */
 #ifdef PRALINE
-    // Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW)
-    LPC_GPIO->CLR[1] = on ? (1 << 12) : 0;
-    LPC_GPIO->SET[1] = on ? 0 : (1 << 12);
+    /* Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW) */
+    rf_path.set_ant_bias(on);
 #else
     if (hackrf_r9) {
         gpio_r9_not_ant_pwr.write(on ? 0 : 1);

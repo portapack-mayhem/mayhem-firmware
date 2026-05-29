@@ -70,7 +70,6 @@ constexpr GPIO gpio_hp = gpio[GPIO2_0];
 constexpr GPIO gpio_rx_amp = gpio[GPIO1_11];
 constexpr GPIO gpio_tx_amp = gpio[GPIO2_15];
 constexpr GPIO gpio_amp_bypass = gpio[GPIO0_14];
-constexpr GPIO gpio_not_rx_amp_pwr = gpio[GPIO1_12];
 constexpr GPIO gpio_not_tx_amp_pwr = gpio[GPIO3_5];
 
 #ifdef PRALINE
@@ -80,6 +79,7 @@ constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];  // P5_5: LPC43xx controls
 #else
 constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];
 constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];
+constexpr GPIO gpio_not_rx_amp_pwr = gpio[GPIO1_12];
 #endif
 
 #ifdef PRALINE

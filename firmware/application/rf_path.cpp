@@ -263,6 +263,15 @@ void Path::set_rf_amp(const bool new_rf_amp) {
     update();
 }
 
+void Path::set_ant_bias(const bool new_ant_bias) {
+    ant_bias = new_ant_bias;
+    update();
+}
+
+bool Path::get_ant_bias() const {
+    return ant_bias;
+}
+
 void Path::update() {
     /* 0 ^ 0 => 0 & 0 = 0 ^ 0 = 0 (no change)
      * 0 ^ 1 => 1 & 0 = 0 ^ 0 = 0 (ignore change to 1)
@@ -301,8 +310,8 @@ void Path::update() {
     /* RF amp when amplification requested */
     config.rf_amp_en = rf_amp;
 
-    /* Antenna bias off by default */
-    config.ant_bias_en_n = true;
+    /* Antenna bias */
+    config.ant_bias_en_n = !ant_bias;
 
     config.apply();
 

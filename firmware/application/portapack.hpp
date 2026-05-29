@@ -67,7 +67,6 @@ extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;
 
 extern uint32_t bl_tick_counter;
-extern bool antenna_bias;
 extern uint16_t touch_threshold;
 
 extern TemperatureLogger temperature_logger;
