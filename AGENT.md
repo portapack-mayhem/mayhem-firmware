@@ -43,7 +43,7 @@ When submitting AI‑assisted work, you must:
 When generating code for this repository, you must respect these hardware and system constraints. **Violating any of them will result in immediate rejection.**
 
 - **Severe Memory Limits** – RAM is extremely scarce. Every byte counts. Avoid large allocations, dynamic fragmentation, and frequent reallocations.
-- **Platform** – ChibiOS 2.6 on NXP LPC4330. M0 core handles UI; M4 core runs baseband. Baseband apps are separate executables loaded on demand at runtime.
+- **Platform** – ChibiOS 2.6 on NXP LPC4320(HackRF One) / LPC4330 (HackRF Pro AKA PRALINE). M0 core handles UI; M4 core runs baseband. Baseband apps are separate executables loaded on demand at runtime.
 - **IPC** – Implemented via shared memory.
 - **Flash Size** – Very small. Code must be compact and not overly complex.
 - **No HW FPU on M0** – Floating‑point operations are expensive. Prefer fixed‑point or integer math.
