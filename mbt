@@ -71,7 +71,7 @@ mbt_install_deps() {
         mbt_run_privileged apt-get update
         mbt_run_privileged apt-get install -y --no-install-recommends \
             git tar wget dfu-util cmake python3 bzip2 lz4 curl hackrf \
-            python3-distutils python3-setuptools ccache ninja-build
+            python3-setuptools python3-setuptools ccache ninja-build
         ;;
     arch)
         mbt_log "detected Arch-like environment; installing required packages."
