@@ -422,12 +422,12 @@ void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
 /* TX Functions with mode assertion */
 void fpga_tx_set_nco_enable(bool enable) {
     if (current_mode != FPGA_MODE_TX) return;
-    uint8_t val = fpga_register_read(FPGA_REG_TX_CONTROL);
+    uint8_t val = fpga_register_read(FPGA_REG3_TX_NCO_CTRL);
     if (enable)
         val |= FPGA_TX_NCO_EN;
     else
         val &= ~FPGA_TX_NCO_EN;
-    fpga_register_write(FPGA_REG_TX_CONTROL, val);
+    fpga_register_write(FPGA_REG3_TX_NCO_CTRL, val);
 }
 
 void fpga_tx_set_interpolation(uint8_t ratio) {
