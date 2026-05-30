@@ -47,7 +47,7 @@ typedef enum {
  * The currently loaded PRALINE standard gateware uses:
  *   0x01 CTRL
  *   0x02 RX_DECIM
- *   0x03 RX_PSTEP
+ *   0x03 RX_DIGITAL_GAIN (RX) / TX_NCO_CTRL (TX)
  *   0x04 TX_CTRL
  *   0x05 TX_INTRP
  *   0x06 TX_PSTEP
