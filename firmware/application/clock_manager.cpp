@@ -840,6 +840,21 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
         n++;
     }
 
+    /* The TX gateware only implements interpolation factors x1..x16
+     * (tx_intrp 0..4). The rate search above can select n == 5 (x32) for very
+     * low TX sample rates. If we kept afe_rate/CLK0/CLK1 at the x32 rate while
+     * the FPGA only interpolated by x16, the TX datapath would be clocked at
+     * twice the gateware's output rate, doubling the waveform speed. Cap the
+     * AFE rate and _resampling_n to the x16 limit in TX so the clocks and the
+     * interpolation setting stay aligned. */
+    if (radio::debug::get_cached_direction() == rf::Direction::Transmit) {
+        constexpr uint8_t MAX_TX_N = 4;  // x16, matches max tx_intrp
+        if (n > MAX_TX_N) {
+            n = MAX_TX_N;
+            afe_rate = frequency << n;
+        }
+    }
+
     _resampling_n = n;
 
     radio::invalidate_spi_config();
