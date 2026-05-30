@@ -533,7 +533,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
     logger->append(logs_dir / u"ADSB.TXT");
 
 #ifdef PRALINE
-    // those gain value fit hackrf pro
+    // These gain values fit HackRF Pro.
     if (!settings_.loaded()) {
         /* PRALINE's MAX2831 + wide LPF/FPGA RX chain needs a hotter default
          * for ADS-B than the generic RX model defaults. Only seed these values
