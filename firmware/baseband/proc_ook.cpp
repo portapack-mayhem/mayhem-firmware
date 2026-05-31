@@ -22,25 +22,19 @@
 
 #include "proc_ook.hpp"
 #include "portapack_shared_memory.hpp"
-#include "sine_table_int8.hpp"
 #include "event_m4.hpp"
 
 #include <cstdint>
 
 inline void OOKProcessor::write_sample(const buffer_c8_t& buffer, uint8_t bit_value, size_t i) {
     int8_t re, im;
-
     if (bit_value) {
-        phase = (phase + 200);  // What ?
-        sphase = phase + (64 << 18);
-
-        re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
-        im = (sine_table_i8[(phase & 0x03FC0000) >> 18]);
+        re = INT8_MAX;
+        im = 0;
     } else {
         re = 0;
         im = 0;
     }
-
     buffer.p[i] = {re, im};
 }
 
@@ -125,11 +119,8 @@ inline size_t OOKProcessor::duval_algo_step() {
 void OOKProcessor::scan_process(const buffer_c8_t& buffer) {
     size_t buf_ptr = 0;
 
-    // transmit any leftover bits from previous step
-    if (!scan_encode(buffer, buf_ptr))
-        return;
-
-    while (1) {
+    // Encode the sequence into required format. First call transmits any leftover bits from previous step
+    while (scan_encode(buffer, buf_ptr)) {
         // calculate next chunk of deBruijn sequence
         duval_length = duval_algo_step();
 
@@ -151,10 +142,6 @@ void OOKProcessor::scan_process(const buffer_c8_t& buffer) {
         duval_bit = 0;
         duval_sample_bit = 0;
         duval_symbol = 0;
-
-        // encode the sequence into required format
-        if (!scan_encode(buffer, buf_ptr))
-            break;
     }
 }
 
