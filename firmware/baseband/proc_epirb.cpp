@@ -110,6 +110,14 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         float phase_delta = get_phase_diff(last_sample, decimator_out.p[i]);
         last_sample = decimator_out.p[i];
 
+        // AFC: remove the estimated carrier frequency offset from the raw delta
+        // before any further processing. Done on the per-sample value so the
+        // 12-sample accumulator below tracks it naturally.
+        phase_delta -= freq_offset_est;
+
+        // Keep the (de-biased) per-sample delta for AFC averaging over the carrier.
+        const float sample_phase_delta = phase_delta;
+
         // Let's sum phase delta over a 12 sample window to get the full phase jump
         phase_delta_acc -= phase_delta_buffer[pahse_delta_index];
         phase_delta_buffer[pahse_delta_index] = phase_delta;
@@ -122,9 +130,18 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         // State machine for COSPAS frame detection
         switch (current_state) {
             case IDLE:
+                // Continuously pull the AFC estimate toward the mean per-sample
+                // rotation so the accumulator self-centers for any offset up to
+                // the discriminator Nyquist (~+/-24 kHz). On noise the de-biased
+                // deltas average to ~0, so the estimate stays put; on a real
+                // carrier it converges within a few ms and the thresholds below
+                // then see a de-biased signal regardless of the actual offset.
+                freq_offset_est += AFC_TRACK_ALPHA * sample_phase_delta;
                 // We are waiting for a 160ms empty carrier => phase shouls be stable during this period
-                // We accept a 0.6 phase shift since phase may drift durring carrier if carrier frequency is not alligned with tuner frequency
-                if (filtered_rise_detect(phase_delta >= 0.6f)) {
+                // Use a symmetric threshold: once AFC has removed the bias a stable
+                // carrier sits near 0, so both positive and negative excursions of
+                // the accumulated delta indicate the carrier is not yet stable.
+                if (filtered_rise_detect(fabsf(phase_delta) >= 0.6f)) {
                     stability_counter = 0;
                 } else {
                     stability_counter++;
@@ -137,9 +154,20 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 break;
 
             case CARRIER_LOCKED:
+                // Carrier is locked: this is the clean unmodulated carrier window.
+                // Average the per-sample phase delta here to estimate the residual
+                // frequency offset (rad/sample) used for AFC.
+                carrier_phase_sum += sample_phase_delta;
+                carrier_phase_n++;
                 // Carrier is locked, we now wait for a phase 1.1 rad phase jump corresponding to the befining of the frame
                 // Let's use a 0.7 phase jump threshold
                 if (filtered_rise_detect(phase_delta >= 0.7f)) {
+                    // Latch the AFC estimate from the carrier we just measured so it
+                    // applies to the data burst that starts now. Accumulate so the
+                    // residual is folded into any prior estimate.
+                    if (carrier_phase_n > 0) {
+                        freq_offset_est += carrier_phase_sum / carrier_phase_n;
+                    }
                     // Jump detected, frame starts now
                     frame_sample_count = 0;
                     // Go to data sync state
@@ -227,6 +255,10 @@ void EPIRBProcessor::frame_end() {
     last_phase_positive = false;
     last_bit = false;
     current_state = IDLE;
+    // Reset AFC so the next burst is re-estimated from its own carrier preamble.
+    freq_offset_est = 0.0f;
+    carrier_phase_sum = 0.0f;
+    carrier_phase_n = 0;
     packet_builder.reset_state();
 }
 

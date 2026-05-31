@@ -219,6 +219,26 @@ class EPIRBProcessor : public BasebandProcessor {
     size_t pahse_delta_index = 0;
     float phase_delta_acc = 0.0f;
 
+    // Automatic Frequency Control (AFC)
+    // A residual carrier frequency offset between the tuner and the beacon shows
+    // up as a constant per-sample phase rotation. We measure its mean over the
+    // unmodulated carrier preamble and subtract it from every raw phase delta so
+    // the carrier-stability detection and the +/-2.2 rad data jumps stay centered.
+    // Current estimate (rad/sample), removed from each raw phase delta.
+    float freq_offset_est = 0.0f;
+    // Carrier-tracking loop gain. Applied per sample in IDLE so the estimate
+    // pulls in any offset within the discriminator's +/-SAMPLE_RATE/2 (~24 kHz)
+    // range *before* the carrier-detection thresholds run. First-order loop with
+    // time constant ~1/ALPHA samples (= 200 samples ~ 4 ms at 48 kHz). Tuned so a
+    // +/-5 kHz offset (0.654 rad/sample) decays the 12-sample accumulator below
+    // the 0.6 rad lock threshold in ~11 ms (~13 ms at 7 kHz) -- well inside the
+    // 160 ms preamble / 80 ms stability window, even if reception starts partway
+    // through the carrier -- while keeping added acquisition jitter negligible.
+    static constexpr float AFC_TRACK_ALPHA = 0.005f;
+    // Running mean of the raw phase delta while a stable carrier is present.
+    float carrier_phase_sum = 0.0f;
+    uint32_t carrier_phase_n = 0;
+
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
