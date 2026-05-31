@@ -871,52 +871,61 @@ extern "C" void __late_init(void) {
 #ifdef PRALINE
 
 void aux_power_on(void) {
-    /* 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Clear = ON) */
+    // 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Clear = ON)
     LPC_SCU->SFSP[6][7] = 0xF4;
     LPC_GPIO->DIR[5] |= (1 << 15);
-    LPC_GPIO->CLR[5] = (1 << 15); /* Power ON */
+    LPC_GPIO->CLR[5] = (1 << 15);
 }
 
 void aux_power_off(void) {
-    /* 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Set = OFF) */
+    // 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Set = OFF)
     LPC_SCU->SFSP[6][7] = 0xF4;
     LPC_GPIO->DIR[5] |= (1 << 15);
-    LPC_GPIO->SET[5] = (1 << 15); /* Power OFF */
+    LPC_GPIO->SET[5] = (1 << 15);
 }
 
 #endif /* PRALINE */
 
-void core_power_on(void) {
+void core_power_on(void) {  // Core power enable
 #ifdef PRALINE
-    /* 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Set = ON) */
+    // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Set = ON)
     LPC_SCU->SFSP[8][7] = 0x10;
     LPC_GPIO->DIR[4] |= (1 << 7);
-    LPC_GPIO->SET[4] = (1 << 7); /* Power ON */
+    LPC_GPIO->SET[4] = (1 << 7);
 
 #else
-    /* HackRF One 1.8V Core power enable */
-    if (!hackrf_r9) {
-        /* On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin */
-        LPC_SCU->SFSP[6][10] = 0x00; /* GPIO mode */
+    if (hackrf_r9) {
+        // P5_0 (GPIO2[9]) is the EN1V8 pin
+        LPC_SCU->SFSP[5][0] = 0x00;
+        LPC_GPIO->DIR[2] |= (1 << 9);
+        LPC_GPIO->SET[2] = (1 << 9);
+    } else {
+        // On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin
+        LPC_SCU->SFSP[6][10] = 0x00;
         LPC_GPIO->DIR[3] |= (1 << 6);
-        LPC_GPIO->SET[3] = (1 << 6); /* Power ON */
+        LPC_GPIO->SET[3] = (1 << 6);
     }
 #endif
 }
 
-void core_power_off(void) {
+void core_power_off(void) {  // Core power disable
 #ifdef PRALINE
-    /* 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Clear = OFF) */
+    // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Clear = OFF) */
     LPC_SCU->SFSP[8][7] = 0x10;
     LPC_GPIO->DIR[4] |= (1 << 7);
-    LPC_GPIO->CLR[4] = (1 << 7); /* Power OFF */
+    LPC_GPIO->CLR[4] = (1 << 7);
 
 #else
-    /* HackRF One 1.8V Core power disable */
-    if (!hackrf_r9) {
+    if (hackrf_r9) {
+        // P5_0 (GPIO2[9]) is the EN1V8 pin
+        LPC_SCU->SFSP[5][0] = 0x00;
+        LPC_GPIO->DIR[2] |= (1 << 9);
+        LPC_GPIO->CLR[2] = (1 << 9);
+    } else {
+        // On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin
         LPC_SCU->SFSP[6][10] = 0x00;
         LPC_GPIO->DIR[3] |= (1 << 6);
-        LPC_GPIO->CLR[3] = (1 << 6); /* Power OFF */
+        LPC_GPIO->CLR[3] = (1 << 6);
     }
 #endif
 }
@@ -1018,9 +1027,9 @@ void vaa_power_off(void) {
 
 #else
     if (hackrf_r9) {
-        LPC_GPIO->W3[6] = 1; /* Turn OFF VAA for r9 */
+        LPC_GPIO->W3[6] = 1;  // Turn OFF VAA for r9 P6_10
     } else {
-        LPC_GPIO->W2[9] = 1; /* Turn OFF VAA for OG */
+        LPC_GPIO->W2[9] = 1;  // Turn OFF VAA for OG P5_0
     }
 #endif
 }
