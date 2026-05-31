@@ -28,6 +28,7 @@
 #include <cstddef>
 
 #include "app_settings.hpp"
+#include "hackrf_hal.hpp"
 #include "max2837.hpp"
 #include "message.hpp"
 #include "receiver_model.hpp"
@@ -40,8 +41,9 @@ class TransmitterModel {
         uint32_t baseband_bandwidth = max283x::filter::bandwidth_minimum;
         uint32_t sampling_rate = 3'072'000;
         uint32_t channel_bandwidth = 1;
-        /* 35 should give approx 1m transmission range. */
-        uint8_t tx_gain_db = 35;
+        /* Platform default chosen to avoid PRALINE MAX2831 overdrive while
+         * preserving legacy HackRF One behavior. */
+        uint8_t tx_gain_db = hackrf::one::default_tx_gain_db;
         bool rf_amp = false;
     };
 

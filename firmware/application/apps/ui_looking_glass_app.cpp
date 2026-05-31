@@ -164,11 +164,13 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                 display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, gradient.lut[spectrum_data[xpos]]);
             }
             // indicate RSSI min and max power
-            display.fill_rectangle({{0, screen_height - map(raw_min, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_min]);
-            display.fill_rectangle({{0, screen_height - map(raw_max, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_max]);
+            if (show_rssi_guides) {
+                display.fill_rectangle({{0, screen_height - map(raw_min, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_min]);
+                display.fill_rectangle({{0, screen_height - map(raw_max, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_max]);
+            }
             if (last_max_freq != max_freq_hold) {
                 last_max_freq = max_freq_hold;
-                freq_stats.set("MAX HOLD: " + to_string_short_freq(max_freq_hold));
+                freq_stats.set("MAX: " + to_string_short_freq(max_freq_hold));
             }
             plot_marker(marker_pixel_index);
         } else {
@@ -394,6 +396,7 @@ GlassView::GlassView(
                   &button_marker_plus,
                   &button_jump,
                   &button_rst,
+                  &button_rssi,
                   &freq_stats});
 
     load_presets();  // Load available presets from TXT files (or default).
@@ -448,6 +451,7 @@ GlassView::GlassView(
                 freq_stats.hidden(true);
                 button_jump.hidden(true);
                 button_rst.hidden(true);
+                button_rssi.hidden(true);
                 display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates.
                 break;
 
@@ -458,6 +462,7 @@ GlassView::GlassView(
                 freq_stats.hidden(false);
                 button_jump.hidden(false);
                 button_rst.hidden(false);
+                button_rssi.hidden(false);
                 break;
 
             case 2:  // PEAK
@@ -468,6 +473,7 @@ GlassView::GlassView(
                 freq_stats.hidden(false);
                 button_jump.hidden(false);
                 button_rst.hidden(false);
+                button_rssi.hidden(false);
                 break;
         }
 
@@ -534,6 +540,16 @@ GlassView::GlassView(
     };
 
     button_rst.on_select = [this](Button&) {
+        reset_live_view();
+    };
+
+    button_rssi.on_select = [this](Button& button) {
+        show_rssi_guides = !show_rssi_guides;
+        if (show_rssi_guides) {
+            button.set_style(Theme::getInstance()->fg_green);
+        } else {
+            button.set_style(Theme::getInstance()->bg_darkest);
+        }
         reset_live_view();
     };
 
