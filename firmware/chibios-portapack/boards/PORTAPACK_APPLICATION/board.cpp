@@ -246,11 +246,11 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
                 (0 << 9)    // PA_2: RF_AMP_EN (Low)
                 | (0 << 8)  // PA_1: LPF_EN (Low)
-                | (1 << 7)  // P8_7: 1V2_EN (High)
+                | (0 << 7)  // P8_7: 1V2_EN (LOW = OFF)
                 | (1 << 6)  // P8_6: LED4 (High)
                 | (0 << 5)  // P8_5: VIN_IN_EN (Low)
                 | (0 << 4)  // P8_4: VBUS_IN_EN (Low)
-                | (0 << 1)  // P8_1: VAA_EN (Low)
+                | (1 << 1)  // P8_1: VAA_EN (HIGH = OFF)
                 |
 #endif
                 (1 << 11)  // P9_6:  SGPIO8, SGPIO_CLK
@@ -464,8 +464,9 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
         .dir = (1 << 6)  // P6_10: EN1V8, 10K PD
     },
     {// GPIO4
-     .data =
+
 #ifdef PRALINE
+     .data =
          (0 << 9)    // GPIO4_9: RF_AMP_ENABLE
          | (0 << 8)  // GPIO4_8: LPF_ENABLE
          | (0 << 7)  // GPIO4_7: 1V2_ENABLE
@@ -473,22 +474,21 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
          | (1 << 5)  // GPIO4_5: VIN_IN_EN
          | (1 << 4)  // GPIO4_4: VBUS_IN_EN
          | (0 << 1)  // GPIO4_1: VAA_DISABLE
-#else
-// ...
-#endif
      ,
      .dir =
-#ifdef PRALINE
          (1 << 9) | (1 << 8) | (1 << 7) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 1)
 #else
-// ...
+     .data = 0,
+     .dir = 0
 #endif
+
     },
     {
         // GPIO5
-        .data = (0 << 15)    // P6_7:  TX
-                | (0 << 12)  // P4_8:  SGPIO13, HOST_SYNC_EN
-                | (1 << 5)   // P2_5:  RX
+        .data =
+            (0 << 15)    // P6_7:  TX praline: 3V3 AUX_ENABLE
+            | (0 << 12)  // P4_8:  SGPIO13, HOST_SYNC_EN
+            | (1 << 5)   // P2_5:  RX
         ,
         .dir = (1 << 15)    // P6_7:  TX
                | (0 << 12)  // P4_8:  SGPIO13, HOST_SYNC_EN
@@ -750,90 +750,6 @@ static const scu_setup_t pin_setup_vaa_enablex_gpio_r9 = {6, 10, scu_config_norm
 static const scu_setup_t pin_setup_vaa_disable_praline = {8, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
 #endif
 
-/* VAA powers:
- * MAX5864 analog section.
- * MAX2837 registers and other functions.
- * RFFC5072 analog section.
- *
- * Beware that power applied to pins of the MAX2837 may
- * show up on VAA and start powering other components on the
- * VAA net. So turn on VAA before driving pins from MCU to
- * MAX2837.
- */
-void vaa_power_on(void) {
-    /* Very twitchy process for powering up VAA without glitching the 3.3V rail, which can send the
-     * microcontroller into reset.
-     *
-     * Controlling timing while running from SPIFI flash is tricky, hence use of a PWM peripheral...
-     */
-    if (hackrf_r9) {
-        /*
-         * There is enough VCC->VAA leakage prior to VAA activation from IO pins on
-         * HackRF One r9 that slowing down activation like this isn't necessary, but
-         * we do it just in case a different start-up sequence in the future results
-         * in less leakage.
-         */
-        setup_pin(pin_setup_vaa_enablex_gpio_r9);  // P6_10 GPIO3[ 6]: !VAA_ENABLE, 10K PU
-        for (uint32_t i = 0; i < 1000; i++) {
-            LPC_GPIO->W3[6] = 1;
-            LPC_GPIO->W3[6] = 0;
-        }
-    } else {
-        /* Configure and enable MOTOCONPWM peripheral clocks.
-         * Assume IDIVC is running the post-bootloader configuration, outputting 96MHz derived from PLL1.
-         */
-        base_clock_enable(&motocon_pwm_resources.base);
-        branch_clock_enable(&motocon_pwm_resources.branch);
-        peripheral_reset(&motocon_pwm_resources.reset);
-
-        /* Combination of pulse duration and duty cycle was arrived at empirically, to keep supply glitching
-         * to +/- 0.15V.
-         */
-        const uint32_t cycle_period = 256;
-        uint32_t enable_period = 2;
-        LPC_MCPWM->TC2 = 0;
-        LPC_MCPWM->MAT2 = cycle_period - enable_period;
-        LPC_MCPWM->LIM2 = cycle_period;
-
-        /* Switch !VAA_ENABLE pin from GPIO to MOTOCONPWM peripheral output, now that the peripheral is configured. */
-        setup_pin(pin_setup_vaa_enablex_pwm);  // P5_0 /GPIO2[ 9]/MCOB2: !VAA_ENABLE, 10K PU
-
-        /* Start the PWM operation. */
-        LPC_MCPWM->CON_SET = (1 << 16);
-
-        /* Wait until VAA rises to approximately 90% of final voltage. */
-        /* Timing assumes we're running immediately after the bootloader: 96 MHz from IRC+PLL1
-         */
-        while (enable_period < cycle_period) {
-            {
-                volatile uint32_t delay = 2000;
-                while (delay--);
-            }
-            enable_period <<= 1;
-            LPC_MCPWM->MAT2 = cycle_period - enable_period;
-        }
-
-        /* Hold !VAA_ENABLE active using a GPIO, so we can reclaim and shut down the MOTOCONPWM peripheral. */
-        LPC_GPIO->CLR[2] = (1 << 9);  // !VAA_ENABLE
-        LPC_GPIO->DIR[2] |= (1 << 9);
-        setup_pin(pin_setup_vaa_enablex_gpio_og);  // P5_0 /GPIO2[ 9]/MCOB2: !VAA_ENABLE, 10K PU
-
-        peripheral_reset(&motocon_pwm_resources.reset);
-        branch_clock_disable(&motocon_pwm_resources.branch);
-        base_clock_disable(&motocon_pwm_resources.base);
-    }
-}
-
-void vaa_power_off(void) {
-    // TODO: There's a lot of other stuff that must be done to prevent
-    // leakage from +3V3 into VAA.
-    if (hackrf_r9) {
-        LPC_GPIO->W3[6] = 1;
-    } else {
-        LPC_GPIO->W2[9] = 1;
-    }
-}
-
 /**
  * @brief   Early initialization code.
  * @details This initialization must be performed just after stack setup
@@ -952,42 +868,174 @@ extern "C" void __late_init(void) {
     chSysInit();
 }
 
+#ifdef PRALINE
+
+void aux_power_on(void) {
+    /* 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Clear = ON) */
+    LPC_SCU->SFSP[6][7] = 0xF4;
+    LPC_GPIO->DIR[5] |= (1 << 15);
+    LPC_GPIO->CLR[5] = (1 << 15); /* Power ON */
+}
+
+void aux_power_off(void) {
+    /* 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Set = OFF) */
+    LPC_SCU->SFSP[6][7] = 0xF4;
+    LPC_GPIO->DIR[5] |= (1 << 15);
+    LPC_GPIO->SET[5] = (1 << 15); /* Power OFF */
+}
+
+#endif /* PRALINE */
+
+void core_power_on(void) {
+#ifdef PRALINE
+    /* 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Set = ON) */
+    LPC_SCU->SFSP[8][7] = 0x10;
+    LPC_GPIO->DIR[4] |= (1 << 7);
+    LPC_GPIO->SET[4] = (1 << 7); /* Power ON */
+
+#else
+    /* HackRF One 1.8V Core power enable */
+    if (!hackrf_r9) {
+        /* On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin */
+        LPC_SCU->SFSP[6][10] = 0x00; /* GPIO mode */
+        LPC_GPIO->DIR[3] |= (1 << 6);
+        LPC_GPIO->SET[3] = (1 << 6); /* Power ON */
+    }
+#endif
+}
+
+void core_power_off(void) {
+#ifdef PRALINE
+    /* 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Clear = OFF) */
+    LPC_SCU->SFSP[8][7] = 0x10;
+    LPC_GPIO->DIR[4] |= (1 << 7);
+    LPC_GPIO->CLR[4] = (1 << 7); /* Power OFF */
+
+#else
+    /* HackRF One 1.8V Core power disable */
+    if (!hackrf_r9) {
+        LPC_SCU->SFSP[6][10] = 0x00;
+        LPC_GPIO->DIR[3] |= (1 << 6);
+        LPC_GPIO->CLR[3] = (1 << 6); /* Power OFF */
+    }
+#endif
+}
+
+/* VAA powers:
+ * MAX5864 analog section.
+ * MAX2837 registers and other functions.
+ * RFFC5072 analog section.
+ *
+ * Beware that power applied to pins of the MAX2837 may
+ * show up on VAA and start powering other components on the
+ * VAA net. So turn on VAA before driving pins from MCU to
+ * MAX2837.
+ */
+
+void vaa_power_on(void) {
+    /* Very twitchy process for powering up VAA without glitching the 3.3V rail,
+     * which can send the microcontroller into reset.
+     */
+#ifdef PRALINE
+    /* P8_1 (GPIO4[1]) does not have MOTOCONPWM hardware routing.
+     * Using software bit-banging (pseudo-PWM) for VAA soft-start.
+     * VAA is active LOW (0 = ON).
+     */
+    LPC_SCU->SFSP[8][1] = 0x10;
+    LPC_GPIO->DIR[4] |= (1 << 1);
+
+    /* Software soft-start loop to prevent brown-out */
+    for (uint32_t i = 0; i < 1000; i++) {
+        LPC_GPIO->W4[1] = 0; /* Turn ON briefly */
+        LPC_GPIO->W4[1] = 1; /* Turn OFF briefly */
+    }
+
+    /* Latch VAA to ON state (Active LOW) */
+    LPC_GPIO->CLR[4] = (1 << 1);
+
+#else
+    if (hackrf_r9) {
+        /* Soft-start for HackRF r9 using software bit-banging */
+        setup_pin(pin_setup_vaa_enablex_gpio_r9);
+        for (uint32_t i = 0; i < 1000; i++) {
+            LPC_GPIO->W3[6] = 1;
+            LPC_GPIO->W3[6] = 0;
+        }
+    } else {
+        /* Soft-start for HackRF OG using MOTOCONPWM hardware peripheral */
+        base_clock_enable(&motocon_pwm_resources.base);
+        branch_clock_enable(&motocon_pwm_resources.branch);
+        peripheral_reset(&motocon_pwm_resources.reset);
+
+        const uint32_t cycle_period = 256;
+        uint32_t enable_period = 2;
+        LPC_MCPWM->TC2 = 0;
+        LPC_MCPWM->MAT2 = cycle_period - enable_period;
+        LPC_MCPWM->LIM2 = cycle_period;
+
+        setup_pin(pin_setup_vaa_enablex_pwm);
+        LPC_MCPWM->CON_SET = (1 << 16);
+
+        while (enable_period < cycle_period) {
+            {
+                volatile uint32_t delay = 2000;
+                while (delay--);
+            }
+            enable_period <<= 1;
+            LPC_MCPWM->MAT2 = cycle_period - enable_period;
+        }
+
+        LPC_GPIO->CLR[2] = (1 << 9);
+        LPC_GPIO->DIR[2] |= (1 << 9);
+        setup_pin(pin_setup_vaa_enablex_gpio_og);
+
+        peripheral_reset(&motocon_pwm_resources.reset);
+        branch_clock_disable(&motocon_pwm_resources.branch);
+        base_clock_disable(&motocon_pwm_resources.base);
+    }
+
+    /* Handle VAA Enable Pin Latching */
+    if (hackrf_r9) {
+        LPC_GPIO->W2[9] = 1;
+    } else {
+        LPC_GPIO->W3[6] = 1;
+    }
+#endif
+}
+
+void vaa_power_off(void) {
+    /* TODO: There's a lot of other stuff that must be done to prevent
+     * leakage from +3V3 into VAA.
+     */
+#ifdef PRALINE
+    /* Safe state: OFF (VAA RF is active LOW, so Set = OFF) */
+    LPC_SCU->SFSP[8][1] = 0x10;
+    LPC_GPIO->DIR[4] |= (1 << 1);
+    LPC_GPIO->SET[4] = (1 << 1);
+
+    /* Turn OFF LED3 (TX) */
+    LPC_GPIO->SET[2] = (1 << 8);
+
+#else
+    if (hackrf_r9) {
+        LPC_GPIO->W3[6] = 1; /* Turn OFF VAA for r9 */
+    } else {
+        LPC_GPIO->W2[9] = 1; /* Turn OFF VAA for OG */
+    }
+#endif
+}
+
 /**
  * @brief   Board-specific initialization code.
- * @todo    Add your board-specific code, if any.
+ * @details Initializes LEDs, power rails, and configures physical pins
+ * for both PRALINE and standard HackRF hardware variants.
  */
 extern "C" void boardInit(void) {
 #ifdef PRALINE
+    /* HackRF Pro Specific: Initialize and Load FPGA */
     hackrf_r9 = false;
 
-    // Setup LED pin directions
-    // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
-    LPC_GPIO->DIR[2] |= (1 << 1) | (1 << 2) | (1 << 8);
-    LPC_GPIO->DIR[4] |= (1 << 6);  // LED4
-
-    // POWER SYSTEM INITIALIZATION
-
-    /* 1. 3.3V Aux - P6_7 = GPIO5[15], active HIGH (Clear = ON) */
-    /* Must be enabled first as it powers the core systems */
-    LPC_SCU->SFSP[6][7] = 0xF4;
-    LPC_GPIO->DIR[5] |= (1 << 15);
-    LPC_GPIO->CLR[5] = (1 << 15);
-
-    {
-        volatile uint32_t delay = 200000;
-        while (delay--);
-    }
-
-    /* 2. 1.2V FPGA - P8_7 = GPIO4[7], active HIGH (Set = ON) */
-    /* TPS62410 EN pin is active HIGH */
-    LPC_SCU->SFSP[8][7] = 0x10;
-    LPC_GPIO->DIR[4] |= (1 << 7);
-    LPC_GPIO->SET[4] = (1 << 7);
-
-    {
-        volatile uint32_t delay = 200000;
-        while (delay--);
-    }
+    aux_power_on();
 
     /* Configure RFFC5072 pins for PRALINE */
     /* Set GPIO directions for RFFC5072 SPI pins */
@@ -1145,9 +1193,13 @@ extern "C" void boardInit(void) {
     // Trigger FPGA bitstream loading via fpga bridge in portapack.cpp
     // Use LEDs to check if boardInit initialization is successful.
 
-    // Turn off all LEDs to start
-    // PRALINE LEDs are active-low: SET (HIGH) = OFF, CLR (LOW) = ON
+    // 1. SETUP LED PIN DIRECTIONS
+    // LED1 (USB) = GPIO2[1], LED2 (RX) = GPIO2[2], LED3 (TX) = GPIO2[8]
+    LPC_GPIO->DIR[2] |= (1 << 1) | (1 << 2) | (1 << 8);
+    LPC_GPIO->DIR[4] |= (1 << 6); /* LED4 = GPIO4[6] */
+
     LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
+    LPC_GPIO->CLR[4] = (1 << 6);
 
 #else
 
@@ -1163,16 +1215,6 @@ extern "C" void boardInit(void) {
     } else {
         setup_gpios(gpio_setup_og);
         setup_pins(pins_setup_og);
-    }
-
-    /* 2. Turn on VAA (Critical for Radio/Transceiver) */
-    vaa_power_on();
-
-    /* 3. Handle VAA Enable Pin Latching */
-    if (hackrf_r9) {
-        LPC_GPIO->W2[9] = 1;
-    } else {
-        LPC_GPIO->W3[6] = 1;
     }
 
 #endif
