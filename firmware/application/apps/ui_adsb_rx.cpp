@@ -532,17 +532,6 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
     logger = std::make_unique<ADSBLogger>();
     logger->append(logs_dir / u"ADSB.TXT");
 
-#ifdef PRALINE
-    // These gain values fit HackRF Pro.
-    if (!settings_.loaded()) {
-        /* PRALINE's MAX2831 + wide LPF/FPGA RX chain needs a hotter default
-         * for ADS-B than the generic RX model defaults. Only seed these values
-         * on first run so saved user/app settings keep winning afterwards. */
-        receiver_model.set_lna(16);
-        receiver_model.set_vga(16);
-    }
-#endif
-
     receiver_model.enable();
     baseband::set_adsb();
 
