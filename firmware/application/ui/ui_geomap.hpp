@@ -38,6 +38,12 @@ namespace ui {
 #define MAX_MAP_ZOOM_OUT 10
 #define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
 
+// When true, GeoMap uses horizontal linear interpolation for zoom-in on the
+// binary world_map.bin path and lifts the MAP_ZOOM_RESOLUTION_LIMIT-based
+// visibility gate, so the map continues to render past the old hard cap.
+// Set to false to fall back to the legacy pixel-replication renderer.
+constexpr bool USE_IMPROVED_UPSCALING = true;
+
 #define INVALID_LAT_LON 200
 #define INVALID_ANGLE 400
 

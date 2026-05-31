@@ -217,7 +217,14 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
         return false;
     }
 
-    map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
+    // USE_IMPROVED_UPSCALING (ui_geomap.hpp): when true, the binary-path
+    // renderer interpolates instead of pixel-replicating, so the old
+    // MAP_ZOOM_RESOLUTION_LIMIT-based black-screen cap no longer applies.
+    if (USE_IMPROVED_UPSCALING) {
+        map_visible = map_opened;
+    } else {
+        map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
+    }
     if (use_osm) {
         map_visible = true;
         zoom_pixel_offset = 0;
@@ -237,17 +244,61 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
     if (map_zoom == 1) {
         map_file.read(buffer, pixels << 1);
     } else if (map_zoom > 1) {
-        map_file.read(buffer, (pixels / map_zoom) << 1);
+        if (USE_IMPROVED_UPSCALING) {
+            // Horizontal linear interpolation upscaling.
+            //
+            // The original code below replicated each source pixel `map_zoom`
+            // times. That works only when `width % map_zoom == 0`; the
+            // surrounding logic (see MAP_ZOOM_RESOLUTION_LIMIT in
+            // ui_geomap.hpp) used to refuse to render past zoom 5 in part
+            // because of this divisibility constraint. With per-pixel linear
+            // interpolation that constraint goes away, so the visibility gate
+            // can be relaxed for arbitrary zoom levels (see on_encoder).
+            //
+            // src_pixels_needed shrinks monotonically as map_zoom grows
+            // (256/2=128 at zoom 2, 1 at zoom 320), so a buffer the width of
+            // the widest shipped display (320) covers every case. Function-
+            // static BSS allocation matches the pattern used by the zoom-out
+            // scratch buffer in this same function — no stack or heap
+            // pressure inside the paint() loop.
+            static ui::Color src_buffer[320];
+            constexpr size_t kSrcCapacity = sizeof(src_buffer) / sizeof(src_buffer[0]);
 
-        // Zoom in: Expand each pixel to "map_zoom" number of pixels.
-        // Future TODO:  Add dithering to smooth out the pixelation.
-        // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
-        // For 240 width, than means no check is needed for map_zoom values up to 6.
-        // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
-        // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
-        for (int i = (width / map_zoom) - 1; i >= 0; i--) {
-            for (int j = 0; j < map_zoom; j++) {
-                buffer[(i * map_zoom) + j] = buffer[i];
+            uint16_t src_pixels_needed = (pixels + map_zoom - 1) / map_zoom;
+            if (src_pixels_needed == 0) src_pixels_needed = 1;
+            if (src_pixels_needed > kSrcCapacity) src_pixels_needed = kSrcCapacity;
+
+            map_file.read(src_buffer, src_pixels_needed << 1);
+
+            for (uint16_t dst = 0; dst < pixels; ++dst) {
+                float src_pos = static_cast<float>(dst) / map_zoom;
+                int i0 = static_cast<int>(src_pos);
+                int i1 = i0 + 1;
+                if (i1 > static_cast<int>(src_pixels_needed) - 1) i1 = static_cast<int>(src_pixels_needed) - 1;
+                float frac = src_pos - static_cast<float>(i0);
+
+                ui::Color c0 = src_buffer[i0];
+                ui::Color c1 = src_buffer[i1];
+
+                uint8_t r = static_cast<uint8_t>((static_cast<float>(c0.r()) * (1.0f - frac) + static_cast<float>(c1.r()) * frac) + 0.5f);
+                uint8_t g = static_cast<uint8_t>((static_cast<float>(c0.g()) * (1.0f - frac) + static_cast<float>(c1.g()) * frac) + 0.5f);
+                uint8_t b = static_cast<uint8_t>((static_cast<float>(c0.b()) * (1.0f - frac) + static_cast<float>(c1.b()) * frac) + 0.5f);
+
+                buffer[dst] = ui::Color(r, g, b);
+            }
+        } else {
+            map_file.read(buffer, (pixels / map_zoom) << 1);
+
+            // Legacy pixel replication (kept behind USE_IMPROVED_UPSCALING).
+            // Zoom in: Expand each pixel to "map_zoom" number of pixels.
+            // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
+            // For 240 width, than means no check is needed for map_zoom values up to 6.
+            // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
+            // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
+            for (int i = (width / map_zoom) - 1; i >= 0; i--) {
+                for (int j = 0; j < map_zoom; j++) {
+                    buffer[(i * map_zoom) + j] = buffer[i];
+                }
             }
         }
     } else {
