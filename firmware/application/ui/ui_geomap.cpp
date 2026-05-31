@@ -251,8 +251,35 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
             }
         }
     } else {
-        ui::Color zoom_out_buffer[(pixels * (-map_zoom))];
-        map_file.read(zoom_out_buffer, (pixels * (-map_zoom)) << 1);
+        // The original code here used a runtime-sized stack array:
+        //
+        //     ui::Color zoom_out_buffer[(pixels * (-map_zoom))];
+        //
+        // With a full 32768x32768 world_map.bin and a deeply negative
+        // map_zoom (up to -MAX_MAP_ZOOM_OUT = -10), that VLA can grow to
+        // pixels * 10 * sizeof(ui::Color) bytes — large enough on some
+        // displays to exceed the available stack budget and trigger a hard
+        // fault (Guru Meditation, "Stack Overflow") when the user zooms
+        // out aggressively.
+        //
+        // Fix: bound the buffer with a function-static (BSS) allocation
+        // sized for the worst case. screen_width is currently 320 across
+        // all shipped PortaPack hardware; MAX_MAP_ZOOM_OUT is 10. That
+        // gives 3200 ui::Color entries = 6400 bytes, which lives in BSS
+        // and never touches the stack. If a future variant ships a wider
+        // display, raise kMaxBufPixels to match.
+        static constexpr size_t kMaxBufPixels = 320 * MAX_MAP_ZOOM_OUT;
+        static ui::Color zoom_out_buffer[kMaxBufPixels];
+
+        const size_t needed = static_cast<size_t>(pixels) * static_cast<size_t>(-map_zoom);
+        if (needed > kMaxBufPixels) {
+            // Defensive: shouldn't trigger under current hardware caps.
+            // If it does, render the line blank rather than corrupt the
+            // stack like the old VLA would have.
+            return;
+        }
+
+        map_file.read(zoom_out_buffer, needed << 1);
         // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
         // Future TODO: Average each group of pixels (in both X & Y directions if possible).
         for (int i = 0; i < width; i++) {
