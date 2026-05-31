@@ -28,6 +28,7 @@
 #include "file.hpp"
 #include "ui_navigation.hpp"
 #include "bmpfile.hpp"
+#include "tile_cache.hpp"
 #include "mathdef.hpp"
 
 #include "portapack.hpp"
@@ -304,6 +305,8 @@ class GeoMap : public Widget {
     bool redraw_map{true};
     bool use_osm{false};
     bool has_osm{false};
+
+    ui::TileCache tile_cache_{};
 };
 
 class GeoMapView : public View {

@@ -267,6 +267,7 @@ set(CPPSRC
 	ui/ui_font_fixed_5x8.cpp
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
+	ui/tile_cache.cpp
 	ui/ui_qrcode.cpp
 	ui/ui_menu.cpp
 	ui/ui_btngrid.cpp
