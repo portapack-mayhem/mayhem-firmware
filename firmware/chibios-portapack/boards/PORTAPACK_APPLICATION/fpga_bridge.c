@@ -140,7 +140,7 @@
 // ============================================================================
 static fpga_mode_t current_mode = FPGA_MODE_OFF;
 // Cached register values for debug reads (since reads may require mode switch)
-static uint8_t fpga_reg_cache[6] = {0, 0x01, 0x00, 0x00, 0x00, 0x00};
+static uint8_t fpga_reg_cache[7] = {0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // Context structure for SPIFI-based reading
 struct spifi_fpga_read_ctx {
@@ -315,7 +315,7 @@ static void fpga_spi_write(uint8_t reg, uint8_t value) {
 // Public function to read FPGA register (callable from C++ application code)
 // Switches SPI mode, reads register, switches back
 uint8_t fpga_debug_register_read(uint8_t reg) {
-    if (reg == 0 || reg > 5) return 0xFF;
+    if (reg == 0 || reg > 6) return 0xFF;
 
     uint8_t value;
     ssp1_set_mode_ice40();
@@ -328,7 +328,7 @@ uint8_t fpga_debug_register_read(uint8_t reg) {
 
 // Public function to write FPGA register (callable from C++ application code)
 void fpga_debug_register_write(uint8_t reg, uint8_t value) {
-    if (reg == 0 || reg > 5) return;
+    if (reg == 0 || reg > 6) return;
 
     ssp1_set_mode_ice40();
     fpga_spi_write(reg, value);
@@ -342,7 +342,7 @@ void fpga_debug_register_write(uint8_t reg, uint8_t value) {
 // ============================================================================
 
 uint8_t fpga_register_read(uint8_t reg) {
-    if (reg == 0 || reg > 5) return 0xFF;
+    if (reg == 0 || reg > 6) return 0xFF;
 
     ssp1_set_mode_ice40();
     uint8_t val = fpga_spi_read(reg);
@@ -353,7 +353,7 @@ uint8_t fpga_register_read(uint8_t reg) {
 }
 
 void fpga_register_write(uint8_t reg, uint8_t value) {
-    if (reg == 0 || reg > 5) return;
+    if (reg == 0 || reg > 6) return;
 
     ssp1_set_mode_ice40();
     fpga_spi_write(reg, value);
@@ -422,22 +422,22 @@ void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
 /* TX Functions with mode assertion */
 void fpga_tx_set_nco_enable(bool enable) {
     if (current_mode != FPGA_MODE_TX) return;
-    uint8_t val = fpga_register_read(FPGA_REG_SHARED_3);
+    uint8_t val = fpga_register_read(FPGA_REG3_TX_NCO_CTRL);
     if (enable)
         val |= FPGA_TX_NCO_EN;
     else
         val &= ~FPGA_TX_NCO_EN;
-    fpga_register_write(FPGA_REG_SHARED_3, val);
+    fpga_register_write(FPGA_REG3_TX_NCO_CTRL, val);
 }
 
 void fpga_tx_set_interpolation(uint8_t ratio) {
     if (current_mode != FPGA_MODE_TX) return;
-    fpga_register_write(FPGA_REG_SHARED_4, ratio & FPGA_TX_INTERP_MASK);
+    fpga_register_write(FPGA_REG_TX_INTERP, ratio & FPGA_TX_INTERP_MASK);
 }
 
 void fpga_tx_set_phase_step(uint8_t step) {
     if (current_mode != FPGA_MODE_TX) return;
-    fpga_register_write(FPGA_REG_SHARED_5, step);
+    fpga_register_write(FPGA_REG_TX_PHASE_STEP, step);
 }
 
 // ============================================================================
