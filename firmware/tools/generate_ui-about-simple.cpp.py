@@ -114,7 +114,9 @@ bool AboutView::on_encoder(const EncoderEvent) {
 
 def get_contributors(url):
     contributors_list = []  ## Raw list of contributor names
-    logins = json.loads(requests.get(url).text)
+    if not url.startswith("https://"):
+        raise ValueError(f"Refusing non-HTTPS URL: {url}")
+    logins = json.loads(requests.get(url, verify=True).text)
     try:
         print(f"Could not reach URL - Error: {logins['status']} Messsage: {logins['message']}")
         ## Status f.ex. 404 / message f.ex. "Not Found" or "API rate limit exceeded for...".
