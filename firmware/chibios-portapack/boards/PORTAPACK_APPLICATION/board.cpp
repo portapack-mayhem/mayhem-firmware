@@ -55,12 +55,12 @@ const PALConfig pal_default_config = {
             // GPIO0
             .data
 #ifdef PRALINE
-            = (0 << 15)    // P1_20: CLKIN_CTRL - start low
-              | (0 << 11)  // P1_4:  AA_EN (Start low / disabled)
+            = (0 << 15)  // P1_20: CLKIN_CTRL - start low
 #else
-            = (1 << 15)    // P1_20: CS_XCVR
-              | (1 << 11)  // P1_4:  SSP1_MOSI
+            = (1 << 15)  // P1_20: CS_XCVR
+
 #endif
+              | (1 << 11)  // P1_4:  SSP1_MOSI
               | (1 << 14)  // P2_10: AMP_BYPASS
               | (0 << 13)  // P1_18: SGPIO12, HOST_Q_INVERT
               | (0 << 12)  // P1_17: SGPIO11, HOST_DIRECTION
@@ -78,12 +78,12 @@ const PALConfig pal_default_config = {
             ,
             .dir
 #ifdef PRALINE
-            = (1 << 15)    // P1_20: CLKIN_CTRL - output
-              | (1 << 11)  // P1_4:  AA_EN (Output)
+            = (1 << 15)  // P1_20: CLKIN_CTRL - output
 #else
-            = (1 << 15)    // P1_20: CS_XCVR
-              | (0 << 11)  // P1_4:  SSP1_MOSI
+            = (1 << 15)  // P1_20: CS_XCVR
+
 #endif
+              | (0 << 11)  // P1_4:  SSP1_MOSI
               | (1 << 14)  // P2_10: AMP_BYPASS
               | (1 << 13)  // P1_18: SGPIO12, HOST_Q_INVERT
               | (0 << 12)  // P1_17: SGPIO11, HOST_DIRECTION
@@ -107,21 +107,23 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
                     | (1 << 12)  // P2_12: BIAS_EN (Start low / disabled)
                     | (0 << 11)  // P2_11: BIAS_OC (Input)
+                    | (1 << 7)   // P1_14: AA_EN (Output)
 #else
                     | (1 << 12)  // P2_12: !RX_AMP_PWR (Active low, starts disabled)
                     | (0 << 11)  // P2_11: RX_AMP
+                    | (1 << 7)   // P1_14: SGPIO10, HOST_DISABLE
 #endif
                     | (0 << 10)  // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
                     | (1 << 9)   // P1_6:  SD_CMD
                     | (1 << 8)   // P1_5:  SD_POW, PortaPack CPLD.TDO(O) (input with pull up)
-                    | (1 << 7)   // P1_14: SGPIO10, HOST_DISABLE
-                    | (1 << 6)   // P1_13: SD_CD
-                    | (1 << 5)   // P1_12: SD_DAT3
-                    | (1 << 4)   // P1_11: SD_DAT2
-                    | (1 << 3)   // P1_10: SD_DAT1
-                    | (1 << 2)   // P1_9:  SD_DAT0
-                    | (1 << 1)   // P1_8:  PortaPack CPLD.TMS(I)
-                    | (0 << 0)   // P1_7:  !MIX_BYPASS
+
+                    | (1 << 6)  // P1_13: SD_CD
+                    | (1 << 5)  // P1_12: SD_DAT3
+                    | (1 << 4)  // P1_11: SD_DAT2
+                    | (1 << 3)  // P1_10: SD_DAT1
+                    | (1 << 2)  // P1_9:  SD_DAT0
+                    | (1 << 1)  // P1_8:  PortaPack CPLD.TMS(I)
+                    | (0 << 0)  // P1_7:  !MIX_BYPASS
             ,
             .dir = (0 << 15)    // P3_5:  SPIFI_SIO2
                    | (0 << 14)  // P3_4:  SPIFI_SIO3
@@ -129,21 +131,23 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
                    | (1 << 12)  // P2_12: BIAS_EN (Output)
                    | (0 << 11)  // P2_11: BIAS_OC (Input)
+                   | (1 << 7)   // P1_14: AA_EN (disabled)
 #else
                    | (1 << 12)  // P2_12: !RX_AMP_PWR (Output)
                    | (1 << 11)  // P2_11: RX_AMP (Output)
+                   | (0 << 7)   // P1_14: SGPIO10, HOST_DISABLE
 #endif
                    | (0 << 10)  // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
                    | (0 << 9)   // P1_6:  SD_CMD
                    | (0 << 8)   // P1_5:  SD_POW, PortaPack CPLD.TDO(O) (input with pull up)
-                   | (0 << 7)   // P1_14: SGPIO10, HOST_DISABLE
-                   | (0 << 6)   // P1_13: SD_CD
-                   | (0 << 5)   // P1_12: SD_DAT3
-                   | (0 << 4)   // P1_11: SD_DAT2
-                   | (0 << 3)   // P1_10: SD_DAT1
-                   | (0 << 2)   // P1_9:  SD_DAT0
-                   | (0 << 1)   // P1_8:  PortaPack CPLD.TMS(I) (output only when needed, pull up internal to CPLD)
-                   | (1 << 0)   // P1_7:  !MIX_BYPASS
+
+                   | (0 << 6)  // P1_13: SD_CD
+                   | (0 << 5)  // P1_12: SD_DAT3
+                   | (0 << 4)  // P1_11: SD_DAT2
+                   | (0 << 3)  // P1_10: SD_DAT1
+                   | (0 << 2)  // P1_9:  SD_DAT0
+                   | (0 << 1)  // P1_8:  PortaPack CPLD.TMS(I) (output only when needed, pull up internal to CPLD)
+                   | (1 << 0)  // P1_7:  !MIX_BYPASS
         },
         {
             // GPIO2
@@ -745,10 +749,6 @@ static const motocon_pwm_resources_t motocon_pwm_resources = {
 static const scu_setup_t pin_setup_vaa_enablex_pwm = {5, 0, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
 static const scu_setup_t pin_setup_vaa_enablex_gpio_og = {5, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
 static const scu_setup_t pin_setup_vaa_enablex_gpio_r9 = {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
-#ifdef PRALINE
-/* PRALINE uses P8_1 (GPIO4[1]) for VAA_DISABLE (high = VAA off, low = VAA on) */
-static const scu_setup_t pin_setup_vaa_disable_praline = {8, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
-#endif
 
 /**
  * @brief   Early initialization code.
