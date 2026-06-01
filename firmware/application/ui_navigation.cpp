@@ -87,47 +87,44 @@ namespace ui {
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
     /* HOME ******************************************************************/
-    {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<ReceiversMenuView>(nav); }},
-    {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<TransmittersMenuView>(nav); }},
-    {nullptr, "Transceiver", HOME, Color::cyan(), &bitmap_icon_transceivers, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<TransceiversMenuView>(nav); }},
-    {"recon", "Recon", HOME, Color::green(), &bitmap_icon_scanner, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<ReconView>(nav); }},
-    {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<CaptureAppView>(nav); }},
-    {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<PlaylistView>(nav); }},
-    {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<GlassView>(nav); }},
-    {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<UtilitiesMenuView>(nav); }},
-    {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<GamesMenuView>(nav); }},
-    {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SettingsMenuView>(nav); }},
-
+    {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
+    {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
+    {nullptr, "Transceiver", HOME, Color::cyan(), &bitmap_icon_transceivers, new ViewFactory<TransceiversMenuView>()},
+    {"recon", "Recon", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
+    {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
+    {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
+    {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
+    {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
+    {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
+    {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
-    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<ADSBRxView>(nav); }},
-    {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<AISAppView>(nav); }},
-    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<APRSRXView>(nav); }},
-    {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<AnalogAudioView>(nav); }},
-    {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<BLERxView>(nav); }},
-    {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<POCSAGAppView>(nav); }},
-    {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SondeView>(nav); }},
-    {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SearchView>(nav); }},
-    {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<SubGhzDView>(nav); }},
-    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<WeatherView>(nav); }},
-
+    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
+    {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
+    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
+    {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
+    {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
+    {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
+    {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
+    {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
+    {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     /* TX ********************************************************************/
-    {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<APRSTXView>(nav); }},
-    {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<BLETxView>(nav); }},
-    {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<EncodersView>(nav); }},
-    {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<RDSView>(nav); }},
-    {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<TouchTunesView>(nav); }},
-
+    {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
+    {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
+    {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
+    {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
+    {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* TRX ********************************************************************/
-    {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<MicTXView>(nav); }},
-
+    {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     /* UTILITIES *************************************************************/
-    {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<FileManagerView>(nav); }},
-    {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<FrequencyManagerView>(nav); }},
-    {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<IQTrimView>(nav); }},
-    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<TextEditorView>(nav); }},
-    {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<DebugMenuView>(nav); }},
+    {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
+    {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
+    {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
+    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
+    {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
+    //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
-    {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, [](NavigationView& nav) -> std::unique_ptr<View> { return std::make_unique<FlashUtilityView>(nav); }},
+    {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
 };
 
 bool NavigationView::StartAppByName(const char* name) {
@@ -135,7 +132,7 @@ bool NavigationView::StartAppByName(const char* name) {
 
     for (const auto& app : appList) {
         if (app.id != nullptr && strcmp(app.id, name) == 0) {
-            push_view(app.producer(*this));
+            push_view(app.viewFactory->produce(*this));
             return true;
         }
     }
@@ -635,7 +632,6 @@ void NavigationView::pop(bool trigger_update) {
 
     free_view();
     view_stack.pop_back();
-    view_stack.shrink_to_fit();
 
     // NB: These are executed _after_ the view has been
     // destroyed. The old view MUST NOT be referenced in
@@ -759,22 +755,10 @@ void NavigationView::handle_autostart() {
 void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
     for (auto& app : NavigationView::appList) {
         if (app.menuLocation == loc) {
-            const AppInfo* p_app = &app;
             grid.add_item({app.displayName, app.iconColor, app.icon,
-                           [&nav, p_app]() {
-                               NavigationView& local_nav = nav;
-                               if (p_app->menuLocation == HOME) {
-                                   local_nav.store_last_menu_name(p_app->displayName);
-                                   local_nav.set_last_menu_went_deeper(false);
-                                   auto new_view = p_app->producer(local_nav);
-                                   local_nav.push_view(std::move(new_view));
-                               } else {
-                                   auto new_view = p_app->producer(local_nav);
-                                   local_nav.pop();
-                                   local_nav.set_last_menu_went_deeper(true);
-                                   local_nav.push_view(std::move(new_view));
-                               }
-                           }},
+                           [&nav, &app]() {
+                            i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
+                            nav.push_view(app.viewFactory->produce(nav)); }},
                           true);
         }
     };
@@ -801,7 +785,7 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
             return a.desired_position < b.desired_position;
         });
 
-        for (auto & gridItem : externalItems) {
+        for (auto const& gridItem : externalItems) {
             if (gridItem.desired_position < 0) {
                 grid.add_item(std::move(gridItem), true);
             } else {
@@ -937,27 +921,6 @@ SystemView::SystemView(
         {{0, 0},
          {parent_rect.width(), status_view_height}});
     status_view.on_back = [this]() {
-        if (this->navigation_view.view_stack_size() == 2) {
-            const AppInfo* lastmenu = nullptr;
-            const auto last_menu_name = this->navigation_view.get_last_menu_name();
-            this->navigation_view.store_last_menu_name("");
-            if (!last_menu_name.empty()) {
-                for (const auto& app : NavigationView::appList) {
-                    if (app.displayName == last_menu_name) {
-                        lastmenu = &app;
-                        break;
-                    }
-                }
-
-                if (lastmenu && this->navigation_view.get_last_menu_went_deeper()) {
-                    this->navigation_view.pop();
-                    this->navigation_view.push_view(lastmenu->producer(this->navigation_view));
-                    this->navigation_view.store_last_menu_name(lastmenu->displayName);  // since we opened it again, store it again
-                    this->navigation_view.set_last_menu_went_deeper(false);             // not yet
-                    return;
-                }
-            }
-        }
         this->navigation_view.pop();
     };
 
@@ -974,7 +937,6 @@ SystemView::SystemView(
     navigation_view.on_view_changed = [this](const View& new_view) {
         if (!this->navigation_view.is_top()) {
             remove_child(&info_view);
-            i2cdev::I2CDevManager::set_autoscan_interval(0);
         } else {
             add_child(&info_view);
             info_view.refresh();
@@ -1035,15 +997,16 @@ void SystemView::toggle_overlay() {
             this->set_dirty();
             shared_memory.request_m4_performance_counter = last_perf_counter_status;
             overlay_active = 0;
-            break;
     }
 }
 
 void SystemView::paint_overlay() {
     static bool last_paint_state = false;
     if (overlay_active) {
+        // paint background only every other second
         if ((((chTimeNow() >> 10) & 0x01) == 0x01) == last_paint_state)
             return;
+
         last_paint_state = !last_paint_state;
         if (overlay_active == 1 && overlay)
             overlay->set_dirty();

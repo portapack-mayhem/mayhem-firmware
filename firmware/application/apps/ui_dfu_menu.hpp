@@ -96,6 +96,7 @@ class DfuMenu2 : public View {
         {{5 * CHARACTER_WIDTH, 13 * LINE_HEIGHT}, "TX Freq:", Theme::getInstance()->fg_darkcyan->foreground},
         {{5 * CHARACTER_WIDTH, 14 * LINE_HEIGHT}, "TX BW:", Theme::getInstance()->fg_darkcyan->foreground},
         {{5 * CHARACTER_WIDTH, 15 * LINE_HEIGHT}, "TX SampR:", Theme::getInstance()->fg_darkcyan->foreground},
+        {{5 * CHARACTER_WIDTH, 16 * LINE_HEIGHT}, "IQ Inv:", Theme::getInstance()->fg_darkcyan->foreground},
     };
 
     Text text_info_line_1{{14 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
@@ -109,6 +110,7 @@ class DfuMenu2 : public View {
     Text text_info_line_9{{14 * CHARACTER_WIDTH, 13 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_10{{14 * CHARACTER_WIDTH, 14 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_11{{14 * CHARACTER_WIDTH, 15 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_12{{(14 + 1) * CHARACTER_WIDTH, 16 * LINE_HEIGHT, (10 - 1) * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
 } /* namespace ui */
