@@ -26,6 +26,7 @@ Boston, MA 02110-1301, USA.
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
+#include "portapack_persistent_memory.hpp"
 
 namespace i2cdev {
 
@@ -397,8 +398,8 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
     }
     // Execute the reset if either flag was tripped
     if (requires_reset) {
-        reInit();  // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
-        battMayChanged = true;
+        reInit();                                                                      // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
+        battMayChanged = true && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
     }
 
     batteryPercentage = stateOfCharge();
