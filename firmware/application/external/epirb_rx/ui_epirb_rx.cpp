@@ -456,6 +456,13 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
 
+    // Tint the channel-power bar red when the front-end overloads (ADC near
+    // full scale). Clipping distorts the constant-envelope carrier and the
+    // +/-1.1 rad biphase jumps the decoder relies on, so this cues the user to
+    // reduce RF-amp/LNA/VGA gain. -3 dBFS is a heuristic on the post-decimation
+    // level (not a literal ADC clip count); tune if it trips too early/late.
+    channel.set_overload_threshold(-3);
+
     update_display();
 
 #ifdef LOGGER
