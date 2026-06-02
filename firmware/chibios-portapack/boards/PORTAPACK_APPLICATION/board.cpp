@@ -897,6 +897,12 @@ extern "C" void boardInit(void) {
 #ifdef PRALINE
     /* HackRF Pro Specific: Initialize and Load FPGA */
     hackrf_r9 = false;
+    
+    /* Turn on LED4 (P8_6 / GPIO4[6]) for a quick PRALINE power-on indicator. */
+    LPC_SCU->SFSP[8][6] = 0x10;
+    LPC_GPIO->DIR[4] |= (1 << 6);
+    LPC_GPIO->CLR[4] = (1 << 6);
+
     /* Enable 3.3V aux power - P6_7 = GPIO5[15], active LOW (clear to enable) */
     LPC_SCU->SFSP[6][7] = 0xF4; /* SCU_GPIO_FAST | FUNCTION4 */
     LPC_GPIO->DIR[5] |= (1 << 15);
