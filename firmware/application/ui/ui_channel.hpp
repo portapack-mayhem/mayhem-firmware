@@ -49,7 +49,10 @@ class Channel : public Widget {
     // instead of blue, flagging that the analog gain is too high and the ADC is
     // clipping. Default is disabled (threshold above the 0 dBFS ceiling) so
     // existing users are unaffected.
-    void set_overload_threshold(int32_t db) { overload_threshold_ = db; }
+    void set_overload_threshold(int32_t db) {
+        overload_threshold_ = db;
+        set_dirty();
+    }
 
    private:
     int32_t max_db_;
