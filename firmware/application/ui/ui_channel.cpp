@@ -36,10 +36,14 @@ void Channel::paint(Painter& painter) {
     const range_t<int> x_max_range{0, r.width() - 1};
     const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
 
+    const auto bar_style = (max_db_ >= overload_threshold_)
+                               ? Theme::getInstance()->fg_red
+                               : Theme::getInstance()->fg_blue;
+
     const Rect r0{r.left(), r.top(), x_max, r.height()};
     painter.fill_rectangle(
         r0,
-        Theme::getInstance()->fg_blue->foreground);
+        bar_style->foreground);
 
     const Rect r1{r.left() + x_max, r.top(), 1, r.height()};
     painter.fill_rectangle(
