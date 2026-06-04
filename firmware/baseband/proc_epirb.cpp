@@ -57,7 +57,6 @@ float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16
     float dI = sample1.real() * sample0.real() + sample1.imag() * sample0.imag();
     float dQ = sample1.imag() * sample0.real() - sample1.real() * sample0.imag();
     float phase_diff = atan2f(dQ, dI);
-
     return phase_diff;
 }
 
