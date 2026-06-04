@@ -185,7 +185,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
             case DATA_SYNC: {
                 float abs_phase_delta = fabsf(phase_delta);
 
-                if (abs_phase_delta >= 1.6f) {
+                if (abs_phase_delta >= 1.1f) {
                     // Phase should jump from 1.1 rad to -1.1 rad or the other way around
                     // Absolute phase jump is expected to be 2.2 rad
                     // Phase jump is either positive or negative
