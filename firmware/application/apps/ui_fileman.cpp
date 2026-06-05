@@ -390,6 +390,7 @@ std::string get_stem(std::string t) {
         return t.substr(0, index);
     }
 }
+
 std::string get_filename(std::string _s) {
     const auto index = _s.find_last_of("/");
     if (index == _s.npos) {
@@ -398,6 +399,7 @@ std::string get_filename(std::string _s) {
         return _s.substr(index + 1);
     }
 }
+
 void FileManBaseView::refresh_list() {
     if (on_refresh_widgets)
         on_refresh_widgets(false);
@@ -408,8 +410,6 @@ void FileManBaseView::refresh_list() {
     menu_view.clear();
 
     for (const auto& entry : entry_list) {
-        auto entry_name = std::string{entry.path.length() <= max_filename_length ? entry.path : entry.path.substr(0, max_filename_length)};
-
         if (entry.is_directory) {
             std::string size_str{};
             if (entry.path == str_next || entry.path == str_back) {
@@ -418,8 +418,10 @@ void FileManBaseView::refresh_list() {
                 size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
             }
 
+            // CRITICAL: Use "\t" (Tab) to separate the path and the size!
+            // Do not use spaces or padding here. The menu will handle the alignment.
             menu_view.add_item(
-                {entry_name.substr(0, max_filename_length) + std::string((max_filename_length + 1) - entry_name.length(), ' ') + size_str,
+                {entry.path + "\t" + size_str,
                  Theme::getInstance()->fg_yellow->foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -431,8 +433,9 @@ void FileManBaseView::refresh_list() {
             const auto& assoc = get_assoc(get_extension(entry.path));
             auto size_str = to_string_file_size(entry.size);
 
+            // CRITICAL: Use "\t" (Tab) to separate the path and the size!
             menu_view.add_item(
-                {entry_name.substr(0, max_filename_length) + std::string((max_filename_length + 1) - entry_name.length(), ' ') + size_str,
+                {entry.path + "\t" + size_str,
                  assoc.color,
                  assoc.icon,
                  [this](KeyEvent key) {

@@ -390,7 +390,6 @@ void set_baseband_rate(const uint32_t rate) {
 }
 
 void set_antenna_bias(const bool on) {
-    /* Pull MOSFET gate low to turn on antenna bias. */
 #ifdef PRALINE
     /* Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW) */
     rf_path.set_ant_bias(on);
@@ -401,6 +400,14 @@ void set_antenna_bias(const bool on) {
         first_if.set_gpo1(on ? 0 : 1);
     }
 #endif
+}
+
+bool get_mixer_invert() {
+    return mixer_invert;
+}
+
+bool get_baseband_invert() {
+    return baseband_invert;
 }
 
 void set_tx_max283x_iq_phase_calibration(const size_t v) {

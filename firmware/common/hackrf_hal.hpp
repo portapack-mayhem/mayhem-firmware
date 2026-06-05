@@ -54,6 +54,12 @@ constexpr ClockFrequency max283x_reference_f = 40000000U;
 constexpr ClockFrequency mcu_clkin_og_f = 40000000U;
 constexpr ClockFrequency mcu_clkin_r9_f = 10000000U;
 
+#ifdef PRALINE
+constexpr int8_t default_tx_gain_db = 16;
+#else
+constexpr int8_t default_tx_gain_db = 35;
+#endif
+
 constexpr uint8_t si5351_i2c_address = 0x60;
 
 /* Clock Generator */
