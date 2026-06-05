@@ -52,15 +52,15 @@
  */
 
 #ifdef PRALINE
-#define ARRAY_SIZE 89
+#define SCU_ARRAY_SIZE 89
 #else
-#define ARRAY_SIZE 55
+#define SCU_ARRAY_SIZE 56
 #endif
 
 typedef struct {
     /** @brief GPIO setup data.*/
     gpio_setup_t P[8];
-    scu_setup_t SCU[ARRAY_SIZE];
+    scu_setup_t SCU[SCU_ARRAY_SIZE];
 
 } PALConfig;
 

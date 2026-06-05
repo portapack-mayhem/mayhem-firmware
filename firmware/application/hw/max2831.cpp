@@ -103,8 +103,6 @@ void MAX2831::flush_dirty() {
 void MAX2831::init() {
     set_mode(Mode::Shutdown);
 
-    gpio_max2831_rxhp.write(0); /* RXHP low = 100 Hz HPF (default) */
-
     /* Reset to default register values */
     std::memcpy(_regs.data(), default_regs.data(), sizeof(_regs));
     _regs_dirty = 0xFFFF;

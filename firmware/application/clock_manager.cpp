@@ -429,32 +429,10 @@ static void portapack_tcxo_disable() {
 using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
-#ifdef PRALINE
-    /* Route the PRALINE P22 10MHz reference to the Si5351 CLKIN pin. */
-    LPC_SCU->SFSP[2][10] = 0xF0;
-    LPC_SCU->SFSP[6][8] = 0xF4;
-    LPC_SCU->SFSP[6][9] = 0xF0;
-    LPC_SCU->SFSP[1][20] = 0xF0;
-
-    gpio_p1_ctrl0.output();
-    gpio_p1_ctrl1.output();
-    gpio_p1_ctrl2.output();
-    gpio_clkin_ctrl.output();
-
-    gpio_p1_ctrl0.write(0);
-    gpio_p1_ctrl1.write(0);
-    gpio_p1_ctrl2.write(1);
-    gpio_clkin_ctrl.write(1);
-
-    chThdSleepMilliseconds(20);
-
-#else
-    // HackRF One r9: GPIO0_8 (mcu_clk_en) gates Si5351 CLK2/CLK7 to GP_CLKIN
     if (hackrf_r9) {
         gpio_r9_mcu_clk_en.output();
         gpio_r9_mcu_clk_en.write(1);
     }
-#endif
 
     clock_generator.reset();
     clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
