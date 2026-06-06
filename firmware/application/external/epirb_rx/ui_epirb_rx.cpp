@@ -71,21 +71,21 @@ void TextArea::paint(Painter& painter) {
     const Style& s = has_focus() ? style().invert() : style();
 
     painter.fill_rectangle(rect, s.background);
-    
+
     const int line_height = s.font.line_height();
     int line_idx = 0;
-    
+
     // Efficiently draw lines separated by \t without heap allocations
     std::string_view sv{content};
     size_t start = 0;
     size_t end;
-    
+
     while ((end = sv.find('\t', start)) != std::string_view::npos) {
         painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start, end - start));
         start = end + 1;
         line_idx++;
     }
-    
+
     if (start < sv.length()) {
         painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start));
     }
