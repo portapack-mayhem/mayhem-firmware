@@ -185,7 +185,7 @@ class Beacon {
     FrameMode frameMode{FrameMode::UNKNOWN};
     // Main location device
     MainLocatingDevice mainLocatingDevice{MainLocatingDevice::UNDEFINED};
-    // Axiliary location device
+    // Auxiliary location device
     AuxLocatingDevice auxLocatingDevice{AuxLocatingDevice::UNDEFINED};
     // Protocol code for this beacon
     long protocolCode{0};
@@ -203,9 +203,9 @@ class Beacon {
     uint64_t identifier{0};
     // Date of reception of this beacon
     rtc::RTC date{};
-    // Trus if this beacon has additional data
+    // True if this beacon has additional data
     bool hasAdditionalData{false};
-    // The additional data tring
+    // The additional data string
     char additionalData[48]{0};
     // True if this beacon has a serial number
     bool hasSerialNumber{false};
@@ -229,10 +229,10 @@ class Beacon {
     bool bch2Corrected{false};
     // True if this beacon is empty (not initialized)
     bool isEmpty{true};
-    // True if thsi beacon contains emergency data
+    // True if this beacon contains emergency data
     bool hasEmergency{false};
-    // True if emenrgency data is automatic for this beacon
-    bool isAutoamticEmergency{false};
+    // True if emergency data is automatic for this beacon
+    bool isAutomaticEmergency{false};
     // True if this beacon is a Maritime beacon
     bool isMaritime{false};
     // Emergency type string
@@ -332,7 +332,7 @@ class Beacon {
         bch2Corrected = false;
         isEmpty = true;
         hasEmergency = false;
-        isAutoamticEmergency = false;
+        isAutomaticEmergency = false;
         isMaritime = false;
         emergencyType[0] = 0;
         std::memcpy(frame, (const void*)frameBuffer, BEACON_DATA_SIZE);
@@ -395,7 +395,7 @@ class Beacon {
      * Returns this beacon's main location device string representation
      */
     const char* getMainLocatingDeviceName() {
-        if (mainLocatingDevice == MainLocatingDevice::EXTERNAL_NAV) return "Exernal";
+        if (mainLocatingDevice == MainLocatingDevice::EXTERNAL_NAV) return "External";
         if (mainLocatingDevice == MainLocatingDevice::INTERNAL_NAV) return "Internal";
         return UNKNOWN_LABEL;
     }
@@ -450,16 +450,13 @@ class Beacon {
     /**
      * Returns the short ID for this beacon
      */
-    std::string shortId();
+    std::string_view shortId() const;
 
     /**
      * Returns the string representation of the status of this frame
      */
-    std::string getSatus() {
-        if (isFrameValid())
-            return "OK";
-        else
-            return "KO";
+    const char* getStatus() const {
+        return isFrameValid() ? "OK" : "KO";
     }
 
     /**
@@ -584,7 +581,7 @@ class Beacon {
                     case 0b100:
                     case 0b010:
                         isMaritime = true;
-                        // fallthrough
+                        [[fallthrough]];
                     case 0b000:
                     case 0b001:
                     case 0b011:
@@ -601,10 +598,10 @@ class Beacon {
             if (!longFrame) {
                 hasEmergency = getBits(107, 107);
                 if (hasEmergency) {
-                    isAutoamticEmergency = getBits(108, 108);
+                    isAutomaticEmergency = getBits(108, 108);
                     if (isMaritime) {
-                        uint8_t emmergency = getBits(109, 112);
-                        switch (emmergency) {
+                        uint8_t emergency = getBits(109, 112);
+                        switch (emergency) {
                             case 0b0001:
                             case 0b0010:
                             case 0b0011:
@@ -613,7 +610,7 @@ class Beacon {
                             case 0b0110:
                             case 0b0111:
                             case 0b1000:
-                                strcpy(emergencyType, ResourceManager::get_beacon_resource(EMERGENCY_RESOURCE_START + emmergency));
+                                strcpy(emergencyType, ResourceManager::get_beacon_resource(EMERGENCY_RESOURCE_START + emergency));
                                 break;
                             default:
                                 strcpy(emergencyType, ResourceManager::get_beacon_resource(EMERGENCY_RESOURCE_START));
@@ -622,15 +619,15 @@ class Beacon {
                         bool fire = getBits(109, 109);
                         bool med = getBits(110, 110);
                         bool disabled = getBits(111, 111);
-                        char* emmergency_pointer = emergencyType;
-                        if (fire) emmergency_pointer += sprintf(emmergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START));
+                        char* emergency_pointer = emergencyType;
+                        if (fire) emergency_pointer += sprintf(emergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START));
                         if (med) {
-                            if (fire) emmergency_pointer += sprintf(emmergency_pointer, "%c", '+');
-                            emmergency_pointer += sprintf(emmergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START + 1));
+                            if (fire) emergency_pointer += sprintf(emergency_pointer, "%c", '+');
+                            emergency_pointer += sprintf(emergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START + 1));
                         }
                         if (disabled) {
-                            if (fire || med) emmergency_pointer += sprintf(emmergency_pointer, "%c", '+');
-                            sprintf(emmergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START + 2));
+                            if (fire || med) emergency_pointer += sprintf(emergency_pointer, "%c", '+');
+                            sprintf(emergency_pointer, "%s", ResourceManager::get_beacon_resource(EMERGENCY_OTHER_RESOURCE_START + 2));
                         }
                     }
                 }

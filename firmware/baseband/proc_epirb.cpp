@@ -57,9 +57,7 @@ float EPIRBProcessor::get_phase_diff(const complex16_t& sample0, const complex16
     float dI = sample1.real() * sample0.real() + sample1.imag() * sample0.imag();
     float dQ = sample1.imag() * sample0.real() - sample1.real() * sample0.imag();
     float phase_diff = atan2f(dQ, dI);
-    // Prevent phase diff from wrapping around
-    if (phase_diff > M_PI) phase_diff -= 2.0f * M_PI;
-    if (phase_diff < -M_PI) phase_diff += 2.0f * M_PI;
+
     return phase_diff;
 }
 
@@ -119,10 +117,10 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
         const float sample_phase_delta = phase_delta;
 
         // Let's sum phase delta over a 12 sample window to get the full phase jump
-        phase_delta_acc -= phase_delta_buffer[pahse_delta_index];
-        phase_delta_buffer[pahse_delta_index] = phase_delta;
-        phase_delta_acc += phase_delta_buffer[pahse_delta_index];
-        pahse_delta_index = (pahse_delta_index + 1) % PHASE_DELTA_ACC_SIZE;
+        phase_delta_acc -= phase_delta_buffer[phase_delta_index];
+        phase_delta_buffer[phase_delta_index] = phase_delta;
+        phase_delta_acc += phase_delta_buffer[phase_delta_index];
+        phase_delta_index = (phase_delta_index + 1) % PHASE_DELTA_ACC_SIZE;
 
         // Use accumulated delta
         phase_delta = phase_delta_acc;
@@ -137,7 +135,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 // carrier it converges within a few ms and the thresholds below
                 // then see a de-biased signal regardless of the actual offset.
                 freq_offset_est += AFC_TRACK_ALPHA * sample_phase_delta;
-                // We are waiting for a 160ms empty carrier => phase shouls be stable during this period
+                // We are waiting for a 160ms empty carrier => phase should be stable during this period
                 // Use a symmetric threshold: once AFC has removed the bias a stable
                 // carrier sits near 0, so both positive and negative excursions of
                 // the accumulated delta indicate the carrier is not yet stable.
@@ -146,7 +144,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 } else {
                     stability_counter++;
                     if (stability_counter > CARRIER_SAMPLES_THRESHOLD) {
-                        // Carrier has been stable long enought, go to locked state
+                        // Carrier has been stable long enough, go to locked state
                         current_state = CARRIER_LOCKED;
                         frame_sample_count = 0;
                     }
@@ -159,7 +157,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 // frequency offset (rad/sample) used for AFC.
                 carrier_phase_sum += sample_phase_delta;
                 carrier_phase_n++;
-                // Carrier is locked, we now wait for a phase 1.1 rad phase jump corresponding to the befining of the frame
+                // Carrier is locked, we now wait for a phase 1.1 rad phase jump corresponding to the beginning of the frame
                 // Let's use a 0.7 phase jump threshold
                 if (filtered_rise_detect(phase_delta >= 0.7f)) {
                     // Latch the AFC estimate from the carrier we just measured so it
@@ -192,7 +190,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                     bool phase_positive = (phase_delta >= 0.0f);
 
                     if (phase_positive != last_phase_positive) {
-                        // Phase jumped to the opposit direction of last jump
+                        // Phase jumped to the opposite direction of last jump
                         last_phase_positive = phase_positive;
                         bool cur_bit;
                         // Phase change => how long since last change ?
@@ -213,7 +211,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                             // 2 symbols since last change => bit value changes
                             cur_bit = !last_bit;
                         } else if ((sample_count >= (SAMPLES_PER_SYMBOL - SAMPLES_MARGIN)) && (sample_count <= (SAMPLES_PER_SYMBOL + SAMPLES_MARGIN))) {
-                            // Phase change occured in first half bit => we keep the same value
+                            // Phase change occurred in first half bit => we keep the same value
                             if ((phase_positive && last_bit) || (!phase_positive && !last_bit)) {
                                 sample_count = 0;
                                 // Ignore rising edge if current value is 1 and falling edge if current value is 0 and move to next symbol

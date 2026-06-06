@@ -79,7 +79,7 @@ class ResourceManager {
     static void load_file(const std::filesystem::path& path, std::vector<std::string>& vect) {
         FIL file;
         if (f_open(&file, path.tchar(), FA_READ) == FR_OK) {
-            TCHAR line_buffer[32];
+            TCHAR line_buffer[128];
             // Read the file line by line
             while (f_gets(line_buffer, sizeof(line_buffer) / sizeof(TCHAR), &file)) {
                 std::string s;

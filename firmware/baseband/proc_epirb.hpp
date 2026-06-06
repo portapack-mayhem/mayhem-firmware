@@ -59,15 +59,15 @@ class Packet;
 #define COSPAS_PREAMBLE_SIZE 24
 // Size of long frame (bits)
 #define COSPAS_LONG_FRAME_SIZE 144
-// Siz of short frame (bits)
+// Size of short frame (bits)
 #define COSPAS_SHORT_FRAME_SIZE 112
 // Preamble for real frames
 #define COSPAS_REAL_PREAMBLE 0b1111'1111'1111'1110'0010'1111
-// Preable for test frames
+// Preamble for test frames
 #define COSPAS_TEST_PREAMBLE 0b1111'1111'1111'1110'1101'0000
 
 // Dedicated EPIRB PacketBuilder
-// Usees diedicated preamble detection logic to find both real and test frames
+// Uses dedicated preamble detection logic to find both real and test frames
 // Also as a dedicated packet size detection based on frame's size bit
 class EPIRBPacketBuilder {
    public:
@@ -170,7 +170,7 @@ class EPIRBProcessor : public BasebandProcessor {
     static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60 samples per symbol
     static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
     static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
-    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 5;   // Accumulate phase change across 12 samples
+    static constexpr size_t SAMPLES_ACCUMULATOR = SAMPLES_PER_SYMBOL / 5;    // Accumulate phase change across 12 samples
     static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Filter peaks of less than 3 samples
 
     static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
@@ -214,9 +214,9 @@ class EPIRBProcessor : public BasebandProcessor {
     uint32_t stability_counter = 0;
 
     // Phase delta accumulator (6 samples)
-    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_ACCUMUMLATOR;
+    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_ACCUMULATOR;
     float phase_delta_buffer[PHASE_DELTA_ACC_SIZE] = {0.0f};
-    size_t pahse_delta_index = 0;
+    size_t phase_delta_index = 0;
     float phase_delta_acc = 0.0f;
 
     // Automatic Frequency Control (AFC)

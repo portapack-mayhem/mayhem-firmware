@@ -41,29 +41,26 @@ void BeaconUIList::paint(Painter& painter) {
     auto base_style = Theme::getInstance()->bg_darkest;
 
     for (auto offset = 0u; offset < BEACON_HISTORY_SIZE; ++offset) {
-        // The whole frame needs to be cleared so every line 'slot'
-        // is redrawn even when `text` just left empty.
-        auto text = std::string{};
         auto index = start_index_ + offset;
-        auto line_position = rect.location() + Point{0, 1 + (int)offset * char_height};
-        auto is_selected = offset == selected_index_;
-        auto style = base_style;
 
         if (index < db_->size()) {
+            auto line_position = rect.location() + Point{0, 1 + (int)offset * char_height};
+            auto is_selected = (offset == selected_index_);
+            auto style = base_style;
+
             // Get beacon entry and format it's summary
             auto& entry = db_->get_beacon(index);
             char buffer[64];
             entry.formatSummary(buffer, true);
-            text = std::string(buffer);
+
+            if (index == db_->get_current_beacon_index())
+                // If this is the currently displayed beacon change color
+                style = Theme::getInstance()->bg_medium;
+
+            // Draw entry line using stack buffer directly to avoid heap allocation
+            painter.draw_string(
+                line_position, (is_selected ? style->invert() : *style), buffer);
         }
-
-        if (index == db_->get_current_beacon_index())
-            // If this is the currently displayed beacon change color
-            style = Theme::getInstance()->bg_medium;
-
-        // Draw entry line
-        painter.draw_string(
-            line_position, (is_selected ? style->invert() : *style), text);
     }
 
     // Draw a bounding rectangle when focused.

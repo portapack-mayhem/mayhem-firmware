@@ -33,13 +33,13 @@ size_t Beacon::formatSummary(char* buffer, bool with_time) {
         result += formatTime(buffer);
         buffer[result++] = '-';
     }
-    result += sprintf((buffer + result), "%4s-%5s-", shortId().c_str(), getType());
+    result += sprintf((buffer + result), "%.4s-%5s-", hexId, getType());
     if (location.isUnknown()) {
         result += sprintf((buffer + result), "      ");
     } else {
         result += location.toString((buffer + result), Location::LocationFormat::MAIDENHEAD_LOCATOR);
     }
-    result += sprintf((buffer + result), "[%s%s%s]", isFrameValid() ? (bch1Corrected || bch2Corrected) ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, getSatus().c_str(), STR_COLOR_WHITE);
+    result += sprintf((buffer + result), "[%s%s%s]", isFrameValid() ? (bch1Corrected || bch2Corrected) ? STR_COLOR_YELLOW : STR_COLOR_GREEN : STR_COLOR_RED, getStatus(), STR_COLOR_WHITE);
     return result;
 }
 
@@ -47,9 +47,9 @@ bool Beacon::isFrameValid() {
     return isBch1Valid() && ((!hasBch2) || isBch2Valid()) && (!isEmpty);
 }
 
-std::string Beacon::shortId() {
-    std::string result = std::string(hexId);
-    return (result.size() >= 4) ? result.substr(0, 4) : result;
+std::string_view Beacon::shortId() const {
+    size_t len = strlen(hexId);
+    return std::string_view(hexId, len >= 4 ? 4 : len);
 }
 
 size_t Beacon::formatTime(char* buffer) {
