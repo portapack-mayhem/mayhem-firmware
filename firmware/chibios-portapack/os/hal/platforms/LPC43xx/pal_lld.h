@@ -52,7 +52,7 @@
  */
 
 #ifdef PRALINE
-#define SCU_ARRAY_SIZE 89
+#define SCU_ARRAY_SIZE 78
 #else
 #define SCU_ARRAY_SIZE 56
 #endif

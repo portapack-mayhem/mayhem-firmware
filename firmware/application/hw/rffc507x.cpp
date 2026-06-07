@@ -180,7 +180,9 @@ void RFFC507x::init() {
 #endif
 
     gpio_rffc5072_resetx.set();
+#ifndef PRALINE
     gpio_rffc5072_resetx.output();
+#endif
     reset();
 
     _bus.init();

@@ -25,6 +25,10 @@
 #include "pins.hpp"
 #include "led.hpp"
 
+#ifdef PRALINE
+#include "gpio.hpp"
+#endif
+
 #include <array>
 
 using namespace lpc43xx;
@@ -180,5 +184,28 @@ constexpr LED led_tx{gpio_led_tx};
 
 } /* namespace one */
 } /* namespace hackrf */
+
+#ifdef PRALINE
+namespace multiplexer_contrl {
+
+// P1 Multiplexer control pins
+constexpr Pin pin_p1_ctrl0{2, 10};                                       // SCU: P2_10
+constexpr GPIO p1_ctrl0{pin_p1_ctrl0, 0, 14, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[0]14
+
+constexpr Pin pin_p1_ctrl1{6, 8};                                        // SCU: P6_8
+constexpr GPIO p1_ctrl1{pin_p1_ctrl1, 5, 16, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[5]16
+
+constexpr Pin pin_p1_ctrl2{6, 9};                                       // SCU: P6_9
+constexpr GPIO p1_ctrl2{pin_p1_ctrl2, 3, 5, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[3]5
+
+// P2 Multiplexer control pins
+constexpr Pin pin_p2_ctrl0{14, 3};                                      // SCU: PE_3
+constexpr GPIO p2_ctrl0{pin_p2_ctrl0, 7, 3, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[7]3
+
+constexpr Pin pin_p2_ctrl1{14, 4};                                      // SCU: PE_4
+constexpr GPIO p2_ctrl1{pin_p2_ctrl1, 7, 4, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[7]4
+
+}  // namespace multiplexer_contrl
+#endif
 
 #endif /*__HACKRF_GPIO_H__*/

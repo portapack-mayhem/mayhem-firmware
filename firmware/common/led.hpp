@@ -32,12 +32,12 @@ struct LED {
     void setup() const {
 #ifdef PRALINE
         /* PRALINE LEDs are active-low (GPIO LOW = LED ON) */
-        _gpio.set(); /* Start with LED OFF (HIGH) */
+        // _gpio.set(); /* Start with LED OFF (HIGH) */
 #else
         _gpio.clear();
-#endif
         _gpio.output();
         _gpio.configure();
+#endif
     }
 
     void on() const {

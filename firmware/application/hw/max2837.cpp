@@ -99,9 +99,11 @@ constexpr uint32_t pll_factor = 1.0 / (4.0 / 3.0 / reference_frequency) + 0.5;
 void MAX2837::init() {
     set_mode(Mode::Shutdown);
 
+#ifndef PRALINE
     gpio_max283x_enable.output();
     gpio_max2837_rxenable.output();
     gpio_max2837_txenable.output();
+#endif
 
     _map.r.tx_gain.TXVGA_GAIN_SPI_EN = 1;
     _map.r.tx_gain.TXVGA_GAIN_MSB_SPI_EN = 1;
@@ -157,9 +159,11 @@ void MAX2837::set_tx_LO_iq_phase_calibration(const size_t v) {
     // TX calibration , Logic pins , ENABLE, RXENABLE, TXENABLE = 1,0,1 (5dec), and  Reg address 16, D1 (CAL mode 1):DO (CHIP ENABLE 1)
     set_mode(Mode::Tx_Calibration);  // write to ram 3 LOGIC Pins .
 
+#ifndef PRALINE
     gpio_max283x_enable.output();
     gpio_max2837_rxenable.output();
     gpio_max2837_txenable.output();
+#endif
 
     _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)
     _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (CHIP ENABLE 1)
@@ -348,9 +352,11 @@ void MAX2837::set_rx_LO_iq_phase_calibration(const size_t v) {
     // RX calibration , Logic pins , ENABLE, RXENABLE, TXENABLE = 1,1,0 (3dec), and  Reg address 16, D1 (CAL mode 1):DO (CHIP ENABLE 1)
     set_mode(Mode::Rx_Calibration);  // write to ram 3 LOGIC Pins .
 
+#ifndef PRALINE
     gpio_max283x_enable.output();
     gpio_max2837_rxenable.output();
     gpio_max2837_txenable.output();
+#endif
 
     _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)
     _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (CHIP ENABLE 1)
