@@ -158,6 +158,11 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 // the accumulated delta indicate the carrier is not yet stable.
                 if (filtered_rise_detect(fabsf(phase_delta) >= 0.6f)) {
                     stability_counter = 0;
+                    // Reset convergence tracking when the carrier is not stable,
+                    // so variance is measured only over the current stable window.
+                    afc_mean = 0.0f;
+                    afc_m2 = 0.0f;
+                    afc_convergence_n = 0;
                 } else {
                     stability_counter++;
                     // Check both phase stability AND AFC convergence before transitioning

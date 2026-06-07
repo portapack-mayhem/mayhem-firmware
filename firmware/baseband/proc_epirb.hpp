@@ -213,8 +213,8 @@ class EPIRBProcessor : public BasebandProcessor {
     // Carrier detection counter
     uint32_t stability_counter = 0;
 
-    // Phase delta accumulator (6 samples)
-    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_ACCUMULATOR;
+    // Phase delta accumulator (12 samples)
+    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_PER_SYMBOL/5;  // 12 samples
     float phase_delta_buffer[PHASE_DELTA_ACC_SIZE] = {0.0f};
     size_t phase_delta_index = 0;
     float phase_delta_acc = 0.0f;
