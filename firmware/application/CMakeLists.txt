@@ -334,6 +334,7 @@ set(CPPSRC
 	${CPLD_H4M_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
 	ui_external_items_menu_loader.cpp
+	view_factory_base.cpp
 )
 
 # 1 MiB SPI: baseband omits PSON/PWTH/PSGD — drop matching built-in RX apps to save M0 flash.

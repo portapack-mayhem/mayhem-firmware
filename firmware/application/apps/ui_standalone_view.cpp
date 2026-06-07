@@ -206,6 +206,7 @@ standalone_application_api_t api = {
     .i2c_read = &i2c_read,
     .panic = &chDbgPanic,
     .set_dirty = &set_dirty,
+    // Version 3
     .f_open = &ext_f_open,
     .f_close = &ext_f_close,
     .f_read = &ext_f_read,

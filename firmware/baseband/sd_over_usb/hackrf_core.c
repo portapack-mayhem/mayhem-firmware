@@ -39,6 +39,7 @@
 #include "platform_scu.h"
 #include "fixed_point.h"
 #include "clkin.h"
+#include "usb_type.h"
 #include <libopencm3/lpc43xx/cgu.h>
 #include <libopencm3/lpc43xx/ccu.h>
 #include <libopencm3/lpc43xx/scu.h>
@@ -147,34 +148,16 @@ static struct gpio gpio_h1r9_hw_sync_enable = GPIO(5, 5);
 #endif
 // clang-format on
 
-i2c_bus_t i2c0 = {
-    .obj = (void*)I2C0_BASE,
-    .start = i2c_lpc_start,
-    .stop = i2c_lpc_stop,
-    .transfer = i2c_lpc_transfer,
-};
-
-i2c_bus_t i2c1 = {
-    .obj = (void*)I2C1_BASE,
-    .start = i2c_lpc_start,
-    .stop = i2c_lpc_stop,
-    .transfer = i2c_lpc_transfer,
-};
-
-// const i2c_lpc_config_t i2c_config_si5351c_slow_clock = {
-// 	.duty_cycle_count = 15,
-// };
-
-const i2c_lpc_config_t i2c_config_si5351c_fast_clock = {
-    .duty_cycle_count = 255,
-};
+/* i2c0, i2c1, and i2c_config_fast_clock are defined in
+ * hackrf/firmware/common/i2c_bus.c and i2c_lpc.c; use those instead of
+ * redefining them here to avoid multiple-definition link errors. */
 
 si5351c_driver_t clock_gen = {
     .bus = &i2c0,
     .i2c_address = 0x60,
 };
 
-const ssp_config_t ssp_config_max283x = {
+ssp_config_t ssp_config_max283x = {
     /* FIXME speed up once everything is working reliably */
     /*
         // Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
@@ -188,7 +171,7 @@ const ssp_config_t ssp_config_max283x = {
     .gpio_select = &gpio_max283x_select,
 };
 
-const ssp_config_t ssp_config_max5864 = {
+ssp_config_t ssp_config_max5864 = {
     /* FIXME speed up once everything is working reliably */
     /*
         // Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
@@ -202,14 +185,8 @@ const ssp_config_t ssp_config_max5864 = {
     .gpio_select = &gpio_max5864_select,
 };
 
-spi_bus_t spi_bus_ssp1 = {
-    .obj = (void*)SSP1_BASE,
-    .config = &ssp_config_max5864,
-    .start = spi_ssp_start,
-    .stop = spi_ssp_stop,
-    .transfer = spi_ssp_transfer,
-    .transfer_gather = spi_ssp_transfer_gather,
-};
+/* spi_bus_ssp1 is defined in hackrf/firmware/common/spi_bus.c. We update
+ * its .config at runtime in clock_init() to point at ssp_config_max5864. */
 
 max283x_driver_t max283x = {};
 
@@ -224,14 +201,8 @@ ssp_config_t ssp_config_w25q80bv = {
     .clock_prescale_rate = 2,
 };
 
-spi_bus_t spi_bus_ssp0 = {
-    .obj = (void*)SSP0_BASE,
-    .config = &ssp_config_w25q80bv,
-    .start = spi_ssp_start,
-    .stop = spi_ssp_stop,
-    .transfer = spi_ssp_transfer,
-    .transfer_gather = spi_ssp_transfer_gather,
-};
+/* spi_bus_ssp0 is defined in hackrf/firmware/common/spi_bus.c. We update
+ * its .config at runtime in clock_init() to point at ssp_config_w25q80bv. */
 
 w25q80bv_driver_t spi_flash = {
     .bus = &spi_bus_ssp0,
@@ -240,43 +211,8 @@ w25q80bv_driver_t spi_flash = {
     .target_init = w25q80bv_target_init,
 };
 
-sgpio_config_t sgpio_config = {
-    .gpio_q_invert = &gpio_q_invert,
-    .gpio_trigger_enable = &gpio_hw_sync_enable,
-    .slice_mode_multislice = true,
-};
-
-rf_path_t rf_path = {
-    .switchctrl = 0,
-#ifdef HACKRF_ONE
-    .gpio_hp = &gpio_hp,
-    .gpio_lp = &gpio_lp,
-    .gpio_tx_mix_bp = &gpio_tx_mix_bp,
-    .gpio_no_mix_bypass = &gpio_no_mix_bypass,
-    .gpio_rx_mix_bp = &gpio_rx_mix_bp,
-    .gpio_tx_amp = &gpio_tx_amp,
-    .gpio_tx = &gpio_tx,
-    .gpio_mix_bypass = &gpio_mix_bypass,
-    .gpio_rx = &gpio_rx,
-    .gpio_no_tx_amp_pwr = &gpio_no_tx_amp_pwr,
-    .gpio_amp_bypass = &gpio_amp_bypass,
-    .gpio_rx_amp = &gpio_rx_amp,
-    .gpio_no_rx_amp_pwr = &gpio_no_rx_amp_pwr,
-#endif
-#ifdef RAD1O
-    .gpio_tx_rx_n = &gpio_tx_rx_n,
-    .gpio_tx_rx = &gpio_tx_rx,
-    .gpio_by_mix = &gpio_by_mix,
-    .gpio_by_mix_n = &gpio_by_mix_n,
-    .gpio_by_amp = &gpio_by_amp,
-    .gpio_by_amp_n = &gpio_by_amp_n,
-    .gpio_mixer_en = &gpio_mixer_en,
-    .gpio_low_high_filt = &gpio_low_high_filt,
-    .gpio_low_high_filt_n = &gpio_low_high_filt_n,
-    .gpio_tx_amp = &gpio_tx_amp,
-    .gpio_rx_lna = &gpio_rx_lna,
-#endif
-};
+/* sgpio_config and rf_path are defined in hackrf/firmware/common/sgpio.c and
+ * rf_path.c. Their gpio_* fields are populated at runtime in pin_setup(). */
 
 jtag_gpio_t jtag_gpio_cpld = {
     .gpio_tms = &gpio_cpld_tms,
@@ -617,7 +553,7 @@ void cpu_clock_init(void) {
     /* use IRC as clock source for APB3 */
     CGU_BASE_APB3_CLK = CGU_BASE_APB3_CLK_CLK_SEL(CGU_SRC_IRC);
 
-    i2c_bus_start(clock_gen.bus, &i2c_config_si5351c_fast_clock);
+    i2c_bus_start(clock_gen.bus, &i2c_config_fast_clock);
 
     si5351c_init(&clock_gen);
     si5351c_disable_all_outputs(&clock_gen);
@@ -625,8 +561,7 @@ void cpu_clock_init(void) {
     si5351c_power_down_all_clocks(&clock_gen);
     si5351c_set_crystal_configuration(&clock_gen);
     si5351c_enable_xo_and_ms_fanout(&clock_gen);
-    si5351c_configure_pll_sources(&clock_gen, PLL_SOURCE_XTAL);
-    si5351c_configure_pll_multisynth(&clock_gen, PLL_SOURCE_XTAL);
+    si5351c_configure_pll_multisynth(&clock_gen, SI5351C_INPUT_XTAL);
 
     /*
      * Clocks on HackRF One r9:
@@ -679,14 +614,15 @@ void cpu_clock_init(void) {
     /* Set to 10 MHz, the common rate between Jawbreaker and HackRF One. */
     sample_rate_set(10000000 * (fp_40_24_t)FP_ONE_HZ, true);
 
-    si5351c_set_clock_source(&clock_gen, PLL_SOURCE_XTAL);
+    si5351c_configure_clock_control(&clock_gen);
+    si5351c_change_input(&clock_gen, SI5351C_INPUT_XTAL);
     // soft reset
-    si5351c_reset_pll(&clock_gen);
+    si5351c_reset_plls(&clock_gen, SI5351C_PLL_MASK_BOTH);
     si5351c_enable_clock_outputs(&clock_gen);
 
     // FIXME disable I2C
     /* Kick I2C0 down to 400kHz when we switch over to APB1 clock = 204MHz */
-    i2c_bus_start(clock_gen.bus, &i2c_config_si5351c_fast_clock);
+    i2c_bus_start(clock_gen.bus, &i2c_config_fast_clock);
 
     /*
      * 12MHz clock is entering LPC XTAL1/OSC input now.
@@ -848,9 +784,9 @@ clock_source_t activate_best_clock_source(void) {
         /* No external or PortaPack clock was found. Use HackRF Si5351C crystal. */
     }
 
-    si5351c_set_clock_source(
+    si5351c_change_input(
         &clock_gen,
-        (source == CLOCK_SOURCE_HACKRF) ? PLL_SOURCE_XTAL : PLL_SOURCE_CLKIN);
+        (source == CLOCK_SOURCE_HACKRF) ? SI5351C_INPUT_XTAL : SI5351C_INPUT_CLKIN);
     hackrf_ui()->set_clock_source(source);
     return source;
 }
@@ -865,6 +801,55 @@ void ssp1_set_mode_max5864(void) {
 
 void pin_setup(void) {
     const platform_scu_t* scu = platform_scu();
+
+    /* spi_bus_ssp0/1 are defined in hackrf/firmware/common/spi_bus.c with no
+     * .config. Patch in our SSP configs and SPI driver entry points here. */
+    spi_bus_ssp0.config = &ssp_config_w25q80bv;
+    spi_bus_ssp0.start = spi_ssp_start;
+    spi_bus_ssp0.stop = spi_ssp_stop;
+    spi_bus_ssp0.transfer = spi_ssp_transfer;
+    spi_bus_ssp0.transfer_gather = spi_ssp_transfer_gather;
+
+    spi_bus_ssp1.config = &ssp_config_max5864;
+    spi_bus_ssp1.start = spi_ssp_start;
+    spi_bus_ssp1.stop = spi_ssp_stop;
+    spi_bus_ssp1.transfer = spi_ssp_transfer;
+    spi_bus_ssp1.transfer_gather = spi_ssp_transfer_gather;
+
+    /* sgpio_config / rf_path are defined in common/sgpio.c and rf_path.c
+     * with minimal initializers. Populate the gpio_* fields here. */
+    sgpio_config.gpio_q_invert = &gpio_q_invert;
+    sgpio_config.gpio_trigger_enable = &gpio_hw_sync_enable;
+    sgpio_config.slice_mode_multislice = true;
+
+#ifdef HACKRF_ONE
+    rf_path.gpio_hp = &gpio_hp;
+    rf_path.gpio_lp = &gpio_lp;
+    rf_path.gpio_tx_mix_bp = &gpio_tx_mix_bp;
+    rf_path.gpio_no_mix_bypass = &gpio_no_mix_bypass;
+    rf_path.gpio_rx_mix_bp = &gpio_rx_mix_bp;
+    rf_path.gpio_tx_amp = &gpio_tx_amp;
+    rf_path.gpio_tx = &gpio_tx;
+    rf_path.gpio_mix_bypass = &gpio_mix_bypass;
+    rf_path.gpio_rx = &gpio_rx;
+    rf_path.gpio_no_tx_amp_pwr = &gpio_no_tx_amp_pwr;
+    rf_path.gpio_amp_bypass = &gpio_amp_bypass;
+    rf_path.gpio_rx_amp = &gpio_rx_amp;
+    rf_path.gpio_no_rx_amp_pwr = &gpio_no_rx_amp_pwr;
+#endif
+#ifdef RAD1O
+    rf_path.gpio_tx_rx_n = &gpio_tx_rx_n;
+    rf_path.gpio_tx_rx = &gpio_tx_rx;
+    rf_path.gpio_by_mix = &gpio_by_mix;
+    rf_path.gpio_by_mix_n = &gpio_by_mix_n;
+    rf_path.gpio_by_amp = &gpio_by_amp;
+    rf_path.gpio_by_amp_n = &gpio_by_amp_n;
+    rf_path.gpio_mixer_en = &gpio_mixer_en;
+    rf_path.gpio_low_high_filt = &gpio_low_high_filt;
+    rf_path.gpio_low_high_filt_n = &gpio_low_high_filt_n;
+    rf_path.gpio_tx_amp = &gpio_tx_amp;
+    rf_path.gpio_rx_lna = &gpio_rx_lna;
+#endif
 
     /* Configure all GPIO as Input (safe state) */
     // gpio_init();
@@ -1069,4 +1054,18 @@ void halt_and_flash(const uint32_t duration) {
         led_off(LED3);
         delay(duration);
     }
+}
+
+/* Upstream commit 85dfacf6 ("Universalize: firmware/hackrf_usb") wired
+ * usb_endpoint_control_out.setup_complete to transceiver_usb_setup_complete
+ * (defined in hackrf_usb/usb_api_transceiver.c). That function dispatches
+ * transceiver-specific SETUP packets and falls through to usb_setup_complete
+ * for everything else. sd_over_usb doesn't link the transceiver API, so
+ * provide a shim that always delegates to the standard handler. Without
+ * this, EP0 SETUP packets get a no-op completion and enumeration times out
+ * (host reports "device descriptor read/64, error -110"). */
+void usb_setup_complete(usb_endpoint_t* const endpoint);
+void transceiver_usb_setup_complete(usb_endpoint_t* const endpoint);
+void transceiver_usb_setup_complete(usb_endpoint_t* const endpoint) {
+    usb_setup_complete(endpoint);
 }

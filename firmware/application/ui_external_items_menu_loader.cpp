@@ -177,9 +177,8 @@ void ExternalItemsMenuLoader::unload_external_items() {
     }
 }
 
-std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
+/* static */ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
-    bitmaps.shrink_to_fit();
 
     std::vector<GridItemEx> external_apps;
 
@@ -564,8 +563,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
 
     relocate_standalone_image(app_image, kStandaloneAppMaxBytes);
 
-    nav.set_last_menu_went_deeper(true);
-    nav.replace<StandaloneView>(app_image);
+    nav.push<StandaloneView>(app_image);
     return true;
 }
 
@@ -577,8 +575,7 @@ std::vector<ExternalItemsMenuLoader::GridItemEx> ExternalItemsMenuLoader::load_e
 
     relocate_standalone_image(app_image, kModuleAppMaxBytes);
 
-    nav.set_last_menu_went_deeper(true);
-    nav.replace<StandaloneView>(app_image);
+    nav.push<StandaloneView>(app_image);
     return true;
 }
 

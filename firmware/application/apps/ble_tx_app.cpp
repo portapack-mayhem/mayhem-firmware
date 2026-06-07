@@ -116,7 +116,7 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
             freq_hz = 2'428'000'000ull + (channel_number - 11) * 2'000'000ull;
             break;
         default:
-            freq_hz = UINT64_MAX;
+            freq_hz = 2'402'000'000ull;  // Default to channel 37 frequency if invalid channel number
     }
 
     return freq_hz;
@@ -254,7 +254,7 @@ void BLETxView::send_packet() {
 }
 
 void BLETxView::start() {
-    if (file_path.empty()) {
+    if (file_path.empty() || num_packets == 0) {
         file_error();
         check_loop.set_value(false);
         return;
@@ -265,6 +265,8 @@ void BLETxView::start() {
 
     button_play.set_bitmap(&bitmap_stop);
     is_running = true;
+
+    advCount = 0;
 
     send_packet();
 }
@@ -296,55 +298,61 @@ void BLETxView::on_timer() {
 void BLETxView::on_tx_progress(const bool done, uint32_t progress) {
     // TODO: make use of progress variable
     (void)progress;
+    if (!is_active() || num_packets == 0) {
+        return;
+    }
     if (done) {
         if (is_active()) {
             transmitter_model.disable();
+
             if (auto_channel) {
-                switch (advCount) {
-                    case 0:
-                        channel_number = 37;
-                        break;
-                    case 1:
-                        channel_number = 38;
-                        break;
-                    case 2:
-                        channel_number = 39;
-                        break;
-                }
-
-                field_frequency.set_value(get_freq_by_channel_number(channel_number));
-
+                advCount++;
                 if (advCount == 3) {
                     channel_number = 37;
-                    packet_counter--;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
+                    if (packet_counter > 0) packet_counter--;
                     packetDone = true;
                     advCount = 0;
                 } else {
+                    channel_number = 37 + advCount;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
                     send_packet();
-                    advCount++;
+                }
+            } else if (all_channels) {
+                advCount++;
+                if (advCount == 40) {
+                    channel_number = 0;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
+                    if (packet_counter > 0) packet_counter--;
+                    packetDone = true;
+                    advCount = 0;
+                } else {
+                    channel_number = advCount;
+                    field_frequency.set_value(get_freq_by_channel_number(channel_number));
+                    send_packet();
                 }
             } else {
-                packet_counter--;
+                if (packet_counter > 0) packet_counter--;
                 packetDone = true;
             }
         }
+    }
 
-        // Reached end of current packet repeats.
-        if (packet_counter == 0) {
-            // Done sending all packets.
-            if (current_packet == (num_packets - 1)) {
-                current_packet = 0;
+    // Reached end of current packet repeats.
+    if (packet_counter == 0) {
+        // Done sending all packets.
+        current_packet++;
+        if (current_packet >= num_packets) {
+            current_packet = 0;
 
-                // If looping, restart from beginning.
-                if (check_loop.value()) {
-                    update_current_packet(packets[current_packet], current_packet);
-                } else {
-                    stop();
-                }
-            } else {
-                current_packet++;
+            // If looping, restart from beginning.
+            if (check_loop.value()) {
                 update_current_packet(packets[current_packet], current_packet);
+            } else {
+                stop();
             }
+        } else {
+            update_current_packet(packets[current_packet], current_packet);
         }
     }
 }
@@ -385,16 +393,20 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
-        // If we selected Auto don't do anything and Auto will handle changing.
-        if (i == 40) {
-            auto_channel = true;
-            return;
+        auto_channel = (i == BLT_CHAN_AUTO);
+        all_channels = (i == BLT_CHAN_ALL);
+
+        advCount = 0;
+
+        if (auto_channel) {
+            channel_number = 37;
+        } else if (all_channels) {
+            channel_number = 0;
         } else {
-            auto_channel = false;
+            channel_number = i;
         }
 
-        field_frequency.set_value(get_freq_by_channel_number(i));
-        channel_number = i;
+        field_frequency.set_value(get_freq_by_channel_number(channel_number));
     };
 
     options_speed.on_change = [this](size_t, int32_t i) {
@@ -403,7 +415,7 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_speed.set_selected_index(0);
-    options_channel.set_selected_index(3);
+    options_channel.set_by_value(BLT_CHAN_AUTO);
 
     check_rand_mac.set_value(false);
     check_rand_mac.on_select = [this](Checkbox&, bool v) {
@@ -413,8 +425,7 @@ BLETxView::BLETxView(NavigationView& nav)
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            on_file_changed(new_file_path);
-
+            this->on_file_changed(new_file_path);
             nav_.set_on_pop([this]() { button_play.focus(); });
         };
     };
@@ -427,7 +438,7 @@ BLETxView::BLETxView(NavigationView& nav)
             64,
             ENTER_KEYBOARD_MODE_ALPHA,
             [this](std::string& buffer) {
-                on_save_file(buffer);
+                this->on_save_file(buffer);
             });
     };
 
@@ -506,10 +517,10 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         }
 
         do {
-            readUntil(data_file, packets[num_packets].macAddress, mac_address_size_str, ' ');
-            readUntil(data_file, packets[num_packets].advertisementData, max_packet_size_str, ' ');
-            readUntil(data_file, packets[num_packets].packetType, max_packet_type_str, ' ');
-            readUntil(data_file, packets[num_packets].packetCount, max_packet_repeat_str, '\n');
+            readUntil(data_file, packets[num_packets].macAddress, sizeof(packets[num_packets].macAddress), ' ');
+            readUntil(data_file, packets[num_packets].advertisementData, sizeof(packets[num_packets].advertisementData), ' ');
+            readUntil(data_file, packets[num_packets].packetType, sizeof(packets[num_packets].packetType), ' ');
+            readUntil(data_file, packets[num_packets].packetCount, sizeof(packets[num_packets].packetCount), '\n');
 
             uint64_t macAddressSize = strlen(packets[num_packets].macAddress);
             uint64_t advertisementDataSize = strlen(packets[num_packets].advertisementData);
@@ -542,10 +553,8 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             num_packets++;
 
         } while (num_packets < max_num_packets);
-
-        update_current_packet(packets[0], 0);
-
         data_file.close();
+        update_current_packet(packets[0], 0);
     }
 }
 
@@ -570,6 +579,9 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     std::vector<std::string> strings = splitIntoStrings(packet.advertisementData);
 
+    packet_counter = packet.packet_count;
+    current_packet = currentIndex;
+
     text_packet_index.set(to_string_dec_uint(current_packet));
 
     text_packets_sent.set(to_string_dec_uint(packet.packet_count));
@@ -577,9 +589,6 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
     text_mac_address.set(formattedMacAddress);
 
     progressbar.set_max(packet.packet_count);
-
-    packet_counter = packet.packet_count;
-    current_packet = currentIndex;
 
     dataFile.create(dataTempFilePath);
 

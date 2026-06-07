@@ -9,6 +9,11 @@
 #ifndef __UI_BATTLESHIP_H__
 #define __UI_BATTLESHIP_H__
 
+#include "portapack_shared_memory.hpp"
+#include "utility.hpp"
+#include "modems.hpp"
+#include "bch_code.hpp"
+
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"

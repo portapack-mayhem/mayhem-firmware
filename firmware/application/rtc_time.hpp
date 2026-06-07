@@ -29,6 +29,7 @@
 
 #include "lpc43xx_cpp.hpp"
 #include "portapack_persistent_memory.hpp"
+#include <ctime>
 
 namespace rtc_time {
 

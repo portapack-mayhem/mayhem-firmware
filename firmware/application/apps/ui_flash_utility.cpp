@@ -34,7 +34,7 @@ static const char* hackrf_magic = "HACKRFFW";
 #define FIRST_CHECKSUM_NIGHTLY 240125
 
 Thread* FlashUtilityView::thread{nullptr};
-static constexpr size_t max_filename_length = 26;
+static constexpr size_t max_filename_length = 60;  // max length of filename
 
 static std::filesystem::path::string_type normalize_firmware_path(std::filesystem::path::string_type path) {
     if (path.empty())

@@ -72,19 +72,31 @@ void TransmitterModel::set_channel_bandwidth(uint32_t v) {
 }
 
 uint8_t TransmitterModel::tx_gain() const {
+    if (persistent_memory::config_tx_disabled()) {
+        return 0;
+    }
     return std::min(settings_.tx_gain_db, portapack::persistent_memory::config_tx_gain_max_db());
 }
 
 void TransmitterModel::set_tx_gain(uint8_t v_db) {
-    settings_.tx_gain_db = v_db;
+    uint8_t newgain = v_db;
+    if (persistent_memory::config_tx_disabled()) {
+        newgain = 0;
+    } else if (v_db > portapack::persistent_memory::config_tx_gain_max_db()) {
+        newgain = portapack::persistent_memory::config_tx_gain_max_db();
+    }
+    settings_.tx_gain_db = newgain;
     update_tx_gain();
 }
 
 bool TransmitterModel::rf_amp() const {
-    return settings_.rf_amp && !portapack::persistent_memory::config_tx_amp_disabled();
+    return settings_.rf_amp && !portapack::persistent_memory::config_tx_amp_disabled() && !portapack::persistent_memory::config_tx_disabled();
 }
 
 void TransmitterModel::set_rf_amp(bool enabled) {
+    if (enabled && (portapack::persistent_memory::config_tx_amp_disabled() || portapack::persistent_memory::config_tx_disabled())) {
+        return;
+    }
     settings_.rf_amp = enabled;
     update_rf_amp();
 }

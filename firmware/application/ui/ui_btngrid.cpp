@@ -28,7 +28,6 @@
 #include "rtc_time.hpp"
 #include "sd_card.hpp"
 #include <algorithm>
-#include "ui_external_items_menu_loader.hpp"
 
 namespace ui {
 
@@ -61,7 +60,6 @@ BtnGridView::BtnGridView(
 }
 
 BtnGridView::~BtnGridView() {
-    ExternalItemsMenuLoader::unload_external_items();
 }
 
 void BtnGridView::set_max_rows(int rows) {
@@ -89,7 +87,6 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
             remove_child(item.get());
 
         menu_item_views.clear();
-        menu_item_views.shrink_to_fit();
     }
 
     button_w = screen_width / rows_;
@@ -138,17 +135,15 @@ void BtnGridView::set_arrow_down_enabled(bool enabled) {
 };
 
 void BtnGridView::clear() {
-    // clear vector and release memory, not using swap since it's causing capture to glitch/fault
+    // clear vector, not using swap since it's causing capture to glitch/fault
     menu_items.clear();
-    menu_items.shrink_to_fit();
 
     // TODO(u-foka): Clean up my mess, move this somewhere to clear memory when the view is not visible, but not to be confused with clearing the menu items...
     for (auto& item : menu_item_views)
         remove_child(item.get());
 
-    // clear vector and release memory, not using swap since it's causing capture to glitch/fault
+    // clear vector, not using swap since it's causing capture to glitch/fault
     menu_item_views.clear();
-    menu_item_views.shrink_to_fit();
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items, bool inhibit_update) {
