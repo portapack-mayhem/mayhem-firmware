@@ -63,7 +63,6 @@ cmake-build-debug/
 .idea
 *.swp
 .claude
-.cursor
 
 # VSCodium extensions
 .history
@@ -84,10 +83,3 @@ venv/
 # generated bitmap arr file
 # TODO: generate bitmap during build, since we use python during build anyway, lemme know if this is a bad idea @zxkmm
 /firmware/tools/bitmap.hpp
-
-# Meteor LRPT tools
-/tools/meteor_lrpt/
-
-# Local Docker/share packaging (binaries + logs; README is tracked)
-/share-out/*
-!/share-out/README.txt
