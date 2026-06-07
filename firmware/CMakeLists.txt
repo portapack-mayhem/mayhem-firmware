@@ -57,6 +57,8 @@ add_subdirectory(baseband)
 add_subdirectory(standalone)
 add_subdirectory(test)
 
+add_dependencies(application.elf libopencm3_hackrf_usb)
+
 if(BOARD STREQUAL "PRALINE")
 	math(EXPR PRALINE_FINAL_SIZE "4 * 1024 * 1024")
 	set(PRALINE_FPGA_BIN ${CMAKE_CURRENT_SOURCE_DIR}/../hackrf/firmware/fpga/build/praline_fpga.bin)
