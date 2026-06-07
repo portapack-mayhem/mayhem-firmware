@@ -126,7 +126,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
         // State machine for COSPAS frame detection
         switch (current_state) {
-            case IDLE:
+            case IDLE: {
                 // Continuously pull the AFC estimate toward the mean per-sample
                 // rotation so the accumulator self-centers for any offset up to
                 // the discriminator Nyquist (~+/-24 kHz). On noise the de-biased
@@ -136,6 +136,14 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 freq_offset_est += AFC_TRACK_ALPHA * sample_phase_delta;
                 // Bounds checking: limit to ±5 kHz (~0.654 rad/sample at 48 kHz)
                 freq_offset_est = std::clamp(freq_offset_est, -0.654f, 0.654f);
+
+                // Track AFC convergence using Welford's online algorithm
+                afc_convergence_n++;
+                float delta = freq_offset_est - afc_mean;
+                afc_mean += delta / afc_convergence_n;
+                float delta2 = freq_offset_est - afc_mean;
+                afc_m2 += delta * delta2;
+
                 // We are waiting for a 160ms empty carrier => phase should be stable during this period
                 // Use a symmetric threshold: once AFC has removed the bias a stable
                 // carrier sits near 0, so both positive and negative excursions of
@@ -144,13 +152,17 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                     stability_counter = 0;
                 } else {
                     stability_counter++;
+                    // Check both phase stability AND AFC convergence before transitioning
                     if (stability_counter > CARRIER_SAMPLES_THRESHOLD) {
-                        // Carrier has been stable long enough, go to locked state
-                        current_state = CARRIER_LOCKED;
-                        frame_sample_count = 0;
+                        float afc_variance = (afc_convergence_n > 1) ? afc_m2 / (afc_convergence_n - 1) : 0.0f;
+                        if (afc_variance < AFC_CONVERGENCE_THRESHOLD) {
+                            // Both phase and AFC have converged, go to locked state
+                            current_state = CARRIER_LOCKED;
+                            frame_sample_count = 0;
+                        }
                     }
                 }
-                break;
+            } break;
 
             case CARRIER_LOCKED:
                 // Carrier is locked: this is the clean unmodulated carrier window.
@@ -260,6 +272,10 @@ void EPIRBProcessor::frame_end() {
     freq_offset_est = 0.0f;
     carrier_phase_sum = 0.0f;
     carrier_phase_n = 0;
+    // Reset AFC convergence tracking for next frame
+    afc_mean = 0.0f;
+    afc_m2 = 0.0f;
+    afc_convergence_n = 0;
     packet_builder.reset_state();
 }
 

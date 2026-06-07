@@ -235,6 +235,12 @@ class EPIRBProcessor : public BasebandProcessor {
     // 160 ms preamble / 80 ms stability window, even if reception starts partway
     // through the carrier -- while keeping added acquisition jitter negligible.
     static constexpr float AFC_TRACK_ALPHA = 0.005f;
+    // AFC Convergence detection: track variance of AFC estimate to ensure it has stabilized
+    // before transitioning from IDLE to CARRIER_LOCKED state
+    static constexpr float AFC_CONVERGENCE_THRESHOLD = 0.001f;  // Max variance for convergence
+    float afc_mean = 0.0f;                 // Running mean of AFC estimate
+    float afc_m2 = 0.0f;                   // Sum of squared differences (Welford's algorithm)
+    uint32_t afc_convergence_n = 0;        // Sample count for AFC convergence calculation
     // Running mean of the raw phase delta while a stable carrier is present.
     float carrier_phase_sum = 0.0f;
     uint32_t carrier_phase_n = 0;
