@@ -29,8 +29,11 @@
 #include "audio_dma.hpp"
 
 #include "event_m4.hpp"
-#include <ch.h>
 
+#include <algorithm>
+#include <cmath>
+
+#include <ch.h>
 EPIRBProcessor::EPIRBProcessor() {
     // Configure the decimation filters for narrowband EPIRB signal
     decim_0.configure(taps_11k0_decim_0.taps);
