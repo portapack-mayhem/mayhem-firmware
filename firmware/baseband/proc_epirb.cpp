@@ -133,16 +133,21 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 // deltas average to ~0, so the estimate stays put; on a real
                 // carrier it converges within a few ms and the thresholds below
                 // then see a de-biased signal regardless of the actual offset.
-                freq_offset_est += AFC_TRACK_ALPHA * sample_phase_delta;
-                // Bounds checking: limit to ±5 kHz (~0.654 rad/sample at 48 kHz)
-                freq_offset_est = std::clamp(freq_offset_est, -0.654f, 0.654f);
+                // Only update AFC when the per-sample phase delta is small
+                // (large jumps indicate noise or transient, which would cause
+                // a random-walk drift if used for AFC updates).
+                if (fabsf(sample_phase_delta) <= AFC_UPDATE_PHASE_MAX) {
+                    freq_offset_est += AFC_TRACK_ALPHA * sample_phase_delta;
+                    // Bounds checking: limit to ±5 kHz (~0.654 rad/sample at 48 kHz)
+                    freq_offset_est = std::clamp(freq_offset_est, -0.654f, 0.654f);
 
-                // Track AFC convergence using Welford's online algorithm
-                afc_convergence_n++;
-                float delta = freq_offset_est - afc_mean;
-                afc_mean += delta / afc_convergence_n;
-                float delta2 = freq_offset_est - afc_mean;
-                afc_m2 += delta * delta2;
+                    // Track AFC convergence using Welford's online algorithm
+                    afc_convergence_n++;
+                    float delta = freq_offset_est - afc_mean;
+                    afc_mean += delta / afc_convergence_n;
+                    float delta2 = freq_offset_est - afc_mean;
+                    afc_m2 += delta * delta2;
+                }
 
                 // We are waiting for a 160ms empty carrier => phase should be stable during this period
                 // Use a symmetric threshold: once AFC has removed the bias a stable
@@ -158,6 +163,10 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                         if (afc_variance < AFC_CONVERGENCE_THRESHOLD) {
                             // Both phase and AFC have converged, go to locked state
                             current_state = CARRIER_LOCKED;
+                            // Reset carrier accumulators so the latched update uses
+                            // only the residual measured while in the locked window
+                            carrier_phase_sum = 0.0f;
+                            carrier_phase_n = 0;
                             frame_sample_count = 0;
                         }
                     }
