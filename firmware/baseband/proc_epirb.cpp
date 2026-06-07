@@ -134,6 +134,8 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 // carrier it converges within a few ms and the thresholds below
                 // then see a de-biased signal regardless of the actual offset.
                 freq_offset_est += AFC_TRACK_ALPHA * sample_phase_delta;
+                // Bounds checking: limit to ±5 kHz (~0.654 rad/sample at 48 kHz)
+                freq_offset_est = std::clamp(freq_offset_est, -0.654f, 0.654f);
                 // We are waiting for a 160ms empty carrier => phase should be stable during this period
                 // Use a symmetric threshold: once AFC has removed the bias a stable
                 // carrier sits near 0, so both positive and negative excursions of
@@ -164,6 +166,8 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                     // residual is folded into any prior estimate.
                     if (carrier_phase_n > 0) {
                         freq_offset_est += carrier_phase_sum / carrier_phase_n;
+                        // Bounds checking: limit to ±5 kHz (~0.654 rad/sample at 48 kHz)
+                        freq_offset_est = std::clamp(freq_offset_est, -0.654f, 0.654f);
                     }
                     // Jump detected, frame starts now
                     frame_sample_count = 0;
