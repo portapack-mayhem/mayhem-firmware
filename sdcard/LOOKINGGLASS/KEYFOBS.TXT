@@ -1,0 +1,11 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# KEYFOBS
+305,325,315 MHz KEYFOBS
+380,400,390 MHz KEYFOBS
+423,443,433 MHz KEYFOBS
+858,878,868 MHz KEYFOBS
+902,929,915 MHz KEYFOBS
+# 260,500,315/433 MHz KEYFOBS
