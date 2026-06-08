@@ -1,0 +1,8 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# COMMON PUBLIC SERVICE BANDS
+150,160, PUBLIC SERVICE 155
+450,470,PUBLIC SERVICE 460
+769,775,PUBLIC SERVICE 770
