@@ -1,0 +1,9 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# BROADCAST RADIO
+87,108,FM BROADCAST USA
+76,108,FM BROADCAST BRAZIL
+76,95,FM BROADCAST JAPAN
+65,74,FM OIRT EAST EU
