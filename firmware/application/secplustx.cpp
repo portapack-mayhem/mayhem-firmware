@@ -1,3 +1,12 @@
+/*
+ * Copyright 2022 Clayton Smith (argilo@gmail.com)
+ *
+ * This file is part of secplus.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ */
+
 #include "secplustx.hpp"
 
 namespace secplustx {
