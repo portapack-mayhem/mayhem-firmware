@@ -197,7 +197,7 @@ class GlassView : public View {
         {UI_POS_X(27), UI_POS_Y(0)}};
 
     TextField field_range{
-        {UI_POS_X(6), UI_POS_Y(1), UI_POS_WIDTH(6), 16},
+        {UI_POS_X(6), UI_POS_Y(1), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)},
         ""};
 
     OptionsField filter_config{
