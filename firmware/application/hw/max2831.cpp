@@ -347,9 +347,9 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
      * external Anti-Aliasing (AA) filter on pin P1_14 to prevent aliasing.
      */
     if (actual_bw <= 1750000) {
-        palSetPad(1, 14);  // Enable external narrow AA filter
+        gpio_control::aa_en.set();  // Enable external narrow AA filter
     } else {
-        palClearPad(1, 14);  // Disable external AA filter for wideband operations
+        gpio_control::aa_en.clear();  // Disable external AA filter for wideband operations
     }
 
     _desired_lpf_bw = actual_bw;
@@ -366,7 +366,7 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
 void MAX2831::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {
     _desired_lpf_bw = bandwidth_minimum;
 #ifdef PRALINE
-    palClearPad(1, 14);  // Disable external AA filter for wideband operations
+    gpio_control::aa_en.clear();  // Disable external AA filter for wideband operations
 #endif
     if (_mode == Mode::Transmit || _mode == Mode::Tx_Calibration) {
         set_lpf_bandwidth_internal(bandwidth_minimum);

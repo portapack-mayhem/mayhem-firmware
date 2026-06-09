@@ -324,6 +324,10 @@ constexpr PinMap map_p2_ctrl1{8, 4, 7, 4};
 constexpr PinMap map_trigger_out{2, 6, 5, 6};
 constexpr PinMap map_trigger_in{13, 12, 6, 26};
 
+constexpr PinMap map_rf5072_mix_en{9, 0, 4, 12};
+
+constexpr PinMap map_aa_en{1, 14, 0, 7};  // Anti-Aliasing filter
+
 // P1 Multiplexer control pins
 constexpr Pin pin_p1_ctrl0{map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin};                                         // SCU: P2_10
 constexpr GPIO p1_ctrl0{pin_p1_ctrl0, map_p1_ctrl0.gpio_port, map_p1_ctrl0.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[0]14
@@ -347,6 +351,14 @@ constexpr GPIO trigger_out{trigger_out_pin, map_trigger_out.gpio_port, map_trigg
 
 constexpr Pin trigger_in_pin{map_trigger_in.scu_port, map_trigger_in.scu_pin};                                 // SCU: PD_12
 constexpr GPIO trigger_in{trigger_in_pin, map_trigger_in.gpio_port, map_trigger_in.gpio_pad, PAL_MODE_INPUT};  // GPIO[6]26
+
+// RF507x
+constexpr Pin pin_rf5072_mix_en{map_rf5072_mix_en.scu_port, map_rf5072_mix_en.scu_pin};
+constexpr GPIO rf5072_mix_en{pin_rf5072_mix_en, map_rf5072_mix_en.gpio_port, map_rf5072_mix_en.gpio_pad, 0};
+
+// Anti-Aliasing filter
+constexpr Pin pin_aa_en{map_aa_en.scu_port, map_aa_en.scu_pin};
+constexpr GPIO aa_en{pin_aa_en, map_aa_en.gpio_port, map_aa_en.gpio_pad, 0};
 
 }  // namespace gpio_control
 #endif

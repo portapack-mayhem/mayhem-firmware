@@ -176,7 +176,7 @@ struct SynthConfig {
 
 void RFFC507x::init() {
 #ifdef PRALINE
-    palSetPad(9, 0);  // RF5072_MIX_EN
+    gpio_control::rf5072_mix_en.set();  // RF5072_MIX_EN
 #endif
 
     gpio_rffc5072_resetx.set();
