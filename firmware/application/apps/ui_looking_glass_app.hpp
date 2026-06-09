@@ -218,7 +218,7 @@ class GlassView : public View {
         {}};
 
     ButtonWithEncoder button_beep_squelch{
-        {UI_POS_X_RIGHT(8), UI_POS_Y(2), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(2.25), UI_POS_WIDTH(8), UI_POS_HEIGHT(0.5)},
         ""};
 
     TextField field_marker{
@@ -226,11 +226,11 @@ class GlassView : public View {
         ""};
 
     Button button_marker_minus{
-        {UI_POS_X(7), UI_POS_Y(3), UI_POS_WIDTH(1), UI_POS_HEIGHT(1)},
+        {UI_POS_X(7), UI_POS_Y(3.25), UI_POS_WIDTH(1), UI_POS_HEIGHT(0.5)},
         "-"};
 
     Button button_marker_plus{
-        {UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH(1), UI_POS_HEIGHT(1)},
+        {UI_POS_X(9), UI_POS_Y(3.25), UI_POS_WIDTH(1), UI_POS_HEIGHT(0.5)},
         "+"};
 
     NumberField field_trigger{
