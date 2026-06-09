@@ -1,0 +1,8 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# MICS
+140,380,MICS (VHF) AND MARINE
+420,660,MICS (UHF)
+169,172,MICS COMMON

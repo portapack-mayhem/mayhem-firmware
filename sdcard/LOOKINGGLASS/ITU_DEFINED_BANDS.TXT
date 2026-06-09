@@ -1,0 +1,10 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# ITU-DEFINED BANDS
+1,3,MF BAND
+3,30,HF BAND
+30,300,VHF BAND
+300,3000,UHF BAND
+3000,7250,SHF BAND

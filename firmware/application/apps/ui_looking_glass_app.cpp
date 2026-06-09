@@ -24,6 +24,7 @@
 #include "ui_looking_glass_app.hpp"
 #include "convert.hpp"
 #include "file_reader.hpp"
+#include "file.hpp"
 #include "string_format.hpp"
 #include "audio.hpp"
 #include "file_path.hpp"
@@ -603,34 +604,39 @@ void GlassView::on_freqchg(int64_t freq) {
 }
 
 void GlassView::load_presets() {
-    File presets_file;
-    auto error = presets_file.open(looking_glass_dir / u"PRESETS.TXT");
     presets_db.clear();
 
     // Add the "Manual" entry.
     presets_db.push_back({0, 0, "Manual"});
 
-    if (!error) {
-        auto reader = FileLineReader(presets_file);
-        for (const auto& line : reader) {
-            if (line.length() == 0 || line[0] == '#')
-                continue;
+    scan_root_files(looking_glass_dir, u"*.TXT", [this](const std::filesystem::path& path) {
+        if (path.empty() || path.native()[0] == u'.')
+            return;
 
-            auto cols = split_string(line, ',');
-            if (cols.size() != 3)
-                continue;
+        File presets_file;
+        auto error = presets_file.open(looking_glass_dir / path);
+        if (!error) {
+            auto reader = FileLineReader(presets_file);
+            for (const auto& line : reader) {
+                if (line.length() == 0 || line[0] == '#')
+                    continue;
 
-            preset_entry entry{};
-            parse_int(cols[0], entry.min);
-            parse_int(cols[1], entry.max);
-            entry.label = trimr(cols[2]);
+                auto cols = split_string(line, ',');
+                if (cols.size() != 3)
+                    continue;
 
-            if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
-                continue;  // Invalid line.
+                preset_entry entry{};
+                parse_int(cols[0], entry.min);
+                parse_int(cols[1], entry.max);
+                entry.label = trimr(cols[2]);
 
-            presets_db.emplace_back(std::move(entry));
+                if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
+                    continue;  // Invalid line.
+
+                presets_db.emplace_back(std::move(entry));
+            }
         }
-    }
+    });
 
     populate_presets();
 }
