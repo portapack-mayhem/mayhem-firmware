@@ -234,6 +234,7 @@ set(CPPSRC
 	replay_thread.cpp
 	rf_path.cpp
 	rtc_time.cpp
+        secplustx.cpp
 	sd_card.cpp
 	serializer.cpp
 	spectrum_color_lut.cpp
