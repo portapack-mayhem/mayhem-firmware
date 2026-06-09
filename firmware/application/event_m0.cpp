@@ -56,6 +56,8 @@ using namespace hackrf::one;
 
 #include "ui_navigation.hpp"
 
+#include "gpio.hpp"
+
 static int delayed_error = 0;
 
 extern "C" {
@@ -185,8 +187,8 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
         SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
 
-        vaa_power_off();
-        core_power_off();
+        power_control::vaa_power_off();
+        power_control::core_power_off();
 
 #ifdef PRALINE
         // Power management and GPIO configuration for Praline hardware

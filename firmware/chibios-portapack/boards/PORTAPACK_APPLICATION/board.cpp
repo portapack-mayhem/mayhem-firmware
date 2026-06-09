@@ -20,9 +20,10 @@
 
 #include <array>
 
+#include "gpio.hpp"
+
 // Declare wrapper function. board.cpp to avoid conflicting gpio_t definitions.
 bool hackrf_r9;
-
 #if HAL_USE_PAL || defined(__DOXYGEN__)
 /**
  * @brief   PAL setup.
@@ -55,11 +56,11 @@ const PALConfig pal_default_config = {
             // GPIO0
             .data
 #ifdef PRALINE
-            = (0 << 7)     // P2_7:  Input GND
-              | (0 << 8)   // P1_1:  Input GND
-              | (1 << 9)   // P1_2:  Input VCC
-              | (0 << 14)  // P2_10: P1_CTRL0 (Output GND)
-              | (0 << 15)  // P1_20: CLKIN_CTRL - start low
+            = (0 << 7)                               // P2_7:  Input GND
+              | (0 << 8)                             // P1_1:  Input GND
+              | (1 << 9)                             // P1_2:  Input VCC
+              | boot_bit(gpio_control::p1_ctrl0, 0)  // P2_10: P1_CTRL0, start low
+              | (0 << 15)                            // P1_20: CLKIN_CTRL - start low
 #else
             = (1 << 14)    // P2_10: AMP_BYPASS
               | (1 << 15)  // P1_20: CS_XCVR
@@ -81,11 +82,11 @@ const PALConfig pal_default_config = {
             ,
             .dir
 #ifdef PRALINE
-            = (0 << 7)     // P2_7:  Input
-              | (0 << 8)   // P1_1:  Input
-              | (0 << 9)   // P1_2:  Input
-              | (1 << 14)  // P2_10: P1_CTRL0
-              | (1 << 15)  // P1_20: CLKIN_CTRL
+            = (0 << 7)                               // P2_7:  Input
+              | (0 << 8)                             // P1_1:  Input
+              | (0 << 9)                             // P1_2:  Input
+              | boot_bit(gpio_control::p1_ctrl0, 1)  // P2_10: P1_CTRL0
+              | (1 << 15)                            // P1_20: CLKIN_CTRL
 #else
             = (1 << 14)    // P2_10: AMP_BYPASS
               | (1 << 15)  // P1_20: CS_XCVR
@@ -203,7 +204,7 @@ const PALConfig pal_default_config = {
                    | (1 << 11)  // P5_2:  TX_MIX_BP
                    | (1 << 10)  // P5_1:  LP
                    | (0 << 4)   // P4_4:  Varies by revision
-                   | (1 << 9)   // P5_0:  Varies by revision
+                   | (0 << 9)   // P5_0:  Varies by revision
                    | (1 << 0)   // P4_0:  HP
                    | (0 << 3)   // P4_3:  SGPIO9, HOST_CAPTURE
                    | (1 << 6)   // P4_6:  XCVR_EN, 10K PD
@@ -226,17 +227,17 @@ const PALConfig pal_default_config = {
                     | (1 << 9)   // P7_1:  PortaPack GPIO3_9(IO)
                     | (1 << 8)   // P7_0:  PortaPack GPIO3_8(IO)
 #ifdef PRALINE
-                    | (0 << 4)  // P6_5:  TX_ENABLE
-                    | (1 << 2)  // P6_3:  MIX_ENABLE_N
-                    | (0 << 6)  // P6_10: unused on PRALINE
-                    | (0 << 5)  // P6_9:  P1_CTRL2
+                    | (0 << 4)                             // P6_5:  TX_ENABLE
+                    | (1 << 2)                             // P6_3:  MIX_ENABLE_N
+                    | (0 << 6)                             // P6_10: unused on PRALINE
+                    | boot_bit(gpio_control::p1_ctrl2, 0)  // P6_9:  P1_CTRL2
 #else
+                    | (1 << 4)  // P6_5:  HackRF CPLD.TMS(I)
                     | (1 << 7)  // P6_11: VREGMODE
                     | (0 << 6)  // P6_10: Varies by revision
                     | (1 << 2)  // P6_3:  SGPIO4, HOST_DATA4
                     | (1 << 5)  // P6_9:  !TX_AMP_PWR, 10K PU
 #endif
-                    | (1 << 4)  // P6_5:  HackRF CPLD.TMS(I)
                     | (1 << 3)  // P6_4:  MIXER_SDATA
                     | (1 << 1)  // P6_2:  HackRF CPLD.TDI(I)
                     | (1 << 0)  // P6_1:  HackRF CPLD.TCK(I)
@@ -250,11 +251,11 @@ const PALConfig pal_default_config = {
                    | (1 << 9)   // P7_1:  PortaPack GPIO3_9(IO)
                    | (1 << 8)   // P7_0:  PortaPack GPIO3_8(IO)
 #ifdef PRALINE
-                   | (0 << 7)  // P6_11: 3V3AUX_OC
-                   | (1 << 4)  // P6_5:  TX_ENABLE
-                   | (1 << 2)  // P6_3:  MIX_ENABLE_N
-                   | (0 << 6)  // P6_10: unused on PRALINE
-                   | (1 << 5)  // P6_9:  P1_CTRL2
+                   | (0 << 7)                             // P6_11: 3V3AUX_OC
+                   | (1 << 4)                             // P6_5:  TX_ENABLE
+                   | (1 << 2)                             // P6_3:  MIX_ENABLE_N
+                   | (0 << 6)                             // P6_10: unused on PRALINE
+                   | boot_bit(gpio_control::p1_ctrl2, 1)  // P6_9:  P1_CTRL2
 #else
                    | (1 << 7)  // P6_11: VREGMODE
                    | (0 << 6)  // P6_10: Varies by revision
@@ -310,22 +311,22 @@ const PALConfig pal_default_config = {
             // GPIO5
             .data =
 #ifdef PRALINE
-                (0 << 18)    // P9_5: RFF5072 SCLK
-                | (0 << 6)   // P2_6: Trigger
-                | (0 << 14)  // P4_10: FPGA CDONE
-                | (1 << 15)  // P6_7: 3V3 AUX_ENABLE
-                | (0 << 16)  // P6_8: P1_CTRL1
-                | (0 << 17)  // P9_4: FPGA SGPIO
-                | (0 << 19)  // PA_4: Output GND
-                | (0 << 20)  // PB_0: Output GND
-                | (0 << 21)  // PB_1: Output GND
-                | (0 << 22)  // PB_2: Unused IN
-                | (0 << 23)  // PB_3: Output GND
-                | (0 << 24)  // PB_4: Unused IN
-                | (0 << 25)  // PB_5: Output GND
-                | (0 << 5)   // P2_5: PPS OUT/IN
-                | (0 << 12)  // P4_8: Output GND
-                | (0 << 13)  // P4_9: TPS62410 VREGMODE
+                (0 << 18)                                 // P9_5: RFF5072 SCLK
+                | boot_bit(gpio_control::trigger_out, 0)  // P2_6: Trigger out
+                | (0 << 14)                               // P4_10: FPGA CDONE
+                | (1 << 15)                               // P6_7: 3V3 AUX_ENABLE
+                | boot_bit(gpio_control::p1_ctrl1, 0)     // P6_8: P1_CTRL1
+                | (0 << 17)                               // P9_4: FPGA SGPIO
+                | (0 << 19)                               // PA_4: Output GND
+                | (0 << 20)                               // PB_0: Output GND
+                | (0 << 21)                               // PB_1: Output GND
+                | (0 << 22)                               // PB_2: Unused IN
+                | (0 << 23)                               // PB_3: Output GND
+                | (0 << 24)                               // PB_4: Unused IN
+                | (0 << 25)                               // PB_5: Output GND
+                | (0 << 5)                                // P2_5: PPS OUT/IN
+                | (0 << 12)                               // P4_8: Output GND
+                | (0 << 13)                               // P4_9: TPS62410 VREGMODE
 #else
                 (1 << 18)    // P9_5: HackRF CPLD.TDO(O)
                 | (0 << 6)   // P2_6: MIXER_SCLK
@@ -349,22 +350,22 @@ const PALConfig pal_default_config = {
             ,
             .dir =
 #ifdef PRALINE
-                (1 << 18)    // P9_5: RFF5072 SCLK
-                | (0 << 6)   // P2_6: Trigger (Start as INPUT)
-                | (0 << 14)  // P4_10: FPGA CDONE
-                | (1 << 15)  // P6_7: 3V3 AUX_ENABLE
-                | (1 << 16)  // P6_8: P1_CTRL1
-                | (0 << 17)  // P9_4: FPGA SGPIO
-                | (1 << 19)  // PA_4: Output
-                | (1 << 20)  // PB_0: Output GND
-                | (1 << 21)  // PB_1: Output GND
-                | (0 << 22)  // PB_2: Unused
-                | (1 << 23)  // PB_3: Output
-                | (0 << 24)  // PB_4: Unused
-                | (1 << 25)  // PB_5: Output
-                | (0 << 5)   // P2_5: PPS (Bidirectional)
-                | (1 << 12)  // P4_8: Output
-                | (1 << 13)  // P4_9: TPS62410 VREGMODE
+                (1 << 18)                                 // P9_5: RFF5072 SCLK
+                | boot_bit(gpio_control::trigger_out, 1)  // P2_6: Trigger out
+                | (0 << 14)                               // P4_10: FPGA CDONE
+                | (1 << 15)                               // P6_7: 3V3 AUX_ENABLE
+                | (1 << 16)                               // P6_8: P1_CTRL1
+                | (0 << 17)                               // P9_4: FPGA SGPIO
+                | (1 << 19)                               // PA_4: Output
+                | (1 << 20)                               // PB_0: Output GND
+                | (1 << 21)                               // PB_1: Output GND
+                | (0 << 22)                               // PB_2: Unused
+                | (1 << 23)                               // PB_3: Output
+                | (0 << 24)                               // PB_4: Unused
+                | (1 << 25)                               // PB_5: Output
+                | (0 << 5)                                // P2_5: PPS (Bidirectional)
+                | (1 << 12)                               // P4_8: Output
+                | (1 << 13)                               // P4_9: TPS62410 VREGMODE
 #else
                 (0 << 18)    // P9_5: HackRF CPLD.TDO(O)
                 | (1 << 6)   // P2_6: MIXER_SCLK
@@ -389,17 +390,17 @@ const PALConfig pal_default_config = {
         {
 // GPIO6
 #ifdef PRALINE
-            .data = (1 << 28)    // PD_14: MAX2831 chip select
-                    | (0 << 29)  // PD_15: MAX2831 RXHP control RXHP low = 100 Hz HPF
-                    | (1 << 30)  // PD_16: MAX5864 chip select
-                    | (1 << 25)  // PD_11: RFFC5072 Lock Detect
-                    | (0 << 26)  // PD_12: TRIGGER IN
+            .data = (1 << 28)                                // PD_14: MAX2831 chip select
+                    | (0 << 29)                              // PD_15: MAX2831 RXHP control RXHP low = 100 Hz HPF
+                    | (1 << 30)                              // PD_16: MAX5865 chip select
+                    | (1 << 25)                              // PD_11: RFFC5072 Lock Detect
+                    | boot_bit(gpio_control::trigger_in, 0)  // PD_12: TRIGGER IN
             ,
-            .dir = (1 << 28)    // PD_14: MAX2831 chip select
-                   | (1 << 29)  // PD_15: MAX2831 RXHP control
-                   | (1 << 30)  // PD_16: MAX5864 chip select
-                   | (0 << 25)  // PD_11: RFFC5072 Lock Detect
-                   | (0 << 26)  // PD_12: TRIGGER IN
+            .dir = (1 << 28)                                // PD_14: MAX2831 chip select
+                   | (1 << 29)                              // PD_15: MAX2831 RXHP control
+                   | (1 << 30)                              // PD_16: MAX5865 chip select
+                   | (0 << 25)                              // PD_11: RFFC5072 Lock Detect
+                   | boot_bit(gpio_control::trigger_in, 0)  // PD_12: TRIGGER IN
 #else
             .data = 0,
             .dir = 0
@@ -408,17 +409,17 @@ const PALConfig pal_default_config = {
         {
 // GPIO7
 #ifdef PRALINE
-            .data = (0 << 0)    // PE_0: Output
-                    | (0 << 1)  // PE_1: MAX2831 !SHDN
-                    | (0 << 2)  // PE_2: MAX2831 RXTX
-                    | (0 << 3)  // PE_3: P2_ctrl0
-                    | (0 << 4)  // PE_4: P2_ctrl1
+            .data = (0 << 0)                               // PE_0: Output
+                    | (0 << 1)                             // PE_1: MAX2831 !SHDN
+                    | (0 << 2)                             // PE_2: MAX2831 RXTX
+                    | boot_bit(gpio_control::p2_ctrl0, 0)  // PE_3: P2_ctrl0
+                    | boot_bit(gpio_control::p2_ctrl1, 0)  // PE_4: P2_ctrl1
             ,
-            .dir = (1 << 0)    // PE_0: Output
-                   | (1 << 1)  // PE_1: MAX2831 !SHDN
-                   | (1 << 2)  // PE_2: MAX2831 RXTX
-                   | (1 << 3)  // PE_3: P2_ctrl0
-                   | (1 << 4)  // PE_4: P2_ctrl1
+            .dir = (1 << 0)                               // PE_0: Output
+                   | (1 << 1)                             // PE_1: MAX2831 !SHDN
+                   | (1 << 2)                             // PE_2: MAX2831 RXTX
+                   | boot_bit(gpio_control::p2_ctrl0, 1)  // PE_3: P2_ctrl0
+                   | boot_bit(gpio_control::p2_ctrl1, 1)  // PE_4: P2_ctrl1
 #else
             .data = 0,
             .dir = 0
@@ -441,16 +442,16 @@ const PALConfig pal_default_config = {
 
         {6, 11, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // VREGMODE: TPS62410
 #ifdef PRALINE
-        {8, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P8_1: VAA_EN
-        {8, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P8_4: VBUS_IN_EN
-        {8, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P8_5: VIN_IN_EN
-        {8, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P8_7: 1V2_EN
-        {6, 7, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P6_7: 3.3V Aux Enable
-        {4, 9, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P4_9: TPS62410 mode
-        {2, 10, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_10: P1_CTRL0
-        {6, 9, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},   // P6_9: P1_CTRL2 (Output VCC, PU ON,)
-        {14, 3, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PE_3: P2_CTRL0
-        {14, 4, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PE_4: P2_CTRL1
+        {8, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P8_1: VAA_EN
+        {8, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P8_4: VBUS_IN_EN
+        {8, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P8_5: VIN_IN_EN
+        {8, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P8_7: 1V2_EN
+        {6, 7, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P6_7: 3.3V Aux Enable
+        {4, 9, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P4_9: TPS62410 mode
+        {gpio_control::map_p1_ctrl0.scu_port, gpio_control::map_p1_ctrl0.scu_pin, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_10: P1_CTRL0
+        {gpio_control::map_p1_ctrl2.scu_port, gpio_control::map_p1_ctrl2.scu_pin, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_9: P1_CTRL2 (Output VCC, PU ON,)
+        {gpio_control::map_p2_ctrl0.scu_port, gpio_control::map_p2_ctrl0.scu_pin, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PE_3: P2_CTRL0
+        {gpio_control::map_p2_ctrl1.scu_port, gpio_control::map_p2_ctrl1.scu_pin, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PE_4: P2_CTRL1
 #endif
 
         /* HackRF: I2C0 */
@@ -484,16 +485,16 @@ const PALConfig pal_default_config = {
         {1, 0, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},   // SGPIO7: HOST_DATA7(IO)
         {1, 18, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // SGPIO12: HOST_INVERT(I)
 #ifdef PRALINE
-        {8, 0, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},    // SGPIO8: P8_0 func 4 (CLK)
-        {8, 2, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},    // SGPIO10: P8_2 func 4 (DISABLE)
-        {9, 3, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},    // SGPIO9: P9_3 func 6 (CAPTURE)
-        {9, 4, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},    // SGPIO4: P9_4 func 6
-        {1, 17, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},   // SGPIO11: P1_17 func 6 (DIRECTION)
-        {6, 4, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},    // P6_4: SCT_CLK IN (Fast clock input, Mode 1)
-        {4, 10, scu_config_normal_drive_t{.mode = 7, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},   // P4_10: FPGA Config Done (Input GND)
-        {13, 12, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // PD_12: TRIGGER IN (Input GND, Mode 4)
-        {2, 6, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},    // P2_6: TRIGGER
-        {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},    // P2_5: PPS OUT/IN (Mode 4 per Suppl. Data)
+        {8, 0, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                           // SGPIO8: P8_0 func 4 (CLK)
+        {8, 2, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                           // SGPIO10: P8_2 func 4 (DISABLE)
+        {9, 3, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                           // SGPIO9: P9_3 func 6 (CAPTURE)
+        {9, 4, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                           // SGPIO4: P9_4 func 6
+        {1, 17, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                          // SGPIO11: P1_17 func 6 (DIRECTION)
+        {6, 4, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                           // P6_4: SCT_CLK IN (Fast clock input, Mode 1)
+        {4, 10, scu_config_normal_drive_t{.mode = 7, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                                                          // P4_10: FPGA Config Done (Input GND)
+        {gpio_control::map_trigger_in.scu_port, gpio_control::map_trigger_in.scu_pin, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},    // PD_12: TRIGGER IN (Input GND, Mode 4)
+        {gpio_control::map_trigger_out.scu_port, gpio_control::map_trigger_out.scu_pin, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // P2_6: TRIGGER
+        {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                                                           // P2_5: PPS OUT/IN (Mode 4 per Suppl. Data)
 #else
         ///////////////ezeket át kell nézni mert a kommentek nem ülnek
         {9, 6, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},   // SGPIO8: SI5351C.CLK2(O)
@@ -518,7 +519,6 @@ const PALConfig pal_default_config = {
         {4, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P4_0 HP
         {5, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P5_1 LP
         {5, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P5_2 TX_MIX_BP
-        {6, 8, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P6_8 MIX_BYPASS, PRALINE: P1_CTRL1 (Output GND, Mode 4)
 
 #ifdef PRALINE
         {5, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},    // P5_4: RFFC ENX
@@ -530,15 +530,16 @@ const PALConfig pal_default_config = {
         {13, 15, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},  // PD_15: MAX2831 RXHP
         {13, 16, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // PD_16: MAX5864 CS
 
-        {14, 1, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // PE_1: MAX2831 !SHDN
-        {14, 2, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},  // PE_2: MAX2831 RXTX
-        {6, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}},   // P6_3: MIX_ENABLE_N
-        {1, 14, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 0}},  // P1_14: AA_EN
-        {9, 0, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P9_0: RF5072 MIX EN
-        {9, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},   // P9_6: MAX2831 LD Input
-        {6, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},   // P6_5: TX enable
-        {10, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // PA_1: LPF enable
-        {10, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // PA_2: RF amp enable
+        {14, 1, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                    // PE_1: MAX2831 !SHDN
+        {14, 2, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                    // PE_2: MAX2831 RXTX
+        {6, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}},                                                                     // P6_3: MIX_ENABLE_N
+        {gpio_control::map_p1_ctrl1.scu_port, gpio_control::map_p1_ctrl1.scu_pin, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_8 P1_CTRL1 (Output GND, Mode 4)
+        {1, 14, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 0}},                                                                    // P1_14: AA_EN
+        {9, 0, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P9_0: RF5072 MIX EN
+        {9, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                     // P9_6: MAX2831 LD Input
+        {6, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                     // P6_5: TX enable
+        {10, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                    // PA_1: LPF enable
+        {10, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                    // PA_2: RF amp enable
 #else
         {5, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P5_3 RX_MIX_BP
         {5, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // MIXER_ENX
@@ -548,6 +549,7 @@ const PALConfig pal_default_config = {
         {6, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},   // MIXER_SDATA
         {1, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // !MIX_BYPASS
         {2, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // AMP_BYPASS
+        {6, 8, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P6_8 MIX_BYPASS
         {6, 9, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // !TX_AMP_PWR
 #endif
 
@@ -823,25 +825,6 @@ static const std::array<scu_setup_t, 6> pins_setup_spifi{{
     {3, 8, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_CS/P68: W25Q80BV.CS(I) */
 }};
 
-template <size_t N>
-void setup_gpios(const std::array<gpio_setup_t, N>& pins_setup) {
-    for (size_t i = 0; i < N; i++) {
-        LPC_GPIO->PIN[i] |= pins_setup[i].data;
-        LPC_GPIO->DIR[i] |= pins_setup[i].dir;
-    }
-}
-
-static void setup_pin(const scu_setup_t& pin_setup) {
-    LPC_SCU->SFSP[pin_setup.port][pin_setup.pin] = pin_setup.config;
-}
-
-template <size_t N>
-void setup_pins(const std::array<scu_setup_t, N>& pins_setup) {
-    for (const auto& pin_setup : pins_setup) {
-        setup_pin(pin_setup);
-    }
-}
-
 /*
  * HackRF One r9 has a pull-up on GPIO3_6 (P6_10) and a pull-down on GPIO2_9 (P5_0).
  * HackRF One OG has a pull-down on GPIO3_6 (P6_10) and a pull-up on GPIO2_9 (P5_0).
@@ -884,16 +867,6 @@ static void configure_spifi(void) {
 void configure_pins_portapack(void) {
     setup_pins(pins_setup_portapack);
 }
-
-static const motocon_pwm_resources_t motocon_pwm_resources = {
-    .base = {.clk = &LPC_CGU->BASE_APB1_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 1)},
-    .branch = {.cfg = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG, .stat = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_STAT},
-    .reset = {.output_index = 38},
-};
-
-static const scu_setup_t pin_setup_vaa_enablex_pwm = {5, 0, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
-static const scu_setup_t pin_setup_vaa_enablex_gpio_og = {5, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
-static const scu_setup_t pin_setup_vaa_enablex_gpio_r9 = {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
 
 /**
  * @brief   Early initialization code.
@@ -1013,152 +986,6 @@ extern "C" void __late_init(void) {
     chSysInit();
 }
 
-#ifdef PRALINE
-
-void aux_power_on(void) {
-    // 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Clear = ON)
-    LPC_GPIO->CLR[5] = (1 << 15);
-}
-
-void aux_power_off(void) {
-    // 3.3V Aux - P6_7 = GPIO5[15], Active LOW (Set = OFF)
-    LPC_GPIO->SET[5] = (1 << 15);
-}
-
-#endif /* PRALINE */
-
-void core_power_on(void) {  // Core power enable
-#ifdef PRALINE
-    // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Set = ON)
-    LPC_GPIO->SET[4] = (1 << 7);
-
-#else
-    if (hackrf_r9) {
-        // P5_0 (GPIO2[9]) is the EN1V8 pin
-        LPC_GPIO->SET[2] = (1 << 9);
-    } else {
-        // On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin
-        LPC_GPIO->SET[3] = (1 << 6);
-    }
-#endif
-}
-
-void core_power_off(void) {  // Core power disable
-#ifdef PRALINE
-    // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Clear = OFF) */
-    LPC_GPIO->CLR[4] = (1 << 7);
-
-#else
-    if (hackrf_r9) {
-        // P5_0 (GPIO2[9]) is the EN1V8 pin
-        LPC_GPIO->CLR[2] = (1 << 9);
-    } else {
-        // On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin
-        LPC_GPIO->CLR[3] = (1 << 6);
-    }
-#endif
-}
-
-/* VAA powers:
- * MAX5864 analog section.
- * MAX2837 registers and other functions.
- * RFFC5072 analog section.
- *
- * Beware that power applied to pins of the MAX2837 may
- * show up on VAA and start powering other components on the
- * VAA net. So turn on VAA before driving pins from MCU to
- * MAX2837.
- */
-
-void vaa_power_on(void) {
-    /* Very twitchy process for powering up VAA without glitching the 3.3V rail,
-     * which can send the microcontroller into reset.
-     */
-#ifdef PRALINE
-    /* P8_1 (GPIO4[1]) does not have MOTOCONPWM hardware routing.
-     * Using software bit-banging (pseudo-PWM) for VAA soft-start.
-     * VAA is active LOW (0 = ON).
-     */
-
-    /* Software soft-start loop to prevent brown-out */
-    for (uint32_t i = 0; i < 1000; i++) {
-        LPC_GPIO->W4[1] = 0; /* Turn ON briefly */
-        LPC_GPIO->W4[1] = 1; /* Turn OFF briefly */
-    }
-
-    /* Latch VAA to ON state (Active LOW) */
-    LPC_GPIO->CLR[4] = (1 << 1);
-
-#else
-    if (hackrf_r9) {
-        /* Soft-start for HackRF r9 using software bit-banging */
-        setup_pin(pin_setup_vaa_enablex_gpio_r9);
-        for (uint32_t i = 0; i < 1000; i++) {
-            LPC_GPIO->W3[6] = 1;
-            LPC_GPIO->W3[6] = 0;
-        }
-    } else {
-        /* Soft-start for HackRF OG using MOTOCONPWM hardware peripheral */
-        base_clock_enable(&motocon_pwm_resources.base);
-        branch_clock_enable(&motocon_pwm_resources.branch);
-        peripheral_reset(&motocon_pwm_resources.reset);
-
-        const uint32_t cycle_period = 256;
-        uint32_t enable_period = 2;
-        LPC_MCPWM->TC2 = 0;
-        LPC_MCPWM->MAT2 = cycle_period - enable_period;
-        LPC_MCPWM->LIM2 = cycle_period;
-
-        setup_pin(pin_setup_vaa_enablex_pwm);
-        LPC_MCPWM->CON_SET = (1 << 16);
-
-        while (enable_period < cycle_period) {
-            {
-                volatile uint32_t delay = 2000;
-                while (delay--);
-            }
-            enable_period <<= 1;
-            LPC_MCPWM->MAT2 = cycle_period - enable_period;
-        }
-
-        LPC_GPIO->CLR[2] = (1 << 9);
-        LPC_GPIO->DIR[2] |= (1 << 9);
-        setup_pin(pin_setup_vaa_enablex_gpio_og);
-
-        peripheral_reset(&motocon_pwm_resources.reset);
-        branch_clock_disable(&motocon_pwm_resources.branch);
-        base_clock_disable(&motocon_pwm_resources.base);
-    }
-
-    /* Handle VAA Enable Pin Latching */
-    if (hackrf_r9) {
-        LPC_GPIO->W2[9] = 1;
-    } else {
-        LPC_GPIO->W3[6] = 1;
-    }
-#endif
-}
-
-void vaa_power_off(void) {
-    /* TODO: There's a lot of other stuff that must be done to prevent
-     * leakage from +3V3 into VAA.
-     */
-#ifdef PRALINE
-    /* Safe state: OFF (VAA RF is active LOW, so Set = OFF) */
-    LPC_GPIO->SET[4] = (1 << 1);
-
-    /* Turn OFF LED3 (TX) */
-    LPC_GPIO->SET[2] = (1 << 8);
-
-#else
-    if (hackrf_r9) {
-        LPC_GPIO->W3[6] = 1;  // Turn OFF VAA for r9 P6_10
-    } else {
-        LPC_GPIO->W2[9] = 1;  // Turn OFF VAA for OG P5_0
-    }
-#endif
-}
-
 /**
  * @brief   Board-specific initialization code.
  * @details Initializes LEDs, power rails, and configures physical pins
@@ -1169,7 +996,7 @@ extern "C" void boardInit(void) {
     /* HackRF Pro Specific: Initialize and Load FPGA */
     hackrf_r9 = false;
 
-    aux_power_on();
+    power_control::aux_power_on();
 
     LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
     LPC_GPIO->CLR[4] = (1 << 6);
@@ -1194,13 +1021,8 @@ extern "C" void boardInit(void) {
 }
 
 extern "C" void _default_exit(void) {
-    if (hackrf_r9) {
-        LPC_GPIO->W2[9] = 0;
-    } else {
-        LPC_GPIO->W3[6] = 0;
-    }
-
-    vaa_power_off();
+    power_control::core_power_off();
+    power_control::vaa_power_off();
 
     chSysDisable();
     systick_stop();

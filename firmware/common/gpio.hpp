@@ -22,10 +22,13 @@
 #ifndef __GPIO_H__
 #define __GPIO_H__
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 
 #include "ch.h"
 #include "hal.h"
+#include "pal.h"
 
 struct PinConfig {
     const uint32_t mode;
@@ -279,5 +282,98 @@ struct GPIO {
     const iopadid_t _gpio_pad;
     const uint16_t _gpio_mode;
 };
+
+constexpr uint32_t boot_bit(const GPIO& pin, bool state) {
+    return (state ? 1UL : 0UL) << pin.pad();
+}
+
+inline void setup_pin(const scu_setup_t& pin_setup) {
+    LPC_SCU->SFSP[pin_setup.port][pin_setup.pin] = pin_setup.config;
+}
+
+template <size_t N>
+inline void setup_gpios(const std::array<gpio_setup_t, N>& pins_setup) {
+    for (size_t i = 0; i < N; i++) {
+        LPC_GPIO->PIN[i] |= pins_setup[i].data;
+        LPC_GPIO->DIR[i] |= pins_setup[i].dir;
+    }
+}
+
+template <size_t N>
+inline void setup_pins(const std::array<scu_setup_t, N>& pins_setup) {
+    for (const auto& pin_setup : pins_setup) {
+        setup_pin(pin_setup);
+    }
+}
+
+#ifdef PRALINE
+namespace gpio_control {
+
+struct PinMap {
+    uint8_t scu_port;
+    uint8_t scu_pin;
+    uint8_t gpio_port;
+    uint8_t gpio_pad;
+};
+
+constexpr PinMap map_p1_ctrl0{2, 10, 0, 14};  // SCU: 2, 10 | GPIO: 0, 14
+constexpr PinMap map_p1_ctrl1{6, 8, 5, 16};
+constexpr PinMap map_p1_ctrl2{6, 9, 3, 5};
+constexpr PinMap map_p2_ctrl0{8, 3, 7, 3};
+constexpr PinMap map_p2_ctrl1{8, 4, 7, 4};
+constexpr PinMap map_trigger_out{2, 6, 5, 6};
+constexpr PinMap map_trigger_in{13, 12, 6, 26};
+
+// P1 Multiplexer control pins
+constexpr Pin pin_p1_ctrl0{map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin};                                         // SCU: P2_10
+constexpr GPIO p1_ctrl0{pin_p1_ctrl0, map_p1_ctrl0.gpio_port, map_p1_ctrl0.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[0]14
+
+constexpr Pin pin_p1_ctrl1{map_p1_ctrl1.scu_port, map_p1_ctrl1.scu_pin};                                         // SCU: P6_8
+constexpr GPIO p1_ctrl1{pin_p1_ctrl1, map_p1_ctrl1.gpio_port, map_p1_ctrl1.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[5]16
+
+constexpr Pin pin_p1_ctrl2{map_p1_ctrl2.scu_port, map_p1_ctrl2.scu_pin};                                         // SCU: P6_9
+constexpr GPIO p1_ctrl2{pin_p1_ctrl2, map_p1_ctrl2.gpio_port, map_p1_ctrl2.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[3]5
+
+// P2 Multiplexer control pins
+constexpr Pin pin_p2_ctrl0{map_p2_ctrl0.scu_port, map_p2_ctrl0.scu_pin};                                         // SCU: PE_3
+constexpr GPIO p2_ctrl0{pin_p2_ctrl0, map_p2_ctrl0.gpio_port, map_p2_ctrl0.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[7]3
+
+constexpr Pin pin_p2_ctrl1{map_p2_ctrl1.scu_port, map_p2_ctrl1.scu_pin};                                         // SCU: PE_4
+constexpr GPIO p2_ctrl1{pin_p2_ctrl1, map_p2_ctrl1.gpio_port, map_p2_ctrl1.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[7]4
+
+// Trigger pins
+constexpr Pin trigger_out_pin{map_trigger_out.scu_port, map_trigger_out.scu_pin};                                            // SCU: P2_6
+constexpr GPIO trigger_out{trigger_out_pin, map_trigger_out.gpio_port, map_trigger_out.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[5]6
+
+constexpr Pin trigger_in_pin{map_trigger_in.scu_port, map_trigger_in.scu_pin};                                 // SCU: PD_12
+constexpr GPIO trigger_in{trigger_in_pin, map_trigger_in.gpio_port, map_trigger_in.gpio_pad, PAL_MODE_INPUT};  // GPIO[6]26
+
+}  // namespace gpio_control
+#endif
+
+namespace power_control {
+
+void vaa_power_on(void);
+void vaa_power_off(void);
+
+#ifdef PRALINE
+void aux_power_on(void);
+void aux_power_off(void);
+#endif
+
+void core_power_on(void);
+void core_power_off(void);
+
+static const motocon_pwm_resources_t motocon_pwm_resources = {
+    .base = {.clk = &LPC_CGU->BASE_APB1_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 1)},
+    .branch = {.cfg = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG, .stat = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_STAT},
+    .reset = {.output_index = 38},
+};
+
+static const scu_setup_t pin_setup_vaa_enablex_pwm = {5, 0, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
+static const scu_setup_t pin_setup_vaa_enablex_gpio_og = {5, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
+static const scu_setup_t pin_setup_vaa_enablex_gpio_r9 = {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
+
+}  // namespace power_control
 
 #endif /*__GPIO_H__*/

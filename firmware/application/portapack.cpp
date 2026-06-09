@@ -56,6 +56,8 @@ using asahi_kasei::ak4951::AK4951;
 #include "i2cdevmanager.hpp"
 #include "battery.hpp"
 
+#include "gpio.hpp"
+
 extern "C" {
 #include "platform_detect.h"
 
@@ -593,7 +595,7 @@ init_status_t init() {
     rtc_time::dst_init();
     chThdSleepMilliseconds(10);
 
-    core_power_on();
+    power_control::core_power_on();
 
     clock_manager.init_clock_generator();
 

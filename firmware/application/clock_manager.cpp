@@ -1214,44 +1214,44 @@ void ClockManager::set_p1_control(P1_Function func) {
     // Truth table based on P1_Control.csv (L=clear, H=set)
     switch (func) {
         case P1_Function::TriggerIn:
-            multiplexer_contrl::p1_ctrl2.clear();
-            multiplexer_contrl::p1_ctrl1.clear();
-            multiplexer_contrl::p1_ctrl0.clear();
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.clear();
             break;
         case P1_Function::AuxClk1:
-            multiplexer_contrl::p1_ctrl2.clear();
-            multiplexer_contrl::p1_ctrl1.clear();
-            multiplexer_contrl::p1_ctrl0.set();
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.set();
             break;
         case P1_Function::ClkIn:
-            multiplexer_contrl::p1_ctrl2.clear();
-            multiplexer_contrl::p1_ctrl1.set();
-            multiplexer_contrl::p1_ctrl0.clear();
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.clear();
             break;
         case P1_Function::TriggerOut:
-            multiplexer_contrl::p1_ctrl2.clear();
-            multiplexer_contrl::p1_ctrl1.set();
-            multiplexer_contrl::p1_ctrl0.set();
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.set();
             break;
         case P1_Function::P22_ClkIn:
-            multiplexer_contrl::p1_ctrl2.set();
-            multiplexer_contrl::p1_ctrl1.clear();
-            multiplexer_contrl::p1_ctrl0.clear();
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.clear();
             break;
         case P1_Function::P2_5:
-            multiplexer_contrl::p1_ctrl2.set();
-            multiplexer_contrl::p1_ctrl1.clear();
-            multiplexer_contrl::p1_ctrl0.set();
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.set();
             break;
         case P1_Function::NotConnected:
-            multiplexer_contrl::p1_ctrl2.set();
-            multiplexer_contrl::p1_ctrl1.set();
-            multiplexer_contrl::p1_ctrl0.clear();
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.clear();
             break;
         case P1_Function::AuxClk2:
-            multiplexer_contrl::p1_ctrl2.set();
-            multiplexer_contrl::p1_ctrl1.set();
-            multiplexer_contrl::p1_ctrl0.set();
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.set();
             break;
     }
 }
@@ -1263,16 +1263,16 @@ void ClockManager::set_p2_control(P2_Function func) {
     switch (func) {
         case P2_Function::Clk3:
             // CTRL0 is 'X' (don't care) according to CSV, we default it to Low (clear)
-            multiplexer_contrl::p2_ctrl1.clear();
-            multiplexer_contrl::p2_ctrl0.clear();
+            gpio_control::p2_ctrl1.clear();
+            gpio_control::p2_ctrl0.clear();
             break;
         case P2_Function::TriggerIn:
-            multiplexer_contrl::p2_ctrl1.set();
-            multiplexer_contrl::p2_ctrl0.clear();
+            gpio_control::p2_ctrl1.set();
+            gpio_control::p2_ctrl0.clear();
             break;
         case P2_Function::TriggerOut:
-            multiplexer_contrl::p2_ctrl1.set();
-            multiplexer_contrl::p2_ctrl0.set();
+            gpio_control::p2_ctrl1.set();
+            gpio_control::p2_ctrl0.set();
             break;
     }
 }
