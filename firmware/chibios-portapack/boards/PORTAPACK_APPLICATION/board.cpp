@@ -496,7 +496,6 @@ const PALConfig pal_default_config = {
         {gpio_control::map_trigger_out.scu_port, gpio_control::map_trigger_out.scu_pin, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // P2_6: TRIGGER
         {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                                                           // P2_5: PPS OUT/IN (Mode 4 per Suppl. Data)
 #else
-        ///////////////ezeket át kell nézni mert a kommentek nem ülnek
         {9, 6, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},   // SGPIO8: SI5351C.CLK2(O)
         {4, 3, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}},   // SGPIO9: HOST_CAPTURE(O)
         {1, 14, scu_config_normal_drive_t{.mode = 6, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}},  // SGPIO10: HOST_DISABLE(I)

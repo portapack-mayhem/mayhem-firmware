@@ -326,7 +326,7 @@ constexpr PinMap map_trigger_in{13, 12, 6, 26};
 
 constexpr PinMap map_rf5072_mix_en{9, 0, 4, 12};
 
-constexpr PinMap map_aa_en{1, 14, 0, 7};  // Anti-Aliasing filter
+constexpr PinMap map_aa_en{1, 14, 1, 7};  // Anti-Aliasing filter
 
 // P1 Multiplexer control pins
 constexpr Pin pin_p1_ctrl0{map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin};                                         // SCU: P2_10

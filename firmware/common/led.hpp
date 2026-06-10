@@ -30,10 +30,14 @@ struct LED {
     }
 
     void setup() const {
-        // Praline: enforced globally at boot by pal_default_config in board.cpp.
+#ifdef PRALINE
+// No-op: GPIO direction and initial OFF state are already
+// enforced globally at boot by pal_default_config in board.cpp.
+#else
         _gpio.clear();
         _gpio.output();
         _gpio.configure();
+#endif
     }
 
     void on() const {

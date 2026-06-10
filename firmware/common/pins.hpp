@@ -470,6 +470,8 @@ constexpr GPIO gpio[] = {
     // Placeholder entries for non-PRALINE builds (use P0_0 as dummy)
     [GPIO4_14] = {pins[P0_0], 4, 14, 0},
     [GPIO4_1] = {pins[P0_0], 4, 1, 0},
+    [GPIO4_4] = {pins[P0_0], 4, 4, 0},
+    [GPIO4_5] = {pins[P0_0], 4, 5, 0},
     [GPIO4_6] = {pins[P0_0], 4, 6, 0},
     [GPIO4_7] = {pins[P0_0], 4, 7, 0},
     [GPIO4_8] = {pins[P0_0], 4, 8, 0},
