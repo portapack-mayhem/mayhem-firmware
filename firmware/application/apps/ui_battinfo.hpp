@@ -64,7 +64,7 @@ class BattinfoView : public View {
         {{UI_POS_X(2), UI_POS_Y(5)}, "Current:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(6)}, "Charge:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(2), UI_POS_Y(7)}, "TTF/E:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(2), UI_POS_Y(8)}, "State:", Theme::getInstance()->fg_light->foreground},
+        //{{UI_POS_X(2), UI_POS_Y(8)}, "State:", Theme::getInstance()->fg_light->foreground}, //for now, this is disabled. see max ic implementation
         {{UI_POS_X(2), UI_POS_Y(10)}, "Change settings:", Theme::getInstance()->fg_light->foreground},
     };
 

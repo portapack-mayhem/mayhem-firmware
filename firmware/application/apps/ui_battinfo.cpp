@@ -164,7 +164,7 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &button_settings,
                   &button_exit,
                   &text_capacity,
-                  &text_state,
+                  //&text_state, //disabled for now
                   // &text_warn,
                   &text_ttef});
 

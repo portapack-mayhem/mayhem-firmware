@@ -398,8 +398,9 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
     }
     // Execute the reset if either flag was tripped
     if (requires_reset) {
-        reInit();                                                                      // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
-        battMayChanged = true && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
+        reInit();  // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
+        // battMayChanged = true && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
+        // We don't want to signal this for now. the Voltage drop during power up messes this up a bit.
     }
 
     batteryPercentage = stateOfCharge();
