@@ -1,0 +1,10 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# AVIATION
+108,118,AVIATION 108 NAVAIDS
+118,137,AVIATION 118 VOICE
+960,1215,AVIATION 960
+1089,1091,ADS-B 1090
+128,137,ACARS

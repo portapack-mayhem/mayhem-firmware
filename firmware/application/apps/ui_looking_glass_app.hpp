@@ -171,37 +171,37 @@ class GlassView : public View {
 
     Labels labels{
         {{0, UI_POS_Y(0)}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
-        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
-        {{0, 2 * 16}, "P:", Theme::getInstance()->fg_light->foreground},
-        {{0, 3 * 16}, "MARKER( / ):          MHz", Theme::getInstance()->fg_light->foreground},
-        {{0, 4 * 16}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
+        {{0, UI_POS_Y(1)}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
+        {{0, UI_POS_Y(2)}, "P:", Theme::getInstance()->fg_light->foreground},
+        {{0, UI_POS_Y(3)}, "MARKER( / ):          MHz", Theme::getInstance()->fg_light->foreground},
+        {{0, UI_POS_Y(4)}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency_min{
-        {4 * 8, UI_POS_Y(0)},
+        {UI_POS_X(4), UI_POS_Y(0)},
         4,
         {0, 7199},
         1,  // number of steps by encoder delta
         ' '};
 
     NumberField field_frequency_max{
-        {13 * 8, UI_POS_Y(0)},
+        {UI_POS_X(13), UI_POS_Y(0)},
         4,
         {1, 7200},
         1,  // number of steps by encoder delta
         ' '};
 
     LNAGainField field_lna{
-        {21 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(21), UI_POS_Y(0)}};
 
     VGAGainField field_vga{
-        {27 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(27), UI_POS_Y(0)}};
 
     TextField field_range{
-        {6 * 8, 1 * 16, 6 * 8, 16},
+        {UI_POS_X(6), UI_POS_Y(1), UI_POS_WIDTH(6), UI_POS_HEIGHT(1)},
         ""};
 
     OptionsField filter_config{
-        {20 * 8, 1 * 16},
+        {UI_POS_X(20), UI_POS_Y(1)},
         4,
         {
             {"OFF ", 0},
@@ -210,41 +210,41 @@ class GlassView : public View {
         }};
 
     RFAmpField field_rf_amp{
-        {28 * 8, 1 * 16}};
+        {UI_POS_X(28), UI_POS_Y(1)}};
 
     OptionsField range_presets{
-        {2 * 8, 2 * 16},
+        {UI_POS_X(2), UI_POS_Y(2)},
         20,
         {}};
 
     ButtonWithEncoder button_beep_squelch{
-        {screen_width - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(2.25), UI_POS_WIDTH(8), UI_POS_HEIGHT(0.5)},
         ""};
 
     TextField field_marker{
-        {12 * 8, 3 * 16, 9 * 8, 16},
+        {UI_POS_X(12), UI_POS_Y(3), UI_POS_WIDTH(9), UI_POS_HEIGHT(1)},
         ""};
 
     Button button_marker_minus{
-        {7 * 8, 3 * 16 + 4, 1 * 8, 1 * 8},
+        {UI_POS_X(7), UI_POS_Y(3.25), UI_POS_WIDTH(1), UI_POS_HEIGHT(0.5)},
         "-"};
 
     Button button_marker_plus{
-        {9 * 8, 3 * 16 + 4, 1 * 8, 1 * 8},
+        {UI_POS_X(9), UI_POS_Y(3.25), UI_POS_WIDTH(1), UI_POS_HEIGHT(0.5)},
         "+"};
 
     NumberField field_trigger{
-        {4 * 8, 4 * 16},
+        {UI_POS_X(4), UI_POS_Y(4)},
         3,
         {2, 128},
         2,
         ' '};
 
     AudioVolumeField field_volume{
-        {13 * 8, 4 * 16}};
+        {UI_POS_X(13), UI_POS_Y(4)}};
 
     /*OptionsField steps_config{
-        {13 * 8, 4 * 16},
+        {UI_POS_X(13), UI_POS_Y(4)},
         3,
         {
             {"1", 1},
@@ -256,7 +256,7 @@ class GlassView : public View {
         }};*/
 
     OptionsField scan_type{
-        {17 * 8, 4 * 16},
+        {UI_POS_X(17), UI_POS_Y(4)},
         2,
         {
             {"F-", LOOKING_GLASS_FASTSCAN},
@@ -264,7 +264,7 @@ class GlassView : public View {
         }};
 
     OptionsField view_config{
-        {19 * 8, 4 * 16},
+        {UI_POS_X(19), UI_POS_Y(4)},
         7,
         {
             {"SPCTR-V", 0},
@@ -273,7 +273,7 @@ class GlassView : public View {
         }};
 
     OptionsField level_integration{
-        {27 * 8, 4 * 16},
+        {UI_POS_X(27), UI_POS_Y(4)},
         2,
         {
             {"x0", 0},
