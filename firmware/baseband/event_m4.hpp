@@ -37,6 +37,7 @@ constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
 class EventDispatcher {
    public:
     EventDispatcher(std::unique_ptr<BasebandProcessor> baseband_processor);
+    explicit EventDispatcher(BasebandProcessor& baseband_processor);
 
     void run();
     void request_stop();
@@ -46,19 +47,15 @@ class EventDispatcher {
     }
 
     static inline void events_flag_isr(const eventmask_t events) {
-#ifdef PRALINE
-        if (thread_event_loop) {
+        if (thread_event_loop)
             chEvtSignalI(thread_event_loop, events);
-        }
-#else
-        chEvtSignalI(thread_event_loop, events);
-#endif
     }
 
    private:
     static Thread* thread_event_loop;
 
-    std::unique_ptr<BasebandProcessor> baseband_processor;
+    std::unique_ptr<BasebandProcessor> owned_baseband_processor;
+    BasebandProcessor* baseband_processor{nullptr};
 
     bool is_running = true;
 

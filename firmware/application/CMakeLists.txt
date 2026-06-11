@@ -52,7 +52,7 @@ set(USE_LINK_GC yes)
 # Linker extra options here.
 set(USE_LDOPT)
 
-# Enable this if you want link time optimizations (LTO) - this flag affects chibios only
+# LTO on application breaks ChibiOS link (chThdExit / firmware_info); keep off even for 1 MiB SPI.
 set(USE_LTO no)
 
 # If enabled, this option allows to compile the application in THUMB mode.
@@ -136,6 +136,8 @@ set(CSRC
 
 #look for all i2cdev_ files
 file(GLOB I2CDEV_SOURCES ${COMMON}/i2cdev_*.cpp)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MeteorLrptDeintSources.cmake)
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -335,7 +337,35 @@ set(CPPSRC
 	view_factory_base.cpp
 )
 
-set_source_files_properties(${CPPSRC} PROPERTIES COMPILE_FLAGS -flto) # Add lto flag to the non-external sources only
+# 1 MiB SPI: baseband omits PSON/PWTH/PSGD — drop matching built-in RX apps to save M0 flash.
+if(MAYHEM_SPI_1MB)
+	list(REMOVE_ITEM CPPSRC
+		apps/ui_sonde.cpp
+		apps/ui_weatherstation.cpp
+		apps/ui_subghzd.cpp
+		${COMMON}/sonde_packet.cpp
+		meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
+	)
+	list(APPEND CPPSRC meteor_lrpt_capture_stub.cpp)
+else()
+	list(APPEND CPPSRC
+		meteor_lrpt_sector_file_ring.cpp
+		meteor_lrpt_deinterleave_dispatch_m0.cpp
+		meteor_lrpt_deint_service.cpp
+		meteor_lrpt_msumr.cpp
+		meteor_lrpt_g4/msumr_demux.cpp
+		meteor_lrpt_g4/jpeg_decode.cpp
+		meteor_lrpt_g4_service.cpp
+		${METEOR_LRPT_DEINT_CPPSRC_APPLICATION}
+	)
+endif()
+
+# Historically we forced `-flto` on internal C++ objects even when ChibiOS `USE_LTO` was `no`.
+# That spikes compiler RAM (LTO streaming) and breaks lean Docker builds with misleading errors
+# like "Cannot allocate memory" while opening standard headers. Only enable when LTO is on.
+if(USE_LTO STREQUAL "yes")
+	set_source_files_properties(${CPPSRC} PROPERTIES COMPILE_FLAGS -flto)
+endif()
 
 list (APPEND CPPSRC ${EXTCPPSRC}) # Append external sources after setting lto flag to internal ones
 
@@ -365,9 +395,10 @@ set(ASMSRC
 	lz4.S
 )
 
+# FatFs lives under .../ext/fatfs/src — keep it off the normal `-I` list so `#include <ext/...>`
+# from libstdc++ is never resolved under the FatFs tree. Added as `-idirafter` on the target.
 set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC}
 	${HALINC} ${PLATFORMINC} ${BOARDINC}
-	${FATFSINC}
 	${CHIBIOS}/os/various
 	${HACKRF_PATH}/firmware/libopencm3/include
 	${HACKRF_PATH}/firmware/common
@@ -378,6 +409,10 @@ set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC
 	protocols
 	bmps
 )
+# M0 Meteor LRPT: `meteor_lrpt` headers + shared deinterleave sources (see ../cmake/MeteorLrptDeintSources.cmake).
+list(APPEND INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/../baseband)
+list(APPEND INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/meteor_lrpt_g4)
+list(APPEND INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/meteor_lrpt_g4/third_party/tjpgd)
 
 #
 # Project, sources and paths
@@ -442,7 +477,11 @@ set(DLIBS)
 #
 
 # List all user C define here, like -D_DEBUG=1
-set(UDEFS)
+if(MAYHEM_SPI_1MB)
+	set(UDEFS -DMAYHEM_SPI_1MB=1)
+else()
+	set(UDEFS)
+endif()
 
 # Define ASM defines here
 set(UADEFS)
@@ -490,6 +529,18 @@ add_custom_command(
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+if(TARGET flashsize_h)
+	add_dependencies(${PROJECT_NAME}.elf flashsize_h)
+endif()
+if(NOT MAYHEM_SPI_1MB)
+	set_source_files_properties(
+		meteor_lrpt_g4/third_party/tjpgd/tjpgd.c
+		PROPERTIES COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:C>:-Os>"
+	)
+endif()
+target_compile_options(${PROJECT_NAME}.elf PRIVATE
+	"$<$<COMPILE_LANGUAGE:C,CXX>:-idirafter${CHIBIOS_PORTAPACK}/ext/fatfs/src>"
+)
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
 )

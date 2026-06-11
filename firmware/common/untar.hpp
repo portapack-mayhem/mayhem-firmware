@@ -125,7 +125,9 @@ class UnTar {
                     if (isValidName(buff)) {
                         fn = buff;
                         if (fn.length() > 5 && fn.substr(fn.length() - 4) == ".bin") {
-                            binfile = fn;
+                            if (fn.rfind("FIRMWARE/", 0) == 0) {
+                                binfile = fn;
+                            }
                         }
                         if (cb != NULL) cb(fn);
                     } else {

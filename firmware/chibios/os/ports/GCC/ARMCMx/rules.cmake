@@ -114,6 +114,7 @@ if(BOARD STREQUAL "PRALINE")
     # Local SRAM: 128KB (Bank 1) + 72KB (Bank 2)
     # Bank 1 can also be allocated as 96KB for M4, and 32KB for M0
     set(M0_RAM_SIZE           "64k")         # AHB SRAM Bank 0 for M0 (stacks, data, bss)
+    set(M0_EXT_APP_SLOT_BYTES "10240")       # Tail of AHB SRAM for .ppma+M4 apps
     set(M0_LOCAL_HEAP_SIZE    "0")           # No Local SRAM, could be 32k heap for additional 16-bit IQ
     set(M0_LOCAL_HEAP_ORIGIN  "0x10020000")  # 0x10018000 if allocating 32k heap for M0 after M4's 96KB 
     set(M4_RAM_SIZE           "128k")        # Local SRAM Bank 1 Fully allocated to M4 (HackRF One is 96k)
@@ -128,6 +129,7 @@ else()
     # Recommend revisit by devs.
     # Local SRAM: 96KB (Bank 1) + 40KB (Bank 2)
     set(M0_RAM_SIZE           "64k")   # Standard AHB SRAM for M0
+    set(M0_EXT_APP_SLOT_BYTES "10240") # Tail of AHB SRAM for .ppma+M4 apps (see external_app_info.py)
     set(M0_LOCAL_HEAP_SIZE    "0k")    # No local heap available
     set(M0_LOCAL_HEAP_ORIGIN  "0")     # Not used
     set(M4_RAM_SIZE           "96k")   # Standard Local SRAM Bank 1
@@ -140,6 +142,7 @@ endif()
 # Build linker flags
 set(CMAKE_EXE_LINKER_FLAGS "${LDFLAGS} \
     -Wl,--defsym=LD_RAM_SIZE=${M0_RAM_SIZE} \
+    -Wl,--defsym=LD_M0_EXT_APP_SLOT_BYTES=${M0_EXT_APP_SLOT_BYTES} \
     -Wl,--defsym=LD_M0_LOCAL_HEAP_SIZE=${M0_LOCAL_HEAP_SIZE} \
     -Wl,--defsym=LD_M0_LOCAL_HEAP_ORIGIN=${M0_LOCAL_HEAP_ORIGIN} \
     -Wl,--defsym=LD_M4_RAM_LEN=${M4_RAM_SIZE} \

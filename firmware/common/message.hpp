@@ -161,7 +161,10 @@ class Message {
         ToneDetectData = 103,
         ToneDetectConfig = 104,
         FlexTosend = 105,
-        EPIRBRXConfig = 106,
+        MeteorLrptRxConfigure = 106,
+        MeteorLrptRxStatusData = 107,
+        MeteorLrptRxPreviewLine = 108,
+        EPIRBRXConfig = 109,
         MAX
     };
 
@@ -1918,5 +1921,78 @@ class FlexTosendMessage : public Message {
     uint8_t msglen = 0;
     uint8_t msg[240] = {0};
 };
+
+/* Meteor LRPT (M2-x) RX — M4 to M0 status / preview (keep payloads small; see plan).
+ * G4/MSU-MR counters stay in `SharedMemory::MeteorLrptG4Ipc` — do not grow this struct without
+ * re-running the `static_assert` below vs `Message::MAX_SIZE`. */
+class MeteorLrptRxConfigureMessage : public Message {
+   public:
+    constexpr MeteorLrptRxConfigureMessage(
+        uint8_t flags_ = 0,
+        uint8_t symbol_rate_k_ = 72)
+        : Message{ID::MeteorLrptRxConfigure},
+          flags{flags_},
+          symbol_rate_k{symbol_rate_k_} {
+    }
+    /* bit0 m2x_mode, bit1 interleaved, bit2 diff_decode, bit3 legacy_correlator_path, bit6 G4 MSU-MR, bit7 G4 live ring */
+    uint8_t flags{0};
+    uint8_t symbol_rate_k{72};
+};
+
+class MeteorLrptRxStatusDataMessage : public Message {
+   public:
+    constexpr MeteorLrptRxStatusDataMessage()
+        : Message{ID::MeteorLrptRxStatusData} {
+    }
+    uint8_t demod_lock{0};
+    uint8_t fec_lock{0};
+    uint8_t viterbi_sync{0};
+    uint8_t deframer_sync{0};
+    /* 0..1000: FEC stress from RS byte repairs (sum of fixes in 4 blocks), not RF BER */
+    uint16_t ber_x1000{0};
+    int16_t rs_err0{-1};
+    int16_t rs_err1{-1};
+    int16_t rs_err2{-1};
+    int16_t rs_err3{-1};
+    uint32_t cadu_frames{0};
+    uint32_t soft_sym_count{0};
+    /* G3 diagnostics: ASM at start of 1020-byte CADU field (after Viterbi+derand) */
+    uint32_t cadu_asm_rejects{0};
+    uint32_t cadu_asm_accepts{0};
+    /* Byte offset (0..62 step 2) of winning circular soft shift when Leg.corr fallback runs */
+    uint8_t soft_rotate_shift{0};
+    /* SatDump-style QPSK sync: int8 symbols trimmed from front after correlate (0 = aligned at block start) */
+    uint16_t soft_align_skip{0};
+    /* Best 64-bit sync match score 0..64; corr_lock = strong match at block start (see meteor_soft_correlate) */
+    uint8_t corr_score{0};
+    uint8_t corr_lock{0};
+    /* bit0: M2-x interleaved — optional host post-decode (local tools/meteor_lrpt if present; gitignored); bit1: SD deint active (reserved) */
+    uint8_t interleaved_mode_flags{0};
+    /** After `M2xInterleavedPostDeintPipeline::process`: Viterbi1_2 winner 0=A / 1=B; states ST_IDLE=0 / ST_SYNCED=1 */
+    uint8_t m2x_vit_winner{0};
+    uint8_t m2x_vit_state_a{0};
+    uint8_t m2x_vit_state_b{0};
+    /** Gardner / symbol PLL: 1 when loop considers timing locked (see proc_meteor_lrpt_rx). */
+    uint8_t sym_timing_lock{0};
+    /** Gardner timing error snapshot (scaled int); diagnostic only. */
+    int16_t sym_timing_err{0};
+    /** Low 16 bits of `SharedMemory::MeteorLrptIpc::dropped` when last status pushed. */
+    uint16_t ipc_deint_dropped{0};
+    /** Saturating snapshot of `MeteorLrptIpc::sd_deint_errors` (sector SD deinterleave failures). */
+    uint16_t ipc_sd_deint_errors{0};
+};
+
+class MeteorLrptRxPreviewLineMessage : public Message {
+   public:
+    constexpr MeteorLrptRxPreviewLineMessage()
+        : Message{ID::MeteorLrptRxPreviewLine} {
+    }
+    uint16_t line_y{0};
+    uint16_t pixel_count{0};
+    uint8_t gray[240]{0};
+};
+
+static_assert(sizeof(MeteorLrptRxStatusDataMessage) <= Message::MAX_SIZE, "MeteorLrptRxStatusDataMessage too large for queue");
+static_assert(sizeof(MeteorLrptRxPreviewLineMessage) <= Message::MAX_SIZE, "MeteorLrptRxPreviewLineMessage too large for queue");
 
 #endif /*__MESSAGE_H__*/

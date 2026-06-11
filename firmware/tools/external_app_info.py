@@ -22,6 +22,17 @@
 #
 
 # external app address ranges below must match those in linker file "external.ld"
-maximum_application_size = 32*1024
+# Packaged .ppma size = M0 external section + optional M4 chunk (see export_external_apps.py).
+# Meteor LRPT (PMLR) includes a large M4 baseband image; 32 KiB was insufficient.
+maximum_application_size = 48 * 1024
 external_apps_address_start = 0xADB00000
-external_apps_address_end = 0xAE060000
+external_apps_address_end = 0xAE080000
+
+# M0 external .ppma with M4 baseband: reserve the tail of M0 AHB SRAM.
+# Do NOT use local SRAM0 (0x10000000): M4 baseband uses it for RAM.
+# Do NOT use bank2 after m4_code (0x10086800): that is SharedMemory for M4 IPC.
+m0_ahb_base = 0x20000000
+m0_ahb_size_bytes = 64 * 1024
+external_m0_runtime_slot_bytes = 10 * 1024
+external_m0_load_base_with_m4 = m0_ahb_base + m0_ahb_size_bytes - external_m0_runtime_slot_bytes
+external_m0_max_bytes = external_m0_runtime_slot_bytes

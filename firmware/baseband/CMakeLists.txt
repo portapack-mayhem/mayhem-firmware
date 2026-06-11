@@ -31,8 +31,9 @@ include(CheckCXXCompilerFlag)
 
 project(baseband_shared)
 
-# Compiler options here.
-set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
+# Compiler options here. Use -Os (not -O3): every baseband mode embeds baseband_shared; -O3 bloats each
+# chunk and the concatenated baseband.img, often breaking the default 1MiB SPI image cap when adding modes (e.g. Meteor).
+set(USE_OPT "-Os -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -52,7 +53,7 @@ set(USE_LINK_GC yes)
 # Linker extra options here.
 set(USE_LDOPT)
 
-# Enable this if you want link time optimizations (LTO)
+# LTO on baseband breaks ChibiOS LTO linking (undefined chThdExit); keep off even for 1 MiB SPI.
 set(USE_LTO no)
 
 # If enabled, this option allows to compile the application in THUMB mode.
@@ -108,6 +109,7 @@ set(CPPSRC
 	${COMMON}/message_queue.cpp
 	${COMMON}/event.cpp
 	event_m4.cpp
+	meteor_lrpt_m0_configure_ipc.cpp
 	${COMMON}/thread_wait.cpp
 	${COMMON}/gpdma.cpp
 	baseband_dma.cpp
@@ -282,6 +284,9 @@ include(${RULESPATH}/rules.cmake)
 #######################################################################
 
 add_library(${PROJECT_NAME} OBJECT ${CSRC} ${CPPSRC} ${ASMSRC})
+if(TARGET flashsize_h)
+	add_dependencies(${PROJECT_NAME} flashsize_h)
+endif()
 include_directories(. ${INCDIR})
 
 #######################################################################
@@ -295,6 +300,9 @@ macro(DeclareTargets chunk_tag name)
 	include(${RULESPATH}/rules.cmake)
 	set_source_files_properties(${MODE_CPPSRC} PROPERTIES COMPILE_FLAGS "${MODE_FLAGS}")
 	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
+	if(TARGET flashsize_h)
+		add_dependencies(${PROJECT_NAME}.elf flashsize_h)
+	endif()
 	set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 	add_definitions(${DEFS})
 	target_compile_definitions(${PROJECT_NAME}.elf PUBLIC "-DBASEBAND_${name}")
@@ -304,6 +312,14 @@ macro(DeclareTargets chunk_tag name)
 
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
+
+	# Bank2 code slot is 26 KiB (SharedMemory @ 0x10086800); default LD_M4_FLASH_LEN is ~32 KiB.
+	if("${name}" STREQUAL "meteor_lrpt_rx")
+		target_link_options(${PROJECT_NAME}.elf PUBLIC "LINKER:--defsym=LD_M4_FLASH_LEN=26624")
+	endif()
+	if("${name}" STREQUAL "meteor_lrpt_capture")
+		target_link_options(${PROJECT_NAME}.elf PUBLIC "LINKER:--defsym=LD_M4_FLASH_LEN=26624")
+	endif()
 
 	if(add_to_firmware)
 
@@ -398,19 +414,22 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PCAP capture)
 
-### Radiosonde
+### Radiosonde (PSON ~12 KiB in baseband.img — omitted on 1 MiB SPI pack)
 
+if(NOT MAYHEM_SPI_1MB)
 set(MODE_CPPSRC
 	proc_sonde.cpp
 )
 DeclareTargets(PSON sonde)
+endif()
 
-### FSK RX
-
+### FSK RX (PFSR ~20 KiB — omitted from 1 MiB SPI pack)
+if(NOT MAYHEM_SPI_1MB)
 set(MODE_CPPSRC
 	proc_fsk_rx.cpp
 )
 DeclareTargets(PFSR fskrx)
+endif()
 
 ### FSK TX
 
@@ -479,19 +498,21 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
-### SubGhz Decoders
-
+### SubGHz decoder (PSGD ~28 KiB — omitted from 1 MiB SPI pack with Meteor)
+if(NOT MAYHEM_SPI_1MB)
 set(MODE_CPPSRC
 	proc_subghzd.cpp
 )
 DeclareTargets(PSGD subghzd)
+endif()
 
-
-### Weather Stations
+### Weather RX (PWTH ~30 KiB — omitted from 1 MiB SPI pack with Meteor)
+if(NOT MAYHEM_SPI_1MB)
 set(MODE_CPPSRC
 	proc_weather.cpp
 )
 DeclareTargets(PWTH weather)
+endif()
 
 set(MODE_FLAGS "-Os")
 
@@ -576,7 +597,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAMT am_tv)
 
-### GPS Simulator
+### GPS Simulator (external .ppma only — not in baseband.img; gpssim needs PGPS.bin)
 
 set(MODE_CPPSRC
 	proc_gps_sim.cpp
@@ -590,12 +611,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPT spectrum_painter)
 
-### Test
-
+### Test (PTST ~19 KiB — omitted from 1 MiB SPI pack; no external .ppma depends on it)
+if(NOT MAYHEM_SPI_1MB)
 set(MODE_CPPSRC
 	proc_test.cpp
 )
 DeclareTargets(PTST test)
+endif()
 
 ### Audio Beep
 
@@ -605,8 +627,7 @@ set(MODE_CPPSRC
 DeclareTargets(PABP audio_beep)
 
 
-### ProtoView
-
+### ProtoView (PPVW — external .ppma M4 chunk only; not in baseband.img)
 set(MODE_CPPSRC
 	proc_protoview.cpp
 )
@@ -658,74 +679,145 @@ set(MODE_CPPSRC
 DeclareTargets(PSIG siggen)
 
 
-### WeFax Rx
-
+### WeFax Rx (PWFX — external .ppma M4 chunk only; not in baseband.img)
 set(MODE_CPPSRC
 	proc_wefaxrx.cpp
 )
 DeclareTargets(PWFX wefaxrx)
 
 
-### NoaaApt Rx
-
+### NoaaApt Rx (PNOA — external .ppma M4 chunk only; not in baseband.img)
 set(MODE_CPPSRC
 	proc_noaaapt_rx.cpp
 )
 DeclareTargets(PNOA noaaapt_rx)
 
-### Audio transmit
+### Meteor LRPT Rx (full FEC — SPI baseband.img only when flash > 1 MiB pack)
+#
+# H4M 1 MiB: omit PMLR from SPI; use meteor_lrpt_capture.ppma + PMLS instead.
 
+if(NOT MAYHEM_SPI_1MB)
+set(MODE_FLAGS "-Os")
+include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/MeteorLrptDeintSources.cmake)
+set(MODE_CPPSRC
+	proc_meteor_lrpt_rx.cpp
+	meteor_lrpt/ccsds_derandomize.cpp
+	meteor_lrpt/meteor_cc_decoder.cpp
+	meteor_lrpt/meteor_cc_encoder.cpp
+	meteor_lrpt/meteor_viterbi12.cpp
+	meteor_lrpt/meteor_m2x_interleaved_pipeline.cpp
+	meteor_lrpt/meteor_jpeg_scan.cpp
+	meteor_lrpt/meteor_nrzm.cpp
+	meteor_lrpt/meteor_bpsk_ccsds_deframer.cpp
+	meteor_lrpt/rs223_decode.cpp
+	${METEOR_LRPT_DEINT_CPPSRC_BASEBAND}
+)
+DeclareTargets(PMLR meteor_lrpt_rx)
+set(MODE_FLAGS "-O3")
+endif()
+
+### Meteor LRPT Capture (soft symbols only, bundled in capture .ppma)
+set(add_to_firmware FALSE)
+set(MODE_FLAGS "-Os")
+set(MODE_CPPSRC
+	proc_meteor_lrpt_capture.cpp
+)
+DeclareTargets(PMLS meteor_lrpt_capture)
+set(add_to_firmware TRUE)
+set(MODE_FLAGS "-O3")
+
+### Audio transmit (PATX — external .ppma; omit from 1 MiB SPI baseband.img)
+
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
 	proc_audiotx.cpp
 )
 DeclareTargets(PATX audio_tx)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
-### SubCar Decoders
-
+### SubCar Decoders (PSCD — external .ppma; omitted from 1 MiB SPI baseband.img only)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
 	proc_subcar.cpp
 )
 DeclareTargets(PSCD subcar)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
-### Tone Detect RX
-
+### Tone Detect RX (PTNE — external .ppma; omitted from 1 MiB SPI baseband.img only)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
-    proc_tonedetect.cpp
+	proc_tonedetect.cpp
 )
 DeclareTargets(PTNE tonedetect)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 
-### Morse RX Decoder
+### Morse RX (PMRS — external .ppma; omit from 1 MiB SPI baseband.img)
 
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
     proc_morse.cpp
 )
 DeclareTargets(PMRS morse)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 
-### RTTY RX
+### RTTY RX (PRTR — external .ppma; omit from 1 MiB SPI baseband.img)
 
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
     proc_rtty_rx.cpp
 )
 DeclareTargets(PRTR rtty_rx)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 
+### ERT (PERT — external .ppma; omit from 1 MiB SPI baseband.img)
 
-### ERT
-
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
 	proc_ert.cpp
 )
 DeclareTargets(PERT ert)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 
-### RTTY TX
+### RTTY TX (PRTT — external .ppma; omit from 1 MiB SPI baseband.img)
 
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
     proc_rtty_tx.cpp
 )
 DeclareTargets(PRTT rtty_tx)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 ### SD over USB
 
@@ -735,28 +827,45 @@ set(MODE_INCDIR
 	${HACKRF_PATH}/firmware/libopencm3/include
 )
 
-### Morse TX
+### Morse TX (PMRT — external .ppma; omit from 1 MiB SPI baseband.img)
 
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
     proc_morsetx.cpp
 )
 DeclareTargets(PMRT morsetx)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
-### Tones
+### Tones (PTON — external .ppma; omit from 1 MiB SPI baseband.img)
 
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
 	proc_tones.cpp
 )
 DeclareTargets(PTON tones)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 
+### Time Sink (PTSK — external .ppma; omit from 1 MiB SPI baseband.img)
 
-### Time Sink
-
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 set(MODE_CPPSRC
 	proc_time_sink.cpp
 )
 DeclareTargets(PTSK time_sink)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
@@ -799,8 +908,15 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
 # sd_over_usb has type conflicts with PRALINE (HackRF Pro) - disable for now
+# PUSB ~50+ KiB: omit from 1 MiB SPI; external sdusb .ppma bundles PUSB.bin
 if(NOT BOARD STREQUAL "PRALINE")
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware FALSE)
+endif()
 DeclareTargets(PUSB sd_over_usb)
+if(MAYHEM_SPI_1MB)
+set(add_to_firmware TRUE)
+endif()
 endif()
 
 

@@ -39,7 +39,8 @@ using namespace lpc43xx;
 
 static baseband::SGPIO baseband_sgpio;
 
-WORKING_AREA(baseband_thread_wa, 4096);
+/* Meteor LRPT Viterbi decode uses large scratch; 4 KiB was insufficient. */
+WORKING_AREA(baseband_thread_wa, 12288);
 
 Thread* BasebandThread::thread = nullptr;
 

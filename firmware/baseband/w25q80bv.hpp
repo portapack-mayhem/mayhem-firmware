@@ -113,6 +113,7 @@
 #define W25Q80BV_STATUS_WEL 0x02
 #define W25Q80BV_READ_STATUS1 0x05
 #define W25Q80BV_READ_STATUS2 0x35
+#define W25Q80BV_READ_DATA 0x03
 
 #define PERIPH_BASE_APB0 0x40080000
 #define SSP0_BASE (PERIPH_BASE_APB0 + 0x03000)
@@ -126,14 +127,16 @@
 namespace w25q80bv {
 void disable_spifi();
 uint8_t get_status();
-void wait_for_device();
+bool wait_for_device_bounded();
 void wait_not_busy();
 uint32_t spi_ssp_transfer_word(const uint32_t data);
 void initialite_spi();
 void setup();
 void remove_write_protection();
 uint8_t get_device_id();
+uint32_t capacity_bytes_for_device_id(uint8_t device_id);
 void erase_chip();
+void read(size_t address, uint8_t* data_buffer, size_t length);
 void write(size_t page_index, uint8_t* data_buffer, size_t length);
 }  // namespace w25q80bv
 

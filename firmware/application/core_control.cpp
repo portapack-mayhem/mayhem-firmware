@@ -32,31 +32,43 @@
 using namespace lpc43xx;
 using namespace portapack;
 
-void m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, const bool full_reset) {
+static const spi_flash::chunk_t* spi_flash_find_chunk(const spi_flash::image_tag_t image_tag) {
     const spi_flash::chunk_t* chunk = reinterpret_cast<const spi_flash::chunk_t*>(spi_flash::images.base());
     while (chunk->tag) {
-        if (chunk->tag == image_tag) {
-            const void* src = &chunk->data[0];
-            void* dst = reinterpret_cast<void*>(to.base());
-
-            /* extract and initialize M4 code RAM */
-            unlz4_len(src, dst, chunk->compressed_data_size);
-
-            /* M4 core is assumed to be sleeping with interrupts off, so we can mess
-             * with its address space and RAM without concern.
-             */
-            LPC_CREG->M4MEMMAP = to.base();
-
-            /* Reset M4 core and optionally all peripherals */
-            LPC_RGU->RESET_CTRL[0] = (full_reset) ? (1 << 1)    // PERIPH_RST
-                                                  : (1 << 13);  // M4_RST
-
-            return;
-        }
+        if (chunk->tag == image_tag)
+            return chunk;
         chunk = chunk->next();
     }
+    return nullptr;
+}
 
-    chDbgPanic("NoImg");
+bool spi_flash_has_image(const spi_flash::image_tag_t image_tag) {
+    return spi_flash_find_chunk(image_tag) != nullptr;
+}
+
+void m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, const bool full_reset) {
+    const spi_flash::chunk_t* const chunk = spi_flash_find_chunk(image_tag);
+    if (!chunk)
+        chDbgPanic("NoImg");
+
+    const void* src = &chunk->data[0];
+    void* dst = reinterpret_cast<void*>(to.base());
+
+    /* extract and initialize M4 code RAM */
+    unlz4_len(src, dst, chunk->compressed_data_size);
+
+    /* M4 core is assumed to be sleeping with interrupts off, so we can mess
+     * with its address space and RAM without concern.
+     */
+    LPC_CREG->M4MEMMAP = to.base();
+
+    /* Reset M4 core and optionally all peripherals */
+    LPC_RGU->RESET_CTRL[0] = (full_reset) ? (1 << 1)    // PERIPH_RST
+                                          : (1 << 13);  // M4_RST
+}
+
+void m4_hold_reset() {
+    LPC_RGU->RESET_CTRL[0] = (1 << 13);  // M4_RST
 }
 
 void m4_init_prepared(const uint32_t m4_code, const bool full_reset) {

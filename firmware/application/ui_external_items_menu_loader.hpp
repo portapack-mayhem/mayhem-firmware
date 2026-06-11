@@ -53,6 +53,16 @@ class DynamicBitmap {
     std::unique_ptr<Bitmap> _bitmap;
 };
 
+enum class ExternalAppLoadError {
+    None = 0,
+    FileRead,
+    M4TooLarge,
+    M0TooLarge,
+    BasebandSyncTimeout,
+    ChecksumMismatch,
+    InvalidLayout,
+};
+
 class ExternalItemsMenuLoader {
    public:
     struct GridItemEx : GridItem {
@@ -62,12 +72,15 @@ class ExternalItemsMenuLoader {
     static std::vector<GridItemEx> load_external_items(app_location_t, NavigationView&);
     ExternalItemsMenuLoader() = delete;
     static bool run_external_app(ui::NavigationView&, std::filesystem::path);
+    static ExternalAppLoadError external_app_last_load_error();
+    static const char* external_app_load_error_message(ExternalAppLoadError error);
+    static void unload_external_items();
     static bool run_standalone_app(ui::NavigationView&, std::filesystem::path);
     static bool run_module_app(ui::NavigationView&, uint8_t*, size_t);
     static void load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback, bool module_included = false);
 
    private:
-    static std::vector<DynamicBitmap<16, 16>> bitmaps;
+    static std::vector<std::unique_ptr<DynamicBitmap<16, 16>>> bitmaps;
 };
 
 }  // namespace ui

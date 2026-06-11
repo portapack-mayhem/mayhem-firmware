@@ -25,6 +25,8 @@
 
 #include "signal.hpp"
 
+#include <ctime>
+
 #include "lpc43xx_cpp.hpp"
 #include "portapack_persistent_memory.hpp"
 #include <ctime>

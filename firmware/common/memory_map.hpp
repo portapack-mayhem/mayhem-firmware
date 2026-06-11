@@ -75,10 +75,20 @@ constexpr region_t spifi_cached{LPC_SPIFI_DATA_CACHED_BASE, spifi_uncached.size(
 
 /////////////////////////////////
 
-constexpr region_t m4_code{local_sram_1.base(), 32_KiB};
-constexpr region_t shared_memory{m4_code.end(), 8_KiB};
+/* Bank2 is 40 KiB total: baseband LZ4 decompress target + SharedMemory must fit without overlap.
+ * SharedMemory grew (Meteor LRPT G4 live CADU ring, IPC path, G4 LCD preview RGB buffer, etc.);
+ * `sizeof(SharedMemory)` is enforced in `portapack_shared_memory.cpp` — stay within 14 KiB.
+ *
+ * M0 AHB SRAM (HackRF One: 64 KiB; see `LPC43xx_M0.ld` / `LD_RAM_SIZE`): large **static** objects
+ * such as `MsumrDemux` reassembly (`kReassemblyStreams * kReassemblyCapBytes` in
+ * `firmware/application/meteor_lrpt_g4/msumr_demux.hpp`) live in `.bss` here, not in Bank2 shared RAM. */
+constexpr region_t m4_code{local_sram_1.base(), 26_KiB};
+constexpr region_t shared_memory{m4_code.end(), 14_KiB};
 
 constexpr region_t m4_code_hackrf = local_sram_0;
+
+/* M0 UI for .ppma with bundled M4 image (Meteor LRPT): reserved tail of M0 AHB SRAM. */
+constexpr region_t m0_external_app_runtime{0x20000000u + (64u * 1024u) - (10u * 1024u), 10_KiB};
 
 } /* namespace map */
 } /* namespace memory */

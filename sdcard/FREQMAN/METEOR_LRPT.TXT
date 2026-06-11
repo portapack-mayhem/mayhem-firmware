@@ -1,0 +1,4 @@
+# Meteor M2-3 / M2-4 LRPT (Mayhem Meteor LRPT app: Capture + SPEC)
+# Primary service frequency; use 150k or 250k SPEC per SD card speed (see RecordView yellow thresholds).
+f=137900000,m=SPEC,bw=250k,d=Meteor LRPT primary (M2-3/M2-4)
+f=137100000,m=SPEC,bw=250k,d=Meteor LRPT backup (check almanac)

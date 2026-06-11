@@ -1,6 +1,9 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+REM Always use paths relative to this script (utils\, firmware\), not the caller's CWD.
+cd /d "%~dp0"
+
 echo =========================================================
 echo   PortaPack Mayhem - Device Flasher
 echo =========================================================
@@ -32,6 +35,17 @@ if not defined DEVICE_NAME (
 echo.
 echo Device: %DEVICE_NAME%
 echo.
+
+if "%DEVICE_CHOICE%"=="3" (
+	echo.
+	echo  **********************************************************************
+	echo   HACKRF PRO ONLY ^(menu choice 3^).
+	echo   If you have HackRF One + PortaPack, press Ctrl+C and run again with choice 1.
+	echo   Choice 3 uses hackrf_hpro_usb.dfu and firmware_hpro.bin ^(4MB Pro SPI^) — wrong for HackRF One.
+	echo  **********************************************************************
+	echo.
+	pause
+)
 
 REM ── Step 2: Select action ──────────────────────────────────
 echo What would you like to do?

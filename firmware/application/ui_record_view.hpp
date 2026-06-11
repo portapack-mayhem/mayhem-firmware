@@ -66,6 +66,9 @@ class RecordView : public View {
     void set_file_type(const FileType v) { file_type = v; }
     void set_auto_trim(bool v) { auto_trim = v; }
 
+    /** Bytes per baseband capture write; must match M4 `CaptureConfig` `write_size`. Ignored while recording. */
+    void set_raw_capture_block_size(size_t bytes);
+
     void start();
     void stop();
     void on_hide() override;
@@ -75,6 +78,9 @@ class RecordView : public View {
     void set_filename_date_frequency(bool set);
     void set_filename_as_is(bool set);
 
+    void handle_capture_thread_done(const File::Error error);
+    void on_gps(const GPSPosDataMessage* msg);
+
    private:
     void toggle();
     // void toggle_pitch_rssi();
@@ -83,12 +89,9 @@ class RecordView : public View {
     void update_status_display();
     void trim_capture();
 
-    void handle_capture_thread_done(const File::Error error);
     void handle_error(const File::Error error);
 
     OversampleRate get_oversample_rate(uint32_t sample_rate);
-
-    void on_gps(const GPSPosDataMessage* msg);
     // bool pitch_rssi_enabled = false;
 
     // Time Stamp
@@ -103,7 +106,7 @@ class RecordView : public View {
     const std::filesystem::path filename_stem_pattern;
     const std::filesystem::path folder;
     FileType file_type;
-    const size_t write_size;
+    size_t write_size_;
     const size_t buffer_count;
     uint32_t sampling_rate{0};
     SignalToken signal_token_tick_second{};
@@ -152,19 +155,8 @@ class RecordView : public View {
 
     std::unique_ptr<CaptureThread> capture_thread{};
 
-    MessageHandlerRegistration message_handler_capture_thread_error{
-        Message::ID::CaptureThreadDone,
-        [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const CaptureThreadDoneMessage*>(p);
-            this->handle_capture_thread_done(message.error);
-        }};
-
-    MessageHandlerRegistration message_handler_gps{
-        Message::ID::GPSPosData,
-        [this](Message* const p) {
-            const auto message = static_cast<const GPSPosDataMessage*>(p);
-            this->on_gps(message);
-        }};
+    void attach_shared_message_handlers();
+    void detach_shared_message_handlers();
 };
 
 } /* namespace ui */

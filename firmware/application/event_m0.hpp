@@ -32,6 +32,8 @@
 
 #include "message.hpp"
 
+#include <functional>
+
 #include "touch.hpp"
 
 #include "ch.h"
@@ -148,14 +150,24 @@ class EventDispatcher {
 
 class MessageHandlerRegistration {
    public:
+    using HandlerFn = void (*)(Message* const p, void* ctx);
+
     MessageHandlerRegistration(
         const Message::ID message_id,
         std::function<void(Message* const p)>&& callback);
 
     ~MessageHandlerRegistration();
 
+    /** Heap-free handler slot (use for external apps while M4 baseband is running). */
+    static void register_handler(const Message::ID message_id, HandlerFn fn, void* const ctx);
+
+    static void unregister_id(const Message::ID message_id);
+
    private:
+    static void thunk(Message* const p, void* ctx);
+
     const Message::ID message_id;
+    std::function<void(Message* const p)> callback_;
 };
 
 #endif /*__EVENT_M0_H__*/

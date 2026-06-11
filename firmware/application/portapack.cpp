@@ -219,9 +219,14 @@ static PortaPackModel portapack_model() {
         jtag::JTAG jtag{target};
         portapack::cpld::CPLD cpld{jtag};
 
-        cpld.reset();
-        cpld.run_test_idle();
-        uint32_t idcode = cpld.get_idcode();
+        uint32_t idcode = 0;
+        for (int attempt = 0; attempt < 3; attempt++) {
+            cpld.reset();
+            cpld.run_test_idle();
+            idcode = cpld.get_idcode();
+            if (idcode == 0x25610)
+                break;
+        }
         if (idcode == 0x25610) {
             model = PortaPackModel::AGM;
         } else {
@@ -272,15 +277,22 @@ static audio::Codec* portapack_audio_codec() {
 }
 
 static const portapack::cpld::Config& portapack_cpld_config() {
-    return (portapack_model() == PortaPackModel::R2_20170522)
-               ? portapack::cpld::rev_20170522::config
-               : portapack::cpld::rev_20150901::config;
+    switch (portapack_model()) {
+        case PortaPackModel::AGM:
+            return portapack::cpld::rev_h4m::config;
+        case PortaPackModel::R2_20170522:
+            return portapack::cpld::rev_20170522::config;
+        default:
+            return portapack::cpld::rev_20150901::config;
+    }
 }
 
 Backlight* backlight() {
-    return (portapack_model() == PortaPackModel::R2_20170522)
-               ? static_cast<portapack::Backlight*>(&backlight_cat4004)  // R2_20170522
-               : static_cast<portapack::Backlight*>(&backlight_on_off);  // R1_20150901
+    const auto model = portapack_model();
+    /* H4/H4M (AGM CPLD) and H2+ use CAT4004 dimming; H1R1 uses on/off only. */
+    if (model == PortaPackModel::R2_20170522 || model == PortaPackModel::AGM)
+        return static_cast<portapack::Backlight*>(&backlight_cat4004);
+    return static_cast<portapack::Backlight*>(&backlight_on_off);
 }
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
@@ -662,8 +674,16 @@ init_status_t init() {
 
     radio::init();
 
+    /* Always mount at 25 MHz first; high-speed SDIO can hang boot on marginal cards. */
+    persistent_memory::set_config_sdcard_high_speed_io(false, false);
+
     sdcStart(&SDCD1, nullptr);
     sd_card::poll_inserted();
+
+    if (sd_card::status() == sd_card::Status::Mounted &&
+        persistent_memory::config_sdcard_high_speed_io()) {
+        persistent_memory::set_config_sdcard_high_speed_io(true, false);
+    }
 
     chThdSleepMilliseconds(10);
 

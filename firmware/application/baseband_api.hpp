@@ -113,6 +113,7 @@ void set_morsetx_config(uint8_t mode, uint32_t tone, float fm_delta);
 void set_morsetx_key(bool key_down);
 void set_wefax_config(uint8_t lpm, uint8_t ioc);
 void set_noaaapt_config();
+void set_meteor_lrpt_rx_config(uint8_t flags = 0, uint8_t symbol_rate_k = 72);
 void set_flex_config();
 void set_bitstream_config(uint32_t deviation, uint8_t mode);                                                   // mode 0 for am, 1 for 2fsk
 void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload = nullptr, uint16_t payload_length = 0);  // baud*100
@@ -128,7 +129,15 @@ void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_m
 
 bool is_image_running();
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
+bool run_image_checked(const portapack::spi_flash::image_tag_t image_tag, uint32_t timeout_ms = 3000);
+/** PMLR from SPI when present, else prepared image in m4_code (loaded from .ppma). */
+void run_meteor_lrpt_rx_image();
+/** Start Meteor M4 after .ppma copy; returns false if baseband_ready times out. */
+/** @param prepared_only If true, always run M4 from m4_code (e.g. after .ppma load); ignore SPI PMLR. */
+bool start_meteor_lrpt_baseband_checked(uint32_t timeout_ms = 5000, bool prepared_only = false);
 void run_prepared_image(const uint32_t m4_code);
+/** Returns false if baseband_ready is not set within timeout_ms (no panic). */
+bool run_prepared_image_checked(const uint32_t m4_code, uint32_t timeout_ms = 3000, bool full_reset = false);
 void shutdown();
 
 void spectrum_streaming_start();

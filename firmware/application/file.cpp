@@ -548,12 +548,15 @@ bool is_cxx_capture_file(const path& filename) {
 }
 
 uint8_t capture_file_sample_size(const path& filename) {
+#ifndef METEOR_STANDALONE_NO_CH
     if (path_iequal(filename.extension(), c8_ext))
         return sizeof(complex8_t);
     if (path_iequal(filename.extension(), cu8_ext))
         return sizeof(complexu8_t);
     if (path_iequal(filename.extension(), c16_ext))
         return sizeof(complex16_t);
+#endif
+    (void)filename;
     return 0;
 }
 

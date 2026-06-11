@@ -24,6 +24,8 @@
 #include "portapack_shared_memory.hpp"
 #include "file_path.hpp"
 
+#include <cstring>
+
 namespace ui {
 
 // Firmware image validation
@@ -34,6 +36,14 @@ static const char* hackrf_magic = "HACKRFFW";
 Thread* FlashUtilityView::thread{nullptr};
 static constexpr size_t max_filename_length = 60;  // max length of filename
 
+static std::filesystem::path::string_type normalize_firmware_path(std::filesystem::path::string_type path) {
+    if (path.empty())
+        return path;
+    if (path.front() != u'/')
+        return std::u16string(u"/") + path;
+    return path;
+}
+
 bool valid_firmware_file(std::filesystem::path::string_type path) {
     File firmware_file;
     bool require_checksum{false};
@@ -42,14 +52,16 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
 
     static_assert((FIRMWARE_INFO_AREA_OFFSET % sizeof(read_buffer)) == 0, "Read buffer size must divide evenly into FIRMWARE_INFO_AREA_OFFSET");
 
+    path = normalize_firmware_path(std::move(path));
+
     // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
     auto result = firmware_file.open(path.c_str());
     if (!result.is_valid()) {
-        uint64_t file_size = firmware_file.size();
-        if (file_size > FLASH_ROM_SIZE) {
-            // Firmware file is larger than the flash size for this device
+        const uint64_t file_size = firmware_file.size();
+        if (file_size != FLASH_ROM_SIZE) {
             return false;
         }
+        require_checksum = true;
         checksum = 0;
         for (uint64_t offset = 0; offset < FLASH_ROM_SIZE && offset < file_size; offset += sizeof(read_buffer)) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
@@ -107,20 +119,32 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
     };
 
     add_firmware_items(firmware_dir, u"*.bin", ui::Theme::getInstance()->fg_red->foreground);
-    add_firmware_items(firmware_dir, u"*.tar", ui::Theme::getInstance()->fg_cyan->foreground);
+    /* OCI package: portapack-mayhem_OCI.ppfw.tar (do not also glob *.tar — duplicates menu entries). */
+    add_firmware_items(firmware_dir, u"*.ppfw.tar", ui::Theme::getInstance()->fg_cyan->foreground);
 
     // add_firmware_items(user_firmware_folder,u"*.bin", ui::Theme::getInstance()->fg_cyan->foreground);
 }
 
 void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path) {
+    const bool spi_1mb_limit = ((uint32_t)FLASH_SIZE_LIMIT_MB == 1);
+    const char* const body = spi_1mb_limit
+                                 ? "Experimental on 1MiB SPI:\nuse PC hackrf_spiflash\nwhen possible.\n\n"
+                                   "This will replace your\ncurrent firmware.\n\n"
+                                   "If things go wrong, recover\nwith DFU + mayhem_flasher."
+                                 : "This will replace your\ncurrent firmware.\n\n"
+                                   "If things go wrong you are\nrequired to flash manually\nwith dfu.";
+
     nav_.push<ModalMessageView>(
         "Warning!",
-        "This will replace your\ncurrent firmware.\n\nIf things go wrong you are\nrequired to flash manually\nwith dfu.",
+        body,
         YESNO,
         [this, path](bool choice) {
             if (choice) {
-                std::filesystem::path::string_type full_path = firmware_dir.native() + u"/" + path;
-                this->flash_firmware(full_path);
+                std::filesystem::path::string_type full_path =
+                    (path.find(u'/') != std::filesystem::path::string_type::npos)
+                        ? path
+                        : (firmware_dir.native() + u"/" + path);
+                this->flash_firmware(normalize_firmware_path(std::move(full_path)));
             }
         });
 }
@@ -157,12 +181,13 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
 
 bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
     ui::Painter painter;
+    path = normalize_firmware_path(std::move(path));
+
     if (endsWith(path, u".tar")) {
-        // extract, then update
-        path = extract_tar(u'/' + path, painter).native();
+        path = normalize_firmware_path(extract_tar(path, painter).native());
     }
 
-    if (path.empty() || !valid_firmware_file(path.c_str())) {
+    if (path.empty() || !valid_firmware_file(path)) {
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, Theme::getInstance()->bg_darkest->background);
         painter.draw_string({0, 60}, *Theme::getInstance()->fg_red, "BAD FIRMWARE FILE OR W/R ERR");
         chThdSleepMilliseconds(5000);
@@ -172,12 +197,23 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
         {0, 0, portapack::display.width(), portapack::display.height()},
         Theme::getInstance()->bg_darkest->background);
 
-    painter.draw_string({12, 24}, this->nav_.style(), "This will take 15 seconds.");
+    painter.draw_string({12, 24}, this->nav_.style(), "This may take several minutes.");
+    if ((uint32_t)FLASH_SIZE_LIMIT_MB >= 2) {
+        painter.draw_string({12, 44}, this->nav_.style(), "(2MB images need extra time.)");
+    }
     painter.draw_string({12, 64}, this->nav_.style(), "Please wait while LED RX");
     painter.draw_string({12, 84}, this->nav_.style(), "is on and TX is flashing.");
     painter.draw_string({12, 124}, this->nav_.style(), "Device will then restart.");
 
-    std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (path.length() + 1) * 2);
+    const size_t path_bytes = (path.length() + 1) * sizeof(std::filesystem::path::value_type);
+    if (path_bytes > SharedMemory::flash_utility_path_bytes) {
+        painter.draw_string({0, 60}, *Theme::getInstance()->fg_red, "FIRMWARE PATH TOO LONG");
+        chThdSleepMilliseconds(3000);
+        return false;
+    }
+
+    std::memset(shared_memory.bb_data.data, 0, sizeof(shared_memory.bb_data.data));
+    std::memcpy(shared_memory.bb_data.data, path.c_str(), path_bytes);
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
     m0_halt();
     return true;  // fixes compiler warning (line should not be reached due to halt)
