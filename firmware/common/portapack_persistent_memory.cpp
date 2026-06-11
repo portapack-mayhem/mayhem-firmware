@@ -212,7 +212,7 @@ struct data_t {
     bool updown_frequency_tx_correction;
     bool lcd_normally_black : 1;
     bool encoder_dial_direction : 1;  // false = normal, true = reverse
-    bool UNUSED_6 : 1;
+    bool battery_replaceable : 1;
     bool UNUSED_7 : 1;
 
     // up/down converter offset
@@ -290,7 +290,7 @@ struct data_t {
           updown_frequency_tx_correction(false),
           lcd_normally_black(false),
           encoder_dial_direction(false),
-          UNUSED_6(false),
+          battery_replaceable(false),
           UNUSED_7(false),
 
           converter_frequency_offset(0),
@@ -446,6 +446,7 @@ void defaults() {
     set_config_tx_gain_max_db(47);
 
     set_battery_cap_mah(0);
+    set_battery_replaceable(false);
 }
 
 void init() {
@@ -1256,6 +1257,14 @@ void set_battery_cap_mah(uint16_t mah) {
     if (data->misc_config.batt_cap_mah != mah) {
         data->misc_config.batt_cap_mah = mah;
     }
+}
+
+void set_battery_replaceable(bool v) {
+    data->battery_replaceable = v;
+}
+
+bool battery_replaceable() {
+    return data->battery_replaceable;
 }
 
 uint32_t battery_cap_mah() {

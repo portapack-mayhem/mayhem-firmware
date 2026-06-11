@@ -22,10 +22,10 @@ Boston, MA 02110-1301, USA.
 #include "i2cdev_max17055.hpp"
 #include "battery.hpp"
 #include "utility.hpp"
-#include "portapack_persistent_memory.hpp"
 #include <cstring>
 #include <algorithm>
 #include <cstdint>
+#include "portapack_persistent_memory.hpp"
 
 namespace i2cdev {
 
@@ -189,11 +189,31 @@ void I2cDev_MAX17055::update() {
     uint8_t batteryPercentage = 102;
     uint16_t voltage = 0;
     int32_t current = 0;
-    getBatteryInfo(validity, batteryPercentage, voltage, current);
+    bool battChanged = false;
+
+    getBatteryInfo(validity, batteryPercentage, voltage, current, battChanged);
 
     // send local message
-    BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage};
+    BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage, battChanged};
     EventDispatcher::send_message(msg);
+}
+
+void I2cDev_MAX17055::sleep_config(bool enable_sleep) {
+    uint16_t config1 = read_register(0x1D);
+    if (enable_sleep) {
+        // A COMMSH bit (bit 6)
+        config1 |= 0x0040;
+        // ShdnTimer (0x3F):
+        // THR = 0 -> ~45 sec (def, 0x0000)
+        // THR = 1 -> ~90 sec (0x1000)
+        // THR = 2 -> ~180 sec (0x2000)
+        write_register(0x3F, 0x2000);
+    } else {
+        // A COMMSH bit (bit 6)
+        config1 &= ~0x0040;
+    }
+    // write config register
+    write_register(0x1D, config1);
 }
 
 bool I2cDev_MAX17055::init(uint8_t addr_) {
@@ -207,8 +227,8 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
             // First-time or POR initialization
             return_status = full_reset_and_init();
         }
-        partialInit();  // If you always want hibernation disabled
-        // statusClear();  // I am not sure if this should be here or not (Clear all bits in the Status register (0x00))
+        chThdSleepMilliseconds(300);  // wait for adc to fully wake up!
+        partialInit();
         return return_status;
     }
     return false;
@@ -232,9 +252,10 @@ bool I2cDev_MAX17055::full_reset_and_init() {
     if (!load_custom_parameters()) {
         return false;
     }
-    if (!clear_por()) {
+    /*if (!clear_por()) {
         return false;
-    }
+    }*/
+    // don't clear it, we'll need to know the state
     return true;
 }
 
@@ -253,7 +274,7 @@ bool I2cDev_MAX17055::initialize_custom_parameters() {
     if (!write_register(0x1E, 0x03C0)) return false;                                  // IChgTerm
     if (!write_register(0x3A, 0x9661)) return false;                                  // VEmpty
     if (!write_register(0x60, 0x0090)) return false;                                  // Unknown register
-    if (!write_register(0x46, ((designcap / 32) * 44138) * designcap)) return false;  // dPAcc
+    if (!write_register(0x46, ((designcap / 32) * 44138) / designcap)) return false;  // dPAcc = dQAcc * 44138 / DesignCap (Maxim EZ config)
     if (!write_register(0xDB, 0x8000)) return false;                                  // ModelCfg  --we should wait till it loads here. While (ReadRegister(0xDB)&0x8000) Wait(10)；//do not continue until ModelCFG.Refresh == 0
     if (!write_register(0x40, 0x0001)) return false;                                  // Set user mem to 1
     return true;
@@ -284,17 +305,18 @@ bool I2cDev_MAX17055::clear_por() {
 }
 
 bool I2cDev_MAX17055::needsInitialization() {
-    uint16_t UserMem1 = read_register(0x40);
-
-    if (UserMem1 == 0) {
-        return true;
+    uint16_t status = read_register(0x00);
+    if (status == 0xFFFF) {
+        chThdSleepMilliseconds(15);
+        status = read_register(0x00);
     }
-    return false;
+    return (status & 0x0002) != 0;
 }
 
 void I2cDev_MAX17055::partialInit() {
     // Only update necessary volatile settings
-    setHibCFG(0x0000);  // If you always want hibernation disabled
+    // setHibCFG(0x0000);  // If you always want hibernation disabled. this is a lower resolution mode, when the ic is on, and measuring, but on lower freq. depends un tha current (mA).
+    sleep_config(true);  // shut down the comm
     // Add any other volatile settings that need updating
 }
 
@@ -312,7 +334,12 @@ bool I2cDev_MAX17055::detect() {
     if (dev_name == 0x4010) {
         return true;
     }
-
+    // try again, we we just woke up.
+    chThdSleepMilliseconds(5);
+    dev_name = read_register(0x21);
+    if (dev_name == 0x4010) {
+        return true;
+    }
     // If DevName doesn't match, try reading Status register as a fallback
     uint16_t status = read_register(0x00);
     if (status != 0xFFFF && status != 0x0000) {
@@ -354,14 +381,27 @@ bool I2cDev_MAX17055::write_register(const uint8_t reg, const uint16_t value) {
     return success;
 }
 
-void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& battMayChanged) {
     // Read Status Register
     uint16_t status = read_register(0x00);
+    battMayChanged = false;
     voltage = averageMVoltage();
     if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
         valid_mask = 0;
         return;
     }
+    bool requires_reset = false;
+
+    if (((status & 0xFF) >> 1) & 0x01) {  // POR FLAG
+        requires_reset = true;
+    }
+    // Execute the reset if either flag was tripped
+    if (requires_reset) {
+        reInit();  // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
+        // battMayChanged = true && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
+        // We don't want to signal this for now. the Voltage drop during power up messes this up a bit.
+    }
+
     batteryPercentage = stateOfCharge();
     current = instantCurrent();
     valid_mask = 31;  // BATT_VALID_VOLTAGE + CURRENT + PERCENT + BATT_VALID_CYCLES + BATT_VALID_TTEF
@@ -551,15 +591,6 @@ bool I2cDev_MAX17055::setModelCfg(const uint8_t _Model_ID) {
 }
 
 bool I2cDev_MAX17055::setHibCFG(const uint16_t _Config) {
-    uint16_t config1_reg = read_register(0x1D);
-
-    // (SHDN: 0x80) and (COMMSH: 0x40) Otherwise it will go into sleep mode after 45 seconds.
-    config1_reg &= ~(0x0080 | 0x0040);
-
-    if (!write_register(0x1D, config1_reg)) {
-        return false;
-    }
-
     return write_register(0xBA, _Config);
 }
 
