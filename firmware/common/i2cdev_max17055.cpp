@@ -22,7 +22,6 @@ Boston, MA 02110-1301, USA.
 #include "i2cdev_max17055.hpp"
 #include "battery.hpp"
 #include "utility.hpp"
-#include "portapack_persistent_memory.hpp"
 #include <cstring>
 #include <algorithm>
 #include <cstdint>

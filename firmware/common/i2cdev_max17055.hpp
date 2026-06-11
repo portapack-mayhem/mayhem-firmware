@@ -291,7 +291,7 @@ class I2cDev_MAX17055 : public I2cDev {
     int32_t instantCurrent(void);
     uint16_t stateOfCharge(void);
     bool reInit();                                                   // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
-    bool getIsBattChanged() { return statusControl(MAX17055_POR); }  // true it the ic thinks we have a new battery
+    bool getIsBattChanged() { return statusControl(MAX17055_POR); }  // true if the ic thinks we have a new battery
     void resetChangedFlag() { clear_por(); }                         // reset the flag
     void sleep_config(bool enable_sleep);                            // if true, the ic can sleep after 3 minutes of inactivity (over i2c). can be waken up on any i2c communication (first packet may be dropped)
    private:
