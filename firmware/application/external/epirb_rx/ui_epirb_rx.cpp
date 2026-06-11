@@ -141,7 +141,7 @@ void EPIRBLogger::on_packet(Beacon& beacon) {
     entry += ",";
     entry += beacon.getProtocolName();
 
-    /* * If you ever uncomment the rest of the logging,
+    /* If you ever uncomment the rest of the logging,
      * keep using the same pattern! Like this:
      *
      * if (!beacon.location.isUnknown()) {
@@ -628,7 +628,7 @@ void EPIRBAppView::update_display() {
 
     text_status.set_content(buffer);
 }
-// 32788
+
 void EPIRBAppView::send_config() {
     // Send config to baseband
     baseband::set_epirb_rx_config(epirb_rx_config_message);
