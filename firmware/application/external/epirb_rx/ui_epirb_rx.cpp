@@ -306,9 +306,9 @@ void EPRIBQRView::update_display() {
     // Update data => we use a single TextArea component for code size optimization
     char buffer[128];
     char* buffer_pointer = buffer;
-    buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
+    buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "QR:" STR_COLOR_WHITE "\t\t\t\t\t\t\t\t");
     if (current_beacon) {
-        buffer_pointer += sprintf(buffer_pointer, "%sData:%s\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
+        buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "Data:" STR_COLOR_WHITE "\t");
         // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
         buffer_pointer += current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 3, 11);
         (*(buffer_pointer++)) = '\t';
@@ -398,9 +398,8 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &view_rx,
 #endif
                   &view_qr});
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    options_t frequ_options;
+
+    ui::OptionsField::options_t frequ_options;
     // Set frequency combo content according to FREQ.TXT file content
     for (auto freq : ResourceManager::get_frequencies()) {
         int32_t freq_value = atol(freq.c_str());
@@ -576,7 +575,6 @@ void EPIRBAppView::update_map() {
                         ui::GeoMarker marker;
                         marker.lat = other_beacon.location.latitude.getFloatValue();
                         marker.lon = other_beacon.location.longitude.getFloatValue();
-                        marker.angle = 0;
                         marker.tag = std::string(other_beacon.getType()) + "-" + other_beacon.shortId();
                         view_map.add_marker(marker);
                     }
@@ -599,15 +597,15 @@ void EPIRBAppView::update_display() {
     // We use a single TextArea for code size optimization
     char buffer[128];
     char* buffer_pointer = buffer;
-    buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacon:%s%2d/%d\t", STR_COLOR_CYAN, STR_COLOR_WHITE, (beacon_db.get_current_beacon_index() + 1), beacons_received);
-    buffer_pointer += sprintf(buffer_pointer, "%sStats: %s%03dOK %s%03dCOR %s%03dERR\t", STR_COLOR_CYAN, STR_COLOR_GREEN, packets_valid, STR_COLOR_YELLOW, packets_corrected, STR_COLOR_RED, packets_error);
-    buffer_pointer += sprintf(buffer_pointer, "%sCurrent:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE);
+    buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "Listening...     Beacon:" STR_COLOR_WHITE "%2d/%d\t", (beacon_db.get_current_beacon_index() + 1), beacons_received);
+    buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "Stats: " STR_COLOR_GREEN "%03dOK " STR_COLOR_YELLOW "%03dCOR " STR_COLOR_RED "%03dERR\t", packets_valid, packets_corrected, packets_error);
+    buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "Current:" STR_COLOR_WHITE " ");
     if (!beacon_db.empty()) {
         beacon_db.get_current_beacon().formatSummary(buffer_pointer, false);
     }
     text_status.set_content(buffer);
 }
-
+// 32832
 void EPIRBAppView::send_config() {
     // Send config to baseband
     baseband::set_epirb_rx_config(epirb_rx_config_message);
