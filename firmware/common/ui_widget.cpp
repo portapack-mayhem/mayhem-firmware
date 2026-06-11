@@ -2281,7 +2281,7 @@ void BatteryTextField::paint(Painter& painter) {
         xdelta = 2;
     std::string post = " %";
     if (charge_) post = "+%";
-    if (batt_changed_) post = "*%";
+    if (batt_changed_) post = "!%";
     painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, txt_batt);
     painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, post);
 }
