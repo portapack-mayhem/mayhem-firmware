@@ -21,6 +21,7 @@
 
 #include "doctest.h"
 #include "convert.hpp"
+#include <cstdint>
 #include <string>
 #include <string_view>
 

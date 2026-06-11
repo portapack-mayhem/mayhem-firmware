@@ -73,6 +73,8 @@
 #include "file_path.hpp"
 #include "ff.h"
 
+#include "i2cdev_max17055.hpp"
+
 #include <locale>
 #include <codecvt>
 
@@ -334,10 +336,10 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
     was_charging = msg->on_charger;
 
     if (!pmem::ui_hide_numeric_battery()) {
-        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger, msg->battMayChanged);
     }
     if (!pmem::ui_hide_battery_icon()) {
-        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger, msg->battMayChanged);
     }
 }
 
@@ -880,6 +882,10 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
         YESNO,
         [this](bool choice) {
             if (choice) {
+                i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+                if (dev) {
+                    dev->sleep_config(false);  // don't enable sleep even if no i2c communication. so we won't lose any data. on reboot (like exit hackrf mode) we set it to true again.
+                }
                 EventDispatcher::request_stop();
             }
         });

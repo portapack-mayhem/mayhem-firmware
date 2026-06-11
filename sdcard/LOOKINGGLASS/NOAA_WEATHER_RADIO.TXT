@@ -1,0 +1,6 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# NOAA WEATHER RADIO
+161,164,NOAA WEATHER RADIO
