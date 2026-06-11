@@ -111,10 +111,12 @@ bool TextArea::on_key(const KeyEvent key) {
 void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon) {
     // Convert packet bits to byte array for easier processing
     uint8_t data[BEACON_DATA_SIZE]{};
-    for (size_t i = 0; i < std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE); i++) {
+    size_t max_bytes = std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE);
+    size_t packet_bit_idx = 0;
+    for (size_t i = 0; i < max_bytes; i++) {
         uint8_t byte_val = 0;
-        for (int bit = 0; bit < 8 && (i * 8 + bit) < packet.size(); bit++) {
-            if (packet[i * 8 + bit]) {
+        for (int bit = 0; bit < 8; bit++, packet_bit_idx++) {
+            if (packet[packet_bit_idx]) {
                 byte_val |= (1 << (7 - bit));
             }
         }
@@ -129,17 +131,31 @@ void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon)
 
 #ifdef LOGGER
 void EPIRBLogger::on_packet(Beacon& beacon) {
-    std::string entry = std::string(beacon.getType()) + "," +
-                        beacon.hexId + "," +
-                        beacon.getProtocolName();  // + ",";
-                                                   // to_string_dec_uint(static_cast<uint8_t>(beacon.emergency_type)) + ",";
-    /*if (!beacon.location.isUnknown()) {
-        entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
-    } else {
-        entry += ",";
-    }
-    entry += "," + beacon.country.toString() + "," +
-             beacon.getSatus() + "\n";*/
+    std::string entry;
+    // Pre-allocate enough memory to avoid heap fragmentation and resizing
+    // 128 bytes should be plenty for this specific log line
+    entry.reserve(128);
+    entry += beacon.getType();
+    entry += ",";
+    entry += beacon.hexId;
+    entry += ",";
+    entry += beacon.getProtocolName();
+
+    /* * If you ever uncomment the rest of the logging,
+     * keep using the same pattern! Like this:
+     *
+     * if (!beacon.location.isUnknown()) {
+     * entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
+     * } else {
+     * entry += ",";
+     * }
+     * entry += ",";
+     * entry += beacon.country.toString();
+     * entry += ",";
+     * entry += beacon.getSatus();
+     * entry += "\n";
+     */
+
     log_file.write_entry(beacon.date, entry);
 }
 #endif
