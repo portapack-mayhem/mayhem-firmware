@@ -39,7 +39,7 @@ namespace ui::external_app::epirb_rx {
 
 // URL templates
 #define MAPS_URL_TEMPLATE "https://www.google.com/maps/search/?api=1&query=%s%%2C%s"
-#define BEACON_URL_TEMPALTE "https://decoder2.herokuapp.com/decoded/"
+#define BEACON_URL_TEMPLATE "https://decoder2.herokuapp.com/decoded/"
 
 #ifndef DISABLE_COUNTRY_CACHE
 int CountryManager::cache_count = 0;
@@ -71,14 +71,23 @@ void TextArea::paint(Painter& painter) {
     const Style& s = has_focus() ? style().invert() : style();
 
     painter.fill_rectangle(rect, s.background);
-    // We use \t as line separator since \n is used in STR_COLOR_GREEN
-    auto rows = split_string(content, '\t');
 
     const int line_height = s.font.line_height();
-    size_t line_idx = 0;
-    for (auto row : rows) {
-        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, row);
+    int line_idx = 0;
+
+    // Efficiently draw lines separated by \t without heap allocations
+    std::string_view sv{content};
+    size_t start = 0;
+    size_t end;
+
+    while ((end = sv.find('\t', start)) != std::string_view::npos) {
+        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start, end - start));
+        start = end + 1;
         line_idx++;
+    }
+
+    if (start < sv.length()) {
+        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start));
     }
 }
 
@@ -294,7 +303,7 @@ void EPRIBQRView::set_beacon(Beacon* beacon) {
 }
 
 void EPRIBQRView::update_display() {
-    // Update data => we use a single TextArea component for code size optimizaton
+    // Update data => we use a single TextArea component for code size optimization
     char buffer[128];
     char* buffer_pointer = buffer;
     buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
@@ -320,7 +329,7 @@ void EPRIBQRView::update_qr() {
         if (show_map) {
             // Map is selected
             if (!current_beacon->location.isUnknown()) {
-                // Loation is known => actually draw QR
+                // Location is known => actually draw QR
                 current_beacon->location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
                 show_qr = true;
             }
@@ -328,7 +337,7 @@ void EPRIBQRView::update_qr() {
             // Detail is selected
             char* buffer_pointer = qr_url;
             // Send to heroku decoder
-            buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPALTE);
+            buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPLATE);
             current_beacon->hexString(buffer_pointer, false);
             show_qr = true;
         }
@@ -402,7 +411,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
         receiver_model.set_target_frequency(v);
     };
-    // Restore frequency from preferencies
+    // Restore frequency from preferences
     options_frequency.set_by_value(receiver_model.target_frequency());
 
     // Tick second timer
@@ -455,6 +464,13 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
+
+    // Tint the channel-power bar red when the front-end overloads (ADC near
+    // full scale). Clipping distorts the constant-envelope carrier and the
+    // +/-1.1 rad biphase jumps the decoder relies on, so this cues the user to
+    // reduce RF-amp/LNA/VGA gain. -3 dBFS is a heuristic on the post-decimation
+    // level (not a literal ADC clip count); tune if it trips too early/late.
+    channel.set_overload_threshold(-3);
 
     update_display();
 

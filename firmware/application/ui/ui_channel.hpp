@@ -44,8 +44,16 @@ class Channel : public Widget {
 
     void paint(Painter& painter) override;
 
+    // Opt-in receiver-overload tint: when the channel power (peak IQ magnitude
+    // in dBFS, 0 = full scale) reaches this threshold the bar is drawn red
+    // instead of blue, flagging that the analog gain is too high and the ADC is
+    // clipping. Default is disabled (threshold above the 0 dBFS ceiling) so
+    // existing users are unaffected.
+    void set_overload_threshold(int32_t db) { overload_threshold_ = db; }
+
    private:
     int32_t max_db_;
+    int32_t overload_threshold_{1};
 
     MessageHandlerRegistration message_handler_stats{
         Message::ID::ChannelStatistics,
