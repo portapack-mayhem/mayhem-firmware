@@ -39,6 +39,7 @@
 #include "platform_scu.h"
 #include "fixed_point.h"
 #include "clkin.h"
+#include "cpu_clock.h"
 #include "usb_type.h"
 #include <libopencm3/lpc43xx/cgu.h>
 #include <libopencm3/lpc43xx/ccu.h>
@@ -50,6 +51,10 @@
 #endif
 
 #include "gpio_lpc.h"
+
+/* Referenced by the hackrf common delay.c. The Mayhem firmware already runs
+ * the CPU at 204MHz when this baseband image is started. */
+unsigned int cpu_clock_mhz = 204;
 
 /* GPIO Output PinMux */
 static struct gpio gpio_led[] = {
@@ -492,6 +497,9 @@ static void cpu_clock_pll1_max_speed(void) {
     reg_val |= CGU_BASE_M4_CLK_CLK_SEL(CGU_SRC_IRC) | CGU_BASE_M4_CLK_AUTOBLOCK(1);
     CGU_BASE_M4_CLK = reg_val;
 
+    /* CPU is now at 12MHz */
+    cpu_clock_mhz = 12;
+
     /* 2. Enable the crystal oscillator. */
     CGU_XTAL_OSC_CTRL &= ~CGU_XTAL_OSC_CTRL_ENABLE_MASK;
 
@@ -537,11 +545,17 @@ static void cpu_clock_pll1_max_speed(void) {
     reg_val |= CGU_BASE_M4_CLK_CLK_SEL(CGU_SRC_PLL1);
     CGU_BASE_M4_CLK = reg_val;
 
+    /* CPU is now at 102MHz */
+    cpu_clock_mhz = 102;
+
     /* 9. Wait 50us. */
     delay_us_at_mhz(50, 102);
 
     /* 10. Set the PLL1 P-divider to direct output mode (DIRECT=1). */
     CGU_PLL1_CTRL |= CGU_PLL1_CTRL_DIRECT_MASK;
+
+    /* CPU is now at 204MHz */
+    cpu_clock_mhz = 204;
 }
 
 /* clock startup for LPC4320 configure PLL1 to max speed (204MHz).
