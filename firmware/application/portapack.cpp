@@ -56,11 +56,14 @@ using asahi_kasei::ak4951::AK4951;
 #include "i2cdevmanager.hpp"
 #include "battery.hpp"
 
+#include "gpio.hpp"
+
 extern "C" {
 #include "platform_detect.h"
 
 #ifdef PRALINE
 #include "fpga_bridge.h"
+#include "board.h"
 #endif
 }
 
@@ -561,12 +564,6 @@ static void initialize_boot_splash_screen() {
  */
 
 init_status_t init() {
-#ifdef PRALINE
-    /* 1. HOLD FPGA IN RESET (Active Low) */
-    // P5_2 is GPIO2[11] (FPGA CRESET)
-    palClearPad(GPIO2, 11);
-#endif
-
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
@@ -594,8 +591,11 @@ init_status_t init() {
     }
 
     /* Cache some configuration data from persistent memory. */
+
     rtc_time::dst_init();
     chThdSleepMilliseconds(10);
+
+    power_control::core_power_on();
 
     clock_manager.init_clock_generator();
 

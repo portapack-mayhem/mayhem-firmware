@@ -32,6 +32,11 @@ using namespace hackrf::one;
 using namespace lpc43xx;
 
 #ifdef PRALINE
+#include "hackrf_gpio.hpp"
+#include "gpio.hpp"
+#endif
+
+#ifdef PRALINE
 extern "C" {
 #include "fpga_bridge.h"
 }
@@ -429,32 +434,10 @@ static void portapack_tcxo_disable() {
 using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
-#ifdef PRALINE
-    /* Route the PRALINE P22 10MHz reference to the Si5351 CLKIN pin. */
-    LPC_SCU->SFSP[2][10] = 0xF0;
-    LPC_SCU->SFSP[6][8] = 0xF4;
-    LPC_SCU->SFSP[6][9] = 0xF0;
-    LPC_SCU->SFSP[1][20] = 0xF0;
-
-    gpio_p1_ctrl0.output();
-    gpio_p1_ctrl1.output();
-    gpio_p1_ctrl2.output();
-    gpio_clkin_ctrl.output();
-
-    gpio_p1_ctrl0.write(0);
-    gpio_p1_ctrl1.write(0);
-    gpio_p1_ctrl2.write(1);
-    gpio_clkin_ctrl.write(1);
-
-    chThdSleepMilliseconds(20);
-
-#else
-    // HackRF One r9: GPIO0_8 (mcu_clk_en) gates Si5351 CLK2/CLK7 to GP_CLKIN
     if (hackrf_r9) {
         gpio_r9_mcu_clk_en.output();
         gpio_r9_mcu_clk_en.write(1);
     }
-#endif
 
     clock_generator.reset();
     clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
@@ -1224,3 +1207,74 @@ void ClockManager::enable_clock_output(bool enable) {
     }
 #endif
 }
+
+#ifdef PRALINE
+
+void ClockManager::set_p1_control(P1_Function func) {
+    // Truth table based on P1_Control.csv (L=clear, H=set)
+    switch (func) {
+        case P1_Function::TriggerIn:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::AuxClk1:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.set();
+            break;
+        case P1_Function::ClkIn:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::TriggerOut:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.set();
+            break;
+        case P1_Function::P22_ClkIn:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::P2_5:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.set();
+            break;
+        case P1_Function::NotConnected:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::AuxClk2:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.set();
+            break;
+    }
+}
+
+void ClockManager::set_p2_control(P2_Function func) {
+    // Ensure all P2 control pins are configured as outputs
+
+    // Truth table based on P2_Control.csv (L=clear, H=set)
+    switch (func) {
+        case P2_Function::Clk3:
+            // CTRL0 is 'X' (don't care) according to CSV, we default it to Low (clear)
+            gpio_control::p2_ctrl1.clear();
+            gpio_control::p2_ctrl0.clear();
+            break;
+        case P2_Function::TriggerIn:
+            gpio_control::p2_ctrl1.set();
+            gpio_control::p2_ctrl0.clear();
+            break;
+        case P2_Function::TriggerOut:
+            gpio_control::p2_ctrl1.set();
+            gpio_control::p2_ctrl0.set();
+            break;
+    }
+}
+
+#endif
