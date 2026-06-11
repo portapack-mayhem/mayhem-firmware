@@ -56,7 +56,7 @@ class Channel : public Widget {
 
    private:
     int32_t max_db_;
-    int32_t overload_threshold_{1};
+    int32_t overload_threshold_{INT32_MAX};
 
     MessageHandlerRegistration message_handler_stats{
         Message::ID::ChannelStatistics,
