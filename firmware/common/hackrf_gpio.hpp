@@ -131,8 +131,6 @@ constexpr GPIO gpio_rf_amp_enable = gpio[GPIO4_9];      // RF amp enable (PA_2)
 constexpr GPIO gpio_ant_bias_disable = gpio[GPIO1_12];  // Antenna bias disable (P2_12)
 constexpr GPIO gpio_bias_oc = gpio[GPIO3_7];            // Bias tee overcurrent input (P6_11)
 
-constexpr GPIO gpio_aa_en = gpio[GPIO0_11];  // Anti-aliasing filter enable (P1_4)
-
 // PRALINE mixer lock detect (gpio_max2831_ld defined above at line 93)
 constexpr GPIO gpio_rffc5072_ld = gpio[GPIO6_25];  // Mixer lock detect (PD_11)
 

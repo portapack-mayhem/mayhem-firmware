@@ -342,7 +342,7 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
 #ifdef PRALINE
     uint32_t actual_bw = bandwidth_minimum;
 
-    /* * The MAX2831 internal analog low-pass filter cannot go below 1.75 MHz.
+    /* The MAX2831 internal analog low-pass filter cannot go below 1.75 MHz.
      * For narrow-band signals (bandwidth < 1.75 MHz), we enable the custom
      * external Anti-Aliasing (AA) filter on pin P1_14 to prevent aliasing.
      */

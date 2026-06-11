@@ -170,6 +170,9 @@ const PALConfig pal_default_config = {
                     | (0 << 9)   // P5_0:  unused on PRALINE
                     | (0 << 3)   // P4_3:  VBUSCTRL input GND
                     | (1 << 6)   // P4_6:  Input VCC (10K PU)
+                    | (1 << 8)   // P6_12: LED3 (TX)
+                    | (1 << 2)   // P4_2:  LED2 (RX)
+                    | (1 << 1)   // P4_1:  LED1 (USB)
 #else
                     | (1 << 13)  // P5_4:  MIXER_ENX, 10K PU
                     | (1 << 12)  // P5_3:  RX_MIX_BP
@@ -180,12 +183,13 @@ const PALConfig pal_default_config = {
                     | (1 << 0)   // P4_0:  HP
                     | (1 << 3)   // P4_3:  SGPIO9, HOST_CAPTURE
                     | (0 << 6)   // P4_6:  XCVR_EN, 10K PD
+                    | (0 << 8)   // P6_12: LED3 (TX)
+                    | (0 << 2)   // P4_2:  LED2 (RX)
+                    | (0 << 1)   // P4_1:  LED1 (USB)
 #endif
-                    | (0 << 8)  // P6_12: LED3 (TX)
+
                     | (1 << 7)  // P5_7:  CS_AD
                     | (0 << 5)  // P4_5:  RXENABLE
-                    | (0 << 2)  // P4_2:  LED2 (RX)
-                    | (0 << 1)  // P4_1:  LED1 (USB)
             ,
             .dir = (1 << 15)  // P5_6:  TX_AMP, unused on PRALINE
 #ifdef PRALINE
