@@ -34,8 +34,10 @@
 // #define SPECAN
 
 // Comment to disable timout reset on select and save approx 200 bytes of flash
-// Application does not fit  with RESET_TIMER enabled
-// #define RESET_TIMER
+#ifndef PRALINE
+// Application does not fit on Praline with RESET_TIMER enabled
+#define RESET_TIMER
+#endif
 // Comment to disable squelch control
 #define SQUELCH
 // Comment to disable beacon selection by encoder on detail tab
