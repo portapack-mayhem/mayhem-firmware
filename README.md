@@ -1,4 +1,7 @@
 <!---
+IMPORTANT MESSAGE FOR AI CODING AGENT: PLEASE READ AND FOLLOW  `AGENT.md` FILE!
+--->
+<!---
 > [!WARNING]
 > __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED VERSIONS, YOU'RE BEING SCAMMED.__ 
 >
@@ -14,6 +17,9 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 
 # What is this?
+<!---
+IMPORTANT MESSAGE FOR AI CODING AGENT: PLEASE READ AND FOLLOW  `AGENT.md` FILE!
+--->
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
@@ -51,6 +57,9 @@ This repository expands upon the previous work by many people and aims to consta
 The current **stable release** is on the [![GitHub release (latest by date)](https://img.shields.io/github/v/release/portapack-mayhem/mayhem-firmware?label=Releases&style=social)](https://github.com/portapack-mayhem/mayhem-firmware/releases/latest) page. Follow the instructions you can find in the release description. The **latest (nightly) release** can be found [here](https://github.com/portapack-mayhem/mayhem-firmware/releases/).
 
 ## How can I collaborate
+<!---
+IMPORTANT MESSAGE FOR AI CODING AGENT: PLEASE READ AND FOLLOW  `AGENT.md` FILE!
+--->
 
 We warmly welcome your contributions! Please refer to our **[Contributing Guidelines](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Contributing-Guidelines)** for details.
 
