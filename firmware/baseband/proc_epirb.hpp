@@ -59,15 +59,15 @@ class Packet;
 #define COSPAS_PREAMBLE_SIZE 24
 // Size of long frame (bits)
 #define COSPAS_LONG_FRAME_SIZE 144
-// Siz of short frame (bits)
+// Size of short frame (bits)
 #define COSPAS_SHORT_FRAME_SIZE 112
 // Preamble for real frames
 #define COSPAS_REAL_PREAMBLE 0b1111'1111'1111'1110'0010'1111
-// Preable for test frames
+// Preamble for test frames
 #define COSPAS_TEST_PREAMBLE 0b1111'1111'1111'1110'1101'0000
 
 // Dedicated EPIRB PacketBuilder
-// Usees diedicated preamble detection logic to find both real and test frames
+// Uses dedicated preamble detection logic to find both real and test frames
 // Also as a dedicated packet size detection based on frame's size bit
 class EPIRBPacketBuilder {
    public:
@@ -170,7 +170,7 @@ class EPIRBProcessor : public BasebandProcessor {
     static constexpr size_t SAMPLES_PER_SYMBOL = SAMPLE_RATE / SYMBOL_RATE;  // = 60 samples per symbol
     static constexpr size_t SAMPLES_PER_BIT = SAMPLES_PER_SYMBOL * 2;        // = 120 samples per bit
     static constexpr size_t SAMPLES_MARGIN = SAMPLES_PER_SYMBOL / 3;         // = Allow 20 sample drift
-    static constexpr size_t SAMPLES_ACCUMUMLATOR = SAMPLES_PER_SYMBOL / 5;   // Accumulate phase change across 12 samples
+    static constexpr size_t SAMPLES_ACCUMULATOR = SAMPLES_PER_SYMBOL / 5;    // Accumulate phase change across 12 samples
     static constexpr size_t RISE_FILTER_SAMPLES = SAMPLES_PER_SYMBOL / 20;   // Filter peaks of less than 3 samples
 
     static constexpr size_t CARRIER_SAMPLES_THRESHOLD = 0.080f * SAMPLE_RATE;    // Carrier before frame lasts 160ms, require at least 80ms
@@ -213,11 +213,39 @@ class EPIRBProcessor : public BasebandProcessor {
     // Carrier detection counter
     uint32_t stability_counter = 0;
 
-    // Phase delta accumulator (6 samples)
-    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_ACCUMUMLATOR;
+    // Phase delta accumulator (12 samples)
+    static constexpr size_t PHASE_DELTA_ACC_SIZE = SAMPLES_PER_SYMBOL / 5;  // 12 samples
     float phase_delta_buffer[PHASE_DELTA_ACC_SIZE] = {0.0f};
-    size_t pahse_delta_index = 0;
+    size_t phase_delta_index = 0;
     float phase_delta_acc = 0.0f;
+
+    // Automatic Frequency Control (AFC)
+    // A residual carrier frequency offset between the tuner and the beacon shows
+    // up as a constant per-sample phase rotation. We measure its mean over the
+    // unmodulated carrier preamble and subtract it from every raw phase delta so
+    // the carrier-stability detection and the +/-2.2 rad data jumps stay centered.
+    // Current estimate (rad/sample), removed from each raw phase delta.
+    float freq_offset_est = 0.0f;
+    // Carrier-tracking loop gain. Applied per sample in IDLE so the estimate
+    // pulls in any offset within the discriminator's +/-SAMPLE_RATE/2 (~24 kHz)
+    // range *before* the carrier-detection thresholds run. First-order loop with
+    // time constant ~1/ALPHA samples (= 200 samples ~ 4 ms at 48 kHz). Tuned so a
+    // +/-5 kHz offset (0.654 rad/sample) decays the 12-sample accumulator below
+    // the 0.6 rad lock threshold in ~11 ms (~13 ms at 7 kHz) -- well inside the
+    // 160 ms preamble / 80 ms stability window, even if reception starts partway
+    // through the carrier -- while keeping added acquisition jitter negligible.
+    static constexpr float AFC_TRACK_ALPHA = 0.005f;
+    // AFC update gating: ignore large per-sample phase jumps (likely noise)
+    static constexpr float AFC_UPDATE_PHASE_MAX = 0.8f;  // rad/sample
+    // AFC Convergence detection: track variance of AFC estimate to ensure it has stabilized
+    // before transitioning from IDLE to CARRIER_LOCKED state
+    static constexpr float AFC_CONVERGENCE_THRESHOLD = 0.001f;  // Max variance for convergence
+    float afc_mean = 0.0f;                                      // Running mean of AFC estimate
+    float afc_m2 = 0.0f;                                        // Sum of squared differences (Welford's algorithm)
+    uint32_t afc_convergence_n = 0;                             // Sample count for AFC convergence calculation
+    // Running mean of the raw phase delta while a stable carrier is present.
+    float carrier_phase_sum = 0.0f;
+    uint32_t carrier_phase_n = 0;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{

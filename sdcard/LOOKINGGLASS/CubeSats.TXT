@@ -1,0 +1,7 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# CubeSats
+144,146,145 CubeSats
+435,438,436 CubeSats

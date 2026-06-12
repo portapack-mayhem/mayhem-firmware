@@ -77,6 +77,29 @@ class ClockManager {
     void set_reference_ppb(const int32_t ppb);
 
 #ifdef PRALINE
+
+    enum class P1_Function {
+        TriggerIn,     // CTRL2: L, CTRL1: L, CTRL0: L
+        AuxClk1,       // CTRL2: L, CTRL1: L, CTRL0: H
+        ClkIn,         // CTRL2: L, CTRL1: H, CTRL0: L
+        TriggerOut,    // CTRL2: L, CTRL1: H, CTRL0: H
+        P22_ClkIn,     // CTRL2: H, CTRL1: L, CTRL0: L
+        P2_5,          // CTRL2: H, CTRL1: L, CTRL0: H
+        NotConnected,  // CTRL2: H, CTRL1: H, CTRL0: L (NC)
+        AuxClk2        // CTRL2: H, CTRL1: H, CTRL0: H
+    };
+
+    // Multiplexer 2 (P2) Functions - Based on P2_Control.csv
+    enum class P2_Function {
+        Clk3,       // CTRL1: L, CTRL0: X (Don't care)
+        TriggerIn,  // CTRL1: H, CTRL0: L
+        TriggerOut  // CTRL1: H, CTRL0: H
+    };
+
+    // Function declarations
+    void set_p1_control(P1_Function func);
+    void set_p2_control(P2_Function func);
+
     uint8_t get_resampling_n() const { return _resampling_n; }
 
     // Si5351 diagnostic methods

@@ -140,7 +140,7 @@
 // ============================================================================
 static fpga_mode_t current_mode = FPGA_MODE_OFF;
 // Cached register values for debug reads (since reads may require mode switch)
-static uint8_t fpga_reg_cache[6] = {0, 0x01, 0x00, 0x00, 0x00, 0x00};
+static uint8_t fpga_reg_cache[7] = {0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // Context structure for SPIFI-based reading
 struct spifi_fpga_read_ctx {
@@ -196,34 +196,6 @@ static void ssp1_init_ice40(void) {
 
     // Enable SSP1
     SSP1_CR1_LOCAL = SSP_CR1_SSE;
-}
-
-// Configure SSP1 pins via SCU
-static void configure_ssp1_pins(void) {
-    // P1_3 = SSP1_MISO (function 5)
-    MMIO32_LOCAL(SCU_SSP1_CIPO_LOCAL) = SCU_SSP_IO_LOCAL | SCU_CONF_FUNCTION5_LOCAL;
-    // P1_4 = SSP1_MOSI (function 5)
-    MMIO32_LOCAL(SCU_SSP1_COPI_LOCAL) = SCU_SSP_IO_LOCAL | SCU_CONF_FUNCTION5_LOCAL;
-    // P1_19 = SSP1_SCK (function 1)
-    MMIO32_LOCAL(SCU_SSP1_SCK_LOCAL) = SCU_SSP_IO_LOCAL | SCU_CONF_FUNCTION1_LOCAL;
-}
-
-// Configure FPGA control pins via SCU and GPIO
-static void configure_fpga_control_pins(void) {
-    // P5_2 = GPIO2[11] = CRESET (function 0, output)
-    MMIO32_LOCAL(SCU_FPGA_CRESET_LOCAL) = SCU_GPIO_NOPULL_LOCAL | SCU_CONF_FUNCTION0_LOCAL;
-    // P4_10 = GPIO5[14] = CDONE (function 4, input with pullup)
-    MMIO32_LOCAL(SCU_FPGA_CDONE_LOCAL) = SCU_GPIO_PUP_LOCAL | SCU_CONF_FUNCTION4_LOCAL;
-    // P5_1 = GPIO2[10] = SPI_CS (function 0, output)
-    MMIO32_LOCAL(SCU_FPGA_SPI_CS_LOCAL) = SCU_GPIO_NOPULL_LOCAL | SCU_CONF_FUNCTION0_LOCAL;
-
-    // Set CRESET and SPI_CS as outputs (GPIO2[11] and GPIO2[10])
-    GPIO_DIR(FPGA_CRESET_PORT) |= (1 << FPGA_CRESET_PIN) | (1 << FPGA_SPI_CS_PIN);
-    // Clear both initially
-    GPIO_CLR(FPGA_CRESET_PORT) = (1 << FPGA_CRESET_PIN) | (1 << FPGA_SPI_CS_PIN);
-
-    // CDONE is input (GPIO5[14])
-    GPIO_DIR(FPGA_CDONE_PORT) &= ~(1 << FPGA_CDONE_PIN);
 }
 
 // GPIO control helpers
@@ -315,7 +287,7 @@ static void fpga_spi_write(uint8_t reg, uint8_t value) {
 // Public function to read FPGA register (callable from C++ application code)
 // Switches SPI mode, reads register, switches back
 uint8_t fpga_debug_register_read(uint8_t reg) {
-    if (reg == 0 || reg > 5) return 0xFF;
+    if (reg == 0 || reg > 6) return 0xFF;
 
     uint8_t value;
     ssp1_set_mode_ice40();
@@ -328,7 +300,7 @@ uint8_t fpga_debug_register_read(uint8_t reg) {
 
 // Public function to write FPGA register (callable from C++ application code)
 void fpga_debug_register_write(uint8_t reg, uint8_t value) {
-    if (reg == 0 || reg > 5) return;
+    if (reg == 0 || reg > 6) return;
 
     ssp1_set_mode_ice40();
     fpga_spi_write(reg, value);
@@ -342,7 +314,7 @@ void fpga_debug_register_write(uint8_t reg, uint8_t value) {
 // ============================================================================
 
 uint8_t fpga_register_read(uint8_t reg) {
-    if (reg == 0 || reg > 5) return 0xFF;
+    if (reg == 0 || reg > 6) return 0xFF;
 
     ssp1_set_mode_ice40();
     uint8_t val = fpga_spi_read(reg);
@@ -353,7 +325,7 @@ uint8_t fpga_register_read(uint8_t reg) {
 }
 
 void fpga_register_write(uint8_t reg, uint8_t value) {
-    if (reg == 0 || reg > 5) return;
+    if (reg == 0 || reg > 6) return;
 
     ssp1_set_mode_ice40();
     fpga_spi_write(reg, value);
@@ -422,22 +394,22 @@ void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
 /* TX Functions with mode assertion */
 void fpga_tx_set_nco_enable(bool enable) {
     if (current_mode != FPGA_MODE_TX) return;
-    uint8_t val = fpga_register_read(FPGA_REG_SHARED_3);
+    uint8_t val = fpga_register_read(FPGA_REG3_TX_NCO_CTRL);
     if (enable)
         val |= FPGA_TX_NCO_EN;
     else
         val &= ~FPGA_TX_NCO_EN;
-    fpga_register_write(FPGA_REG_SHARED_3, val);
+    fpga_register_write(FPGA_REG3_TX_NCO_CTRL, val);
 }
 
 void fpga_tx_set_interpolation(uint8_t ratio) {
     if (current_mode != FPGA_MODE_TX) return;
-    fpga_register_write(FPGA_REG_SHARED_4, ratio & FPGA_TX_INTERP_MASK);
+    fpga_register_write(FPGA_REG_TX_INTERP, ratio & FPGA_TX_INTERP_MASK);
 }
 
 void fpga_tx_set_phase_step(uint8_t step) {
     if (current_mode != FPGA_MODE_TX) return;
-    fpga_register_write(FPGA_REG_SHARED_5, step);
+    fpga_register_write(FPGA_REG_TX_PHASE_STEP, step);
 }
 
 // ============================================================================
@@ -577,12 +549,6 @@ int fpga_bridge_init(uint8_t* mem_base) {
     // Use PLL1 (204MHz) to match original HackRF - IRC (12MHz) is 17x too slow
     CGU_BASE_SSP1_CLK = CGU_BASE_SSP1_CLK_AUTOBLOCK(1) |
                         CGU_BASE_SSP1_CLK_CLK_SEL(CGU_SRC_PLL1);
-
-    // Configure SSP1 pins
-    configure_ssp1_pins();
-
-    // Configure FPGA control pins
-    configure_fpga_control_pins();
 
     // Initialize SSP1 for iCE40 programming
     ssp1_init_ice40();

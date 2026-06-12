@@ -33,6 +33,7 @@
 #include <variant>
 
 #include "file.hpp"
+#include "hackrf_hal.hpp"
 #include "max283x.hpp"
 #include "string_format.hpp"
 
@@ -134,7 +135,7 @@ struct AppSettings {
     uint8_t vga = 32;
     uint8_t rx_amp = 0;
     uint8_t tx_amp = 0;
-    uint8_t tx_gain = 35;
+    uint8_t tx_gain = hackrf::one::default_tx_gain_db;
     uint32_t channel_bandwidth = 1;
     uint32_t rx_frequency;
     uint32_t tx_frequency;

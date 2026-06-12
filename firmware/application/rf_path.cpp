@@ -46,14 +46,6 @@ struct PralineConfig {
     bool rf_amp_en;
     bool ant_bias_en_n;  // Inverted: 0 = bias enabled
 
-    static void gpio_init() {
-        gpio_tx_enable.output();
-        gpio_mix_bypass.output();
-        gpio_lpf_enable.output();
-        gpio_rf_amp_enable.output();
-        gpio_ant_bias_disable.output();
-    }
-
     void apply() const {
         gpio_tx_enable.write(tx_en);
         gpio_mix_bypass.write(mix_bypass);  // Control RF path mixer
@@ -231,7 +223,6 @@ constexpr Config get_config(
 
 void Path::init() {
 #ifdef PRALINE
-    PralineConfig::gpio_init();
     /* Set safe initial state: RX mode, mixer enabled, LPF on, amp off, no bias */
     PralineConfig config = {
         .tx_en = false,
@@ -261,6 +252,15 @@ void Path::set_band(const Band new_band) {
 void Path::set_rf_amp(const bool new_rf_amp) {
     rf_amp = new_rf_amp;
     update();
+}
+
+void Path::set_ant_bias(const bool new_ant_bias) {
+    ant_bias = new_ant_bias;
+    update();
+}
+
+bool Path::get_ant_bias() const {
+    return ant_bias;
 }
 
 void Path::update() {
@@ -301,8 +301,8 @@ void Path::update() {
     /* RF amp when amplification requested */
     config.rf_amp_en = rf_amp;
 
-    /* Antenna bias off by default */
-    config.ant_bias_en_n = true;
+    /* Antenna bias */
+    config.ant_bias_en_n = !ant_bias;
 
     config.apply();
 

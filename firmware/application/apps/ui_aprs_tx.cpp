@@ -238,6 +238,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
                 process_coordinates(lat, lon);
             });
     };
+
     // process_coordinates(last_lat, last_lon); //don't load last, so won't confuse users
 }
 

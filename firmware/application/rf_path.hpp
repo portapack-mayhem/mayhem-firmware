@@ -65,13 +65,15 @@ class Path {
     void set_direction(const Direction direction);
     void set_band(const Band band);
     void set_rf_amp(const bool rf_amp);
-
+    void set_ant_bias(const bool ant_bias);
+    bool get_ant_bias() const;
     Band get_band() const { return _band; }  //_band is used solely for debugging purposes.
 
    private:
     Direction direction{Direction::Receive};
     Band band{Band::Mid};
     bool rf_amp{false};
+    bool ant_bias{false};
 
     void update();
 

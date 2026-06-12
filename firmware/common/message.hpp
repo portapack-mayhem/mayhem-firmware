@@ -1214,7 +1214,7 @@ class SSTVRXConfigureMessage : public Message {
    public:
     constexpr SSTVRXConfigureMessage(
         const uint8_t code)
-        : Message{id : ID::SSTVRXConfigure},
+        : Message{ID::SSTVRXConfigure},
           code(code) {
     }
 
@@ -1610,17 +1610,20 @@ class BatteryStateMessage : public Message {
         uint8_t valid_mask,
         uint8_t percent,
         bool on_charger,
-        uint16_t voltage)
+        uint16_t voltage,
+        bool battMayChanged)
         : Message{ID::BatteryStateData},
           valid_mask{valid_mask},
           percent{percent},
           on_charger{on_charger},
-          voltage{voltage} {
+          voltage{voltage},
+          battMayChanged{battMayChanged} {
     }
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     bool on_charger = false;
     uint16_t voltage = 0;  // mV
+    bool battMayChanged = false;
 };
 
 class ProtoViewDataMessage : public Message {

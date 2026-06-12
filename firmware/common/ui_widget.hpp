@@ -808,7 +808,7 @@ class BatteryTextField : public Widget {
     BatteryTextField(Rect parent_rect, uint8_t percent);
     void paint(Painter& painter) override;
 
-    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge, bool batt_changed);
     void set_text(std::string_view value);
 
     bool on_key(KeyEvent key) override;
@@ -821,6 +821,7 @@ class BatteryTextField : public Widget {
     uint8_t percent_{102};
     uint8_t valid_{0};
     bool charge_{false};
+    bool batt_changed_{false};
 
     Style style{
         .font = font::fixed_5x8,
@@ -835,7 +836,7 @@ class BatteryIcon : public Widget {
 
     BatteryIcon(Rect parent_rect, uint8_t percent);
     void paint(Painter& painter) override;
-    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge, bool batt_changed);
 
     bool on_key(KeyEvent key) override;
     bool on_touch(TouchEvent event) override;
@@ -847,6 +848,7 @@ class BatteryIcon : public Widget {
     uint8_t percent_{102};
     uint8_t valid_{0};
     bool charge_{false};
+    bool batt_changed_{false};
 };
 
 class NumberField : public Widget {

@@ -33,12 +33,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void boardInit(void);
+void boardInit(void);
 
-  void configure_pins_portapack(void);
+void configure_pins_portapack(void);
 
-  void vaa_power_on(void);
-  void vaa_power_off(void);
 #ifdef __cplusplus
 }
 #endif

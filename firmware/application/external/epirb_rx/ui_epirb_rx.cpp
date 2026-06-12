@@ -39,7 +39,7 @@ namespace ui::external_app::epirb_rx {
 
 // URL templates
 #define MAPS_URL_TEMPLATE "https://www.google.com/maps/search/?api=1&query=%s%%2C%s"
-#define BEACON_URL_TEMPALTE "https://decoder2.herokuapp.com/decoded/"
+#define BEACON_URL_TEMPLATE "https://decoder2.herokuapp.com/decoded/"
 
 #ifndef DISABLE_COUNTRY_CACHE
 int CountryManager::cache_count = 0;
@@ -71,14 +71,23 @@ void TextArea::paint(Painter& painter) {
     const Style& s = has_focus() ? style().invert() : style();
 
     painter.fill_rectangle(rect, s.background);
-    // We use \t as line separator since \n is used in STR_COLOR_GREEN
-    auto rows = split_string(content, '\t');
 
     const int line_height = s.font.line_height();
-    size_t line_idx = 0;
-    for (auto row : rows) {
-        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, row);
+    int line_idx = 0;
+
+    // Efficiently draw lines separated by \t without heap allocations
+    std::string_view sv{content};
+    size_t start = 0;
+    size_t end;
+
+    while ((end = sv.find('\t', start)) != std::string_view::npos) {
+        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start, end - start));
+        start = end + 1;
         line_idx++;
+    }
+
+    if (start < sv.length()) {
+        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start));
     }
 }
 
@@ -102,10 +111,12 @@ bool TextArea::on_key(const KeyEvent key) {
 void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon) {
     // Convert packet bits to byte array for easier processing
     uint8_t data[BEACON_DATA_SIZE]{};
-    for (size_t i = 0; i < std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE); i++) {
+    size_t max_bytes = std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE);
+    size_t packet_bit_idx = 0;
+    for (size_t i = 0; i < max_bytes; i++) {
         uint8_t byte_val = 0;
-        for (int bit = 0; bit < 8 && (i * 8 + bit) < packet.size(); bit++) {
-            if (packet[i * 8 + bit]) {
+        for (int bit = 0; bit < 8; bit++, packet_bit_idx++) {
+            if (packet[packet_bit_idx]) {
                 byte_val |= (1 << (7 - bit));
             }
         }
@@ -120,17 +131,31 @@ void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon)
 
 #ifdef LOGGER
 void EPIRBLogger::on_packet(Beacon& beacon) {
-    std::string entry = std::string(beacon.getType()) + "," +
-                        beacon.hexId + "," +
-                        beacon.getProtocolName();  // + ",";
-                                                   // to_string_dec_uint(static_cast<uint8_t>(beacon.emergency_type)) + ",";
-    /*if (!beacon.location.isUnknown()) {
-        entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
-    } else {
-        entry += ",";
-    }
-    entry += "," + beacon.country.toString() + "," +
-             beacon.getSatus() + "\n";*/
+    std::string entry;
+    // Pre-allocate enough memory to avoid heap fragmentation and resizing
+    // 128 bytes should be plenty for this specific log line
+    entry.reserve(128);
+    entry += beacon.getType();
+    entry += ",";
+    entry += beacon.hexId;
+    entry += ",";
+    entry += beacon.getProtocolName();
+
+    /* If you ever uncomment the rest of the logging,
+     * keep using the same pattern! Like this:
+     *
+     * if (!beacon.location.isUnknown()) {
+     * entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
+     * } else {
+     * entry += ",";
+     * }
+     * entry += ",";
+     * entry += beacon.country.toString();
+     * entry += ",";
+     * entry += beacon.getSatus();
+     * entry += "\n";
+     */
+
     log_file.write_entry(beacon.date, entry);
 }
 #endif
@@ -294,12 +319,12 @@ void EPRIBQRView::set_beacon(Beacon* beacon) {
 }
 
 void EPRIBQRView::update_display() {
-    // Update data => we use a single TextArea component for code size optimizaton
+    // Update data => we use a single TextArea component for code size optimization
     char buffer[128];
     char* buffer_pointer = buffer;
-    buffer_pointer += sprintf(buffer_pointer, "%sQR:%s\t\t\t\t\t\t\t\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
+    buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "QR:" STR_COLOR_WHITE "\t\t\t\t\t\t\t\t");
     if (current_beacon) {
-        buffer_pointer += sprintf(buffer_pointer, "%sData:%s\t", STR_COLOR_CYAN, STR_COLOR_WHITE);
+        buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "Data:" STR_COLOR_WHITE "\t");
         // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
         buffer_pointer += current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 3, 11);
         (*(buffer_pointer++)) = '\t';
@@ -320,7 +345,7 @@ void EPRIBQRView::update_qr() {
         if (show_map) {
             // Map is selected
             if (!current_beacon->location.isUnknown()) {
-                // Loation is known => actually draw QR
+                // Location is known => actually draw QR
                 current_beacon->location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
                 show_qr = true;
             }
@@ -328,7 +353,7 @@ void EPRIBQRView::update_qr() {
             // Detail is selected
             char* buffer_pointer = qr_url;
             // Send to heroku decoder
-            buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPALTE);
+            buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPLATE);
             current_beacon->hexString(buffer_pointer, false);
             show_qr = true;
         }
@@ -389,11 +414,10 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
                   &view_rx,
 #endif
                   &view_qr});
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    options_t frequ_options;
+
+    ui::OptionsField::options_t frequ_options;
     // Set frequency combo content according to FREQ.TXT file content
-    for (auto freq : ResourceManager::get_frequencies()) {
+    for (const auto& freq : ResourceManager::get_frequencies()) {
         int32_t freq_value = atol(freq.c_str());
         frequ_options.emplace_back(to_string_rounded_freq(freq_value, 3), freq_value);
     }
@@ -402,7 +426,7 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
         receiver_model.set_target_frequency(v);
     };
-    // Restore frequency from preferencies
+    // Restore frequency from preferences
     options_frequency.set_by_value(receiver_model.target_frequency());
 
     // Tick second timer
@@ -455,6 +479,13 @@ EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
+
+    // Tint the channel-power bar red when the front-end overloads (ADC near
+    // full scale). Clipping distorts the constant-envelope carrier and the
+    // +/-1.1 rad biphase jumps the decoder relies on, so this cues the user to
+    // reduce RF-amp/LNA/VGA gain. -3 dBFS is a heuristic on the post-decimation
+    // level (not a literal ADC clip count); tune if it trips too early/late.
+    channel.set_overload_threshold(-3);
 
     update_display();
 
@@ -551,7 +582,10 @@ void EPIRBAppView::update_map() {
         if (!beacon.location.isUnknown()) {
             hide_map = false;
             // Set new position
-            view_map.set_main_marker(std::string(beacon.getType()) + "-" + beacon.shortId(), beacon.location.latitude.getFloatValue(), beacon.location.longitude.getFloatValue());
+            std::string tag = beacon.getType();
+            tag += "-";
+            tag += beacon.shortId();
+            view_map.set_main_marker(tag, beacon.location.latitude.getFloatValue(), beacon.location.longitude.getFloatValue());
             // Add all beacons with valid locations as markers
             for (size_t j = 0; j < size; j++) {
                 if (cur_index != j) {
@@ -560,8 +594,10 @@ void EPIRBAppView::update_map() {
                         ui::GeoMarker marker;
                         marker.lat = other_beacon.location.latitude.getFloatValue();
                         marker.lon = other_beacon.location.longitude.getFloatValue();
-                        marker.angle = 0;
-                        marker.tag = std::string(other_beacon.getType()) + "-" + other_beacon.shortId();
+                        tag = other_beacon.getType();
+                        tag += "-";
+                        tag += other_beacon.shortId();
+                        marker.tag = tag;
                         view_map.add_marker(marker);
                     }
                 }
@@ -580,15 +616,16 @@ void EPIRBAppView::on_tick_second() {
 }
 
 void EPIRBAppView::update_display() {
-    // We use a single TextArea for code size optimization
     char buffer[128];
-    char* buffer_pointer = buffer;
-    buffer_pointer += sprintf(buffer_pointer, "%sListening...     Beacon:%s%2d/%d\t", STR_COLOR_CYAN, STR_COLOR_WHITE, (beacon_db.get_current_beacon_index() + 1), beacons_received);
-    buffer_pointer += sprintf(buffer_pointer, "%sStats: %s%03dOK %s%03dCOR %s%03dERR\t", STR_COLOR_CYAN, STR_COLOR_GREEN, packets_valid, STR_COLOR_YELLOW, packets_corrected, STR_COLOR_RED, packets_error);
-    buffer_pointer += sprintf(buffer_pointer, "%sCurrent:%s ", STR_COLOR_CYAN, STR_COLOR_WHITE);
+    int len = sprintf(buffer,
+                      STR_COLOR_CYAN "Listening...    Beacon:" STR_COLOR_WHITE "%2d/%d\t" STR_COLOR_CYAN "Stats: " STR_COLOR_GREEN "%03dOK " STR_COLOR_YELLOW "%03dCOR " STR_COLOR_RED "%03dERR\t" STR_COLOR_CYAN "Current:" STR_COLOR_WHITE " ",
+                      (beacon_db.get_current_beacon_index() + 1), beacons_received,
+                      packets_valid, packets_corrected, packets_error);
+
     if (!beacon_db.empty()) {
-        beacon_db.get_current_beacon().formatSummary(buffer_pointer, false);
+        beacon_db.get_current_beacon().formatSummary(buffer + len, false);
     }
+
     text_status.set_content(buffer);
 }
 

@@ -52,7 +52,6 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
         text_current.set("-");
         text_charge.set("-");
-        // text_cycles.set("-");
         text_ttef.set("-");
         text_method.set("-");
         // text_warn.set("");
@@ -60,7 +59,9 @@ void BattinfoView::update_result() {
     }
     bool uichg = false;
     uint8_t valid_mask = 0;
-    battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
+    bool battMayChanged = false;
+    battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current, battMayChanged);
+    text_state.set((battMayChanged || !persistent_memory::battery_cap_valid()) ? "Needs config." : "ok");
     // update text fields
     if (percent <= 100 && (valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) == battery::BatteryManagement::BATT_VALID_VOLTAGE)
         text_percent.set(to_string_dec_uint(percent) + " %");
@@ -76,6 +77,7 @@ void BattinfoView::update_result() {
         labels_opt.hidden(false);
         text_current.hidden(false);
         text_charge.hidden(false);
+        text_state.hidden(false);
         text_current.set(to_string_dec_int(current) + " mA");
         if (current >= 25)  // when >25mA it is charging in any scenario
             text_charge.set("Charging");
@@ -98,7 +100,7 @@ void BattinfoView::update_result() {
         labels_opt.hidden(true);
         text_current.hidden(true);
         text_charge.hidden(true);
-        // text_cycles.hidden(true);
+        text_state.hidden(true);
         text_ttef.hidden(true);
         // text_warn.set("");
     }
@@ -143,9 +145,10 @@ void BattinfoView::update_result() {
     } else {
         text_method.set("Voltage");
     }
+    if (battMayChanged) text_capacity.set_style(Theme::getInstance()->fg_red);
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
-    BatteryStateMessage msg{valid_mask, percent, current >= 25, voltage};
+    BatteryStateMessage msg{valid_mask, percent, current >= 25, voltage, battMayChanged};
     EventDispatcher::send_message(msg);
 }
 
@@ -161,7 +164,7 @@ BattinfoView::BattinfoView(NavigationView& nav)
                   &button_settings,
                   &button_exit,
                   &text_capacity,
-                  // &text_cycles,
+                  //&text_state, //disabled for now
                   // &text_warn,
                   &text_ttef});
 

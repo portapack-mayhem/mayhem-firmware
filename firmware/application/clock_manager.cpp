@@ -32,6 +32,11 @@ using namespace hackrf::one;
 using namespace lpc43xx;
 
 #ifdef PRALINE
+#include "hackrf_gpio.hpp"
+#include "gpio.hpp"
+#endif
+
+#ifdef PRALINE
 extern "C" {
 #include "fpga_bridge.h"
 }
@@ -325,6 +330,12 @@ static constexpr ClockControl::MultiSynthSource get_si5351a_reference_clock_gene
                ? ClockControl::MultiSynthSource::PLLA
                : ClockControl::MultiSynthSource::PLLB;
 }
+
+static constexpr ClockControl::MultiSynthSource get_si5351c_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source) {
+    return (reference_source == ClockManager::ReferenceSource::Xtal)
+               ? ClockControl::MultiSynthSource::PLLA
+               : ClockControl::MultiSynthSource::PLLB;
+}
 #else
 static constexpr ClockControl::MultiSynthSource get_si5351c_reference_clock_generator_pll(const ClockManager::ReferenceSource reference_source) {
     return (reference_source == ClockManager::ReferenceSource::Xtal)
@@ -423,77 +434,55 @@ static void portapack_tcxo_disable() {
 using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
-#ifdef PRALINE
-    // thoese PIN can review platform_scu file
-    // have many conflict and modify for clock init
-    // P2_10 -> GPIO0[14]  P1_CTRL0
-    LPC_SCU->SFSP[2][10] = 0xF0;
-    // P6_8  -> GPIO5[16]  P1_CTRL1
-    LPC_SCU->SFSP[6][8] = 0xF4;
-    // P6_9  -> GPIO3[5]   P1_CTRL2
-    LPC_SCU->SFSP[6][9] = 0xF0;
-    // P1_20 -> GPIO0[15]  CLKIN_CTRL
-    LPC_SCU->SFSP[1][20] = 0xF0;
-
-    constexpr GPIO gpio_p1_ctrl0 = gpio[GPIO0_14];
-    constexpr GPIO gpio_p1_ctrl1 = gpio[GPIO5_16];
-    constexpr GPIO gpio_p1_ctrl2 = gpio[GPIO3_5];
-    constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];
-
-    gpio_p1_ctrl0.output();
-    gpio_p1_ctrl1.output();
-    gpio_p1_ctrl2.output();
-    gpio_clkin_ctrl.output();
-
-    // P1 control = 100 and choose P22 clock external clock on portapack
-    gpio_p1_ctrl0.write(0);
-    gpio_p1_ctrl1.write(0);
-    gpio_p1_ctrl2.write(1);
-    gpio_clkin_ctrl.write(1);
-    chThdSleepMilliseconds(20);
-
-#else
-    // HackRF One r9: GPIO0_8 (mcu_clk_en) gates Si5351 CLK2/CLK7 to GP_CLKIN
     if (hackrf_r9) {
         gpio_r9_mcu_clk_en.output();
         gpio_r9_mcu_clk_en.write(1);
     }
-#endif
 
     clock_generator.reset();
     clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
     clock_generator.enable_fanout();
 
 #ifdef PRALINE
-    /* PRALINE has Si5351A (NOT Si5351C like HackRF One OG).
-     * Must use Si5351A configuration: PLLA only, no CLKIN support.
-     *
-     * IMPORTANT: Follow HackRF reference sequence:
-     * 1. Set PLL input sources
-     * 2. Configure PLL and multisynths
-     * 3. Set clock control registers (AFTER multisynths!)
-     * 4. Reset PLLs
-     * 5. Enable outputs
-     */
-    // change there detect method same as hackrf one
-    // PLLA -> XTAL，PLLB -> CLKIN
-    clock_generator.set_pll_input_sources(si5351c_pll_input_sources);
-    // although the name a and the branch define CLK2 MCU CLOCK
-    // only use CLK2
-    auto si5351_clock_control_common = si5351a_clock_control_common;
     constexpr size_t clock_generator_output_pro_mcu_clkin = 2;
-    // clk_src define CLKIN
+    auto si5351_clock_control_common = si5351a_clock_control_common;
+
+    /*
+     * Match the HackRF One init flow:
+     * 1. PLLA stays on the local 25MHz crystal.
+     * 2. PLLB is configured from the Si5351 CLKIN pin.
+     * 3. CLK2 temporarily drives GP_CLKIN directly from CLKIN so we can
+     *    detect whether P22 is carrying a valid 10MHz reference.
+     * 4. Once the source is chosen, all runtime clocks are switched to the
+     *    selected PLL and the working multisynths are programmed.
+     */
+    clock_generator.set_pll_input_sources(si5351c_pll_input_sources);
+
     clock_generator.set_clock_control(
         clock_generator_output_pro_mcu_clkin,
         si5351_clock_control_common[clock_generator_output_pro_mcu_clkin]
             .clk_src(ClockControl::ClockSource::CLKIN)
             .clk_pdn(ClockControl::ClockPowerDown::Power_On));
     clock_generator.enable_output(clock_generator_output_pro_mcu_clkin);
-    chThdSleepMilliseconds(20);
-    // should be extern icon and 10MHz
-    reference = choose_reference();
 
-    /* Clock control will be set AFTER multisynth configuration - see below */
+    chThdSleepMilliseconds(20);
+    reference = choose_reference();
+    clock_generator.disable_output(clock_generator_output_pro_mcu_clkin);
+
+    const auto ref_pll =
+        get_si5351c_reference_clock_generator_pll(reference.source);
+
+    const ClockControls si5351_clock_control = ClockControls{{
+        si5351_clock_control_common[0].ms_src(ref_pll),
+        si5351_clock_control_common[1].ms_src(ref_pll),
+        si5351_clock_control_common[2].ms_src(ref_pll),
+        si5351_clock_control_common[3].ms_src(ref_pll),
+        si5351_clock_control_common[4].ms_src(ref_pll),
+        si5351_clock_control_common[5].ms_src(ref_pll),
+        si5351_clock_control_common[6].ms_src(ref_pll),
+        si5351_clock_control_common[7].ms_src(ref_pll),
+    }};
+    clock_generator.set_clock_control_single_byte(si5351_clock_control);
 #else
     clock_generator.set_pll_input_sources(hackrf_r9
                                               ? si5351a_pll_input_sources
@@ -538,86 +527,50 @@ void ClockManager::init_clock_generator() {
 #endif
 
 #ifdef PRALINE
+    clock_generator.write_pll_single_byte(0, si5351_pll_a_afe_800m);
 
-    /* * Praline HackRF Pro Clock Assignments (800 MHz VCO Configuration)
-     * VCO Frequency: 800,000,000 Hz (Master Reference)
-     * * CLK0: AFE_CLK (MAX5864 Codec & FPGA ADC Interface)
-     *  - Note: Defines hardware sample rate. Essential for WFM purity.
-     * * CLK1: SCT_CLK (iCE40 FPGA System/Timing Clock)
-     *  - Note: Timing for SGPIO data bus; scales to 2x SR in wideband modes.
-     * * CLK2: MCU_CLKIN (LPC43xx MCU External Clock Input)
-     *  - Note: Synchronizes MCU processing to the RF clock tree.
-     * * CLK3: SG_CLK (Switching Regulator/Internal Logic Sync) SMA Port 1
-     *  - Note: Used for internal FPGA logic/gateware synchronization.
-     * * CLK4: P_CLK (MAX2831 Peripheral/Expansion Clock)
-     *  - Note: Routed to expansion headers for external hardware sync.
-     * * CLK5: AUX_CLK (RFFC5371 Auxiliary reference for secondary logic)
-     *  - Note: Provides additional timing flexibility for the iCE40 FPGA.
-     * * CLK6: SG_CLK (Switching Regulator/Internal Logic Sync) SMA Port 2
-     *  - Note: Used for internal FPGA logic/gateware synchronization.
-     * * CLK7: Unused / Power-Down
-     *  - State: Disabled (si5351a_ms6_7_off_reg)
-     *  - Note: Kept OFF to reduce EMI/RFI near the RF front-end.
-     * * CLKOUT: Optional external clock output on the header.
-     */
-
-    /* Write PLL A (800 MHz based on 25 MHz xtal for RF) and
-     * PLL B (800 MHZ based on 25 MHz xtalfor Digital)
-     * Use single-byte writes to debug I2C issues
-     */
     {
-        // Write PLLA (Registers 26-33)
-        /* Write PLL A configuration (Base 26) */
-        const auto& pll_a = si5351_pll_a_800_reg;
-        for (size_t i = 1; i < pll_a.size(); i++) {
-            clock_generator.write_register(pll_a[0] + i - 1, pll_a[i]);
-        }
-
-        // Write PLLB (Registers 34-41)
-        /* Write PLL B configuration (Base 34) */
-        const auto& pll_b = si5351_pll_b_800_reg;
+        const auto& pll_b = si5351c_pll_b_clkin_reg;
         for (size_t i = 1; i < pll_b.size(); i++) {
             clock_generator.write_register(pll_b[0] + i - 1, pll_b[i]);
         }
     }
+    // CLK0: DAFE_CLK initial 4 MHz
+    clock_generator.write_ms_single_byte(
+        0,
+        si5351_ms_afe_4m);
 
-    /* Write multisynth configurations using single-byte writes */
-    // These cover all active channels on the Praline board
-    clock_generator.write_ms_single_byte(0, si5351_ms_afe_4m);   // CLK0: PLL A AFE Codec (4 MHz)
-    clock_generator.write_ms_single_byte(1, si5351_ms_10m);      // CLK1: PLL B SGPIO/FPGA Timing (10 MHz)
-    clock_generator.write_ms_single_byte(2, si5351_ms_afe_40m);  // CLK2: PLL A Audio and MCU Input (40 MHz)
-    clock_generator.write_ms_single_byte(3, si5351_ms_0_4m);     // CLK3: PLL B SMA Port 1 Logic Sync (4 MHz or 10 MHz)
-    clock_generator.write_ms_single_byte(4, si5351_ms_afe_40m);  // CLK4: PLL A MAX2831 Second IF (40 MHz)
-    clock_generator.write_ms_single_byte(5, si5351_ms_afe_40m);  // CLK5: PLL A RFFC5071First IF (40 MHz)
-    clock_generator.write_ms_single_byte(6, si5351_ms_0_4m);     // CLK6: PLL B SMA Port 2 Logic Sync (4 MHz or 10 MHz)
-    clock_generator.write_ms_single_byte(7, si5351_ms_0_4m);     // CLK7: PLL B Unused (4 MHz)
+    // CLK1: DSCT_CLK initial 10 MHz
+    clock_generator.write_ms_single_byte(
+        1,
+        si5351_ms_10m);
 
-    /* NOW set clock control registers (AFTER multisynths per HackRF reference) */
-    const auto ref_pll_a = ClockControl::MultiSynthSource::PLLA;
-    const auto ref_pll_b = ClockControl::MultiSynthSource::PLLB;
-    const ClockControls si5351_clock_control = ClockControls{{
-        si5351a_clock_control_common[0].ms_src(ref_pll_a),
-        si5351a_clock_control_common[1].ms_src(ref_pll_b),
-        si5351a_clock_control_common[2].ms_src(ref_pll_a),
-        si5351a_clock_control_common[3].ms_src(ref_pll_b),
-        si5351a_clock_control_common[4].ms_src(ref_pll_a),
-        si5351a_clock_control_common[5].ms_src(ref_pll_a),
-        si5351a_clock_control_common[6].ms_src(ref_pll_b),
-        si5351a_clock_control_common[7].ms_src(ref_pll_b),
-    }};
-    // clock_generator.set_clock_control(si5351_clock_control);
-    //  Use single-byte writes instead of multi-byte
-    clock_generator.set_clock_control_single_byte(si5351_clock_control);
+    // CLK2: MCU_CLK 40 MHz
+    clock_generator.write_ms_single_byte(
+        2,
+        si5351_ms_afe_40m);
 
-    // Don't write CLKS 3, 6, and 7 multisynth
-    // Ensure CLK3 clock control has Power_Off
-    // Verify output is disabled
-    clock_generator.disable_output(3);
-    clock_generator.disable_clock(3);
-    clock_generator.disable_output(6);
-    clock_generator.disable_clock(6);
-    clock_generator.disable_output(7);
-    clock_generator.disable_clock(7);
+    // CLK3: P2 clock mux, disabled below
+    clock_generator.write_ms_single_byte(
+        3,
+        si5351_ms_10m);
+
+    // CLK4: DXCVR_CLK 40 MHz
+    clock_generator.write_ms_single_byte(
+        4,
+        si5351_ms_afe_40m);
+
+    // CLK5: DMIX_CLK 40 MHz
+    clock_generator.write_ms_single_byte(
+        5,
+        si5351_ms_afe_40m);
+
+    {
+        const auto& ms6_7 = si5351a_ms6_7_off_reg;
+        for (size_t i = 1; i < ms6_7.size(); i++) {
+            clock_generator.write_register(ms6_7[0] + i - 1, ms6_7[i]);
+        }
+    }
 #else
     if (hackrf_r9) {
         const PLLReg pll_reg = (reference.source == ReferenceSource::Xtal)
@@ -645,15 +598,14 @@ void ClockManager::init_clock_generator() {
 
     // Wait for PLL(s) to lock.
 #ifdef PRALINE
-    // PRALINE: Wait for 0x60 (0x20 | 0x40), PLLA and PLLB to lock (0x20 = LOL_A bit, 0x40 = LOL_B bit)
-    uint8_t device_status_mask = 0x60;
+    uint8_t device_status_mask =
+        (ref_pll == ClockControl::MultiSynthSource::PLLB) ? 0x40 : 0x20;
     uint32_t pll_timeout = 100000;
     while ((clock_generator.device_status() & device_status_mask) != 0 && pll_timeout > 0) {
         pll_timeout--;
     }
-    // Store PLL lock status for debugging
-    static volatile uint32_t pll_lock_timeout = pll_timeout;
-    (void)pll_lock_timeout;
+
+    clock_generator.enable_output(clock_generator_output_pro_mcu_clkin);
 
 #else
     // Wait for PLL(s) to lock - with timeout to prevent hang
@@ -753,13 +705,13 @@ void ClockManager::shutdown() {
 
 void ClockManager::enable_codec_clocks() {
 #ifdef PRALINE
-    /* PRALINE: CLK0 (AFE_CLK) for codec/FPGA, CLK1 (SCT_CLK) for FPGA timing.
-     * Reference hackrf_core.c shows PRALINE needs both CLK0 and CLK1. */
+    /* PRALINE: only gate the clocks owned by the RF datapath here.
+     * CLK2 is MCU_CLKIN and must stay independent of runtime RX/TX clock
+     * management or the SGPIO/GPIO subsystem can glitch mid-stream. */
     clock_generator.enable_clock(clock_generator_output_og_codec); /* CLK0 MAX5864*/
     clock_generator.enable_clock(clock_generator_output_og_cpld);  /* CLK1 iCE40 FPGA*/
-    clock_generator.enable_clock(clock_generator_output_og_sgpio); /* CLK2 LPC43xx*/
     clock_generator.enable_output_mask(
-        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld));
 #else
     if (hackrf_r9) {
         clock_generator.enable_clock(clock_generator_output_r9_sgpio);
@@ -787,12 +739,11 @@ void ClockManager::disable_codec_clocks() {
      * CLKx_DISABLE_STATE.
      */
 #ifdef PRALINE
-    /* PRALINE: CLK0 (AFE_CLK), CLK1 (SCT_CLK), and CLK2 MCU used for codec/FPGA */
+    /* PRALINE: leave CLK2/MCU_CLKIN alone; only disable datapath-owned clocks. */
     clock_generator.disable_output_mask(
-        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld) | (1U << clock_generator_output_og_sgpio));
+        (1U << clock_generator_output_og_codec) | (1U << clock_generator_output_og_cpld));
     clock_generator.disable_clock(clock_generator_output_og_codec);
     clock_generator.disable_clock(clock_generator_output_og_cpld);
-    clock_generator.disable_clock(clock_generator_output_og_sgpio);
 #else
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_sgpio);
@@ -851,7 +802,7 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     /*
      * PRALINE sample rate strategy:
      * 1. Maximize AFE rate to push Nyquist above MAX2831's 11.6 MHz LPF minimum
-     * 2. Use FPGA decimation to achieve desired output rate
+     * 2. Use FPGA decimation/interpolation to achieve desired output rate
      * 3. Ensure AFE rate is achievable by Si5351 (clean division from 800 MHz VCO)
      */
 
@@ -872,50 +823,96 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
         n++;
     }
 
-    _resampling_n = n;
-
-    // === Stop FPGA processing and flush filters ===
-    fpga_debug_register_write(1, 0x00);  // Disable FPGA filters (resets CIC accumulators)
-
-    // Verify we're in RX mode before writing RX registers
-    if (fpga_get_mode() != FPGA_MODE_RX) {
-        // Either set mode or return error
-        fpga_set_mode(FPGA_MODE_RX);
+    /* The TX gateware only implements interpolation factors x1..x16
+     * (tx_intrp 0..4). The rate search above can select n == 5 (x32) for very
+     * low TX sample rates. If we kept afe_rate/CLK0/CLK1 at the x32 rate while
+     * the FPGA only interpolated by x16, the TX datapath would be clocked at
+     * twice the gateware's output rate, doubling the waveform speed. Cap the
+     * AFE rate and _resampling_n to the x16 limit in TX so the clocks and the
+     * interpolation setting stay aligned. */
+    if (radio::debug::get_cached_direction() == rf::Direction::Transmit) {
+        constexpr uint8_t MAX_TX_N = 4;  // x16, matches max tx_intrp
+        if (n > MAX_TX_N) {
+            n = MAX_TX_N;
+            afe_rate = frequency << n;
+        }
     }
 
-    // Set FPGA RX decimation register
-    fpga_debug_register_write(FPGA_REG_DECIM, n);
-
-    /* RX Mode: Register 3 is FPGA_REG_RX_DIGITAL_GAIN.
-     * We shift up by (3 * n) to compensate for CIC bit-growth.
-     * Relationship: ds = (Stages * n) - Offset
-     * For a 3-stage filter, every increment of n grows the signal by 3 bits.
-     * We subtract a baseline offset to keep the signal within 8-bit bounds.
-     * Add a baseline shift to ensure the signal isn't too quiet
-     */
-    uint8_t ds = (3 * n);
-    ds += 2;
-    fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, ds);
+    _resampling_n = n;
 
     radio::invalidate_spi_config();
 
-    // Configure Si5351 clocks
-    // CLK0: AFE_CLK (with r_div=1 for ÷2)
-    // CLK1: SCT_CLK (with r_div=0 for ÷1, runs at 2× AFE for FPGA timing)
     // Configure Si5351 clocks using the correct AFE VCO
+    // CLK0 always drives the AFE/MAX5864 clock.
     clock_generator.set_ms_frequency(0, afe_rate * 2, si5351_vco_afe_f, 1);
-    clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_afe_f, 0);
 
-    // === Reset PLL A for phase alignment ===
-    clock_generator.write_register(si5351::Register::PLLReset, 0x20);
+    /* Do not reset PLLA here. On PRALINE, CLK2/MCU_CLKIN is sourced from PLLA,
+     * so a runtime PLLA reset can glitch the LPC43xx peripheral clock tree and
+     * break SGPIO-driven RX apps such as ADSB/APRS. Updating the multisynths is
+     * sufficient for sample-rate changes. */
 
-    // Brief delay for PLL lock and clock stability ===
-    // ~1ms at 96MHz = ~96000 cycles, use 10ms for safety
-    volatile uint32_t delay = 240000;  // ~2.5ms
-    while (delay--);
+    if (radio::debug::get_cached_direction() == rf::Direction::Transmit) {
+        /*
+         * TX path:
+         * Baseband generators such as AFSK still synthesize samples at their
+         * legacy logical sample rates (for APRS this is 1.536MHz). On PRALINE,
+         * the FPGA must interpolate those samples up to the active AFE rate.
+         *
+         * The TX datapath is clocked from CLK1/fpgaclk. Therefore CLK1 must
+         * equal the desired complex sample rate at the DAC side. Driving CLK1
+         * at 2x the intended TX sample rate causes the entire APRS waveform to
+         * run twice as fast, which matches the "energy present, undecodable"
+         * symptom seen on HackRF One receivers.
+         *
+         * Gateware mapping from standard.py:
+         *   tx_intrp = 0 -> x1
+         *   tx_intrp = 1 -> x2
+         *   tx_intrp = 2 -> x4
+         *   tx_intrp = 3 -> x8
+         *   tx_intrp = 4 -> x16
+         */
+        if (fpga_get_mode() != FPGA_MODE_TX) {
+            fpga_set_mode(FPGA_MODE_TX);
+        }
 
-    // Re-enable FPGA processing with clean state ===
-    fpga_debug_register_write(1, 0x01);
+        // TX gateware consumes complex samples at the rate presented on CLK1.
+        clock_generator.set_ms_frequency(1, afe_rate, si5351_vco_afe_f, 0);
+
+        uint8_t tx_interp = 0;
+        uint32_t tx_rate = frequency;
+        while ((tx_rate < afe_rate) && (tx_interp < 4)) {
+            tx_rate <<= 1;
+            tx_interp++;
+        }
+        fpga_tx_set_interpolation(tx_interp);
+        fpga_tx_set_nco_enable(false);
+        fpga_tx_set_phase_step(0);
+    }
+    // for RX mode
+    else {
+        // RX path keeps CLK1 at 2x AFE for receive timing / SGPIO alignment.
+        clock_generator.set_ms_frequency(1, afe_rate * 2, si5351_vco_afe_f, 0);
+
+        // === Stop FPGA processing and flush filters ===
+        fpga_debug_register_write(1, 0x00);  // Disable FPGA filters (resets CIC accumulators)
+
+        if (fpga_get_mode() != FPGA_MODE_RX) {
+            fpga_set_mode(FPGA_MODE_RX);
+        }
+
+        // Set FPGA RX decimation register
+        fpga_debug_register_write(FPGA_REG_DECIM, n);
+
+        /* RX Mode: Register 3 is FPGA_REG_RX_DIGITAL_GAIN.
+         * We shift up by (3 * n) to compensate for CIC bit-growth.
+         */
+        uint8_t ds = (3 * n);
+        ds += 2;
+        fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, ds);
+
+        // Re-enable FPGA processing with clean state ===
+        fpga_debug_register_write(1, 0x01);
+    }
 
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
@@ -1210,3 +1207,74 @@ void ClockManager::enable_clock_output(bool enable) {
     }
 #endif
 }
+
+#ifdef PRALINE
+
+void ClockManager::set_p1_control(P1_Function func) {
+    // Truth table based on P1_Control.csv (L=clear, H=set)
+    switch (func) {
+        case P1_Function::TriggerIn:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::AuxClk1:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.set();
+            break;
+        case P1_Function::ClkIn:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::TriggerOut:
+            gpio_control::p1_ctrl2.clear();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.set();
+            break;
+        case P1_Function::P22_ClkIn:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::P2_5:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.clear();
+            gpio_control::p1_ctrl0.set();
+            break;
+        case P1_Function::NotConnected:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.clear();
+            break;
+        case P1_Function::AuxClk2:
+            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl1.set();
+            gpio_control::p1_ctrl0.set();
+            break;
+    }
+}
+
+void ClockManager::set_p2_control(P2_Function func) {
+    // Ensure all P2 control pins are configured as outputs
+
+    // Truth table based on P2_Control.csv (L=clear, H=set)
+    switch (func) {
+        case P2_Function::Clk3:
+            // CTRL0 is 'X' (don't care) according to CSV, we default it to Low (clear)
+            gpio_control::p2_ctrl1.clear();
+            gpio_control::p2_ctrl0.clear();
+            break;
+        case P2_Function::TriggerIn:
+            gpio_control::p2_ctrl1.set();
+            gpio_control::p2_ctrl0.clear();
+            break;
+        case P2_Function::TriggerOut:
+            gpio_control::p2_ctrl1.set();
+            gpio_control::p2_ctrl0.set();
+            break;
+    }
+}
+
+#endif

@@ -24,6 +24,7 @@
 #include "ui_looking_glass_app.hpp"
 #include "convert.hpp"
 #include "file_reader.hpp"
+#include "file.hpp"
 #include "string_format.hpp"
 #include "audio.hpp"
 #include "file_path.hpp"
@@ -164,11 +165,13 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                 display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, gradient.lut[spectrum_data[xpos]]);
             }
             // indicate RSSI min and max power
-            display.fill_rectangle({{0, screen_height - map(raw_min, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_min]);
-            display.fill_rectangle({{0, screen_height - map(raw_max, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_max]);
+            if (show_rssi_guides) {
+                display.fill_rectangle({{0, screen_height - map(raw_min, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_min]);
+                display.fill_rectangle({{0, screen_height - map(raw_max, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_max]);
+            }
             if (last_max_freq != max_freq_hold) {
                 last_max_freq = max_freq_hold;
-                freq_stats.set("MAX HOLD: " + to_string_short_freq(max_freq_hold));
+                freq_stats.set("MAX: " + to_string_short_freq(max_freq_hold));
             }
             plot_marker(marker_pixel_index);
         } else {
@@ -394,6 +397,7 @@ GlassView::GlassView(
                   &button_marker_plus,
                   &button_jump,
                   &button_rst,
+                  &button_rssi,
                   &freq_stats});
 
     load_presets();  // Load available presets from TXT files (or default).
@@ -448,6 +452,7 @@ GlassView::GlassView(
                 freq_stats.hidden(true);
                 button_jump.hidden(true);
                 button_rst.hidden(true);
+                button_rssi.hidden(true);
                 display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates.
                 break;
 
@@ -458,6 +463,7 @@ GlassView::GlassView(
                 freq_stats.hidden(false);
                 button_jump.hidden(false);
                 button_rst.hidden(false);
+                button_rssi.hidden(false);
                 break;
 
             case 2:  // PEAK
@@ -468,6 +474,7 @@ GlassView::GlassView(
                 freq_stats.hidden(false);
                 button_jump.hidden(false);
                 button_rst.hidden(false);
+                button_rssi.hidden(false);
                 break;
         }
 
@@ -537,6 +544,16 @@ GlassView::GlassView(
         reset_live_view();
     };
 
+    button_rssi.on_select = [this](Button& button) {
+        show_rssi_guides = !show_rssi_guides;
+        if (show_rssi_guides) {
+            button.set_style(Theme::getInstance()->fg_green);
+        } else {
+            button.set_style(Theme::getInstance()->bg_darkest);
+        }
+        reset_live_view();
+    };
+
     display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
 
     // trigger:
@@ -587,34 +604,39 @@ void GlassView::on_freqchg(int64_t freq) {
 }
 
 void GlassView::load_presets() {
-    File presets_file;
-    auto error = presets_file.open(looking_glass_dir / u"PRESETS.TXT");
     presets_db.clear();
 
     // Add the "Manual" entry.
     presets_db.push_back({0, 0, "Manual"});
 
-    if (!error) {
-        auto reader = FileLineReader(presets_file);
-        for (const auto& line : reader) {
-            if (line.length() == 0 || line[0] == '#')
-                continue;
+    scan_root_files(looking_glass_dir, u"*.TXT", [this](const std::filesystem::path& path) {
+        if (path.empty() || path.native()[0] == u'.')
+            return;
 
-            auto cols = split_string(line, ',');
-            if (cols.size() != 3)
-                continue;
+        File presets_file;
+        auto error = presets_file.open(looking_glass_dir / path);
+        if (!error) {
+            auto reader = FileLineReader(presets_file);
+            for (const auto& line : reader) {
+                if (line.length() == 0 || line[0] == '#')
+                    continue;
 
-            preset_entry entry{};
-            parse_int(cols[0], entry.min);
-            parse_int(cols[1], entry.max);
-            entry.label = trimr(cols[2]);
+                auto cols = split_string(line, ',');
+                if (cols.size() != 3)
+                    continue;
 
-            if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
-                continue;  // Invalid line.
+                preset_entry entry{};
+                parse_int(cols[0], entry.min);
+                parse_int(cols[1], entry.max);
+                entry.label = trimr(cols[2]);
 
-            presets_db.emplace_back(std::move(entry));
+                if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
+                    continue;  // Invalid line.
+
+                presets_db.emplace_back(std::move(entry));
+            }
         }
-    }
+    });
 
     populate_presets();
 }

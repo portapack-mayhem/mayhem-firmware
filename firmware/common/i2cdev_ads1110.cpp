@@ -57,7 +57,7 @@ void I2cDev_ADS1110::update() {
     uint16_t voltage = readVoltage();
     uint8_t batteryPercentage = battery::BatteryManagement::calc_percent_voltage(voltage);
     // send local message
-    BatteryStateMessage msg{1, batteryPercentage, false, voltage};
+    BatteryStateMessage msg{1, batteryPercentage, false, voltage, false};
     EventDispatcher::send_message(msg);
 }
 
