@@ -67,7 +67,6 @@ class FlashUtilityView : public View {
     void firmware_selected(std::filesystem::path::string_type path);
 
     bool endsWith(const std::u16string& str, const std::u16string& suffix);
-    uint8_t refreshcnt = 0;
 };
 
 } /* namespace ui */
