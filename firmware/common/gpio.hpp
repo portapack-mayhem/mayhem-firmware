@@ -28,7 +28,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "pal.h"
 
 struct PinConfig {
     const uint32_t mode;
@@ -306,7 +305,6 @@ inline void setup_pins(const std::array<scu_setup_t, N>& pins_setup) {
     }
 }
 
-#ifdef PRALINE
 namespace gpio_control {
 
 struct PinMap {
@@ -314,54 +312,140 @@ struct PinMap {
     uint8_t scu_pin;
     uint8_t gpio_port;
     uint8_t gpio_pad;
+    uint8_t gpio_mode;
 };
 
-constexpr PinMap map_p1_ctrl0{2, 10, 0, 14};  // SCU: 2, 10 | GPIO: 0, 14
-constexpr PinMap map_p1_ctrl1{6, 8, 5, 16};
-constexpr PinMap map_p1_ctrl2{6, 9, 3, 5};
-constexpr PinMap map_p2_ctrl0{8, 3, 7, 3};
-constexpr PinMap map_p2_ctrl1{8, 4, 7, 4};
-constexpr PinMap map_trigger_out{2, 6, 5, 6};
-constexpr PinMap map_trigger_in{13, 12, 6, 26};
+#ifdef PRALINE
+constexpr PinMap map_p1_ctrl0{2, 10, 0, 14, 0};  // SCU: 2, 10 | GPIO: 0, 14
+constexpr PinMap map_p1_ctrl1{6, 8, 5, 16, 4};
+constexpr PinMap map_p1_ctrl2{6, 9, 3, 5, 0};
 
-constexpr PinMap map_rf5072_mix_en{9, 0, 4, 12};
+constexpr PinMap map_p2_ctrl0{8, 3, 7, 3, 4};
+constexpr PinMap map_p2_ctrl1{8, 4, 7, 4, 4};
 
-constexpr PinMap map_aa_en{1, 14, 1, 7};  // Anti-Aliasing filter
+constexpr PinMap map_trigger_out{2, 6, 5, 6, 4};
+constexpr PinMap map_trigger_in{13, 12, 6, 26, 4};
+
+constexpr PinMap map_clkin_ctrl{1, 20, 0, 15, 0};
+
+constexpr PinMap map_rf5072_mix_en{9, 0, 4, 12, 0};
+
+constexpr PinMap map_aa_en{1, 14, 1, 7, 0};  // Anti-Aliasing filter
+
+constexpr PinMap map_sgpio_4{9, 4, 17, 5, 6};
+constexpr PinMap map_sgpio_8{8, 0, 4, 0, 4};
+constexpr PinMap map_sgpio_9{9, 3, 4, 0, 6};
+constexpr PinMap map_sgpio_10{8, 2, 4, 2, 4};
+#else
+constexpr PinMap map_sgpio_4{9, 4, 17, 5, 2};
+constexpr PinMap map_sgpio_8{9, 6, 4, 11, 6};
+constexpr PinMap map_sgpio_9{4, 3, 4, 0, 7};
+constexpr PinMap map_sgpio_10{1, 14, 1, 7, 6};
+constexpr PinMap map_sgpio_13{4, 8, 5, 12, 4};
+#endif
+
+constexpr PinMap map_sgpio_0{0, 0, 0, 0, 3};
+constexpr PinMap map_sgpio_1{0, 1, 0, 1, 3};
+constexpr PinMap map_sgpio_2{1, 15, 0, 2, 2};
+constexpr PinMap map_sgpio_3{1, 16, 0, 3, 2};
+constexpr PinMap map_sgpio_5{6, 6, 0, 5, 2};
+constexpr PinMap map_sgpio_6{2, 2, 5, 2, 0};
+constexpr PinMap map_sgpio_7{1, 0, 0, 4, 6};
+constexpr PinMap map_sgpio_11{1, 17, 0, 12, 6};
+constexpr PinMap map_sgpio_12{1, 18, 0, 13, 0};
+/*
+constexpr PinMap map_sgpio_10{};
+constexpr PinMap map_sgpio_{};
+constexpr PinMap map_sgpio_{};
+constexpr PinMap map_sgpio_{};
+constexpr PinMap map_sgpio_{};
+constexpr PinMap map_sgpio_{};
+constexpr PinMap map_sgpio_{};
+*/
+#ifdef PRALINE
 
 // P1 Multiplexer control pins
-constexpr Pin pin_p1_ctrl0{map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin};                                         // SCU: P2_10
-constexpr GPIO p1_ctrl0{pin_p1_ctrl0, map_p1_ctrl0.gpio_port, map_p1_ctrl0.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[0]14
+constexpr Pin pin_p1_ctrl0{map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin};                                       // SCU: P2_10
+constexpr GPIO p1_ctrl0{pin_p1_ctrl0, map_p1_ctrl0.gpio_port, map_p1_ctrl0.gpio_pad, map_p1_ctrl0.gpio_mode};  // GPIO[0]14
 
-constexpr Pin pin_p1_ctrl1{map_p1_ctrl1.scu_port, map_p1_ctrl1.scu_pin};                                         // SCU: P6_8
-constexpr GPIO p1_ctrl1{pin_p1_ctrl1, map_p1_ctrl1.gpio_port, map_p1_ctrl1.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[5]16
+constexpr Pin pin_p1_ctrl1{map_p1_ctrl1.scu_port, map_p1_ctrl1.scu_pin};                                       // SCU: P6_8
+constexpr GPIO p1_ctrl1{pin_p1_ctrl1, map_p1_ctrl1.gpio_port, map_p1_ctrl1.gpio_pad, map_p1_ctrl1.gpio_mode};  // GPIO[5]16
 
-constexpr Pin pin_p1_ctrl2{map_p1_ctrl2.scu_port, map_p1_ctrl2.scu_pin};                                         // SCU: P6_9
-constexpr GPIO p1_ctrl2{pin_p1_ctrl2, map_p1_ctrl2.gpio_port, map_p1_ctrl2.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[3]5
+constexpr Pin pin_p1_ctrl2{map_p1_ctrl2.scu_port, map_p1_ctrl2.scu_pin};                                       // SCU: P6_9
+constexpr GPIO p1_ctrl2{pin_p1_ctrl2, map_p1_ctrl2.gpio_port, map_p1_ctrl2.gpio_pad, map_p1_ctrl2.gpio_mode};  // GPIO[3]5
 
 // P2 Multiplexer control pins
-constexpr Pin pin_p2_ctrl0{map_p2_ctrl0.scu_port, map_p2_ctrl0.scu_pin};                                         // SCU: PE_3
-constexpr GPIO p2_ctrl0{pin_p2_ctrl0, map_p2_ctrl0.gpio_port, map_p2_ctrl0.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[7]3
+constexpr Pin pin_p2_ctrl0{map_p2_ctrl0.scu_port, map_p2_ctrl0.scu_pin};                                       // SCU: PE_3
+constexpr GPIO p2_ctrl0{pin_p2_ctrl0, map_p2_ctrl0.gpio_port, map_p2_ctrl0.gpio_pad, map_p2_ctrl0.gpio_mode};  // GPIO[7]3
 
-constexpr Pin pin_p2_ctrl1{map_p2_ctrl1.scu_port, map_p2_ctrl1.scu_pin};                                         // SCU: PE_4
-constexpr GPIO p2_ctrl1{pin_p2_ctrl1, map_p2_ctrl1.gpio_port, map_p2_ctrl1.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[7]4
+constexpr Pin pin_p2_ctrl1{map_p2_ctrl1.scu_port, map_p2_ctrl1.scu_pin};                                       // SCU: PE_4
+constexpr GPIO p2_ctrl1{pin_p2_ctrl1, map_p2_ctrl1.gpio_port, map_p2_ctrl1.gpio_pad, map_p2_ctrl1.gpio_mode};  // GPIO[7]4
 
 // Trigger pins
-constexpr Pin trigger_out_pin{map_trigger_out.scu_port, map_trigger_out.scu_pin};                                            // SCU: P2_6
-constexpr GPIO trigger_out{trigger_out_pin, map_trigger_out.gpio_port, map_trigger_out.gpio_pad, PAL_MODE_OUTPUT_PUSHPULL};  // GPIO[5]6
+constexpr Pin trigger_out_pin{map_trigger_out.scu_port, map_trigger_out.scu_pin};                                             // SCU: P2_6
+constexpr GPIO trigger_out{trigger_out_pin, map_trigger_out.gpio_port, map_trigger_out.gpio_pad, map_trigger_out.gpio_mode};  // GPIO[5]6
 
-constexpr Pin trigger_in_pin{map_trigger_in.scu_port, map_trigger_in.scu_pin};                                 // SCU: PD_12
-constexpr GPIO trigger_in{trigger_in_pin, map_trigger_in.gpio_port, map_trigger_in.gpio_pad, PAL_MODE_INPUT};  // GPIO[6]26
+constexpr Pin trigger_in_pin{map_trigger_in.scu_port, map_trigger_in.scu_pin};                                           // SCU: PD_12
+constexpr GPIO trigger_in{trigger_in_pin, map_trigger_in.gpio_port, map_trigger_in.gpio_pad, map_trigger_in.gpio_mode};  // GPIO[6]26
+
+// Clock input control
+constexpr Pin pin_clkin_ctrl{map_clkin_ctrl.scu_port, map_clkin_ctrl.scu_pin};                                           // SCU: P1_20
+constexpr GPIO clkin_ctrl{pin_clkin_ctrl, map_clkin_ctrl.gpio_port, map_clkin_ctrl.gpio_pad, map_clkin_ctrl.gpio_mode};  // GPIO[0]15
 
 // RF507x
-constexpr Pin pin_rf5072_mix_en{map_rf5072_mix_en.scu_port, map_rf5072_mix_en.scu_pin};
-constexpr GPIO rf5072_mix_en{pin_rf5072_mix_en, map_rf5072_mix_en.gpio_port, map_rf5072_mix_en.gpio_pad, 0};
+constexpr Pin pin_rf5072_mix_en{map_rf5072_mix_en.scu_port, map_rf5072_mix_en.scu_pin};                                                 // SCU: P9_0
+constexpr GPIO rf5072_mix_en{pin_rf5072_mix_en, map_rf5072_mix_en.gpio_port, map_rf5072_mix_en.gpio_pad, map_rf5072_mix_en.gpio_mode};  // GPIO[4]12
 
 // Anti-Aliasing filter
-constexpr Pin pin_aa_en{map_aa_en.scu_port, map_aa_en.scu_pin};
-constexpr GPIO aa_en{pin_aa_en, map_aa_en.gpio_port, map_aa_en.gpio_pad, 0};
+constexpr Pin pin_aa_en{map_aa_en.scu_port, map_aa_en.scu_pin};                                 // SCU: P1_14
+constexpr GPIO aa_en{pin_aa_en, map_aa_en.gpio_port, map_aa_en.gpio_pad, map_aa_en.gpio_mode};  // GPIO[1]7
+
+#else
+constexpr Pin pin_sgpio_13{map_sgpio_13.scu_port, map_sgpio_13.scu_pin};                                       // SCU: P4_8
+constexpr GPIO sgpio_13{pin_sgpio_13, map_sgpio_13.gpio_port, map_sgpio_13.gpio_pad, map_sgpio_13.gpio_mode};  // GPIO[5]12
+#endif
+
+// SGPIO
+constexpr Pin pin_sgpio_0{map_sgpio_0.scu_port, map_sgpio_0.scu_pin};                                     // SCU: P0_0
+constexpr GPIO sgpio_0{pin_sgpio_0, map_sgpio_0.gpio_port, map_sgpio_0.gpio_pad, map_sgpio_0.gpio_mode};  // GPIO[0]0
+
+constexpr Pin pin_sgpio_1{map_sgpio_1.scu_port, map_sgpio_1.scu_pin};                                     // SCU: P0_1
+constexpr GPIO sgpio_1{pin_sgpio_1, map_sgpio_1.gpio_port, map_sgpio_1.gpio_pad, map_sgpio_1.gpio_mode};  // GPIO[0]0
+
+constexpr Pin pin_sgpio_2{map_sgpio_2.scu_port, map_sgpio_2.scu_pin};                                     // SCU: P1_15
+constexpr GPIO sgpio_2{pin_sgpio_2, map_sgpio_2.gpio_port, map_sgpio_2.gpio_pad, map_sgpio_2.gpio_mode};  // GPIO[0]2
+
+constexpr Pin pin_sgpio_3{map_sgpio_3.scu_port, map_sgpio_3.scu_pin};                                     // SCU: P1_16
+constexpr GPIO sgpio_3{pin_sgpio_3, map_sgpio_3.gpio_port, map_sgpio_3.gpio_pad, map_sgpio_3.gpio_mode};  // GPIO[0]3
+
+constexpr Pin pin_sgpio_4{map_sgpio_4.scu_port, map_sgpio_4.scu_pin};                                     // SCU: P6_3, PRALINE: P9_4
+constexpr GPIO sgpio_4{pin_sgpio_4, map_sgpio_4.gpio_port, map_sgpio_4.gpio_pad, map_sgpio_4.gpio_mode};  // GPIO[6]3 PRALINE: GPIO[5]17
+
+constexpr Pin pin_sgpio_5{map_sgpio_5.scu_port, map_sgpio_5.scu_pin};                                     // SCU: P6_6
+constexpr GPIO sgpio_5{pin_sgpio_5, map_sgpio_5.gpio_port, map_sgpio_5.gpio_pad, map_sgpio_5.gpio_mode};  // GPIO[0]5
+
+constexpr Pin pin_sgpio_6{map_sgpio_6.scu_port, map_sgpio_6.scu_pin};                                     // SCU: P2_2
+constexpr GPIO sgpio_6{pin_sgpio_6, map_sgpio_6.gpio_port, map_sgpio_6.gpio_pad, map_sgpio_6.gpio_mode};  // GPIO[5]2
+
+constexpr Pin pin_sgpio_7{map_sgpio_7.scu_port, map_sgpio_7.scu_pin};                                     // SCU: P1_0
+constexpr GPIO sgpio_7{pin_sgpio_7, map_sgpio_7.gpio_port, map_sgpio_7.gpio_pad, map_sgpio_7.gpio_mode};  // GPIO[0]4
+
+constexpr Pin pin_sgpio_8{map_sgpio_8.scu_port, map_sgpio_8.scu_pin};                                     // SCU: P9_6, PRALINE: P8_0
+constexpr GPIO sgpio_8{pin_sgpio_8, map_sgpio_8.gpio_port, map_sgpio_8.gpio_pad, map_sgpio_8.gpio_mode};  // GPIO[4]11, PRALINE: GPIO[4]0
+
+constexpr Pin pin_sgpio_9{map_sgpio_9.scu_port, map_sgpio_9.scu_pin};                                     // SCU: P4_3, PRALINE: P9_3
+constexpr GPIO sgpio_9{pin_sgpio_9, map_sgpio_9.gpio_port, map_sgpio_9.gpio_pad, map_sgpio_9.gpio_mode};  // GPIO[2]3, PRALINE: GPIO[4]12
+
+constexpr Pin pin_sgpio_10{map_sgpio_10.scu_port, map_sgpio_10.scu_pin};                                       // SCU: P1_14, PRALINE: P8_2
+constexpr GPIO sgpio_10{pin_sgpio_10, map_sgpio_10.gpio_port, map_sgpio_10.gpio_pad, map_sgpio_10.gpio_mode};  // GPIO[1]7, PRALINE: GPIO[4]2
+
+constexpr Pin pin_sgpio_11{map_sgpio_11.scu_port, map_sgpio_11.scu_pin};                                       // SCU: P1_17
+constexpr GPIO sgpio_11{pin_sgpio_11, map_sgpio_11.gpio_port, map_sgpio_11.gpio_pad, map_sgpio_11.gpio_mode};  // GPIO[0]17
+
+constexpr Pin pin_sgpio_12{map_sgpio_12.scu_port, map_sgpio_12.scu_pin};                                       // SCU: P1_18
+constexpr GPIO sgpio_12{pin_sgpio_12, map_sgpio_12.gpio_port, map_sgpio_12.gpio_pad, map_sgpio_12.gpio_mode};  // GPIO[0]13
 
 }  // namespace gpio_control
-#endif
 
 namespace power_control {
 

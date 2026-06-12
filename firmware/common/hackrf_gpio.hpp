@@ -38,15 +38,15 @@ constexpr GPIO gpio_led_usb = gpio[GPIO2_1];
 constexpr GPIO gpio_led_rx = gpio[GPIO2_2];
 constexpr GPIO gpio_led_tx = gpio[GPIO2_8];
 
-constexpr GPIO gpio_og_1v8_enable = gpio[GPIO3_6];
-constexpr GPIO gpio_r9_1v8_enable = gpio[GPIO2_9];
-constexpr GPIO gpio_vregmode = gpio[GPIO3_7];
+// constexpr GPIO gpio_og_1v8_enable = gpio[GPIO3_6];
+// constexpr GPIO gpio_r9_1v8_enable = gpio[GPIO2_9];
+// constexpr GPIO gpio_vregmode = gpio[GPIO3_7];
 
 constexpr GPIO gpio_rx_mix_bp = gpio[GPIO2_12];
 constexpr GPIO gpio_tx_mix_bp = gpio[GPIO2_11];
 #ifdef PRALINE
-constexpr GPIO gpio_mix_bypass = gpio[GPIO3_2];     // P6_3: PRALINE RF path mixer bypass inverted
-constexpr GPIO gpio_mix_en_n_r1_0 = gpio[GPIO5_6];  // P2_6: R1.0 board mixer bypass
+constexpr GPIO gpio_mix_bypass = gpio[GPIO3_2];  // P6_3: PRALINE RF path mixer bypass inverted
+// constexpr GPIO gpio_mix_en_n_r1_0 = gpio[GPIO5_6];  // P2_6: R1.0 board mixer bypass
 #else
 constexpr GPIO gpio_mix_bypass = gpio[GPIO5_16];
 #endif
@@ -56,7 +56,7 @@ constexpr GPIO gpio_og_rx = gpio[GPIO5_5];
 constexpr GPIO gpio_og_tx = gpio[GPIO5_15];
 constexpr GPIO gpio_r9_rx = gpio[GPIO0_7];
 
-constexpr GPIO gpio_lp = gpio[GPIO2_10];
+// constexpr GPIO gpio_lp = gpio[GPIO2_10];
 constexpr GPIO gpio_hp = gpio[GPIO2_0];
 
 constexpr GPIO gpio_rx_amp = gpio[GPIO1_11];
@@ -90,11 +90,11 @@ constexpr GPIO gpio_max283x_select = gpio[GPIO0_15];
 
 #ifdef PRALINE
 // PRALINE uses MAX2831 transceiver with different control pins
-constexpr GPIO gpio_max283x_enable = gpio[GPIO7_1];     // MAX2831 ENABLE (PE_1)
-constexpr GPIO gpio_max2831_enable = gpio[GPIO7_1];     // Alias
+constexpr GPIO gpio_max283x_enable = gpio[GPIO7_1];  // MAX2831 ENABLE (PE_1)
+// constexpr GPIO gpio_max2831_enable = gpio[GPIO7_1];     // Alias
 constexpr GPIO gpio_max2831_rx_enable = gpio[GPIO7_2];  // MAX2831 RX_ENABLE (PE_2)
-constexpr GPIO gpio_max2831_rxhp = gpio[GPIO6_29];      // MAX2831 RXHP (PD_15)
-constexpr GPIO gpio_max2831_ld = gpio[GPIO4_11];        // MAX2831 Lock Detect (P9_6)
+// constexpr GPIO gpio_max2831_rxhp = gpio[GPIO6_29];      // MAX2831 RXHP (PD_15)
+constexpr GPIO gpio_max2831_ld = gpio[GPIO4_11];  // MAX2831 Lock Detect (P9_6)
 // Legacy aliases for code compatibility
 constexpr GPIO gpio_max2837_rxenable = gpio[GPIO7_2];
 constexpr GPIO gpio_max2837_txenable = gpio[GPIO7_2];  // MAX2831 uses single RX/TX control
@@ -105,7 +105,7 @@ constexpr GPIO gpio_max2837_rxenable = gpio[GPIO2_5];
 constexpr GPIO gpio_max2837_txenable = gpio[GPIO2_4];
 constexpr GPIO gpio_max2839_rxtx = gpio[GPIO2_5];
 #endif
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef PRALINE
 constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];  // PD_16: PRALINE MAX5864 CS
 constexpr GPIO gpio_fpga_select = gpio[GPIO2_10];     // FPGA SPI CS (P5_1)
@@ -137,18 +137,9 @@ constexpr GPIO gpio_rffc5072_ld = gpio[GPIO6_25];  // Mixer lock detect (PD_11)
 // PRALINE LED4
 constexpr GPIO gpio_led4 = gpio[GPIO4_6];  // LED4 (P8_6)
 
-// PRALINE dual port control
-constexpr GPIO gpio_p1_ctrl0 = gpio[GPIO0_14];    // P1 control 0 (P2_10)
-constexpr GPIO gpio_p1_ctrl1 = gpio[GPIO5_16];    // P1 control 1 (P6_8)
-constexpr GPIO gpio_p1_ctrl2 = gpio[GPIO3_5];     // P1 control 2 (P6_9)
-constexpr GPIO gpio_p2_ctrl0 = gpio[GPIO7_3];     // P2 control 0 (PE_3)
-constexpr GPIO gpio_p2_ctrl1 = gpio[GPIO7_4];     // P2 control 1 (PE_4)
-constexpr GPIO gpio_clkin_ctrl = gpio[GPIO0_15];  // CLKIN control (P1_20)
-
 // PRALINE trigger/sync I/O
-constexpr GPIO gpio_trigger_in = gpio[GPIO6_26];  // Trigger input (PD_12)
-constexpr GPIO gpio_trigger_out = gpio[GPIO5_6];  // Trigger output (P2_6)
-constexpr GPIO gpio_pps_out = gpio[GPIO5_5];      // PPS output (P2_5)
+
+constexpr GPIO gpio_pps_out = gpio[GPIO5_5];  // PPS output (P2_5)
 
 #endif
 
