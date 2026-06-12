@@ -807,11 +807,19 @@ endif()
 
 ### HackRF "factory" firmware
 
+# The RAM image (${HACKRF_FIRMWARE_BIN_IMAGE}) is produced by the hackrf
+# "hackrf_usb_ram.bin" custom target (objcopy of the .elf). The previous
+# DEPENDS used the bare filename ${HACKRF_FIRMWARE_BIN_FILENAME}, which CMake
+# silently dropped, so the embed (hackrf.lz4/hackrf.img) was never regenerated
+# when the hackrf firmware changed -> stale RAM image baked into the build.
+# Depend on the full path (marked GENERATED so Make doesn't look for a file
+# rule) AND on the producing custom target (for build ordering).
+set_source_files_properties(${HACKRF_FIRMWARE_BIN_IMAGE} PROPERTIES GENERATED TRUE)
 add_custom_command(
 	OUTPUT hackrf.img
 	COMMAND ${LZ4} -f -9 ${HACKRF_FIRMWARE_BIN_IMAGE} hackrf.lz4
 	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.lz4 HRF1 hackrf.img
-	DEPENDS ${HACKRF_FIRMWARE_BIN_FILENAME} ${MAKE_IMAGE_CHUNK}
+	DEPENDS ${HACKRF_FIRMWARE_BIN_IMAGE} hackrf_usb_ram.bin ${MAKE_IMAGE_CHUNK}
 	VERBATIM
 )
 
