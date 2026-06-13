@@ -139,7 +139,7 @@
 // Tmn, Vmx, Vmn, Imx, and Imn bits of the Status register
 // (00h) are not disabled.
 #ifndef MAX17055_Aen
-#define MAX17055_Aen 1
+#define MAX17055_Aen 0
 #endif
 
 // This allows the host to control the bias of the thermistor switch or
@@ -175,7 +175,7 @@
 
 // Set to 1 and set ETHRM or FTHRM to 1 to enable temperature measurements selected by Config.TSel.
 #ifndef MAX17055_Ten
-#define MAX17055_Ten 1
+#define MAX17055_Ten 0
 #endif
 
 // Set to 1 to enable device shutdown when the IC is mounted host side and the battery is removed.
@@ -231,7 +231,7 @@
 // Set this bit to 1 to enable temperature based alerts.
 // Write this bit to 0 to disable temperature alerts. This bit is set to 1 at power-up.
 #ifndef MAX17055_TAIrtEN
-#define MAX17055_TAIrtEN 1
+#define MAX17055_TAIrtEN 0
 #endif
 
 // Set this bit to 1 to enable alert output with the Status.dSOCi bit function.
@@ -283,14 +283,17 @@ class I2cDev_MAX17055 : public I2cDev {
     void update() override;
     bool detect();
 
-    void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+    void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& battMayChanged);
     bool reset_learned();
 
     float getValue(const char* entityName);
     uint16_t averageMVoltage(void);
     int32_t instantCurrent(void);
     uint16_t stateOfCharge(void);
-    bool reInit();  // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
+    bool reInit();                                                   // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
+    bool getIsBattChanged() { return statusControl(MAX17055_POR); }  // true if the ic thinks we have a new battery
+    void resetChangedFlag() { clear_por(); }                         // reset the flag
+    void sleep_config(bool enable_sleep);                            // if true, the ic can sleep after 3 minutes of inactivity (over i2c). can be waken up on any i2c communication (first packet may be dropped)
    private:
     const RegisterEntry* findEntry(const char* name) const;
 

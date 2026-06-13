@@ -1,0 +1,11 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# PAGERS https://www.fcc.gov/wireless/bureau-divisions/mobility-division/paging
+34,36,USA PAGERS 35
+43,45,USA PAGERS 44
+151,153,USA PAGERS 152
+157,159,USA PAGERS 158
+453,454,USA PAGERS 454
+929,931,USA PAGERS 930

@@ -33,8 +33,10 @@ void SPI::init() {
     gpio_rffc5072_select.set();
     gpio_rffc5072_clock.clear();
 
+#ifndef PRALINE
     gpio_rffc5072_select.output();
     gpio_rffc5072_clock.output();
+#endif
     gpio_rffc5072_data.input();
 
     gpio_rffc5072_data.clear();

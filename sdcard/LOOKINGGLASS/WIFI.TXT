@@ -1,0 +1,7 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# WIFI
+2320,2560,BL / WIFI 2.4GHz
+5160,5900,WIFI 5GHz

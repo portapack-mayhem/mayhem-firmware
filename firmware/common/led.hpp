@@ -31,13 +31,13 @@ struct LED {
 
     void setup() const {
 #ifdef PRALINE
-        /* PRALINE LEDs are active-low (GPIO LOW = LED ON) */
-        _gpio.set(); /* Start with LED OFF (HIGH) */
+// No-op: GPIO direction and initial OFF state are already
+// enforced globally at boot by pal_default_config in board.cpp.
 #else
         _gpio.clear();
-#endif
         _gpio.output();
         _gpio.configure();
+#endif
     }
 
     void on() const {

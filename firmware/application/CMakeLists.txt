@@ -192,6 +192,7 @@ set(CPPSRC
 	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
+	${COMMON}/gpio.cpp
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp

@@ -198,34 +198,6 @@ static void ssp1_init_ice40(void) {
     SSP1_CR1_LOCAL = SSP_CR1_SSE;
 }
 
-// Configure SSP1 pins via SCU
-static void configure_ssp1_pins(void) {
-    // P1_3 = SSP1_MISO (function 5)
-    MMIO32_LOCAL(SCU_SSP1_CIPO_LOCAL) = SCU_SSP_IO_LOCAL | SCU_CONF_FUNCTION5_LOCAL;
-    // P1_4 = SSP1_MOSI (function 5)
-    MMIO32_LOCAL(SCU_SSP1_COPI_LOCAL) = SCU_SSP_IO_LOCAL | SCU_CONF_FUNCTION5_LOCAL;
-    // P1_19 = SSP1_SCK (function 1)
-    MMIO32_LOCAL(SCU_SSP1_SCK_LOCAL) = SCU_SSP_IO_LOCAL | SCU_CONF_FUNCTION1_LOCAL;
-}
-
-// Configure FPGA control pins via SCU and GPIO
-static void configure_fpga_control_pins(void) {
-    // P5_2 = GPIO2[11] = CRESET (function 0, output)
-    MMIO32_LOCAL(SCU_FPGA_CRESET_LOCAL) = SCU_GPIO_NOPULL_LOCAL | SCU_CONF_FUNCTION0_LOCAL;
-    // P4_10 = GPIO5[14] = CDONE (function 4, input with pullup)
-    MMIO32_LOCAL(SCU_FPGA_CDONE_LOCAL) = SCU_GPIO_PUP_LOCAL | SCU_CONF_FUNCTION4_LOCAL;
-    // P5_1 = GPIO2[10] = SPI_CS (function 0, output)
-    MMIO32_LOCAL(SCU_FPGA_SPI_CS_LOCAL) = SCU_GPIO_NOPULL_LOCAL | SCU_CONF_FUNCTION0_LOCAL;
-
-    // Set CRESET and SPI_CS as outputs (GPIO2[11] and GPIO2[10])
-    GPIO_DIR(FPGA_CRESET_PORT) |= (1 << FPGA_CRESET_PIN) | (1 << FPGA_SPI_CS_PIN);
-    // Clear both initially
-    GPIO_CLR(FPGA_CRESET_PORT) = (1 << FPGA_CRESET_PIN) | (1 << FPGA_SPI_CS_PIN);
-
-    // CDONE is input (GPIO5[14])
-    GPIO_DIR(FPGA_CDONE_PORT) &= ~(1 << FPGA_CDONE_PIN);
-}
-
 // GPIO control helpers
 static void fpga_creset_low(void) {
     GPIO_CLR(FPGA_CRESET_PORT) = (1 << FPGA_CRESET_PIN);
@@ -577,12 +549,6 @@ int fpga_bridge_init(uint8_t* mem_base) {
     // Use PLL1 (204MHz) to match original HackRF - IRC (12MHz) is 17x too slow
     CGU_BASE_SSP1_CLK = CGU_BASE_SSP1_CLK_AUTOBLOCK(1) |
                         CGU_BASE_SSP1_CLK_CLK_SEL(CGU_SRC_PLL1);
-
-    // Configure SSP1 pins
-    configure_ssp1_pins();
-
-    // Configure FPGA control pins
-    configure_fpga_control_pins();
 
     // Initialize SSP1 for iCE40 programming
     ssp1_init_ice40();

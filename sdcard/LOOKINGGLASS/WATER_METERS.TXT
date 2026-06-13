@@ -1,0 +1,7 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# WATER METERS
+850,900,Water meters
+902,928,ISM 900MHz
