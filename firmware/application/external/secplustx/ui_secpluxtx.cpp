@@ -17,10 +17,11 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
     add_children({&labels,
+                  &learn_mode,
                   &field_fixed,
                   &field_rolling,
                   &field_data,
-                  &learn_mode,
+                  &enable_data,
                   &progressbar,
                   &tx_view});
 
@@ -28,6 +29,7 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     field_fixed.set_value(fixed_code);
     field_rolling.on_change = [this](SymField& field) { rolling_code = field.to_integer(); };
     field_fixed.on_change = [this](SymField& field) { fixed_code = field.to_integer(); };
+    field_data.on_change = [this](SymField&) { enable_data.set_value(true); enable_data.set_dirty(); };
 
     tx_view.on_edit_frequency = [this, &nav]() {
         auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
@@ -49,35 +51,31 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
 void SecplusTXView::start_tx() {
     uint8_t packet1[5]{};
     uint8_t packet2[5]{};
+    size_t bitstream_length = 0;
 
-    secplustx::encode_v2(rolling_code, fixed_code, 0, 0, packet1, packet2);
-
-    constexpr uint32_t preamble = 0b0000000000000000'1111;
     constexpr uint8_t packet1_indicator = 0b00;
     constexpr uint8_t packet2_indicator = 0b01;
-    constexpr uint32_t blank_size = 23;
-
-    size_t bitstream_length = 0;
-    auto manchester_encode = [&bitstream_length](auto x, uint32_t size, bool backward = true) {
-        for (uint32_t i = 0; i < size; ++i) {
-            bool bit = (x >> (backward ? (size - 1) - i : i)) & 1;
-            encoders::bitstream_append(bitstream_length, 2, bit ? 0b01 : 0b10);
-        }
+    auto encode_packet = [&bitstream_length](uint8_t indicator, auto& packet) {
+        constexpr uint32_t preamble = 0b0000000000000000'1111;
+        constexpr uint32_t blank_size = 24;
+        auto manchester_encode = [&bitstream_length](auto x, uint32_t size, bool backward = true) {
+            for (uint32_t i = 0; i < size; ++i) {
+                bool bit = (x >> (backward ? (size - 1) - i : i)) & 1;
+                encoders::bitstream_append(bitstream_length, 2, bit ? 0b01 : 0b10);
+            }
+        };
+        manchester_encode(preamble, 20);
+        manchester_encode(indicator, 2);
+        for (auto byte : packet) manchester_encode(byte, 8);
+        encoders::bitstream_append(bitstream_length, blank_size, 0);
     };
 
-    manchester_encode(preamble, 20);
-    manchester_encode(packet1_indicator, 2);
-    for (auto byte : packet1) manchester_encode(byte, 8);
-    encoders::bitstream_append(bitstream_length, blank_size, 0);
-
-    manchester_encode(preamble, 20);
-    manchester_encode(packet2_indicator, 2);
-    for (auto byte : packet2) manchester_encode(byte, 8);
-    encoders::bitstream_append(bitstream_length, blank_size, 0);
+    secplustx::encode_v2(rolling_code, fixed_code, 0, 0, packet1, packet2);
+    encode_packet(packet1_indicator, packet1);
+    encode_packet(packet2_indicator, packet2);
 
     if (!learn_mode.value()) {
-        rolling_code++;
-        field_rolling.set_value(rolling_code);
+        field_rolling.set_value(++rolling_code);
         field_rolling.set_dirty();
     }
 
@@ -100,9 +98,8 @@ void SecplusTXView::stop_tx() {
 }
 
 void SecplusTXView::on_tx_progress(uint32_t progress, bool done) {
-    if (!done) {
-        progressbar.set_value(progress + 1);
-    } else {
+    progressbar.set_value(progress);
+    if (done) {
         chThdSleepMilliseconds(10);
         stop_tx();
     }

@@ -41,16 +41,16 @@ class SecplusTXView : public View {
             {"fixed_code"sv, &fixed_code},
         }};
 
+    Checkbox learn_mode{{UI_POS_X(1), UI_POS_Y(0)}, 5, "Learn", true};
     Labels labels{
-        {{UI_POS_X(1), UI_POS_Y(0)}, "Fixed:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(1), UI_POS_Y(1)}, "Rolling:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(1), UI_POS_Y(2)}, "Data:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(1)}, "Fixed:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "Rolling:", Theme::getInstance()->fg_light->foreground},
     };
-    Checkbox learn_mode{{UI_POS_X(1), UI_POS_Y(3)}, 5, "Learn", true};
+    Checkbox enable_data{{UI_POS_X(1), UI_POS_Y(3)}, 5, "Data:", true};
 
-    SymField field_fixed{{UI_POS_X(9), UI_POS_Y(0)}, 10, SymField::Type::Hex, true};
-    SymField field_rolling{{UI_POS_X(9), UI_POS_Y(1)}, 7, SymField::Type::Hex, true};
-    SymField field_data{{UI_POS_X(9), UI_POS_Y(2)}, 8, SymField::Type::Hex, true};
+    SymField field_fixed{{UI_POS_X(10), UI_POS_Y(1)}, 10, SymField::Type::Hex, true};
+    SymField field_rolling{{UI_POS_X(10), UI_POS_Y(2)}, 7, SymField::Type::Hex, true};
+    SymField field_data{{UI_POS_X(10), UI_POS_Y(3)}, 8, SymField::Type::Hex, true};
 
     ProgressBar progressbar{
         {UI_POS_X(2), UI_POS_Y_BOTTOM(7) + 20, UI_POS_WIDTH_REMAINING(4), 16}};
