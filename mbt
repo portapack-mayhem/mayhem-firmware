@@ -199,7 +199,7 @@ Build options:
   -G, --generator <name>         CMake generator (default: Ninja)
   -j, --jobs <n>                 Build parallelism (default: host CPU count)
   --target <name>                Build a specific target
-  --clean                        Remove build directory before configure
+    --clean                        Remove build directory, run libopencm3 clean, and exit
   --cmake-arg <arg>              Extra CMake configure arg (repeatable)
   --build-arg <arg>              Extra cmake --build arg (repeatable)
   -y, --non-interactive          Fail instead of prompting when required input is missing
@@ -308,6 +308,29 @@ mbt_detect_cached_device() {
     return 0
 }
 
+mbt_clean() {
+    local build_dir="$1"
+    local libopencm3_dir="$SCRIPT_PATH/hackrf/firmware/libopencm3"
+
+    mbt_log "cleaning build directory: $build_dir"
+    if ! rm -rf "$build_dir"; then
+        mbt_error "failed to delete build directory. Try running ./mbt --clean as root."
+        return 1
+    fi
+
+    if [[ -d "$libopencm3_dir" ]]; then
+        mbt_log "cleaning libopencm3: $libopencm3_dir"
+        make -C "$libopencm3_dir" clean
+    else
+        mbt_error "libopencm3 directory not found: $libopencm3_dir"
+        return 1
+    fi
+}
+
+mbt_report_build_error() {
+    printf '%s\n' 'Build error happened. Try to fix your code, or run ./mbt --clean and try again' >&2
+}
+
 mbt_build() {
     local build_dir="$1"
     local generator="$2"
@@ -331,8 +354,8 @@ mbt_build() {
     local previous_device=""
 
     if [[ "$clean_build" -eq 1 ]]; then
-        mbt_log "cleaning build directory: $build_dir"
-        rm -rf "$build_dir"
+        mbt_clean "$build_dir"
+        return 0
     else
         if [[ -f "$marker_file" ]]; then
             previous_device="$(<"$marker_file")"
@@ -383,7 +406,10 @@ mbt_build() {
     cmake_args+=("${cmake_extra_args[@]}")
 
     mbt_log "configuring build for $device in $build_dir"
-    cmake "${cmake_args[@]}"
+    if ! cmake "${cmake_args[@]}"; then
+        mbt_report_build_error
+        return 1
+    fi
     printf "%s\n" "$device" > "$marker_file"
 
     build_args=(--build "$build_dir" --parallel "$jobs")
@@ -393,7 +419,10 @@ mbt_build() {
     build_args+=("${build_extra_args[@]}")
 
     mbt_log "building..."
-    cmake "${build_args[@]}"
+    if ! cmake "${build_args[@]}"; then
+        mbt_report_build_error
+        return 1
+    fi
     mbt_log "build complete. Outputs are in $build_dir."
     mbt_log "The bare binary (for the hackrf_spiflash host tool), excluding external apps, is located at $build_dir/firmware/portapack-mayhem-firmware.bin"
     mbt_log "The full tar.gz package (for MayhemHub and the Flash Utility OTA app), including external apps and the firmware file, is located at $build_dir/firmware/portapack-mayhem_OCI.ppfw.tar"
@@ -573,6 +602,11 @@ main() {
         mbt_die "unsupported command: $command"
         ;;
     esac
+
+    if [[ "$clean_build" -eq 1 ]]; then
+        mbt_clean "$build_dir"
+        exit 0
+    fi
 
     if [[ "$with_deps" -eq 1 ]]; then
         mbt_install_deps
