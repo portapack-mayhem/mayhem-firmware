@@ -23,7 +23,6 @@
 #define __HACKRF_GPIO_H__
 
 #include "pins.hpp"
-#include "led.hpp"
 
 #include <array>
 
@@ -33,14 +32,6 @@ namespace hackrf {
 namespace one {
 
 /* GPIO */
-
-constexpr GPIO gpio_led_usb = gpio[GPIO2_1];
-constexpr GPIO gpio_led_rx = gpio[GPIO2_2];
-constexpr GPIO gpio_led_tx = gpio[GPIO2_8];
-
-// constexpr GPIO gpio_og_1v8_enable = gpio[GPIO3_6];
-// constexpr GPIO gpio_r9_1v8_enable = gpio[GPIO2_9];
-// constexpr GPIO gpio_vregmode = gpio[GPIO3_7];
 
 constexpr GPIO gpio_rx_mix_bp = gpio[GPIO2_12];
 constexpr GPIO gpio_tx_mix_bp = gpio[GPIO2_11];
@@ -56,7 +47,7 @@ constexpr GPIO gpio_og_rx = gpio[GPIO5_5];
 constexpr GPIO gpio_og_tx = gpio[GPIO5_15];
 constexpr GPIO gpio_r9_rx = gpio[GPIO0_7];
 
-// constexpr GPIO gpio_lp = gpio[GPIO2_10];
+constexpr GPIO gpio_lp = gpio[GPIO2_10];
 constexpr GPIO gpio_hp = gpio[GPIO2_0];
 
 constexpr GPIO gpio_rx_amp = gpio[GPIO1_11];
@@ -105,10 +96,9 @@ constexpr GPIO gpio_max2837_rxenable = gpio[GPIO2_5];
 constexpr GPIO gpio_max2837_txenable = gpio[GPIO2_4];
 constexpr GPIO gpio_max2839_rxtx = gpio[GPIO2_5];
 #endif
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #ifdef PRALINE
 constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];  // PD_16: PRALINE MAX5864 CS
-constexpr GPIO gpio_fpga_select = gpio[GPIO2_10];     // FPGA SPI CS (P5_1)
 #else
 constexpr GPIO gpio_max5864_select = gpio[GPIO2_7];
 #endif
@@ -117,29 +107,15 @@ constexpr GPIO gpio_q_invert = gpio[GPIO0_13];
 
 #ifdef PRALINE
 // PRALINE power control
-constexpr GPIO gpio_vaa_disable = gpio[GPIO4_1];      // VAA disable (P8_1)
-constexpr GPIO gpio_1v2_enable = gpio[GPIO4_7];       // 1V2 enable (P8_7)
-constexpr GPIO gpio_3v3aux_disable = gpio[GPIO5_15];  // 3V3 aux disable (P6_7)
-constexpr GPIO gpio_3v3aux_oc = gpio[GPIO1_11];       // 3.3V aux overcurrent input (P2_11)
-constexpr GPIO gpio_vbus_enable = gpio[GPIO4_4];      // VBUS_IN_EN P8_4 ->LOW
-constexpr GPIO gpio_vin_enable = gpio[GPIO4_5];       // VIN_IN_EN P8_5 ->HIGH
+constexpr GPIO gpio_vaa_disable = gpio[GPIO4_1];  // VAA disable (P8_1)
+
 // PRALINE RF path control
-constexpr GPIO gpio_tx_enable = gpio[GPIO3_4];  // TX enable (P6_5)
-// constexpr GPIO gpio_mix_enable_n = gpio[GPIO3_2];       // Mixer enable inverted (P6_3)
+constexpr GPIO gpio_tx_enable = gpio[GPIO3_4];          // TX enable (P6_5)
 constexpr GPIO gpio_lpf_enable = gpio[GPIO4_8];         // LPF enable (PA_1)
 constexpr GPIO gpio_rf_amp_enable = gpio[GPIO4_9];      // RF amp enable (PA_2)
 constexpr GPIO gpio_ant_bias_disable = gpio[GPIO1_12];  // Antenna bias disable (P2_12)
-constexpr GPIO gpio_bias_oc = gpio[GPIO3_7];            // Bias tee overcurrent input (P6_11)
 
-// PRALINE mixer lock detect (gpio_max2831_ld defined above at line 93)
-constexpr GPIO gpio_rffc5072_ld = gpio[GPIO6_25];  // Mixer lock detect (PD_11)
-
-// PRALINE LED4
-constexpr GPIO gpio_led4 = gpio[GPIO4_6];  // LED4 (P8_6)
-
-// PRALINE trigger/sync I/O
-
-constexpr GPIO gpio_pps_out = gpio[GPIO5_5];  // PPS output (P2_5)
+// constexpr GPIO gpio_pps_out = gpio[GPIO5_5];  // PPS output (P2_5)
 
 #endif
 
@@ -160,12 +136,6 @@ constexpr GPIO gpio_r9_clkin_en = gpio[GPIO5_15];
 constexpr GPIO gpio_r9_clkout_en = gpio[GPIO0_9];
 constexpr GPIO gpio_r9_mcu_clk_en = gpio[GPIO0_8];
 constexpr GPIO gpio_r9_not_ant_pwr = gpio[GPIO2_4];
-
-/* LEDs */
-
-constexpr LED led_usb{gpio_led_usb};
-constexpr LED led_rx{gpio_led_rx};
-constexpr LED led_tx{gpio_led_tx};
 
 } /* namespace one */
 } /* namespace hackrf */

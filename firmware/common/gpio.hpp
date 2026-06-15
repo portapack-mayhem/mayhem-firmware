@@ -28,6 +28,7 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "pal_lld.h"
 
 struct PinConfig {
     const uint32_t mode;
@@ -199,6 +200,12 @@ struct Pin {
     uint8_t _pin_pad;
 };
 
+// Defines the logical polarity of the GPIO pin
+enum class Polarity {
+    ActiveHigh,  // High physical state means the function is ON (default)
+    ActiveLow    // Low physical state means the function is ON (inverted)
+};
+
 struct GPIO {
     // GPIO() = delete;
     // GPIO(const GPIO& gpio) = delete;
@@ -208,22 +215,15 @@ struct GPIO {
         const Pin& pin,
         const ioportid_t gpio_port,
         const iopadid_t gpio_pad,
-        const uint16_t gpio_mode)
+        const uint16_t gpio_mode,
+        const Polarity polarity = Polarity::ActiveHigh)  // Default parameter ensures backward compatibility
         : _pin{pin},
           _gpio_port{gpio_port},
           _gpio_pad{gpio_pad},
-          _gpio_mode{gpio_mode} {
+          _gpio_mode{gpio_mode},
+          _polarity{polarity} {
     }
-    /*
-        constexpr GPIO(
-                const GPIO& gpio
-        ) : _pin { gpio._pin },
-                _gpio_port { gpio._gpio_port },
-                _gpio_pad { gpio._gpio_pad },
-                _gpio_mode { gpio._gpio_mode }
-        {
-        }
-*/
+
     constexpr ioportid_t port() const {
         return _gpio_port;
     }
@@ -236,6 +236,11 @@ struct GPIO {
         return _pin;
     }
 
+    // Returns the configured polarity of the pin
+    constexpr Polarity polarity() const {
+        return _polarity;
+    }
+
     void configure() const {
         _pin.mode(_gpio_mode);
     }
@@ -243,6 +248,8 @@ struct GPIO {
     uint_fast16_t mode() const {
         return _gpio_mode;
     }
+
+    // Physical Level Operations
 
     void set() const {
         palSetPad(_gpio_port, _gpio_pad);
@@ -272,6 +279,39 @@ struct GPIO {
         return palReadPad(_gpio_port, _gpio_pad);
     }
 
+    // Turns the feature ON based on its polarity
+    void enable() const {
+        if (_polarity == Polarity::ActiveHigh) {
+            set();
+        } else {
+            clear();
+        }
+    }
+
+    // Turns the feature OFF based on its polarity
+    void disable() const {
+        if (_polarity == Polarity::ActiveHigh) {
+            clear();
+        } else {
+            set();
+        }
+    }
+
+    // Sets the logical state of the feature
+    void set_state(const bool active) const {
+        if (active) {
+            enable();
+        } else {
+            disable();
+        }
+    }
+
+    // Returns true if the feature is logically active/enabled
+    bool is_enabled() const {
+        bool physical_state = read();
+        return (_polarity == Polarity::ActiveHigh) ? physical_state : !physical_state;
+    }
+
     bool operator!=(const GPIO& other) const {
         return (port() != other.port()) || (pad() != other.pad());
     }
@@ -280,6 +320,7 @@ struct GPIO {
     const ioportid_t _gpio_port;
     const iopadid_t _gpio_pad;
     const uint16_t _gpio_mode;
+    const Polarity _polarity;
 };
 
 constexpr uint32_t boot_bit(const GPIO& pin, bool state) {
@@ -336,12 +377,21 @@ constexpr PinMap map_sgpio_4{9, 4, 17, 5, 6};
 constexpr PinMap map_sgpio_8{8, 0, 4, 0, 4};
 constexpr PinMap map_sgpio_9{9, 3, 4, 0, 6};
 constexpr PinMap map_sgpio_10{8, 2, 4, 2, 4};
+constexpr PinMap map_en_1v2{8, 7, 4, 7, 0};
+constexpr PinMap map_vregmode{4, 9, 5, 13, 4};
+constexpr PinMap map_VAA_en{8, 1, 4, 1, 0};
+constexpr PinMap map_led_mcu{8, 6, 4, 6, 0};
 #else
 constexpr PinMap map_sgpio_4{9, 4, 17, 5, 2};
 constexpr PinMap map_sgpio_8{9, 6, 4, 11, 6};
 constexpr PinMap map_sgpio_9{4, 3, 4, 0, 7};
 constexpr PinMap map_sgpio_10{1, 14, 1, 7, 6};
 constexpr PinMap map_sgpio_13{4, 8, 5, 12, 4};
+constexpr PinMap map_og_1v8_en{6, 10, 3, 6, 0};
+constexpr PinMap map_r9_1v8_en{5, 0, 2, 9, 0};
+constexpr PinMap map_vregmode{6, 11, 3, 7, 0};
+constexpr PinMap map_og_VAA_en{5, 0, 2, 9, 0};
+constexpr PinMap map_r9_VAA_en{6, 10, 3, 6, 0};
 #endif
 
 constexpr PinMap map_sgpio_0{0, 0, 0, 0, 3};
@@ -353,15 +403,9 @@ constexpr PinMap map_sgpio_6{2, 2, 5, 2, 0};
 constexpr PinMap map_sgpio_7{1, 0, 0, 4, 6};
 constexpr PinMap map_sgpio_11{1, 17, 0, 12, 6};
 constexpr PinMap map_sgpio_12{1, 18, 0, 13, 0};
-/*
-constexpr PinMap map_sgpio_10{};
-constexpr PinMap map_sgpio_{};
-constexpr PinMap map_sgpio_{};
-constexpr PinMap map_sgpio_{};
-constexpr PinMap map_sgpio_{};
-constexpr PinMap map_sgpio_{};
-constexpr PinMap map_sgpio_{};
-*/
+constexpr PinMap map_led_usb{4, 1, 2, 1, 0};
+constexpr PinMap map_led_rx{4, 2, 2, 2, 0};
+constexpr PinMap map_led_tx{6, 12, 2, 8, 0};
 #ifdef PRALINE
 
 // P1 Multiplexer control pins
@@ -400,9 +444,58 @@ constexpr GPIO rf5072_mix_en{pin_rf5072_mix_en, map_rf5072_mix_en.gpio_port, map
 constexpr Pin pin_aa_en{map_aa_en.scu_port, map_aa_en.scu_pin};                                 // SCU: P1_14
 constexpr GPIO aa_en{pin_aa_en, map_aa_en.gpio_port, map_aa_en.gpio_pad, map_aa_en.gpio_mode};  // GPIO[1]7
 
+constexpr Pin pin_en_1v2{map_en_1v2.scu_port, map_en_1v2.scu_pin};                                   // SCU: P8_7
+constexpr GPIO en_1v2{pin_en_1v2, map_en_1v2.gpio_port, map_en_1v2.gpio_pad, map_en_1v2.gpio_mode};  // GPIO[4]7
+
+constexpr Pin pin_VAA_en{map_VAA_en.scu_port, map_VAA_en.scu_pin};                                                        // SCU: P8_1
+constexpr GPIO VAA_en{pin_VAA_en, map_VAA_en.gpio_port, map_VAA_en.gpio_pad, map_VAA_en.gpio_mode, Polarity::ActiveLow};  // GPIO[4]1
+
+constexpr Pin pin_led_usb{map_led_usb.scu_port, map_led_usb.scu_pin};                                                          // SCU: P4_1
+constexpr GPIO led_usb{pin_led_usb, map_led_usb.gpio_port, map_led_usb.gpio_pad, map_led_usb.gpio_mode, Polarity::ActiveLow};  // GPIO[2]1
+
+constexpr Pin pin_led_rx{map_led_rx.scu_port, map_led_rx.scu_pin};                                                        // SCU: P4_2
+constexpr GPIO led_rx{pin_led_rx, map_led_rx.gpio_port, map_led_rx.gpio_pad, map_led_rx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]2
+
+constexpr Pin pin_led_tx{map_led_tx.scu_port, map_led_tx.scu_pin};                                                        // SCU: P6_12
+constexpr GPIO led_tx{pin_led_tx, map_led_tx.gpio_port, map_led_tx.gpio_pad, map_led_tx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]8
+
+constexpr Pin pin_led_mcu{map_led_mcu.scu_port, map_led_mcu.scu_pin};                                                         // SCU: P6_12
+constexpr GPIO led_mcu{pin_led_tx, map_led_mcu.gpio_port, map_led_mcu.gpio_pad, map_led_mcu.gpio_mode, Polarity::ActiveLow};  // GPIO[2]8
 #else
 constexpr Pin pin_sgpio_13{map_sgpio_13.scu_port, map_sgpio_13.scu_pin};                                       // SCU: P4_8
 constexpr GPIO sgpio_13{pin_sgpio_13, map_sgpio_13.gpio_port, map_sgpio_13.gpio_pad, map_sgpio_13.gpio_mode};  // GPIO[5]12
+
+constexpr Pin pin_og_1v8_en{map_og_1v8_en.scu_port, map_og_1v8_en.scu_pin};                                         // SCU: P6_10
+constexpr GPIO og_1v8_en{pin_og_1v8_en, map_og_1v8_en.gpio_port, map_og_1v8_en.gpio_pad, map_og_1v8_en.gpio_mode};  // GPIO[3]6
+
+constexpr Pin pin_r9_1v8_en{map_r9_1v8_en.scu_port, map_r9_1v8_en.scu_pin};                                         // SCU: P5_0
+constexpr GPIO r9_1v8_en{pin_og_1v8_en, map_r9_1v8_en.gpio_port, map_r9_1v8_en.gpio_pad, map_r9_1v8_en.gpio_mode};  // GPIO[2]9
+
+constexpr Pin pin_og_VAA_en{map_og_VAA_en.scu_port, map_og_VAA_en.scu_pin};                                                              // SCU: P5_0
+constexpr GPIO og_VAA_en{pin_og_VAA_en, map_og_VAA_en.gpio_port, map_og_VAA_en.gpio_pad, map_og_VAA_en.gpio_mode, Polarity::ActiveLow};  // GPIO[2]9
+
+constexpr Pin pin_r9_VAA_en{map_r9_VAA_en.scu_port, map_r9_VAA_en.scu_pin};                                                              // SCU: P6_10
+constexpr GPIO r9_VAA_en{pin_r9_VAA_en, map_r9_VAA_en.gpio_port, map_r9_VAA_en.gpio_pad, map_r9_VAA_en.gpio_mode, Polarity::ActiveLow};  // GPIO[3]6
+
+constexpr Pin pin_led_usb{map_led_usb.scu_port, map_led_usb.scu_pin};                                     // SCU: P4_1
+constexpr GPIO led_usb{pin_led_usb, map_led_usb.gpio_port, map_led_usb.gpio_pad, map_led_usb.gpio_mode};  // GPIO[2]1
+
+constexpr Pin pin_led_rx{map_led_rx.scu_port, map_led_rx.scu_pin};                                   // SCU: P4_2
+constexpr GPIO led_rx{pin_led_rx, map_led_rx.gpio_port, map_led_rx.gpio_pad, map_led_rx.gpio_mode};  // GPIO[2]2
+
+constexpr Pin pin_led_tx{map_led_tx.scu_port, map_led_tx.scu_pin};                                   // SCU: P6_12
+constexpr GPIO led_tx{pin_led_tx, map_led_tx.gpio_port, map_led_tx.gpio_pad, map_led_tx.gpio_mode};  // GPIO[2]8
+
+static const motocon_pwm_resources_t motocon_pwm_resources = {
+    .base = {.clk = &LPC_CGU->BASE_APB1_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 1)},
+    .branch = {.cfg = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG, .stat = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_STAT},
+    .reset = {.output_index = 38},
+};
+
+static const scu_setup_t pin_setup_vaa_enablex_pwm = {5, 0, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
+static const scu_setup_t pin_setup_vaa_enablex_gpio_og = {map_og_VAA_en.scu_port, map_og_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
+static const scu_setup_t pin_setup_vaa_enablex_gpio_r9 = {map_r9_VAA_en.scu_port, map_r9_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_r9_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
+
 #endif
 
 // SGPIO
@@ -445,6 +538,8 @@ constexpr GPIO sgpio_11{pin_sgpio_11, map_sgpio_11.gpio_port, map_sgpio_11.gpio_
 constexpr Pin pin_sgpio_12{map_sgpio_12.scu_port, map_sgpio_12.scu_pin};                                       // SCU: P1_18
 constexpr GPIO sgpio_12{pin_sgpio_12, map_sgpio_12.gpio_port, map_sgpio_12.gpio_pad, map_sgpio_12.gpio_mode};  // GPIO[0]13
 
+constexpr Pin pin_vregmode{map_vregmode.scu_port, map_vregmode.scu_pin};                                       // SCU: P6_11, PRALINE: P4_9
+constexpr GPIO vregmode{pin_vregmode, map_vregmode.gpio_port, map_vregmode.gpio_pad, map_vregmode.gpio_mode};  // GPIO[3]7, PRALINE: GPIO[5]13
 }  // namespace gpio_control
 
 namespace power_control {
@@ -459,16 +554,6 @@ void aux_power_off(void);
 
 void core_power_on(void);
 void core_power_off(void);
-
-static const motocon_pwm_resources_t motocon_pwm_resources = {
-    .base = {.clk = &LPC_CGU->BASE_APB1_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 1)},
-    .branch = {.cfg = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_CFG, .stat = &LPC_CCU1->CLK_APB1_MOTOCON_PWM_STAT},
-    .reset = {.output_index = 38},
-};
-
-static const scu_setup_t pin_setup_vaa_enablex_pwm = {5, 0, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
-static const scu_setup_t pin_setup_vaa_enablex_gpio_og = {5, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
-static const scu_setup_t pin_setup_vaa_enablex_gpio_r9 = {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}};
 
 }  // namespace power_control
 

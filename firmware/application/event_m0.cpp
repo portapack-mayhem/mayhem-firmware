@@ -37,8 +37,8 @@
 
 #include "ch.h"
 
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
+#include "gpio.hpp"
+using namespace gpio_control;
 
 #include "irq_rtc.hpp"
 
@@ -229,8 +229,8 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
         LPC_ADC0->CR &= ~(1 << 21);
         LPC_ADC1->CR &= ~(1 << 21);
-        led_rx.off();
-        led_usb.off();
+        led_rx.disable();
+        led_usb.disable();
 
         rtc_wakeup_init();
         NVIC_EnableIRQ(I2C0_OR_I2C1_IRQn);
@@ -247,21 +247,21 @@ void EventDispatcher::charge_deep_sleep(const bool sleep) {
 
                 if (is_full) {
                     // Case 1: Battery full (All LEDs off)
-                    led_rx.off();
-                    led_tx.off();
+                    led_rx.disable();
+                    led_tx.disable();
                 } else if ((voltage < 4150 && current < 10) || valid_mask == 0) {
                     // Case 2: Not full but low current draw (<10mA) -> Charging error
-                    led_tx.on();  // LED indicates error/idle
-                    led_rx.off();
+                    led_tx.enable();  // LED indicates error/idle
+                    led_rx.disable();
                 } else {
                     // Case 3: Actively charging
-                    led_rx.on();  // LED indicates charging
-                    led_tx.off();
+                    led_rx.enable();  // LED indicates charging
+                    led_tx.disable();
                 }
             } else {
                 // Case 4: Battery IC not detected -> Error or H2 or older, so don't show that as an error.
-                led_tx.on();
-                led_rx.on();
+                led_tx.enable();
+                led_rx.enable();
             }
 
             // Shut down I2C and power down the APB bus for sleep

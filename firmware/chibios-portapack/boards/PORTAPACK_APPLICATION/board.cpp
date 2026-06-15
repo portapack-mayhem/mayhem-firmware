@@ -21,7 +21,6 @@
 #include <array>
 
 #include "gpio.hpp"
-
 using namespace gpio_control;
 
 // Declare wrapper function. board.cpp to avoid conflicting gpio_t definitions.
@@ -163,18 +162,18 @@ const PALConfig pal_default_config = {
             .data = (0 << 15)    // P5_6:  TX_AMP, unused on PRALINE
                     | (1 << 14)  // P5_5:  MIXER_RESETX, 10K PU
 #ifdef PRALINE
-                    | (1 << 13)  // P5_4:  RFFC5072 ENX
-                    | (0 << 12)  // P5_3:  unused on PRALINE
-                    | (0 << 11)  // P5_2:  FPGA_CRESET
-                    | (1 << 10)  // P5_1:  FPGA_SPI_CS
-                    | (0 << 4)   // P4_4:  unused on PRALINE
-                    | (0 << 0)   // P4_0:  unused on PRALINE
-                    | (0 << 9)   // P5_0:  unused on PRALINE
-                    | (0 << 3)   // P4_3:  VBUSCTRL input GND
-                    | (1 << 6)   // P4_6:  Input VCC (10K PU)
-                    | (1 << 8)   // P6_12: LED3 (TX)
-                    | (1 << 2)   // P4_2:  LED2 (RX)
-                    | (1 << 1)   // P4_1:  LED1 (USB)
+                    | (1 << 13)             // P5_4:  RFFC5072 ENX
+                    | (0 << 12)             // P5_3:  unused on PRALINE
+                    | (0 << 11)             // P5_2:  FPGA_CRESET
+                    | (1 << 10)             // P5_1:  FPGA_SPI_CS
+                    | (0 << 4)              // P4_4:  unused on PRALINE
+                    | (0 << 0)              // P4_0:  unused on PRALINE
+                    | (0 << 9)              // P5_0:  unused on PRALINE
+                    | (0 << 3)              // P4_3:  VBUSCTRL input GND
+                    | (1 << 6)              // P4_6:  Input VCC (10K PU)
+                    | boot_bit(led_tx, 1)   // P6_12: LED3 (TX)
+                    | boot_bit(led_rx, 1)   // P4_2:  LED2 (RX)
+                    | boot_bit(led_usb, 1)  // P4_1:  LED1 (USB)
 #else
                     | (1 << 13)             // P5_4:  MIXER_ENX, 10K PU
                     | (1 << 12)             // P5_3:  RX_MIX_BP
@@ -185,9 +184,9 @@ const PALConfig pal_default_config = {
                     | (1 << 0)              // P4_0:  HP
                     | boot_bit(sgpio_9, 1)  // P4_3:  SGPIO9, HOST_CAPTURE
                     | (0 << 6)              // P4_6:  XCVR_EN, 10K PD
-                    | (0 << 8)              // P6_12: LED3 (TX)
-                    | (0 << 2)              // P4_2:  LED2 (RX)
-                    | (0 << 1)              // P4_1:  LED1 (USB)
+                    | boot_bit(led_tx, 0)   // P6_12: LED3 (TX)
+                    | boot_bit(led_rx, 0)   // P4_2:  LED2 (RX)
+                    | boot_bit(led_usb, 0)  // P4_1:  LED1 (USB)
 #endif
 
                     | (1 << 7)  // P5_7:  CS_AD
@@ -215,12 +214,12 @@ const PALConfig pal_default_config = {
                    | boot_bit(sgpio_9, 0)  // P4_3:  SGPIO9, HOST_CAPTURE
                    | (1 << 6)              // P4_6:  XCVR_EN, 10K PD
 #endif
-                   | (1 << 14)  // P5_5:  MIXER_RESETX, 10K PU
-                   | (1 << 8)   // P6_12: LED3 (TX)
-                   | (1 << 7)   // P5_7:  CS_AD
-                   | (1 << 5)   // P4_5:  RXENABLE
-                   | (1 << 2)   // P4_2:  LED2 (RX)
-                   | (1 << 1)   // P4_1:  LED1 (USB)
+                   | (1 << 14)             // P5_5:  MIXER_RESETX, 10K PU
+                   | boot_bit(led_tx, 1)   // P6_12: LED3 (TX)
+                   | (1 << 7)              // P5_7:  CS_AD
+                   | (1 << 5)              // P4_5:  RXENABLE
+                   | boot_bit(led_rx, 1)   // P4_2:  LED2 (RX)
+                   | boot_bit(led_usb, 1)  // P4_1:  LED1 (USB)
         },
         {
             // GPIO3
@@ -238,11 +237,11 @@ const PALConfig pal_default_config = {
                     | (0 << 6)               // P6_10: unused on PRALINE
                     | boot_bit(p1_ctrl2, 0)  // P6_9:  P1_CTRL2
 #else
-                    | (1 << 4)  // P6_5:  HackRF CPLD.TMS(I)
-                    | (1 << 7)  // P6_11: VREGMODE
-                    | (0 << 6)  // P6_10: Varies by revision
-                    | (1 << 2)  // P6_3:  SGPIO4
-                    | (1 << 5)  // P6_9:  !TX_AMP_PWR, 10K PU
+                    | (1 << 4)               // P6_5:  HackRF CPLD.TMS(I)
+                    | boot_bit(vregmode, 1)  // P6_11: VREGMODE
+                    | (0 << 6)               // P6_10: Varies by revision
+                    | (1 << 2)               // P6_3:  SGPIO4
+                    | (1 << 5)               // P6_9:  !TX_AMP_PWR, 10K PU
 #endif
                     | (1 << 3)  // P6_4:  MIXER_SDATA
                     | (1 << 1)  // P6_2:  HackRF CPLD.TDI(I)
@@ -263,10 +262,10 @@ const PALConfig pal_default_config = {
                    | (0 << 6)               // P6_10: unused on PRALINE
                    | boot_bit(p1_ctrl2, 1)  // P6_9:  P1_CTRL2
 #else
-                   | (1 << 7)  // P6_11: VREGMODE
-                   | (0 << 6)  // P6_10: Varies by revision
-                   | (0 << 2)  // P6_3:  SGPIO4
-                   | (1 << 5)  // P6_9:  !TX_AMP_PWR, 10K PU
+                   | boot_bit(vregmode, 1)  // P6_11: VREGMODE
+                   | (0 << 6)               // P6_10: Varies by revision
+                   | (0 << 2)               // P6_3:  SGPIO4
+                   | (1 << 5)               // P6_9:  !TX_AMP_PWR, 10K PU
 #endif
                    | (0 << 4)  // P6_5:  HackRF CPLD.TMS(I)
                    | (0 << 3)  // P6_4:  MIXER_SDATA
@@ -280,12 +279,12 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
                 | (0 << 9)                    // PA_2: RF_AMP_EN
                 | (0 << 8)                    // PA_1: LPF_EN
-                | (0 << 7)                    // P8_7: 1V2_EN
-                | (1 << 6)                    // P8_6: LED4
+                | boot_bit(en_1v2, 0)         // P8_7: EN_1V2
+                | boot_bit(led_mcu, 1)        // P8_6: LED4
                 | boot_bit(sgpio_10, 1)       // P8_2: SGPIO10, HOST_DISABLE
                 | (0 << 5)                    // P8_5: VIN_IN_EN
                 | (0 << 4)                    // P8_4: VBUS_IN_EN
-                | (1 << 1)                    // P8_1: VAA_EN
+                | boot_bit(VAA_en, 1)         // P8_1: !VAA_EN
                 | (0 << 10)                   // PA_3: Output GND
                 | (0 << 11)                   // P9_6: MAX2831 LD
                 | boot_bit(rf5072_mix_en, 0)  // P9_0: RF5072 enable
@@ -300,12 +299,12 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
                 | (1 << 9)                    // PA_2: RF_AMP_EN
                 | (1 << 8)                    // PA_1: LPF_EN
-                | (1 << 7)                    // P8_7: 1V2_EN
-                | (1 << 6)                    // P8_6: LED4
+                | boot_bit(en_1v2, 1)         // P8_7: EN_1V2
+                | boot_bit(led_mcu, 1)        // P8_6: LED4
                 | boot_bit(sgpio_10, 0)       // P8_2: SGPIO10, HOST_DISABLE
                 | (1 << 5)                    // P8_5: VIN_IN_EN
                 | (1 << 4)                    // P8_4: VBUS_IN_EN
-                | (1 << 1)                    // P8_1: VAA_EN
+                | boot_bit(VAA_en, 1)         // P8_1: !VAA_EN
                 | (1 << 10)                   // PA_3: Output
                 | (0 << 11)                   // P9_6: MAX2831 LD
                 | boot_bit(rf5072_mix_en, 1)  // P9_0: RF5072 enable
@@ -334,7 +333,7 @@ const PALConfig pal_default_config = {
                 | (0 << 25)                 // PB_5: Output GND
                 | (0 << 5)                  // P2_5: PPS OUT/IN
                 | (0 << 12)                 // P4_8: Output GND
-                | (0 << 13)                 // P4_9: TPS62410 VREGMODE
+                | boot_bit(vregmode, 1)     // P4_9: TPS62410 VREGMODE
 #else
                 (1 << 18)    // P9_5: HackRF CPLD.TDO(O)
                 | (0 << 6)   // P2_6: MIXER_SCLK
@@ -373,7 +372,7 @@ const PALConfig pal_default_config = {
                 | (1 << 25)                 // PB_5: Output
                 | (0 << 5)                  // P2_5: PPS (Bidirectional)
                 | (1 << 12)                 // P4_8: Output
-                | (1 << 13)                 // P4_9: TPS62410 VREGMODE
+                | boot_bit(vregmode, 1)     // P4_9: TPS62410 VREGMODE
 #else
                 (0 << 18)    // P9_5: HackRF CPLD.TDO(O)
                 | (1 << 6)   // P2_6: MIXER_SCLK
@@ -438,22 +437,22 @@ const PALConfig pal_default_config = {
 
         // SClock LEDs
 
-        {4, 7, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},   // GP_CLKIN: SI5351C.CLK7(O)
-        {4, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},   // LED1: USB
-        {4, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},   // LED2: RX
-        {6, 12, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // LED3: TX
+        {4, 7, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},                                                           // GP_CLKIN: SI5351C.CLK7(O)
+        {map_led_usb.scu_port, map_led_usb.scu_pin, scu_config_normal_drive_t{.mode = map_led_usb.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // LED1: USB
+        {map_led_rx.scu_port, map_led_rx.scu_pin, scu_config_normal_drive_t{.mode = map_led_rx.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},     // LED2: RX
+        {map_led_tx.scu_port, map_led_tx.scu_pin, scu_config_normal_drive_t{.mode = map_led_tx.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},     // LED3: TX
 #ifdef PRALINE
-        {8, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // LED4: PRALINE Custom
+        {map_led_mcu.scu_port, map_led_mcu.scu_pin, scu_config_normal_drive_t{.mode = map_led_mcu.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // LED4: PRALINE Custom
 #endif
 
         // POWER MANAGEMENT (Regulators, Bias, Current Limits)
 
-        {6, 11, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // VREGMODE: TPS62410
+        {map_vregmode.scu_port, map_vregmode.scu_pin, scu_config_normal_drive_t{.mode = map_vregmode.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // VREGMODE: TPS62410
 #ifdef PRALINE
-        {8, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                              // P8_1: VAA_EN
+        {map_VAA_en.scu_port, map_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},        // P8_1: !VAA_EN
         {8, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                              // P8_4: VBUS_IN_EN
         {8, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                              // P8_5: VIN_IN_EN
-        {8, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                              // P8_7: 1V2_EN
+        {map_en_1v2.scu_port, map_en_1v2.scu_pin, scu_config_normal_drive_t{.mode = map_en_1v2.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},        // P8_7: EN_1V2
         {6, 7, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                              // P6_7: 3.3V Aux Enable
         {4, 9, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                              // P4_9: TPS62410 mode
         {map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin, scu_config_normal_drive_t{.mode = map_p1_ctrl0.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_10: P1_CTRL0
@@ -614,17 +613,17 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
      .dir = 0},
     {
         // GPIO2
-        .data = (1 << 9)    // P5_0:  !VAA_ENABLE
-                | (0 << 4)  // P4_4:  TXENABLE
+        .data = boot_bit(og_VAA_en, 1)  // P5_0:  !VAA_ENABLE
+                | (0 << 4)              // P4_4:  TXENABLE
         ,
-        .dir = (1 << 9)    // P5_0:  !VAA_ENABLE
-               | (1 << 4)  // P4_4:  TXENABLE
+        .dir = boot_bit(og_VAA_en, 1)  // P5_0:  !VAA_ENABLE
+               | (1 << 4)              // P4_4:  TXENABLE
     },
     {
         // GPIO3
-        .data = (0 << 6)  // P6_10: EN1V8, 10K PD
+        .data = boot_bit(og_1v8_en, 0)  // P6_10: EN1V8, 10K PD
         ,
-        .dir = (1 << 6)  // P6_10: EN1V8, 10K PD
+        .dir = boot_bit(og_1v8_en, 1)  // P6_10: EN1V8, 10K PD
     },
     {// GPIO4
      .data = 0,
@@ -659,17 +658,17 @@ static const std::array<gpio_setup_t, 6> gpio_setup_r9{{
      .dir = 0},
     {
         // GPIO2
-        .data = (1 << 9)    // P5_0:  EN1V8, 10K PD
-                | (1 << 4)  // P4_4:  !ANT_BIAS
+        .data = boot_bit(og_1v8_en, 0)  // P5_0:  EN1V8, 10K PD
+                | (1 << 4)              // P4_4:  !ANT_BIAS
         ,
-        .dir = (1 << 9)    // P5_0:  EN1V8, 10K PD
-               | (1 << 4)  // P4_4:  !ANT_BIAS
+        .dir = boot_bit(og_1v8_en, 1)  // P5_0:  EN1V8, 10K PD
+               | (1 << 4)              // P4_4:  !ANT_BIAS
     },
     {
         // GPIO3
-        .data = (1 << 6)  // P6_10: !VAA_ENABLE
+        .data = boot_bit(r9_VAA_en, 1)  // P6_10: !VAA_ENABLE
         ,
-        .dir = (1 << 6)  // P6_10: !VAA_ENABLE
+        .dir = boot_bit(r9_VAA_en, 1)  // P6_10: !VAA_ENABLE
     },
     {// GPIO4
      .data = 0,
@@ -690,8 +689,8 @@ static const std::array<gpio_setup_t, 6> gpio_setup_r9{{
 static const std::array<scu_setup_t, 9> pins_setup_og{{
 
     /* Power control */
-    {5, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
-    {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* EN1V8/P70: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */
+    {map_og_VAA_en.scu_port, map_og_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
+    {map_og_1v8_en.scu_port, map_og_1v8_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_1v8_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* EN1V8/P70: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */
 
     /* Radio section control */
     {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
@@ -710,8 +709,8 @@ static const std::array<scu_setup_t, 9> pins_setup_og{{
 /* Additional SCU configuration for HackRF r9 */
 static const std::array<scu_setup_t, 9> pins_setup_r9{{
     /* Power control */
-    {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
-    {5, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  /* EN1V8: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */
+    {map_r9_VAA_en.scu_port, map_r9_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_r9_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
+    {map_r9_1v8_en.scu_port, map_r9_1v8_en.scu_pin, scu_config_normal_drive_t{.mode = map_r9_1v8_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* EN1V8: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */
 
     /* Radio section control */
     {2, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* RX/ISP/P96: U7.VCTL(I), U10.VCTL(I), U2.VCTL(I) */
@@ -910,10 +909,10 @@ extern "C" void __early_init(void) {
 
     if ((SCB->CPUID & CORTEX_M4_CPUID_MASK) == CORTEX_M4_CPUID) {
         /* Enable unaligned exception handler */
-        SCB_CCR |= (1 << 3);
+        SCB->CCR |= (1 << 3);
 
         /* Enable MemManage, BusFault, UsageFault exception handlers */
-        SCB_SHCSR |= (1 << 18) | (1 << 17) | (1 << 16);
+        SCB->SHCSR |= (1 << 18) | (1 << 17) | (1 << 16);
 
         /* "The reset delay is counted in IRC clock cycles. If the core frequency
          * CCLK is much higher than the IRC frequency, add a software delay of
@@ -1007,8 +1006,7 @@ extern "C" void boardInit(void) {
 
     power_control::aux_power_on();
 
-    LPC_GPIO->SET[2] = (1 << 1) | (1 << 2) | (1 << 8);
-    LPC_GPIO->CLR[4] = (1 << 6);
+    led_mcu.enable();
 
 #else
 
