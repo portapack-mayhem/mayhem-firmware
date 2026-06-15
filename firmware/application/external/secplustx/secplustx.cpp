@@ -9,7 +9,7 @@
 
 #include "secplustx.hpp"
 
-namespace secplustx {
+namespace ui::external_app::ui_secplustx {
 
 static void v2_calc_parity(const uint64_t fixed, uint32_t* data) {
     uint32_t parity = (fixed >> 32) & 0xf;
@@ -147,4 +147,4 @@ int8_t encode_v2(const uint32_t rolling, const uint64_t fixed, uint32_t data, co
     return 0;
 }
 
-};  // namespace secplustx
+};  // namespace ui::external_app::ui_secplustx
