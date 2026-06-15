@@ -175,7 +175,10 @@ void SecplusTXView::start_tx() {
         encoders::bitstream_append(bitstream_length, blank_size, 0);
     };
 
-    secplustx::encode_v2(data.rolling_code, data.fixed_code, data.data, data.has_data, packet1, packet2);
+    if (secplustx::encode_v2(data.rolling_code, data.fixed_code, data.data, data.has_data, packet1, packet2) < 0) {
+        nav_.display_modal("Error", "Invalid rolling/fixed code");
+        return;
+    }
     encode_packet(packet1_indicator, packet1, has_data.value());
     encode_packet(packet2_indicator, packet2, has_data.value());
 

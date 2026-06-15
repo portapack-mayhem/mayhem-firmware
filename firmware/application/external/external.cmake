@@ -455,7 +455,7 @@ set(EXTAPPLIST
 	two_tone_pager
 	two_tone_rx
 	hard_reset
-        secplustx
+	secplustx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
