@@ -206,9 +206,11 @@ void Widget::set_style(const Style* new_style) {
 }
 
 const Style& Widget::style() const {
-    const Widget* curr = this;
-    while (curr && !curr->style_) curr = curr->parent();
-    return *curr->style_;
+    for (const Widget* curr = this; curr; curr = curr->parent()) {
+        if (curr->style_) return *curr->style_;
+    }
+    chDbgPanic("no style was set");
+    return *style_;
 }
 
 void Widget::drawn(bool v) {

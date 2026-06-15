@@ -49,7 +49,7 @@ using Dim = int16_t;
 // px position of the left character from the center of the screen (X)  (for N character wide string)
 #define UI_POS_X_CENTER(charnum) ((Coord)((screen_width / 2) - (int)((charnum) * UI_POS_DEFAULT_WIDTH / 2)))
 // px position of the currcol in a table with colnum number of columns, where one column is charnum characters wide maximum
-#define UI_POS_X_TABLE(colnum, currcol) (Coord)((currcol) * (screen_width / (colnum)))
+#define UI_POS_X_TABLE(colnum, currcol) ((Coord)((currcol) * (screen_width / (colnum))))
 // px width of N characters
 #define UI_POS_WIDTH(charnum) ((Dim)((charnum) * UI_POS_DEFAULT_WIDTH))
 // px width of the screen
