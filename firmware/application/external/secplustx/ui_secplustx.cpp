@@ -105,7 +105,7 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
 
     field_name.on_select = [this, &nav](TextField&) {
         buffer = data.name;
-        text_prompt(nav_, buffer, field_name.parent_rect().width(), ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
+        text_prompt(nav_, buffer, field_name.parent_rect().width() / UI_POS_DEFAULT_WIDTH, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
             data.name = new_name;
             field_name.set_text(new_name);
             save_data();
