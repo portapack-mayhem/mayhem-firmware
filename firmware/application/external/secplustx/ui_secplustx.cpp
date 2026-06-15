@@ -107,7 +107,10 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     field_data.on_change = [this](SymField& field) { data.data = field.to_integer(); };
     has_data.on_select = [this](Checkbox& checkbox, bool value) {
         data.has_data = value;
-        checkbox.set_style(value ? Theme::getInstance()->fg_light : Theme::getInstance()->fg_medium);
+        auto& style = value ? Theme::getInstance()->fg_light : Theme::getInstance()->fg_medium;
+        checkbox.set_style(style);
+        field_data.set_style(style);
+        field_data.set_focusable(value);
     };
     tx_view.on_edit_frequency = [this]() {
         auto new_view = nav_.push<FrequencyKeypadView>(transmitter_model.target_frequency());
