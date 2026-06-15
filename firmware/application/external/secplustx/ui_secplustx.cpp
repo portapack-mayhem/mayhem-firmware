@@ -116,8 +116,8 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     field_data.on_change = [this](SymField& field) { data.data = field.to_integer(); };
     has_data.on_select = [this](Checkbox& checkbox, bool value) {
         data.has_data = value;
-        // fade if inactive, otherwise use nullptr (default) style
-        const Style* new_style = value ? nullptr : Theme::getInstance()->fg_medium;
+        // fade if inactive, otherwise use default style
+        const Style* new_style = value ? &style() : Theme::getInstance()->fg_medium;
         checkbox.set_style(new_style);
         field_data.set_style(new_style);
         field_data.set_focusable(value);

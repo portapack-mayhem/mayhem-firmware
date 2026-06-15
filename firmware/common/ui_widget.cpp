@@ -206,7 +206,9 @@ void Widget::set_style(const Style* new_style) {
 }
 
 const Style& Widget::style() const {
-    return style_ ? *style_ : parent()->style();
+    const Widget* curr = this;
+    while (curr && !curr->style_) curr = curr->parent();
+    return *curr->style_;
 }
 
 void Widget::drawn(bool v) {

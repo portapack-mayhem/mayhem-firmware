@@ -201,15 +201,9 @@ void Widget::set_style(const Style* new_style) {
 }
 
 const Style& Widget::style() const {
-    if (style_ != nullptr)
-        return *style_;
-    else {
-        auto p = parent();
-        if (p == nullptr)
-            // TODO: debug
-            while (true);
-        return p->style();
-    }
+    const Widget* curr = this;
+    while (curr && !curr->style_) curr = curr->parent();
+    return *curr->style_;
 }
 
 void Widget::drawn(bool v) {
