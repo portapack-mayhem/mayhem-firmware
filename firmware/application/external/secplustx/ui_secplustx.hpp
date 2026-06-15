@@ -37,7 +37,7 @@ class SecplusTXView : public View {
     ~SecplusTXView();
 
     std::string title() const override {
-        return "Security+TX";
+        return "Security+";
     }
 
    private:
