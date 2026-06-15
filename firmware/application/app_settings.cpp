@@ -65,9 +65,6 @@ void BoundSetting::parse(std::string_view value) {
         case SettingType::String:
             as<std::string>() = trim(value);
             break;
-        case SettingType::FilePath:
-            as<std::filesystem::path>() = trim(value);
-            break;
         case SettingType::Bool: {
             int parsed = 0;
             parse_int(value, parsed);
@@ -107,10 +104,6 @@ void BoundSetting::write(File& file) const {
             break;
         case SettingType::String: {
             file.write_line(as<std::string>());
-            return;
-        }
-        case SettingType::FilePath: {
-            file.write_line(as<std::filesystem::path>().string());
             return;
         }
         case SettingType::Bool:

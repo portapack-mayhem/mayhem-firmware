@@ -53,7 +53,6 @@ class BoundSetting {
         U32,
         U8,
         String,
-        FilePath,
         Bool,
         Float
     };
@@ -76,9 +75,6 @@ class BoundSetting {
 
     BoundSetting(std::string_view name, std::string* target)
         : name_{name}, target_{target}, type_{SettingType::String} {}
-
-    BoundSetting(std::string_view name, std::filesystem::path* target)
-        : name_{name}, target_{target}, type_{SettingType::FilePath} {}
 
     BoundSetting(std::string_view name, bool* target)
         : name_{name}, target_{target}, type_{SettingType::Bool} {}

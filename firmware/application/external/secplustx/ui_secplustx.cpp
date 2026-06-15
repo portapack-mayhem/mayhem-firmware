@@ -61,12 +61,17 @@ bool SecplusTXView::write_secplus_file(const fs::path& file_path, const SecplusD
         case SecplusVersion::V1:
             return false;  // unimplemented
         case SecplusVersion::V2: {
-            std::string formatted = to_string_dec_uint(static_cast<uint8_t>(data.version)) + ';' +
-                                    data.name + ';' +
-                                    to_string_dec_uint(data.has_data) + ';' +
-                                    to_string_hex(data.fixed_code) + ';' +
-                                    to_string_hex(data.rolling_code) + ';' +
-                                    to_string_hex(data.data);
+            std::string formatted = to_string_dec_uint(static_cast<uint8_t>(data.version));
+            formatted += ';';
+            formatted += data.name;
+            formatted += ';';
+            formatted += to_string_dec_uint(data.has_data);
+            formatted += ';';
+            formatted += to_string_hex(data.fixed_code);
+            formatted += ';';
+            formatted += to_string_hex(data.rolling_code);
+            formatted += ';';
+            formatted += to_string_hex(data.data);
             file.write_line(formatted);
             file.close();
             return true;
@@ -98,7 +103,7 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
         ensure_directory(secplus_dir);
         auto open_view = nav_.push<FileLoadView>(".SECPLUS");
         open_view->push_dir(secplus_dir);
-        open_view->on_changed = [this](fs::path path) { file_path = path; };
+        open_view->on_changed = [this](fs::path path) { file_path = path.string(); };
         nav_.set_on_pop([this]() { reload_data(); });
     };
     button_save.on_select = [this](const Button&) { write_secplus_file(file_path, data); };

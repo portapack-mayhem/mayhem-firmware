@@ -41,7 +41,7 @@ class SecplusTXView : public View {
     }
 
    private:
-    std::filesystem::path file_path = secplus_dir / "DEFAULT.SECPLUS";
+    std::string file_path = (secplus_dir / "DEFAULT.SECPLUS").string();
     SecplusData data{SecplusVersion::V2, "Remote", false, 0, 0, 0};
     std::string buffer{};
 
