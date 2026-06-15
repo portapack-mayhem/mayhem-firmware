@@ -1,5 +1,6 @@
 #include "gpio_lpc.h"
 #include "gpio.h"
+#include "delay.h"
 
 typedef enum {
     LED1 = 0,
@@ -32,6 +33,15 @@ void delay_us_at_mhz(uint32_t us, uint32_t mhz) {
         cycles64 = UINT32_MAX;
     }
     delay((uint32_t)cycles64);
+}
+
+/* The application M0 core runs from BASE_M4_CLK at 200MHz. */
+void delay_us(uint32_t us) {
+    delay_us_at_mhz(us, 200);
+}
+
+void delay_ms(uint32_t ms) {
+    delay_us_at_mhz(ms * 1000, 200);
 }
 
 void led_on(const led_t led) {
