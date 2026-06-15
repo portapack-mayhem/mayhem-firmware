@@ -24,7 +24,7 @@ static constexpr float secplus_sample_rate = OOK_SAMPLERATE / 4000.0f;
 
 Optional<SecplusData> SecplusTXView::read_secplus_file(const fs::path& file_path) {
     File file{};
-    if (auto error = file.open(file_path.string())) return {};
+    if (auto error = file.open(file_path)) return {};
 
     std::string raw = *FileLineReader{file}.begin();
     std::vector chunks = split_string(raw, ';');
@@ -51,8 +51,9 @@ Optional<SecplusData> SecplusTXView::read_secplus_file(const fs::path& file_path
 }
 
 bool SecplusTXView::write_secplus_file(const fs::path& file_path, const SecplusData& data) {
+    ensure_directory(secplus_dir);
     File file{};
-    if (auto error = file.create(file_path.string())) {
+    if (auto error = file.create(file_path)) {
         return false;
     }
 
@@ -82,7 +83,7 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
 
     add_children({&button_open,
                   &button_save,
-                  &text_name,
+                  &field_name,
                   &labels,
                   &field_fixed,
                   &field_rolling,
@@ -102,6 +103,14 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     };
     button_save.on_select = [this](const Button&) { write_secplus_file(file_path, data); };
 
+    field_name.on_select = [this, &nav](TextField&) {
+        buffer = data.name;
+        text_prompt(nav_, buffer, field_name.parent_rect().width(), ENTER_KEYBOARD_MODE_ALPHA, [this](std::string& new_name) {
+            data.name = new_name;
+            field_name.set_text(new_name);
+            save_data();
+        });
+    };
     field_fixed.on_change = [this](SymField& field) { data.fixed_code = field.to_integer(); };
     field_rolling.on_change = [this](SymField& field) { data.rolling_code = field.to_integer(); };
     field_data.on_change = [this](SymField& field) { data.data = field.to_integer(); };
@@ -129,14 +138,14 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     reload_data();
 }
 
-void SecplusTXView::store_data() {
+void SecplusTXView::save_data() {
     if (autosave.value()) write_secplus_file(file_path, data);
 }
 
 void SecplusTXView::reload_data() {
     if (auto result = read_secplus_file(file_path)) data = std::move(*result);
     // always update data, use default values if read failed
-    text_name.set(data.name);
+    field_name.set_text(data.name);
     has_data.set_value(data.has_data);
     field_rolling.set_value(data.rolling_code);
     field_fixed.set_value(data.fixed_code);
@@ -196,14 +205,14 @@ void SecplusTXView::on_tx_progress(uint32_t progress, bool done) {
     progressbar.set_value(progress + 1);
     if (done) {
         stop_tx();
-        store_data();
+        save_data();
     }
 }
 
 SecplusTXView::~SecplusTXView() {
     transmitter_model.disable();
     baseband::shutdown();
-    store_data();
+    save_data();
 }
 
 }  // namespace ui::external_app::ui_secplustx

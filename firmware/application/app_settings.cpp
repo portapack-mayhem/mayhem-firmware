@@ -94,7 +94,7 @@ void BoundSetting::write(File& file) const {
             file.write(to_string_dec_int(as<int64_t>(), buffer, length), length);
             break;
         case SettingType::U64:
-            file.write(to_string_dec_int(as<uint64_t>(), buffer, length), length);
+            file.write(to_string_dec_uint(as<uint64_t>(), buffer, length), length);
             break;
         case SettingType::I32:
             file.write(to_string_dec_int(as<int32_t>(), buffer, length), length);

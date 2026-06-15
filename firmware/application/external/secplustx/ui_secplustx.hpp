@@ -43,6 +43,7 @@ class SecplusTXView : public View {
    private:
     std::filesystem::path file_path = secplus_dir / "DEFAULT.SECPLUS";
     SecplusData data{SecplusVersion::V2, "Remote", false, 0, 0, 0};
+    std::string buffer{};
 
     NavigationView& nav_;
     TxRadioState radio_state_{
@@ -56,7 +57,7 @@ class SecplusTXView : public View {
     Button button_save{{screen_width / 2, UI_POS_Y(1), screen_width / 2 - UI_POS_X(1), UI_POS_HEIGHT(2)}, "Save"};
 
     // remote data
-    Text text_name{{UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(1), UI_POS_HEIGHT(1)}, "Remote"};
+    TextField field_name{{UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(2), UI_POS_HEIGHT(1)}, "Remote"};
     Labels labels{
         {{UI_POS_X(1), UI_POS_Y(4)}, "Fixed:", Theme::getInstance()->fg_medium->foreground},
         {{UI_POS_X(1), UI_POS_Y(5)}, "Rolling:", Theme::getInstance()->fg_medium->foreground}};
@@ -75,7 +76,7 @@ class SecplusTXView : public View {
 
     Optional<SecplusData> read_secplus_file(const std::filesystem::path& file_path);
     bool write_secplus_file(const std::filesystem::path& file_path, const SecplusData& data);
-    void store_data();
+    void save_data();
     void reload_data();
     void start_tx();
     void stop_tx();
