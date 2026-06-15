@@ -2,8 +2,10 @@
 #define __UI_SECPLUSTX__
 
 #include <cstdint>
+#include <string>
 
 #include "ui.hpp"
+#include "file.hpp"
 #include "ui_transmitter.hpp"
 #include "transmitter_model.hpp"
 #include "file_path.hpp"
@@ -14,9 +16,23 @@
 
 namespace ui::external_app::ui_secplustx {
 
+enum class SecplusVersion : uint8_t {
+    V1,
+    V2,
+};
+
+struct SecplusData {
+    SecplusVersion version;
+    std::string name;
+    bool has_data;
+    uint64_t fixed_code;
+    uint32_t rolling_code;
+    uint32_t data;
+};
+
 class SecplusTXView : public View {
    public:
-    void focus() override { field_fixed.focus(); }
+    void focus() override { button_open.focus(); }
     SecplusTXView(NavigationView& nav);
     ~SecplusTXView();
 
@@ -25,41 +41,41 @@ class SecplusTXView : public View {
     }
 
    private:
-    uint64_t rolling_code = 0, fixed_code = 0;
-    NavigationView& nav_;
+    std::filesystem::path file_path = secplus_dir / "DEFAULT.SECPLUS";
+    SecplusData data{SecplusVersion::V2, "Remote", false, 0, 0, 0};
 
+    NavigationView& nav_;
     TxRadioState radio_state_{
         315000000,
         1750000,
         OOK_SAMPLERATE};
 
-    app_settings::SettingsManager settings_{
-        "tx_secplus",
-        app_settings::Mode::TX,
-        {
-            {"rolling_code"sv, &rolling_code},
-            {"fixed_code"sv, &fixed_code},
-        }};
+    app_settings::SettingsManager settings_{"tx_secplus", app_settings::Mode::TX, {{"file_path"sv, &file_path}}};
 
-    Checkbox learn_mode{{UI_POS_X(1), UI_POS_Y(0)}, 5, "Learn", true};
+    Button button_open{{UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(2), UI_POS_HEIGHT(2)}, "Open File"};
+
+    // remote data
+    Text text_name{{UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(1), UI_POS_HEIGHT(1)}, "Remote"};
     Labels labels{
-        {{UI_POS_X(1), UI_POS_Y(1)}, "Fixed:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(1), UI_POS_Y(2)}, "Rolling:", Theme::getInstance()->fg_light->foreground},
-    };
-    Checkbox enable_data{{UI_POS_X(1), UI_POS_Y(3)}, 5, "Data:", true};
+        {{UI_POS_X(1), UI_POS_Y(4)}, "Fixed:", Theme::getInstance()->fg_medium->foreground},
+        {{UI_POS_X(1), UI_POS_Y(5)}, "Rolling:", Theme::getInstance()->fg_medium->foreground}};
+    SymField field_fixed{{UI_POS_X(10), UI_POS_Y(4)}, 10, SymField::Type::Hex, true};
+    SymField field_rolling{{UI_POS_X(10), UI_POS_Y(5)}, 7, SymField::Type::Hex, true};
+    Checkbox has_data{{UI_POS_X(1), UI_POS_Y(6)}, 5, "Data:", true};
+    SymField field_data{{UI_POS_X(10), UI_POS_Y(6)}, 8, SymField::Type::Hex, true};
 
-    SymField field_fixed{{UI_POS_X(10), UI_POS_Y(1)}, 10, SymField::Type::Hex, true};
-    SymField field_rolling{{UI_POS_X(10), UI_POS_Y(2)}, 7, SymField::Type::Hex, true};
-    SymField field_data{{UI_POS_X(10), UI_POS_Y(3)}, 8, SymField::Type::Hex, true};
+    // options
+    Checkbox learn_mode{{UI_POS_X(1), UI_POS_Y(7)}, 5, "Learn", true};
+    Checkbox autosave{{UI_POS_X(1), UI_POS_Y(8)}, 8, "Autosave", true};
 
-    ProgressBar progressbar{
-        {UI_POS_X(2), UI_POS_Y_BOTTOM(7) + 20, UI_POS_WIDTH_REMAINING(4), 16}};
+    ProgressBar progressbar{{UI_POS_X(2), UI_POS_Y_BOTTOM(5.75), UI_POS_WIDTH_REMAINING(4), UI_POS_HEIGHT(1)}};
 
-    TransmitterView tx_view{
-        (int16_t)UI_POS_Y_BOTTOM(4),
-        50000,
-        0};
+    TransmitterView tx_view{UI_POS_Y_BOTTOM(4), 1000000, 0};
 
+    Optional<SecplusData> read_secplus_file(const std::filesystem::path& file_path);
+    bool write_secplus_file(const std::filesystem::path& file_path, const SecplusData& data);
+    void store_data();
+    void reload_data();
     void start_tx();
     void stop_tx();
 
