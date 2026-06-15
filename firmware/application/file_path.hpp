@@ -58,6 +58,7 @@ extern const std::filesystem::path waterfalls_dir;
 extern const std::filesystem::path macaddress_dir;
 extern const std::filesystem::path keeloq_keys_dir;
 extern const std::filesystem::path keeloq_remotes_dir;
+extern const std::filesystem::path secplus_dir;
 extern const std::filesystem::path epirb_dir;
 
 extern const std::filesystem::path splash_dot_bmp;
