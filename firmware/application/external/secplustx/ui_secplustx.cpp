@@ -116,9 +116,10 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     field_data.on_change = [this](SymField& field) { data.data = field.to_integer(); };
     has_data.on_select = [this](Checkbox& checkbox, bool value) {
         data.has_data = value;
-        auto& style = value ? Theme::getInstance()->fg_light : Theme::getInstance()->fg_medium;
-        checkbox.set_style(style);
-        field_data.set_style(style);
+        // fade if inactive, otherwise use nullptr (default) style
+        const Style* new_style = value ? nullptr : Theme::getInstance()->fg_medium;
+        checkbox.set_style(new_style);
+        field_data.set_style(new_style);
         field_data.set_focusable(value);
     };
     tx_view.on_edit_frequency = [this]() {
