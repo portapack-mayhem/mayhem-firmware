@@ -365,7 +365,7 @@ set(EXTCPPSRC
 
 	#secplustx
 	external/secplustx/main.cpp
-	external/secplustx/ui_secpluxtx.cpp
+	external/secplustx/ui_secplustx.cpp
 )
 
 set(EXTAPPLIST
