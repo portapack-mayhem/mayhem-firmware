@@ -81,6 +81,7 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_ook);
 
     add_children({&button_open,
+                  &button_save,
                   &text_name,
                   &labels,
                   &field_fixed,
@@ -99,6 +100,7 @@ SecplusTXView::SecplusTXView(NavigationView& nav)
         open_view->on_changed = [this](fs::path path) { file_path = path; };
         nav_.set_on_pop([this]() { reload_data(); });
     };
+    button_save.on_select = [this](const Button&) { write_secplus_file(file_path, data); };
 
     field_fixed.on_change = [this](SymField& field) { data.fixed_code = field.to_integer(); };
     field_rolling.on_change = [this](SymField& field) { data.rolling_code = field.to_integer(); };

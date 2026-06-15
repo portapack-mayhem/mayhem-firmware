@@ -52,7 +52,8 @@ class SecplusTXView : public View {
 
     app_settings::SettingsManager settings_{"tx_secplus", app_settings::Mode::TX, {{"file_path"sv, &file_path}}};
 
-    Button button_open{{UI_POS_X(1), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(2), UI_POS_HEIGHT(2)}, "Open File"};
+    Button button_open{{UI_POS_X(1), UI_POS_Y(1), screen_width / 2 - UI_POS_X(1), UI_POS_HEIGHT(2)}, "Open"};
+    Button button_save{{screen_width / 2, UI_POS_Y(1), screen_width / 2 - UI_POS_X(1), UI_POS_HEIGHT(2)}, "Save"};
 
     // remote data
     Text text_name{{UI_POS_X(1), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(1), UI_POS_HEIGHT(1)}, "Remote"};
