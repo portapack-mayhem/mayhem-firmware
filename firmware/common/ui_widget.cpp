@@ -209,7 +209,7 @@ const Style& Widget::style() const {
     for (const Widget* curr = this; curr; curr = curr->parent()) {
         if (curr->style_) return *curr->style_;
     }
-    chDbgPanic("no style was set");
+    // default style should always be set by SystemView
     return *style_;
 }
 
