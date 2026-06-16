@@ -458,8 +458,10 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         return true;
     }
 
-    BMPFile bmp{};
-    bmp.open("/OSM/" + to_string_dec_int(zoom) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp", true);
+    BMPFile* bmp = bmp_cache.get(zoom, tile_x, tile_y);
+    if (!bmp) {
+        return false;
+    }
     // 1. Define the source and destination areas, starting with the full tile.
     int src_x = 0;
     int src_y = 0;
@@ -492,7 +494,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         return true;
     }
 
-    if (!bmp.is_loaded()) {
+    if (!bmp->is_loaded()) {
         // Draw an error rectangle using the calculated clipped dimensions
         ui::Rect error_rect{{dest_x + r.left(), dest_y + r.top()}, {clip_w, clip_h}};
         display.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);
@@ -501,20 +503,20 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
 
     map_line_buffer.resize(clip_w);
 
-    if (bmp.is_bottomup()) {
+    if (bmp->is_bottomup()) {
         for (int y = clip_h - 1; y >= 0; --y) {
             int source_row = src_y + y;
             int dest_row = dest_y + y;
-            bmp.seek(src_x, source_row);
-            bmp.read_next_px_cnt(map_line_buffer.data(), clip_w, false);
+            bmp->seek(src_x, source_row);
+            bmp->read_next_px_cnt(map_line_buffer.data(), clip_w, false);
             display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, map_line_buffer);
         }
     } else {
         for (int y = 0; y < clip_h; ++y) {
             int source_row = src_y + y;
             int dest_row = dest_y + y;
-            bmp.seek(src_x, source_row);
-            bmp.read_next_px_cnt(map_line_buffer.data(), clip_w, false);
+            bmp->seek(src_x, source_row);
+            bmp->read_next_px_cnt(map_line_buffer.data(), clip_w, false);
             display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, map_line_buffer);
         }
     }
