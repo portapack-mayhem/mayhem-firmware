@@ -459,9 +459,6 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
     }
 
     BMPFile* bmp = bmp_cache.get(zoom, tile_x, tile_y);
-    if (!bmp) {
-        return false;
-    }
     // 1. Define the source and destination areas, starting with the full tile.
     int src_x = 0;
     int src_y = 0;
@@ -494,7 +491,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         return true;
     }
 
-    if (!bmp->is_loaded()) {
+    if (!bmp || !bmp->is_loaded()) {
         // Draw an error rectangle using the calculated clipped dimensions
         ui::Rect error_rect{{dest_x + r.left(), dest_y + r.top()}, {clip_w, clip_h}};
         display.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);

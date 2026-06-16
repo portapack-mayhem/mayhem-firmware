@@ -32,7 +32,7 @@
 
 #include <array>
 #include <cstdio>
-
+#include <inttypes.h>
 #include "portapack.hpp"
 
 namespace ui {
@@ -122,9 +122,10 @@ class BMPFileCache {
 
         // OSM tile path convention: <base>/<z>/<x>/<y>.bmp
         char path_buffer[64];
-        snprintf(path_buffer, sizeof(path_buffer), "/OSM/%ld/%ld/%ld.bmp", z, x, y);
+        snprintf(path_buffer, sizeof(path_buffer), "/OSM/%" PRId32 "/%" PRId32 "/%" PRId32 ".bmp", z, x, y);
 
         if (!target->bmp.open(path_buffer, true)) {
+            target->bmp.close();
             return nullptr;
         }
 
@@ -157,7 +158,6 @@ class BMPFileCache {
 
     uint16_t next_stamp() {
         if (++stamp_ == 0) {
-            // Rare wrap-around: rebase LRU counters while preserving ordering.
             uint16_t v = 1;
             for (auto& slot : slots_) {
                 if (slot.used) {
