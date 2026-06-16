@@ -99,7 +99,7 @@ class BMPFileCache {
 
         // Select free slot first, otherwise LRU slot.
         Slot* target = nullptr;
-        uint32_t oldest = 0xFFFFFFFFu;
+        uint16_t oldest = 0xFFFFu;
         for (auto& slot : slots_) {
             if (!slot.used) {
                 target = &slot;
@@ -151,14 +151,14 @@ class BMPFileCache {
         int32_t x{};
         int32_t y{};
         int32_t z{};
-        uint32_t last_used{};
+        uint16_t last_used{};
         bool used{false};
     };
 
-    uint32_t next_stamp() {
+    uint16_t next_stamp() {
         if (++stamp_ == 0) {
             // Rare wrap-around: rebase LRU counters while preserving ordering.
-            uint32_t v = 1;
+            uint16_t v = 1;
             for (auto& slot : slots_) {
                 if (slot.used) {
                     slot.last_used = v++;
@@ -169,7 +169,7 @@ class BMPFileCache {
         return stamp_;
     }
     std::array<Slot, SlotsCount> slots_{};
-    uint32_t stamp_{0};
+    uint16_t stamp_{0};
 };
 
 class GeoPos : public View {
