@@ -26,10 +26,11 @@
 #include <libopencm3/lpc43xx/scu.h>
 #include <libopencm3/lpc43xx/rgu.h>
 #include <libopencm3/lpc43xx/wwdt.h>
-#include "delay.h"
 #include "string.h"
 
 volatile bool usb_bulk_block_done = false;
+
+void delay(uint32_t duration);
 
 void usb_bulk_block_cb(void* user_data, unsigned int bytes_transferred) {
     usb_bulk_block_done = true;
@@ -286,7 +287,7 @@ void scsi_command(msd_cbw_t* msd_cbw_data) {
             status = 0;
             break;
 
-        case SCSI_CMD_START_STOP_UNIT:
+       case SCSI_CMD_START_STOP_UNIT:
             SCU_SFSP2_8 = (SCU_SFSP2_8 & ~(7)) | 4;
             struct gpio dfu = GPIO(5, 7);
             gpio_output(&dfu);
