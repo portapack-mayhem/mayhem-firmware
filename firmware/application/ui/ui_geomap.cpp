@@ -237,17 +237,37 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
     if (map_zoom == 1) {
         map_file.read(buffer, pixels << 1);
     } else if (map_zoom > 1) {
-        map_file.read(buffer, (pixels / map_zoom) << 1);
-
-        // Zoom in: Expand each pixel to "map_zoom" number of pixels.
-        // Future TODO:  Add dithering to smooth out the pixelation.
-        // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
-        // For 240 width, than means no check is needed for map_zoom values up to 6.
-        // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
-        // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
-        for (int i = (width / map_zoom) - 1; i >= 0; i--) {
-            for (int j = 0; j < map_zoom; j++) {
-                buffer[(i * map_zoom) + j] = buffer[i];
+        // Calculate how many source pixels we actually need from the file
+        uint16_t src_pixels_needed = (pixels + map_zoom - 1) / map_zoom;
+        if (src_pixels_needed == 0) src_pixels_needed = 1;
+        // Position the source data at the very END of the buffer.
+        // This allows us to overwrite the buffer from left-to-right safely.
+        uint16_t src_offset = pixels - src_pixels_needed;
+        // Read directly into the tail of the target buffer. Zero extra RAM needed.
+        map_file.read(&buffer[src_offset], src_pixels_needed << 1);
+        // Process forwards. Because `dst` grows by 1 and the source index grows by 1/map_zoom,
+        // `dst` will never catch up to overwrite a source pixel before we are done with it.
+        for (uint16_t dst = 0; dst < pixels; ++dst) {
+            uint16_t i0 = dst / map_zoom;
+            uint16_t i1 = i0 + 1;
+            // Clamp the right-hand pixel to avoid reading out of bounds on the last iteration
+            if (i1 >= src_pixels_needed) {
+                i1 = src_pixels_needed - 1;
+            }
+            // 'frac' represents the integer distance from the left pixel (0 to map_zoom - 1)
+            uint16_t frac = dst % map_zoom;
+            // Fetch colors from the tail of our buffer
+            ui::Color c0 = buffer[src_offset + i0];
+            ui::Color c1 = buffer[src_offset + i1];
+            if (frac == 0) {
+                // Exact pixel match, bypass the math entirely for a speed boost
+                buffer[dst] = c0;
+            } else {
+                uint32_t inv_frac = map_zoom - frac;
+                uint8_t r = ((uint32_t)c0.r() * inv_frac + (uint32_t)c1.r() * frac) / map_zoom;
+                uint8_t g = ((uint32_t)c0.g() * inv_frac + (uint32_t)c1.g() * frac) / map_zoom;
+                uint8_t b = ((uint32_t)c0.b() * inv_frac + (uint32_t)c1.b() * frac) / map_zoom;
+                buffer[dst] = ui::Color(r, g, b);
             }
         }
     } else {
