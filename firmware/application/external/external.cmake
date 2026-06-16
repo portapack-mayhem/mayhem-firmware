@@ -327,7 +327,7 @@ set(EXTCPPSRC
 	external/rtty_tx/ui_rtty_tx.cpp
 	external/rtty_tx/baudot.cpp
 
-    #pocsag_tx
+	#pocsag_tx
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
 
@@ -362,6 +362,11 @@ set(EXTCPPSRC
 	#hard_reset
 	external/hard_reset/main.cpp
 	external/hard_reset/ui_hard_reset.cpp
+
+	#secplustx
+	external/secplustx/main.cpp
+	external/secplustx/ui_secplustx.cpp
+	external/secplustx/secplustx.cpp
 )
 
 set(EXTAPPLIST
@@ -451,6 +456,7 @@ set(EXTAPPLIST
 	two_tone_pager
 	two_tone_rx
 	hard_reset
+	secplustx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

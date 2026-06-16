@@ -105,6 +105,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
     if (!((bmp_header.signature == 0x4D42) &&
           (bmp_header.planes == 1) &&
           (bmp_header.compression == 0 || bmp_header.compression == 3))) {
+        bmpimage.close();
         return false;
     }
 
@@ -114,6 +115,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
             byte_per_px = 1;
             // bmpimage.seek(sizeof(bmp_header_t));
             // bmpimage.read(color_palette, 1024);
+            bmpimage.close();
             return false;  // niy
             break;
 
@@ -121,6 +123,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
             byte_per_px = 2;
             type = 5;
             if (bmp_header.compression == 3) {
+                bmpimage.close();
                 return false;
             }  // niy
 
@@ -135,6 +138,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
             break;
         default:
             // not supported
+            bmpimage.close();
             return false;
     }
     byte_per_row = (bmp_header.width * byte_per_px + 3) & ~3;

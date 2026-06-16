@@ -201,15 +201,11 @@ void Widget::set_style(const Style* new_style) {
 }
 
 const Style& Widget::style() const {
-    if (style_ != nullptr)
-        return *style_;
-    else {
-        auto p = parent();
-        if (p == nullptr)
-            // TODO: debug
-            while (true);
-        return p->style();
+    for (const Widget* curr = this; curr; curr = curr->parent()) {
+        if (curr->style_) return *curr->style_;
     }
+    // default style should always be set by SystemView
+    return *style_;
 }
 
 void Widget::drawn(bool v) {

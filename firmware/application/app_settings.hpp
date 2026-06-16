@@ -48,6 +48,7 @@ class BoundSetting {
     /* The type of bound setting. */
     enum class SettingType : uint8_t {
         I64,
+        U64,
         I32,
         U32,
         U8,
@@ -59,6 +60,9 @@ class BoundSetting {
    public:
     BoundSetting(std::string_view name, int64_t* target)
         : name_{name}, target_{target}, type_{SettingType::I64} {}
+
+    BoundSetting(std::string_view name, uint64_t* target)
+        : name_{name}, target_{target}, type_{SettingType::U64} {}
 
     BoundSetting(std::string_view name, int32_t* target)
         : name_{name}, target_{target}, type_{SettingType::I32} {}
