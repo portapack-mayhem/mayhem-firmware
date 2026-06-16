@@ -251,12 +251,35 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
             }
         }
     } else {
-        ui::Color zoom_out_buffer[(pixels * (-map_zoom))];
-        map_file.read(zoom_out_buffer, (pixels * (-map_zoom)) << 1);
-        // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
-        // Future TODO: Average each group of pixels (in both X & Y directions if possible).
-        for (int i = 0; i < width; i++) {
-            buffer[i] = zoom_out_buffer[i * (-map_zoom)];
+        const int skip = -map_zoom;
+        const int MAX_BUFFER_ELEMENTS = 256;
+        // Fixed-size local array avoids VLA crashes.
+        ui::Color zoom_out_buffer[MAX_BUFFER_ELEMENTS];
+        const int total_elements_needed = pixels * skip;
+        // Use the default size, but strictly cap it at 256 to protect the stack
+        const int chunk_size = total_elements_needed < MAX_BUFFER_ELEMENTS ? total_elements_needed : MAX_BUFFER_ELEMENTS;
+        int target_i = 0;
+        int current_file_offset = 0;
+        // Sequentially read through the required portion of the file in chunks
+        while (target_i < width && current_file_offset < total_elements_needed) {
+            // Calculate how many pixels we can read in this specific pass
+            int read_size = chunk_size < (total_elements_needed - current_file_offset) ? chunk_size : (total_elements_needed - current_file_offset);
+            // Read the chunk (<< 1 converts pixel count to byte count)
+            map_file.read(zoom_out_buffer, read_size << 1);
+            // Determine where the first valid "zoomed" pixel is located inside this specific chunk
+            int first_valid_index = 0;
+            int offset_modulo = current_file_offset % skip;
+            if (offset_modulo != 0) {
+                first_valid_index = skip - offset_modulo;
+            }
+            // Extract only the pixels we need, skipping the rest
+            for (int j = first_valid_index; j < read_size; j += skip) {
+                if (target_i < width) {
+                    buffer[target_i] = zoom_out_buffer[j];
+                    target_i++;
+                }
+            }
+            current_file_offset += read_size;
         }
     }
 }
