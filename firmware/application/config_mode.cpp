@@ -108,16 +108,16 @@ void config_mode_run() {
 
         auto tx_value = ((tx_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
         if (tx_value) {
-            led_tx.enable();
+            led_tx.setActive();
         } else {
-            led_tx.disable();
+            led_tx.setInactive();
         }
 
         auto rx_value = ((rx_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
         if (rx_value) {
-            led_rx.enable();
+            led_rx.setActive();
         } else {
-            led_rx.disable();
+            led_rx.setInactive();
         }
 
         chThdSleepMilliseconds(100);
@@ -127,14 +127,14 @@ void config_mode_run() {
 
 void config_mode_blink_until_dfu() {
     while (true) {
-        led_tx.enable();
-        led_rx.enable();
-        led_usb.enable();
+        led_tx.setActive();
+        led_rx.setActive();
+        led_usb.setActive();
         chThdSleepMilliseconds(10);
 
-        led_tx.disable();
-        led_rx.disable();
-        led_usb.disable();
+        led_tx.setInactive();
+        led_rx.setInactive();
+        led_usb.setInactive();
         chThdSleepMilliseconds(115);
 
         auto dfu_btn = portapack::gpio_dfu.read();

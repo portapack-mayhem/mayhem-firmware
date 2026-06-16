@@ -1006,7 +1006,7 @@ extern "C" void boardInit(void) {
 
     power_control::aux_power_on();
 
-    led_mcu.enable();
+    led_mcu.setActive();
 
 #else
 

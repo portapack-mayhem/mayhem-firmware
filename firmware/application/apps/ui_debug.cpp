@@ -3176,9 +3176,9 @@ void RFFC5072StatusView::refresh_status() {
 
         // Blink LED
         /*for (int i = 0; i < 3; i++) {
-            hackrf::one::led_rx.on();
+            hackrf::one::led_rx.setActive();
             chThdSleepMilliseconds(100);
-            hackrf::one::led_rx.off();
+            hackrf::one::led_rx.setInactive();
             chThdSleepMilliseconds(100);
         }*/
     } else {

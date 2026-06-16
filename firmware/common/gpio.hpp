@@ -280,7 +280,7 @@ struct GPIO {
     }
 
     // Turns the feature ON based on its polarity
-    void enable() const {
+    void setActive() const {
         if (_polarity == Polarity::ActiveHigh) {
             set();
         } else {
@@ -289,7 +289,7 @@ struct GPIO {
     }
 
     // Turns the feature OFF based on its polarity
-    void disable() const {
+    void setInactive() const {
         if (_polarity == Polarity::ActiveHigh) {
             clear();
         } else {
@@ -300,9 +300,9 @@ struct GPIO {
     // Sets the logical state of the feature
     void set_state(const bool active) const {
         if (active) {
-            enable();
+            setActive();
         } else {
-            disable();
+            setInactive();
         }
     }
 

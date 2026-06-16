@@ -283,9 +283,9 @@ void set_direction(const rf::Direction new_direction) {
     baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
 
     if (direction == rf::Direction::Receive)
-        led_rx.enable();
+        led_rx.setActive();
     else
-        led_tx.disable();
+        led_tx.setActive();
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -445,8 +445,8 @@ void disable() {
     first_if.disable();
     set_rf_amp(false);
 
-    led_rx.disable();
-    led_tx.disable();
+    led_rx.setInactive();
+    led_tx.setInactive();
 }
 
 #ifdef PRALINE

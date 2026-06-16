@@ -55,7 +55,7 @@ void vaa_power_on(void) {
     }
 
     /* Latch VAA to ON state (Active LOW) */
-    VAA_en.enable();
+    VAA_en.setActive();
 
 #else
     if (hackrf_r9) {
@@ -107,7 +107,7 @@ void vaa_power_on(void) {
 
         /* Hold !VAA_ENABLE active using a GPIO, so we can reclaim and shut down the MOTOCONPWM peripheral. */
         og_VAA_en.output();
-        og_VAA_en.enable();
+        og_VAA_en.setActive();
         setup_pin(pin_setup_vaa_enablex_gpio_og);  // P5_0 /GPIO2[ 9]/MCOB2: !VAA_ENABLE, 10K PU
 
         peripheral_reset(&motocon_pwm_resources.reset);
@@ -124,13 +124,13 @@ void vaa_power_off(void) {
      */
 #ifdef PRALINE
     /* Safe state: OFF (VAA RF is active LOW, so Set = OFF) */
-    VAA_en.disable();
+    VAA_en.setInactive();
 
 #else
     if (hackrf_r9) {
-        r9_VAA_en.disable();  // Turn OFF VAA for r9 P6_10
+        r9_VAA_en.setInactive();  // Turn OFF VAA for r9 P6_10
     } else {
-        og_VAA_en.disable();  // Turn OFF VAA for OG P5_0
+        og_VAA_en.setInactive();  // Turn OFF VAA for OG P5_0
     }
 #endif
 }
@@ -149,29 +149,29 @@ void aux_power_off(void) {
 
 #endif /* PRALINE */
 
-void core_power_on(void) {  // Core power enable
+void core_power_on(void) {
 #ifdef PRALINE
     // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Set = ON)
-    en_1v2.enable();
+    en_1v2.setActive();
 
 #else
     if (hackrf_r9) {
-        r9_1v8_en.enable();
+        r9_1v8_en.setActive();
     } else {
-        og_1v8_en.enable();
+        og_1v8_en.setActive();
     }
 #endif
 }
 
-void core_power_off(void) {  // Core power disable
+void core_power_off(void) {
 #ifdef PRALINE
-    en_1v2.disable();
+    en_1v2.setInactive();
 
 #else
     if (hackrf_r9) {
-        r9_1v8_en.disable();
+        r9_1v8_en.setInactive();
     } else {
-        og_1v8_en.disable();
+        og_1v8_en.setInactive();
     }
 #endif
 }
