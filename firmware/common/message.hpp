@@ -162,6 +162,7 @@ class Message {
         ToneDetectConfig = 104,
         FlexTosend = 105,
         EPIRBRXConfig = 106,
+        ConstellationConfig = 107,
         MAX
     };
 
@@ -328,6 +329,26 @@ class TimeSinkConfigMessage : public Message {
 
     size_t sampling_rate{0};
     size_t trigger{0};
+};
+
+class ConstellationConfigMessage : public Message {
+   public:
+    constexpr ConstellationConfigMessage(
+        size_t sampling_rate,
+        size_t decimation,
+        bool correct_frequency,
+        bool correct_phase)
+        : Message{ID::ConstellationConfig},
+          sampling_rate{sampling_rate},
+          decimation{decimation},
+          correct_frequency{correct_frequency},
+          correct_phase{correct_phase} {
+    }
+
+    size_t sampling_rate{0};
+    size_t decimation{1};
+    bool correct_frequency{false};
+    bool correct_phase{false};
 };
 
 struct AudioSpectrum {

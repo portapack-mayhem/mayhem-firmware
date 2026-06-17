@@ -351,6 +351,16 @@ void set_time_sink(
     send_message(&message);
 }
 
+void set_constellation(
+    const size_t sampling_rate,
+    const size_t decimation,
+    const bool correct_frequency,
+    const bool correct_phase) {
+    const ConstellationConfigMessage message{
+        sampling_rate, decimation, correct_frequency, correct_phase};
+    send_message(&message);
+}
+
 void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
     const WeFaxRxConfigureMessage message{lpm, ioc};
     send_message(&message);

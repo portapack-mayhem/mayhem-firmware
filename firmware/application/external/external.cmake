@@ -339,6 +339,10 @@ set(EXTCPPSRC
 	external/time_sink/main.cpp
 	external/time_sink/ui_time_sink.cpp
 
+	#constellation
+	external/constellation/main.cpp
+	external/constellation/ui_constellation.cpp
+
 	#kiss_tnc
 	external/kiss_tnc/main.cpp
 	external/kiss_tnc/ui_kiss_tnc.cpp
@@ -451,6 +455,7 @@ set(EXTAPPLIST
 	pocsag_tx
 	flex_tx
 	time_sink
+	constellation
 	kiss_tnc
 	p25_tx
 	two_tone_pager
