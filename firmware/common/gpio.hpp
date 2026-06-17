@@ -373,18 +373,18 @@ constexpr PinMap map_rf5072_mix_en{9, 0, 4, 12, 0};
 
 constexpr PinMap map_aa_en{1, 14, 1, 7, 0};  // Anti-Aliasing filter
 
-constexpr PinMap map_sgpio_4{9, 4, 17, 5, 6};
+constexpr PinMap map_sgpio_4{9, 4, 5, 17, 6};
 constexpr PinMap map_sgpio_8{8, 0, 4, 0, 4};
-constexpr PinMap map_sgpio_9{9, 3, 4, 0, 6};
+constexpr PinMap map_sgpio_9{9, 3, 4, 15, 6};
 constexpr PinMap map_sgpio_10{8, 2, 4, 2, 4};
 constexpr PinMap map_en_1v2{8, 7, 4, 7, 0};
 constexpr PinMap map_vregmode{4, 9, 5, 13, 4};
 constexpr PinMap map_VAA_en{8, 1, 4, 1, 0};
 constexpr PinMap map_led_mcu{8, 6, 4, 6, 0};
 #else
-constexpr PinMap map_sgpio_4{9, 4, 17, 5, 2};
+constexpr PinMap map_sgpio_4{6, 3, 3, 2, 2};
 constexpr PinMap map_sgpio_8{9, 6, 4, 11, 6};
-constexpr PinMap map_sgpio_9{4, 3, 4, 0, 7};
+constexpr PinMap map_sgpio_9{4, 3, 2, 3, 7};
 constexpr PinMap map_sgpio_10{1, 14, 1, 7, 6};
 constexpr PinMap map_sgpio_13{4, 8, 5, 12, 4};
 constexpr PinMap map_og_1v8_en{6, 10, 3, 6, 0};
@@ -459,8 +459,8 @@ constexpr GPIO led_rx{pin_led_rx, map_led_rx.gpio_port, map_led_rx.gpio_pad, map
 constexpr Pin pin_led_tx{map_led_tx.scu_port, map_led_tx.scu_pin};                                                        // SCU: P6_12
 constexpr GPIO led_tx{pin_led_tx, map_led_tx.gpio_port, map_led_tx.gpio_pad, map_led_tx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]8
 
-constexpr Pin pin_led_mcu{map_led_mcu.scu_port, map_led_mcu.scu_pin};                                                         // SCU: P6_12
-constexpr GPIO led_mcu{pin_led_tx, map_led_mcu.gpio_port, map_led_mcu.gpio_pad, map_led_mcu.gpio_mode, Polarity::ActiveLow};  // GPIO[2]8
+constexpr Pin pin_led_mcu{map_led_mcu.scu_port, map_led_mcu.scu_pin};                                                          // SCU: P6_12
+constexpr GPIO led_mcu{pin_led_mcu, map_led_mcu.gpio_port, map_led_mcu.gpio_pad, map_led_mcu.gpio_mode, Polarity::ActiveLow};  // GPIO[2]8
 #else
 constexpr Pin pin_sgpio_13{map_sgpio_13.scu_port, map_sgpio_13.scu_pin};                                       // SCU: P4_8
 constexpr GPIO sgpio_13{pin_sgpio_13, map_sgpio_13.gpio_port, map_sgpio_13.gpio_pad, map_sgpio_13.gpio_mode};  // GPIO[5]12
@@ -469,7 +469,7 @@ constexpr Pin pin_og_1v8_en{map_og_1v8_en.scu_port, map_og_1v8_en.scu_pin};     
 constexpr GPIO og_1v8_en{pin_og_1v8_en, map_og_1v8_en.gpio_port, map_og_1v8_en.gpio_pad, map_og_1v8_en.gpio_mode};  // GPIO[3]6
 
 constexpr Pin pin_r9_1v8_en{map_r9_1v8_en.scu_port, map_r9_1v8_en.scu_pin};                                         // SCU: P5_0
-constexpr GPIO r9_1v8_en{pin_og_1v8_en, map_r9_1v8_en.gpio_port, map_r9_1v8_en.gpio_pad, map_r9_1v8_en.gpio_mode};  // GPIO[2]9
+constexpr GPIO r9_1v8_en{pin_r9_1v8_en, map_r9_1v8_en.gpio_port, map_r9_1v8_en.gpio_pad, map_r9_1v8_en.gpio_mode};  // GPIO[2]9
 
 constexpr Pin pin_og_VAA_en{map_og_VAA_en.scu_port, map_og_VAA_en.scu_pin};                                                              // SCU: P5_0
 constexpr GPIO og_VAA_en{pin_og_VAA_en, map_og_VAA_en.gpio_port, map_og_VAA_en.gpio_pad, map_og_VAA_en.gpio_mode, Polarity::ActiveLow};  // GPIO[2]9

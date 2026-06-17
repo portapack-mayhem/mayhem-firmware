@@ -56,8 +56,6 @@ using namespace gpio_control;
 
 #include "ui_navigation.hpp"
 
-#include "gpio.hpp"
-
 static int delayed_error = 0;
 
 extern "C" {
