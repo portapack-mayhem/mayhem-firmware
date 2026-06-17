@@ -22,11 +22,11 @@
 #include "proc_constellation.hpp"
 
 #include "event_m4.hpp"
+#include "fxpt_atan2.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -42,11 +42,11 @@ void ConstellationProcessor::execute(const buffer_c8_t& buffer) {
 void ConstellationProcessor::reset_loops() {
     decim_counter = 0;
     point_index = 0;
+    env2 = 0;
     nco_phase = 0;
     nco_freq = 0;
     phase_acc = 0;
-    prev_r4 = 0.0f;
-    prev_i4 = 0.0f;
+    prev_m_phase = 0;
     have_prev = false;
 }
 
@@ -66,46 +66,43 @@ void ConstellationProcessor::process_sample(int32_t i_in, int32_t q_in) {
     const int32_t di = (i_in * c + q_in * s) >> 7;
     const int32_t dq = (q_in * c - i_in * s) >> 7;
 
+    // Magnitude gate. With no symbol-timing recovery most samples sit on
+    // inter-symbol transitions (low amplitude); skipping them de-smears the
+    // display and keeps the loops from locking onto transition noise. env2 is
+    // a slow running mean of |z|^2; keep samples in the upper ~3/4.
+    const int32_t mag2 = di * di + dq * dq;
+    env2 += (mag2 - env2) >> 4;
+    if (mag2 < (env2 - (env2 >> 2))) {
+        return;
+    }
+
     if (correct_frequency || correct_phase) {
-        // Strip the (assumed 4-fold symmetric, e.g. QPSK) modulation by raising
-        // the corrected sample to the 4th power, then work on the unit vector so
-        // the loop errors are bounded and the gains are signal-amplitude
-        // independent. All of this is FPU work, once per working sample.
-        const float fi = static_cast<float>(di);
-        const float fq = static_cast<float>(dq);
-        const float mag2 = fi * fi + fq * fq;
+        // Strip the M-fold modulation: read the phase (fast fixed-point atan2,
+        // one turn == 65536) and multiply by the rotational symmetry order. The
+        // symbol rotation wraps away, leaving M * carrier-phase-error.
+        const uint16_t a = static_cast<uint16_t>(
+            fxpt_atan2(static_cast<int16_t>(dq), static_cast<int16_t>(di)));
+        const uint16_t m_phase = static_cast<uint16_t>(a * order);
 
-        if (mag2 > 1.0f) {
-            const float inv = 1.0f / std::sqrt(mag2);
-            const float ni = fi * inv;
-            const float nq = fq * inv;
-
-            const float r2 = ni * ni - nq * nq;
-            const float i2 = 2.0f * ni * nq;
-            const float r4 = r2 * r2 - i2 * i2;
-            const float i4 = 2.0f * r2 * i2;
-
-            if (correct_phase) {
-                // Residual phase of z^4 ~ sin(4*phase_error). Nudge the static
-                // phase accumulator to drive it to zero.
-                phase_acc += static_cast<int32_t>(pll_gain * i4);
-            }
-
-            if (correct_frequency && have_prev) {
-                // Cross product of consecutive z^4 samples ~ sin(4*d_phase),
-                // i.e. the frequency error. Integrate it into the NCO frequency.
-                // Clamp via int64 so a transient never overflows the int32 word.
-                const float err_f = prev_r4 * i4 - prev_i4 * r4;
-                const int64_t updated =
-                    static_cast<int64_t>(nco_freq) + static_cast<int64_t>(fll_gain * err_f);
-                nco_freq = static_cast<int32_t>(
-                    std::clamp<int64_t>(updated, -(1LL << 30), (1LL << 30)));
-            }
-
-            prev_r4 = r4;
-            prev_i4 = i4;
-            have_prev = true;
+        if (correct_phase) {
+            // Residual M*phase as a signed deviation ~ M * static phase error.
+            const int16_t err_p = static_cast<int16_t>(m_phase);
+            phase_acc += static_cast<int32_t>(pll_gain * static_cast<float>(err_p));
         }
+
+        if (correct_frequency && have_prev) {
+            // Change in M*phase between samples ~ M * frequency error.
+            // Clamp via int64 so a transient never overflows the int32 word.
+            const int16_t err_f = static_cast<int16_t>(m_phase - prev_m_phase);
+            const int64_t updated =
+                static_cast<int64_t>(nco_freq) +
+                static_cast<int64_t>(fll_gain * static_cast<float>(err_f));
+            nco_freq = static_cast<int32_t>(
+                std::clamp<int64_t>(updated, -(1LL << 30), (1LL << 30)));
+        }
+
+        prev_m_phase = m_phase;
+        have_prev = true;
     }
 
     // Stash the corrected point (offset-binary int8) for the M0 side.
@@ -177,8 +174,19 @@ void ConstellationProcessor::on_message(const Message* const msg) {
             const auto& message = *reinterpret_cast<const ConstellationConfigMessage*>(msg);
             baseband_fs = message.sampling_rate;
             decimation = std::max<size_t>(1, message.decimation);
+            order = std::max<size_t>(1, message.order);
             correct_frequency = message.correct_frequency;
             correct_phase = message.correct_phase;
+
+            // Loop-bandwidth presets. Gains are in accumulator units per unit
+            // int16 phase error and are divided by the order so the behaviour is
+            // consistent across M. Tune live from the UI.
+            static constexpr float pll_presets[3] = {200.0f, 800.0f, 3000.0f};
+            static constexpr float fll_presets[3] = {20.0f, 80.0f, 320.0f};
+            const size_t bw = std::min<size_t>(message.loop_bw, 2);
+            pll_gain = pll_presets[bw] / static_cast<float>(order);
+            fll_gain = fll_presets[bw] / static_cast<float>(order);
+
             baseband_thread.set_sampling_rate(baseband_fs);
             reset_loops();
             configured = true;

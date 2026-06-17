@@ -336,17 +336,23 @@ class ConstellationConfigMessage : public Message {
     constexpr ConstellationConfigMessage(
         size_t sampling_rate,
         size_t decimation,
+        size_t order,
+        size_t loop_bw,
         bool correct_frequency,
         bool correct_phase)
         : Message{ID::ConstellationConfig},
           sampling_rate{sampling_rate},
           decimation{decimation},
+          order{order},
+          loop_bw{loop_bw},
           correct_frequency{correct_frequency},
           correct_phase{correct_phase} {
     }
 
     size_t sampling_rate{0};
     size_t decimation{1};
+    size_t order{4};     // modulation rotational symmetry (2=BPSK, 4=QPSK, 8=8PSK)
+    size_t loop_bw{1};   // loop-bandwidth preset index (0=slow .. 2=fast)
     bool correct_frequency{false};
     bool correct_phase{false};
 };

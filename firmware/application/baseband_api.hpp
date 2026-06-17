@@ -106,6 +106,8 @@ void set_time_sink(
 void set_constellation(
     const size_t sampling_rate,
     const size_t decimation,
+    const size_t order,
+    const size_t loop_bw,
     const bool correct_frequency,
     const bool correct_phase);
 void set_siggen_tone(const uint32_t tone);

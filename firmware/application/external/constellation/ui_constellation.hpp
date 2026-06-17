@@ -121,7 +121,9 @@ class ConstellationView : public View {
         ReceiverModel::Mode::SpectrumAnalysis};
 
     uint32_t sampling_rate{4'000'000};
-    uint32_t decimation{16};
+    uint32_t decimation{8};
+    uint32_t order{4};
+    uint32_t loop_bw{1};
     uint8_t correct_frequency{0};
     uint8_t correct_phase{0};
     uint8_t persistence_frames{1};
@@ -131,6 +133,8 @@ class ConstellationView : public View {
         {
             {"sampling_rate"sv, &sampling_rate},
             {"decimation"sv, &decimation},
+            {"order"sv, &order},
+            {"loop_bw"sv, &loop_bw},
             {"correct_frequency"sv, &correct_frequency},
             {"correct_phase"sv, &correct_phase},
             {"persistence_frames"sv, &persistence_frames},
@@ -141,8 +145,10 @@ class ConstellationView : public View {
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "SR:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(11), UI_POS_Y(1)}, "DEC:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(10), UI_POS_Y(1)}, "DEC:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(18), UI_POS_Y(1)}, "M:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(2)}, "PST:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(8), UI_POS_Y(2)}, "BW:", Theme::getInstance()->fg_light->foreground},
     };
 
     RxFrequencyField field_frequency{
@@ -173,14 +179,23 @@ class ConstellationView : public View {
         }};
 
     OptionsField options_decimation{
-        {UI_POS_X(15), UI_POS_Y(1)},
-        4,
+        {UI_POS_X(14), UI_POS_Y(1)},
+        3,
         {
             {"x4 ", 4},
             {"x8 ", 8},
             {"x16", 16},
             {"x32", 32},
             {"x64", 64},
+        }};
+
+    OptionsField options_order{
+        {UI_POS_X(20), UI_POS_Y(1)},
+        2,
+        {
+            {"2 ", 2},
+            {"4 ", 4},
+            {"8 ", 8},
         }};
 
     OptionsField options_persistence{
@@ -193,14 +208,23 @@ class ConstellationView : public View {
             {"8  ", 8},
         }};
 
+    OptionsField options_loop_bw{
+        {UI_POS_X(11), UI_POS_Y(2)},
+        4,
+        {
+            {"Slow", 0},
+            {"Med ", 1},
+            {"Fast", 2},
+        }};
+
     Checkbox check_frequency{
-        {UI_POS_X(9), UI_POS_Y(2)},
+        {UI_POS_X(16), UI_POS_Y(2)},
         3,
         "FRQ",
         true};
 
     Checkbox check_phase{
-        {UI_POS_X(20), UI_POS_Y(2)},
+        {UI_POS_X(22), UI_POS_Y(2)},
         3,
         "PHS",
         true};

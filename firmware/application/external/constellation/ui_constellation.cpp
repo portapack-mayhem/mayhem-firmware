@@ -192,7 +192,9 @@ ConstellationView::ConstellationView(NavigationView& nav)
         &field_vga,
         &options_sample_rate,
         &options_decimation,
+        &options_order,
         &options_persistence,
+        &options_loop_bw,
         &check_frequency,
         &check_phase,
         &plot,
@@ -215,6 +217,20 @@ ConstellationView::ConstellationView(NavigationView& nav)
     decimation = options_decimation.selected_index_value();
     options_decimation.on_change = [this](size_t, OptionsField::value_t v) {
         decimation = v;
+        apply_config();
+    };
+
+    options_order.set_by_nearest_value(order);
+    order = options_order.selected_index_value();
+    options_order.on_change = [this](size_t, OptionsField::value_t v) {
+        order = v;
+        apply_config();
+    };
+
+    options_loop_bw.set_by_nearest_value(loop_bw);
+    loop_bw = options_loop_bw.selected_index_value();
+    options_loop_bw.on_change = [this](size_t, OptionsField::value_t v) {
+        loop_bw = v;
         apply_config();
     };
 
@@ -272,6 +288,8 @@ void ConstellationView::apply_config() {
     baseband::set_constellation(
         sampling_rate,
         decimation,
+        order,
+        loop_bw,
         correct_frequency != 0,
         correct_phase != 0);
 }

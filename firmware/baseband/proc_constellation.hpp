@@ -40,14 +40,19 @@
  *     sample. The NCO phase lives in a uint32 accumulator (one turn = 2^32)
  *     and the sin/cos come from the shared int8 sine table, so there is no
  *     transcendental call in the per-sample loop.
- *   - The modulation is stripped with an M=4 (QPSK) non-linearity (z^4). The
- *     frequency-locked loop and the phase-locked loop both run on z^4:
- *       * FLL: cross-product frequency error of consecutive z^4 samples drives
+ *   - The modulation is stripped by multiplying the sample phase by the
+ *     constellation's rotational symmetry M (2=BPSK, 4=QPSK, 8=8PSK). The phase
+ *     is read with the shared fixed-point atan2 (fast, no float library call),
+ *     so M*phase wraps the symbol rotation away and leaves the carrier error:
+ *       * FLL: the change in M*phase between samples ~ frequency error drives
  *         the NCO frequency word -> removes the frequency offset.
- *       * PLL: residual phase of z^4 drives a phase accumulator -> removes the
- *         static phase offset.
+ *       * PLL: the residual M*phase ~ static phase error drives a phase
+ *         accumulator -> removes the static phase offset.
  *   - Each stage can be toggled independently so the operator can see the
  *     effect of each algorithm.
+ *   - A magnitude gate skips low-amplitude inter-symbol transition samples
+ *     (there is no symbol-timing recovery) so they neither smear the display
+ *     nor bias the loops.
  *
  * Corrected I/Q points are packed as interleaved int8 (offset +128) into the
  * 256-byte ChannelSpectrum payload and shipped over the existing spectrum FIFO,
@@ -75,25 +80,26 @@ class ConstellationProcessor : public BasebandProcessor {
     ChannelSpectrumFIFO fifo{fifo_data, ChannelSpectrumConfigMessage::fifo_k};
 
     // Configuration.
-    size_t decimation = 16;
+    size_t decimation = 8;
+    uint32_t order = 4;
     bool correct_frequency = false;
     bool correct_phase = false;
+
+    // Loop gains (accumulator units per unit int16 error). Selected by preset.
+    float pll_gain = 800.0f;
+    float fll_gain = 80.0f;
 
     // Working state.
     size_t decim_counter = 0;
     size_t point_index = 0;
+    int32_t env2 = 0;           // running mean of |z|^2 for the magnitude gate
 
     // NCO / loops.
     uint32_t nco_phase = 0;     // running phase accumulator, 2^32 == one turn
     int32_t nco_freq = 0;       // FLL output: phase increment per working sample
     uint32_t phase_acc = 0;     // PLL output: static phase correction
-    float prev_r4 = 0.0f;
-    float prev_i4 = 0.0f;
+    uint16_t prev_m_phase = 0;  // previous M*phase, for the FLL difference
     bool have_prev = false;
-
-    // Loop gains (turn units per unit error, applied to the 2^32 accumulators).
-    static constexpr float fll_gain = 1.5e6f;
-    static constexpr float pll_gain = 8.0e6f;
 
     bool streaming = false;
     volatile bool request_update = false;
