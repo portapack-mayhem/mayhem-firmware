@@ -45,30 +45,23 @@ void ConstellationProcessor::reset_loops() {
     env2 = 0;
     nco_phase = 0;
     nco_freq = 0;
-    phase_acc = 0;
-    prev_m_phase = 0;
-    have_prev = false;
 }
 
 void ConstellationProcessor::process_sample(int32_t i_in, int32_t q_in) {
-    // Advance the NCO. The full de-rotation angle is the running frequency
-    // accumulator plus the static phase correction from the PLL.
-    nco_phase += static_cast<uint32_t>(nco_freq);
-    const uint32_t angle = nco_phase + phase_acc;
-
+    // De-rotate the current sample by the NCO phase.
     // sin/cos from the shared int8 table (top 8 bits index one of 256 steps).
     // cos(x) == sin(x + quarter turn); a quarter of 256 entries is 64.
-    const uint8_t idx = static_cast<uint8_t>(angle >> 24);
+    const uint8_t idx = static_cast<uint8_t>(nco_phase >> 24);
     const int32_t s = sine_table_i8[idx];
     const int32_t c = sine_table_i8[static_cast<uint8_t>(idx + 64)];
 
-    // De-rotate by -angle: (I + jQ) * (cos - j sin). Table is ~Q7, so >>7.
+    // De-rotate by -phase: (I + jQ) * (cos - j sin). Table is ~Q7, so >>7.
     const int32_t di = (i_in * c + q_in * s) >> 7;
     const int32_t dq = (q_in * c - i_in * s) >> 7;
 
     // Magnitude gate. With no symbol-timing recovery most samples sit on
     // inter-symbol transitions (low amplitude); skipping them de-smears the
-    // display and keeps the loops from locking onto transition noise. env2 is
+    // display and keeps the loop from locking onto transition noise. env2 is
     // a slow running mean of |z|^2; keep samples in the upper ~3/4.
     const int32_t mag2 = di * di + dq * dq;
     env2 += (mag2 - env2) >> 4;
@@ -77,32 +70,36 @@ void ConstellationProcessor::process_sample(int32_t i_in, int32_t q_in) {
     }
 
     if (correct_frequency || correct_phase) {
-        // Strip the M-fold modulation: read the phase (fast fixed-point atan2,
-        // one turn == 65536) and multiply by the rotational symmetry order. The
-        // symbol rotation wraps away, leaving M * carrier-phase-error.
+        // M-fold phase detector: read the phase (fast fixed-point atan2, one
+        // turn == 65536) and multiply by the rotational symmetry order so the
+        // symbol rotation wraps away. The signed residual is the phase error.
         const uint16_t a = static_cast<uint16_t>(
             fxpt_atan2(static_cast<int16_t>(dq), static_cast<int16_t>(di)));
-        const uint16_t m_phase = static_cast<uint16_t>(a * order);
+        const int16_t e_p = static_cast<int16_t>(static_cast<uint16_t>(a * order));
+        const float ferr = static_cast<float>(e_p);
 
-        if (correct_phase) {
-            // Residual M*phase as a signed deviation ~ M * static phase error.
-            const int16_t err_p = static_cast<int16_t>(m_phase);
-            phase_acc += static_cast<int32_t>(pll_gain * static_cast<float>(err_p));
-        }
+        // 2nd-order PLL loop filter into a single NCO.
+        int32_t increment = 0;
 
-        if (correct_frequency && have_prev) {
-            // Change in M*phase between samples ~ M * frequency error.
+        if (correct_frequency) {
+            // Integral path -> NCO frequency (removes the frequency offset).
             // Clamp via int64 so a transient never overflows the int32 word.
-            const int16_t err_f = static_cast<int16_t>(m_phase - prev_m_phase);
             const int64_t updated =
-                static_cast<int64_t>(nco_freq) +
-                static_cast<int64_t>(fll_gain * static_cast<float>(err_f));
+                static_cast<int64_t>(nco_freq) + static_cast<int64_t>(ki_gain * ferr);
             nco_freq = static_cast<int32_t>(
                 std::clamp<int64_t>(updated, -(1LL << 30), (1LL << 30)));
+            increment += nco_freq;
+        } else {
+            nco_freq = 0;  // don't hold a stale frequency estimate when disabled
         }
 
-        prev_m_phase = m_phase;
-        have_prev = true;
+        if (correct_phase) {
+            // Proportional path -> phase (removes the static phase offset).
+            // Recomputed each sample, never accumulated, so the loop is stable.
+            increment += static_cast<int32_t>(kp_gain * ferr);
+        }
+
+        nco_phase += static_cast<uint32_t>(increment);
     }
 
     // Stash the corrected point (offset-binary int8) for the M0 side.
@@ -178,14 +175,15 @@ void ConstellationProcessor::on_message(const Message* const msg) {
             correct_frequency = message.correct_frequency;
             correct_phase = message.correct_phase;
 
-            // Loop-bandwidth presets. Gains are in accumulator units per unit
-            // int16 phase error and are divided by the order so the behaviour is
-            // consistent across M. Tune live from the UI.
-            static constexpr float pll_presets[3] = {200.0f, 800.0f, 3000.0f};
-            static constexpr float fll_presets[3] = {20.0f, 80.0f, 320.0f};
+            // Loop-bandwidth presets (proportional kp, integral ki) in
+            // accumulator units per unit int16 phase error. ki << kp keeps the
+            // loop well damped; both are divided by the order so the behaviour
+            // is consistent across M. Tune live from the UI.
+            static constexpr float kp_presets[3] = {200.0f, 800.0f, 3000.0f};
+            static constexpr float ki_presets[3] = {0.5f, 4.0f, 30.0f};
             const size_t bw = std::min<size_t>(message.loop_bw, 2);
-            pll_gain = pll_presets[bw] / static_cast<float>(order);
-            fll_gain = fll_presets[bw] / static_cast<float>(order);
+            kp_gain = kp_presets[bw] / static_cast<float>(order);
+            ki_gain = ki_presets[bw] / static_cast<float>(order);
 
             baseband_thread.set_sampling_rate(baseband_fs);
             reset_loops();

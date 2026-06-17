@@ -41,15 +41,16 @@
  *     and the sin/cos come from the shared int8 sine table, so there is no
  *     transcendental call in the per-sample loop.
  *   - The modulation is stripped by multiplying the sample phase by the
- *     constellation's rotational symmetry M (2=BPSK, 4=QPSK, 8=8PSK). The phase
- *     is read with the shared fixed-point atan2 (fast, no float library call),
- *     so M*phase wraps the symbol rotation away and leaves the carrier error:
- *       * FLL: the change in M*phase between samples ~ frequency error drives
- *         the NCO frequency word -> removes the frequency offset.
- *       * PLL: the residual M*phase ~ static phase error drives a phase
- *         accumulator -> removes the static phase offset.
- *   - Each stage can be toggled independently so the operator can see the
- *     effect of each algorithm.
+ *     constellation's rotational symmetry M (1=CW, 2=BPSK, 4=QPSK, 8=8PSK). The
+ *     phase is read with the shared fixed-point atan2 (fast, no float library
+ *     call), so M*phase wraps the symbol rotation away and leaves the signed
+ *     carrier phase error e_p.
+ *   - e_p drives a single 2nd-order PLL with two paths into one NCO:
+ *       * Integral path (ki) accumulates into the NCO frequency -> removes the
+ *         frequency offset. Toggled by the frequency-correction control.
+ *       * Proportional path (kp), recomputed each sample (never accumulated, so
+ *         the loop stays stable) -> removes the static phase offset. Toggled by
+ *         the phase-correction control.
  *   - A magnitude gate skips low-amplitude inter-symbol transition samples
  *     (there is no symbol-timing recovery) so they neither smear the display
  *     nor bias the loops.
@@ -85,21 +86,22 @@ class ConstellationProcessor : public BasebandProcessor {
     bool correct_frequency = false;
     bool correct_phase = false;
 
-    // Loop gains (accumulator units per unit int16 error). Selected by preset.
-    float pll_gain = 800.0f;
-    float fll_gain = 80.0f;
+    // 2nd-order PLL loop-filter gains (accumulator units per unit int16 error).
+    // kp = proportional path (phase), ki = integral path (frequency). Selected
+    // by preset; ki << kp so the loop is well damped.
+    float kp_gain = 800.0f;
+    float ki_gain = 4.0f;
 
     // Working state.
     size_t decim_counter = 0;
     size_t point_index = 0;
     int32_t env2 = 0;           // running mean of |z|^2 for the magnitude gate
 
-    // NCO / loops.
-    uint32_t nco_phase = 0;     // running phase accumulator, 2^32 == one turn
-    int32_t nco_freq = 0;       // FLL output: phase increment per working sample
-    uint32_t phase_acc = 0;     // PLL output: static phase correction
-    uint16_t prev_m_phase = 0;  // previous M*phase, for the FLL difference
-    bool have_prev = false;
+    // NCO / loop. Single phase accumulator (2^32 == one turn) with one
+    // frequency integrator; the proportional term is recomputed per sample (not
+    // accumulated), which is what keeps the 2nd-order loop stable.
+    uint32_t nco_phase = 0;
+    int32_t nco_freq = 0;       // integral state: phase increment per working sample
 
     bool streaming = false;
     volatile bool request_update = false;

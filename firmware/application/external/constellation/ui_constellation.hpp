@@ -193,6 +193,7 @@ class ConstellationView : public View {
         {UI_POS_X(20), UI_POS_Y(1)},
         2,
         {
+            {"1 ", 1},
             {"2 ", 2},
             {"4 ", 4},
             {"8 ", 8},
