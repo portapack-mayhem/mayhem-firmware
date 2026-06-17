@@ -347,9 +347,9 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
      * external Anti-Aliasing (AA) filter on pin P1_14 to prevent aliasing.
      */
     if (actual_bw <= 1750000) {
-        gpio_control::aa_en.set();  // Enable external narrow AA filter
+        gpio_control::aa_en.setActive();  // Enable external narrow AA filter
     } else {
-        gpio_control::aa_en.clear();  // Disable external AA filter for wideband operations
+        gpio_control::aa_en.setInactive();  // Disable external AA filter for wideband operations
     }
 
     _desired_lpf_bw = actual_bw;
