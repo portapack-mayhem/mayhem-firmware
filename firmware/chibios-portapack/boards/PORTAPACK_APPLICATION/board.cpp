@@ -658,10 +658,10 @@ static const std::array<gpio_setup_t, 6> gpio_setup_r9{{
      .dir = 0},
     {
         // GPIO2
-        .data = boot_bit(og_1v8_en, 0)  // P5_0:  EN1V8, 10K PD
+        .data = boot_bit(r9_1v8_en, 0)  // P5_0:  EN1V8, 10K PD
                 | (1 << 4)              // P4_4:  !ANT_BIAS
         ,
-        .dir = boot_bit(og_1v8_en, 1)  // P5_0:  EN1V8, 10K PD
+        .dir = boot_bit(r9_1v8_en, 1)  // P5_0:  EN1V8, 10K PD
                | (1 << 4)              // P4_4:  !ANT_BIAS
     },
     {

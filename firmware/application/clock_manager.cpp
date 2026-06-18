@@ -1213,7 +1213,7 @@ void ClockManager::enable_clock_output(bool enable) {
 #ifdef PRALINE
 
 void ClockManager::set_p1_control(P1_Function func) {
-    // Truth table based on P1_Control.csv (L=setInactive, H=set)
+    // Truth table based on P1_Control.csv (L=setInactive, H=setActive)
     switch (func) {
         case P1_Function::TriggerIn:
             gpio_control::p1_ctrl2.setInactive();
@@ -1236,7 +1236,7 @@ void ClockManager::set_p1_control(P1_Function func) {
             gpio_control::p1_ctrl0.setActive();
             break;
         case P1_Function::P22_ClkIn:
-            gpio_control::p1_ctrl2.set();
+            gpio_control::p1_ctrl2.setActive();
             gpio_control::p1_ctrl1.setInactive();
             gpio_control::p1_ctrl0.setInactive();
             break;
@@ -1261,10 +1261,10 @@ void ClockManager::set_p1_control(P1_Function func) {
 void ClockManager::set_p2_control(P2_Function func) {
     // Ensure all P2 control pins are configured as outputs
 
-    // Truth table based on P2_Control.csv (L=clear, H=set)
+    // Truth table based on P2_Control.csv (L=setInactive, H=setActive)
     switch (func) {
         case P2_Function::Clk3:
-            // CTRL0 is 'X' (don't care) according to CSV, we default it to Low (clear)
+            // CTRL0 is 'X' (don't care) according to CSV, we default it to Low (setInactive)
             gpio_control::p2_ctrl1.setInactive();
             gpio_control::p2_ctrl0.setInactive();
             break;
