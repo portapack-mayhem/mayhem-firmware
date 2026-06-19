@@ -503,7 +503,7 @@ const PALConfig pal_default_config = {
         {map_trigger_in.scu_port, map_trigger_in.scu_pin, scu_config_normal_drive_t{.mode = map_trigger_in.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},     // PD_12: TRIGGER IN (Input GND, Mode 4)
         {map_trigger_out.scu_port, map_trigger_out.scu_pin, scu_config_normal_drive_t{.mode = map_trigger_out.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // P2_6: TRIGGER
         {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},
-        {gpio_control::map_clkin_ctrl.scu_port, gpio_control::map_clkin_ctrl.scu_pin, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_20  CLKIN_ctrl                                                                        // P2_5: PPS OUT/IN (Mode 4 per Suppl. Data)
+        {gpio_control::map_clkin_ctrl.scu_port, gpio_control::map_clkin_ctrl.scu_pin, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_20  CLKIN_ctrl
 #else
 
         {4, 9, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},   // SGPIO14/BANK2F3M4: CPLD_P81

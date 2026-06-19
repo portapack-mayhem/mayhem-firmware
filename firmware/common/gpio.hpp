@@ -298,7 +298,7 @@ struct GPIO {
     }
 
     // Sets the logical state of the feature
-    void set_state(const bool active) const {
+    void setState(const bool active) const {
         if (active) {
             setActive();
         } else {
@@ -307,8 +307,8 @@ struct GPIO {
     }
 
     // Returns true if the feature is logically active/enabled
-    bool is_enabled() const {
-        bool physical_state = read();
+    bool isEnabled() const {
+        const bool physical_state = read();
         return (_polarity == Polarity::ActiveHigh) ? physical_state : !physical_state;
     }
 
