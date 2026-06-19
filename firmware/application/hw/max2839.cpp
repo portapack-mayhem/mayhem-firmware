@@ -131,6 +131,8 @@ void MAX2839::init() {
 
     _map.r.rssi_vga.RSSI_MODE = 1; /* RSSI independent of RXHP */
 
+    _map.r.rssi_vga.RSSI_INPUT = 0; /* Measure RSSI at VGA Output (stronger signal) */
+
     /*
      * There are two LNA band settings, but we only use one of them.
      * Switching to the other one doesn't make the overall spectrum any
