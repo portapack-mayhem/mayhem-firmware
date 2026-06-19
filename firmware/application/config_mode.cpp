@@ -24,6 +24,11 @@
 #include "hackrf_gpio.hpp"
 #include "portapack_hal.hpp"
 
+#include "board.h"
+
+#include "gpio.hpp"
+using namespace gpio_control;
+
 void config_mode_blink_until_dfu();
 
 void config_mode_set() {
@@ -103,16 +108,16 @@ void config_mode_run() {
 
         auto tx_value = ((tx_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
         if (tx_value) {
-            hackrf::one::led_tx.on();
+            led_tx.setActive();
         } else {
-            hackrf::one::led_tx.off();
+            led_tx.setInactive();
         }
 
         auto rx_value = ((rx_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
         if (rx_value) {
-            hackrf::one::led_rx.on();
+            led_rx.setActive();
         } else {
-            hackrf::one::led_rx.off();
+            led_rx.setInactive();
         }
 
         chThdSleepMilliseconds(100);
@@ -122,14 +127,14 @@ void config_mode_run() {
 
 void config_mode_blink_until_dfu() {
     while (true) {
-        hackrf::one::led_tx.on();
-        hackrf::one::led_rx.on();
-        hackrf::one::led_usb.on();
+        led_tx.setActive();
+        led_rx.setActive();
+        led_usb.setActive();
         chThdSleepMilliseconds(10);
 
-        hackrf::one::led_tx.off();
-        hackrf::one::led_rx.off();
-        hackrf::one::led_usb.off();
+        led_tx.setInactive();
+        led_rx.setInactive();
+        led_usb.setInactive();
         chThdSleepMilliseconds(115);
 
         auto dfu_btn = portapack::gpio_dfu.read();

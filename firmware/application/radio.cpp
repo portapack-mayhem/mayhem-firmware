@@ -53,6 +53,9 @@ using namespace hackrf::one;
 #include "baseband_api.hpp"
 #include "hal.h"  // For LPC_SGPIO
 
+#include "gpio.hpp"
+using namespace gpio_control;
+
 #include <array>
 
 /* Direct access to the radio. Setting values incorrectly can damage
@@ -280,9 +283,9 @@ void set_direction(const rf::Direction new_direction) {
     baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
 
     if (direction == rf::Direction::Receive)
-        led_rx.on();
+        led_rx.setActive();
     else
-        led_tx.on();
+        led_tx.setActive();
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -442,8 +445,8 @@ void disable() {
     first_if.disable();
     set_rf_amp(false);
 
-    led_rx.off();
-    led_tx.off();
+    led_rx.setInactive();
+    led_tx.setInactive();
 }
 
 #ifdef PRALINE

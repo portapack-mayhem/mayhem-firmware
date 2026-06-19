@@ -132,7 +132,6 @@ Continuous (Fox-oring)
 #include "spi_image.hpp"
 
 #include "debug.hpp"
-#include "led.hpp"
 
 #include "gcc.hpp"
 
