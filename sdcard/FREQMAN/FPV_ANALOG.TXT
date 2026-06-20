@@ -59,7 +59,7 @@ f=1280000000,d=FPV Ch 7
 f=1320000000,d=FPV Ch 8
 f=1360000000,d=FPV Ch 9
 
-# 3.3GHz Analog FPV Channels
+# 3.1GHz & 3.3GHz Analog FPV Channels
 f=3330000000,d=FPV Ch A-1
 f=3350000000,d=FPV Ch A-2
 f=3370000000,d=FPV Ch A-3
