@@ -192,7 +192,10 @@ void I2cDev_MAX17055::update() {
     bool battChanged = false;
 
     getBatteryInfo(validity, batteryPercentage, voltage, current, battChanged);
-
+    if (validity == 0) {
+        // no valid data, don't send message
+        return;
+    }
     // send local message
     BatteryStateMessage msg{validity, batteryPercentage, current >= 25, voltage, battChanged};
     EventDispatcher::send_message(msg);
@@ -252,10 +255,9 @@ bool I2cDev_MAX17055::full_reset_and_init() {
     if (!load_custom_parameters()) {
         return false;
     }
-    /*if (!clear_por()) {
+    if (!clear_por()) {
         return false;
-    }*/
-    // don't clear it, we'll need to know the state
+    }
     return true;
 }
 
@@ -390,6 +392,10 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
         valid_mask = 0;
         return;
     }
+    if (status == 0xFFFF) {
+        valid_mask = 0;
+        return;
+    }
     bool requires_reset = false;
 
     if (((status & 0xFF) >> 1) & 0x01) {  // POR FLAG
@@ -400,6 +406,8 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
         reInit();  // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
         // battMayChanged = true && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
         // We don't want to signal this for now. the Voltage drop during power up messes this up a bit.
+        valid_mask = 0;
+        return;
     }
 
     batteryPercentage = stateOfCharge();
