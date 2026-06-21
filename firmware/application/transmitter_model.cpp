@@ -26,7 +26,9 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "event_m0.hpp"
-#include "hackrf_gpio.hpp"
+#include "gpio.hpp"
+using namespace gpio_control;
+
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "radio.hpp"

@@ -23,6 +23,8 @@
 
 #include "platform.hpp"
 
+using namespace gpio_control;
+
 namespace power_control {
 
 /* VAA powers:
@@ -53,7 +55,7 @@ void vaa_power_on(void) {
     }
 
     /* Latch VAA to ON state (Active LOW) */
-    LPC_GPIO->CLR[4] = (1 << 1);
+    VAA_en.setActive();
 
 #else
     if (hackrf_r9) {
@@ -104,8 +106,8 @@ void vaa_power_on(void) {
         }
 
         /* Hold !VAA_ENABLE active using a GPIO, so we can reclaim and shut down the MOTOCONPWM peripheral. */
-        LPC_GPIO->CLR[2] = (1 << 9);  // !VAA_ENABLE
-        LPC_GPIO->DIR[2] |= (1 << 9);
+        og_VAA_en.output();
+        og_VAA_en.setActive();
         setup_pin(pin_setup_vaa_enablex_gpio_og);  // P5_0 /GPIO2[ 9]/MCOB2: !VAA_ENABLE, 10K PU
 
         peripheral_reset(&motocon_pwm_resources.reset);
@@ -122,16 +124,13 @@ void vaa_power_off(void) {
      */
 #ifdef PRALINE
     /* Safe state: OFF (VAA RF is active LOW, so Set = OFF) */
-    LPC_GPIO->SET[4] = (1 << 1);
-
-    /* Turn OFF LED3 (TX) */
-    LPC_GPIO->SET[2] = (1 << 8);
+    VAA_en.setInactive();
 
 #else
     if (hackrf_r9) {
-        LPC_GPIO->W3[6] = 1;  // Turn OFF VAA for r9 P6_10
+        r9_VAA_en.setInactive();  // Turn OFF VAA for r9 P6_10
     } else {
-        LPC_GPIO->W2[9] = 1;  // Turn OFF VAA for OG P5_0
+        og_VAA_en.setInactive();  // Turn OFF VAA for OG P5_0
     }
 #endif
 }
@@ -150,34 +149,29 @@ void aux_power_off(void) {
 
 #endif /* PRALINE */
 
-void core_power_on(void) {  // Core power enable
+void core_power_on(void) {
 #ifdef PRALINE
     // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Set = ON)
-    LPC_GPIO->SET[4] = (1 << 7);
+    en_1v2.setActive();
 
 #else
     if (hackrf_r9) {
-        // P5_0 (GPIO2[9]) is the EN1V8 pin
-        LPC_GPIO->SET[2] = (1 << 9);
+        r9_1v8_en.setActive();
     } else {
-        // On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin
-        LPC_GPIO->SET[3] = (1 << 6);
+        og_1v8_en.setActive();
     }
 #endif
 }
 
-void core_power_off(void) {  // Core power disable
+void core_power_off(void) {
 #ifdef PRALINE
-    // 1.2V FPGA - P8_7 = GPIO4[7], Active HIGH (Clear = OFF) */
-    LPC_GPIO->CLR[4] = (1 << 7);
+    en_1v2.setInactive();
 
 #else
     if (hackrf_r9) {
-        // P5_0 (GPIO2[9]) is the EN1V8 pin
-        LPC_GPIO->CLR[2] = (1 << 9);
+        r9_1v8_en.setInactive();
     } else {
-        // On older OG HackRF boards, P6_10 (GPIO3[6]) is the EN1V8 pin
-        LPC_GPIO->CLR[3] = (1 << 6);
+        og_1v8_en.setInactive();
     }
 #endif
 }

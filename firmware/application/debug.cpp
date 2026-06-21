@@ -33,6 +33,9 @@
 #include "irq_controls.hpp"
 #include "file_path.hpp"
 
+#include "gpio.hpp"
+using namespace gpio_control;
+
 using namespace ui;
 
 #define DEBUG_LOG_FILE "debug_log.txt"
@@ -134,9 +137,9 @@ void draw_line(int32_t y_offset, const char* label, regarm_t value) {
 }
 
 void runtime_error(uint8_t source) {
-    LED led = (source == CORTEX_M0) ? hackrf::one::led_rx : hackrf::one::led_tx;
+    const auto& led = (source == CORTEX_M0) ? led_rx : led_tx;
 
-    led.off();
+    led.setInactive();
 
     // wait for DFU button release if pressed, so we don't immediately jump into stack dump
     while (swizzled_switches() & (1 << (int)Switch::Dfu));
