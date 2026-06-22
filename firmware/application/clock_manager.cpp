@@ -419,7 +419,11 @@ std::string ClockManager::get_freq() {
            to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz";
 }
 
-static void portapack_tcxo_enable() {
+void ClockManager::portapack_tcxo_enable() {
+#ifdef PRALINE
+    gpio_control::clkin_ctrl.setActive();
+    set_p1_control(P1_Function::P22_ClkIn);
+#endif
     portapack::io.reference_oscillator(true);
 
     /* Delay >10ms at 96MHz clock speed for reference oscillator to start. */
@@ -428,7 +432,10 @@ static void portapack_tcxo_enable() {
     while (delay--);
 }
 
-static void portapack_tcxo_disable() {
+void ClockManager::portapack_tcxo_disable() {
+#ifdef PRALINE
+    gpio_control::clkin_ctrl.setInactive();
+#endif
     portapack::io.reference_oscillator(false);
 }
 
