@@ -29,6 +29,9 @@
 
 #include "i2cdevmanager.hpp"
 
+// if this define is set, the UI will show the battery has changed (POR flag is set) until the settings are saved (not ic reinited, but settings applyed by user!)
+#define MAX17055_REPORT_POR_FLAG 1
+
 #define MAX17055_POR 0
 #define MAX17055_IMin 1
 #define MAX17055_IMax 2
@@ -292,8 +295,11 @@ class I2cDev_MAX17055 : public I2cDev {
     uint16_t stateOfCharge(void);
     bool reInit();                                                   // call when battery parameters changed from ui. don't call if not needed, or the battery is not changed!!!
     bool getIsBattChanged() { return statusControl(MAX17055_POR); }  // true if the ic thinks we have a new battery
-    void resetChangedFlag() { clear_por(); }                         // reset the flag
-    void sleep_config(bool enable_sleep);                            // if true, the ic can sleep after 3 minutes of inactivity (over i2c). can be waken up on any i2c communication (first packet may be dropped)
+    void resetChangedFlag() {
+        clear_por();
+        was_por = false;
+    }  // reset the flag
+    void sleep_config(bool enable_sleep);  // if true, the ic can sleep after 3 minutes of inactivity (over i2c). can be waken up on any i2c communication (first packet may be dropped)
    private:
     const RegisterEntry* findEntry(const char* name) const;
 
@@ -326,6 +332,8 @@ class I2cDev_MAX17055 : public I2cDev {
     bool setModelCfg(const uint8_t _Model_ID);
     bool setHibCFG(const uint16_t _Config);
     void config(void);
+
+    bool was_por = false;
 };
 
 } /* namespace i2cdev */

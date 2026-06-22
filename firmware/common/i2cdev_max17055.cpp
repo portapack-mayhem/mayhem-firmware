@@ -228,6 +228,7 @@ bool I2cDev_MAX17055::init(uint8_t addr_) {
         bool return_status = true;
         if (needsInitialization()) {
             // First-time or POR initialization
+            was_por = true;
             return_status = full_reset_and_init();
         }
         chThdSleepMilliseconds(300);  // wait for adc to fully wake up!
@@ -400,15 +401,17 @@ void I2cDev_MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercen
 
     if (((status & 0xFF) >> 1) & 0x01) {  // POR FLAG
         requires_reset = true;
+        was_por = true;
     }
     // Execute the reset if either flag was tripped
     if (requires_reset) {
-        reInit();  // todo maybe don't do it automatically, just signal. but for now it is safer to do it.
-        // battMayChanged = true && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
-        // We don't want to signal this for now. the Voltage drop during power up messes this up a bit.
+        reInit();  // reinit the ic. that takes time, so we'll return
         valid_mask = 0;
         return;
     }
+#ifdef MAX17055_REPORT_POR_FLAG
+    battMayChanged = was_por && portapack::persistent_memory::battery_replaceable();  // only signal a change if the battery is replaceable. othervise do it silently
+#endif
 
     batteryPercentage = stateOfCharge();
     current = instantCurrent();
