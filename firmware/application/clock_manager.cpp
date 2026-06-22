@@ -433,6 +433,9 @@ void ClockManager::portapack_tcxo_enable() {
 }
 
 void ClockManager::portapack_tcxo_disable() {
+#ifdef PRALINE
+    gpio_control::clkin_ctrl.setInactive();
+#endif
     portapack::io.reference_oscillator(false);
 }
 
