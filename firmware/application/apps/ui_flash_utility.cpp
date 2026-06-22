@@ -168,7 +168,7 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
         {0, 0, portapack::display.width(), portapack::display.height()},
         Theme::getInstance()->bg_darkest->background);
 
-    painter.draw_string({12, 24}, this->nav_.style(), "This will take 15 seconds.");
+    painter.draw_string({12, 24}, this->nav_.style(), "This will take 15-45 sec.");
     painter.draw_string({12, 64}, this->nav_.style(), "Please wait while LED RX");
     painter.draw_string({12, 84}, this->nav_.style(), "is on and TX is flashing.");
     painter.draw_string({12, 124}, this->nav_.style(), "Device will then restart.");

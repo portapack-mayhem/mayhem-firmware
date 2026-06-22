@@ -41,7 +41,7 @@ void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& percent, ui
     if (dev) {
         voltage = ((i2cdev::I2cDev_ADS1110*)dev)->readVoltage();
         percent = calc_percent_voltage(voltage);
-        valid_mask = 1;
+        valid_mask = BATT_VALID_VOLTAGE | BATT_VALID_PERCENT;
         return;
     }
 

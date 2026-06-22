@@ -1174,12 +1174,16 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
         pmem::set_battery_replaceable(checkbox_battery_replaceable.value());
         battery::BatteryManagement::set_calc_override(checkbox_overridebatt.value());
         i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+        if (dev) dev->resetChangedFlag();
         if ((((uint32_t)field_battcap.value() != pmem::battery_cap_mah()) || (!pmem::battery_cap_valid())) || (dev && dev->getIsBattChanged())) {
             pmem::set_battery_cap_mah(field_battcap.value());
-            if (dev) dev->resetChangedFlag();
             if (dev && !dev->reInit()) {
                 nav.display_modal("Error", "Battery gauge re-init failed");
                 return;
+            }
+            if (dev) {
+                dev->resetChangedFlag();
+                dev->update();  // resend the new data
             }
         }
         send_system_refresh();
