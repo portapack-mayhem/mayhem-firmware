@@ -361,8 +361,8 @@ constexpr PinMap map_p1_ctrl0{2, 10, 0, 14, 0};  // SCU: 2, 10 | GPIO: 0, 14
 constexpr PinMap map_p1_ctrl1{6, 8, 5, 16, 4};
 constexpr PinMap map_p1_ctrl2{6, 9, 3, 5, 0};
 
-constexpr PinMap map_p2_ctrl0{8, 3, 7, 3, 4};
-constexpr PinMap map_p2_ctrl1{8, 4, 7, 4, 4};
+constexpr PinMap map_p2_ctrl0{8, 3, 7, 3, 0};
+constexpr PinMap map_p2_ctrl1{8, 4, 7, 4, 0};
 
 constexpr PinMap map_trigger_out{2, 6, 5, 6, 4};
 constexpr PinMap map_trigger_in{13, 12, 6, 26, 4};

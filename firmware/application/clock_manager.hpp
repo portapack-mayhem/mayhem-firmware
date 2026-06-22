@@ -116,6 +116,9 @@ class ClockManager {
 
     void enable_clock_output(bool enable);
 
+    void portapack_tcxo_enable();
+    void portapack_tcxo_disable();
+
    private:
     I2C& i2c0;
     si5351::Si5351& clock_generator;
