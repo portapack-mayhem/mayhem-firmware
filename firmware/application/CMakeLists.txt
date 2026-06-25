@@ -308,6 +308,7 @@ set(CPPSRC
 	apps/ui_playlist.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
+	apps/ui_rolljam.cpp
 	apps/ui_recon.cpp
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
