@@ -772,7 +772,7 @@ void cpu_clock_init(void) {
 clock_source_t activate_best_clock_source(void) {
 #ifdef HACKRF_ONE
     /* Ensure PortaPack reference oscillator is off while checking for external clock input. */
-    if (portapack_reference_oscillator && portapack()) {
+    if (portapack_present()) {
         portapack_reference_oscillator(false);
     }
 #endif
@@ -785,7 +785,7 @@ clock_source_t activate_best_clock_source(void) {
     } else {
 #ifdef HACKRF_ONE
         /* Enable PortaPack reference oscillator (if present), and check for valid clock. */
-        if (portapack_reference_oscillator && portapack()) {
+        if (portapack_present()) {
             portapack_reference_oscillator(true);
             delay(510000); /* loop iterations @ 204MHz for >10ms for oscillator to enable. */
             if (si5351c_clkin_signal_valid(&clock_gen)) {
