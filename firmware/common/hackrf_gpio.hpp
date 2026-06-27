@@ -83,12 +83,6 @@ constexpr GPIO gpio_max5864_select = gpio[GPIO2_7];
 constexpr GPIO gpio_q_invert = gpio[GPIO0_13];
 
 #ifdef PRALINE
-
-// constexpr GPIO gpio_pps_out = gpio[GPIO5_5];  // PPS output (P2_5)
-
-#endif
-
-#ifdef PRALINE
 /* PRALINE has no HackRF CPLD. These pins are used for RFFC5072 and TX_EN instead.
  * Dummy assignments here allow cpld_update.cpp to compile; the functions
  * that use them are never called on PRALINE. */
@@ -100,10 +94,6 @@ constexpr GPIO gpio_cpld_tms = gpio[GPIO3_4];
 #endif
 constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];
 constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];
-
-constexpr GPIO gpio_r9_clkin_en = gpio[GPIO5_15];
-constexpr GPIO gpio_r9_clkout_en = gpio[GPIO0_9];
-constexpr GPIO gpio_r9_mcu_clk_en = gpio[GPIO0_8];
 
 } /* namespace one */
 } /* namespace hackrf */

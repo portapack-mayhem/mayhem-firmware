@@ -65,11 +65,13 @@ struct Config {
     bool amp_bypass_en;
     bool tx_amp_en;
     bool rx_amp_en;
+    bool ant_bias_en;
 
     constexpr Config(
         const Direction direction,
         const Band band,
-        const bool amplify)
+        const bool amplify,
+        const bool ant_bias)
         : tx(direction == Direction::Transmit),
           rx(direction == Direction::Receive),
           mix_bypass_en(band == Band::Mid),
@@ -79,7 +81,8 @@ struct Config {
           lpf_en(band == Band::Low),
           amp_bypass_en(!amplify),
           tx_amp_en((direction == Direction::Transmit) && amplify),
-          rx_amp_en((direction == Direction::Receive) && amplify) {
+          rx_amp_en((direction == Direction::Receive) && amplify),
+          ant_bias_en(ant_bias) {
     }
 
     void apply() const {
@@ -107,6 +110,7 @@ struct Config {
         tx_mix_bypass.setState(mix_bypass_en);
         tx_amp_pwr.setState(tx_amp_en);
         rx_amp_pwr.setState(rx_amp_en);
+        ant_bias.setState(ant_bias_en);
     }
 };
 
@@ -182,7 +186,7 @@ void Path::update() {
     config.apply();
 #else
     /* HackRF One RF path control - On the fly calculation */
-    Config config(direction, band, rf_amp);
+    Config config(direction, band, rf_amp, ant_bias);
     config.apply();
 #endif
 }
