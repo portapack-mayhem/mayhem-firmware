@@ -21,116 +21,26 @@
 
 #include "rf_path.hpp"
 #include "platform.hpp"
-
+#include "utility.hpp"
 #include "gpio.hpp"
 using namespace gpio_control;
-
-#include "utility.hpp"
 
 namespace rf {
 namespace path {
 
-namespace {
-
-#ifdef PRALINE
-/* PRALINE uses a simplified RF path with only 5 control signals.
- * The RF path architecture is completely different from HackRF One.
- */
-struct PralineConfig {
-    bool tx_en;
-    bool mix_bypass_en;  // RF path mixer bypass (GPIO3[2])
-    bool lpf_en;
-    bool rf_amp_en;
-    bool ant_bias_en;
-
-    void apply() const {
-        tx_enable.setState(tx_en);
-        mix_bypass.setState(mix_bypass_en);
-        lpf.setState(lpf_en);
-        rf_amp_enable.setState(rf_amp_en);
-        ant_bias.setState(ant_bias_en);
-    }
-};
-#else
-
-/* HackRF One uses GPIOs for RF path control, simplified for PortaPack internal use */
-struct Config {
-    bool tx;
-    bool rx;
-    bool mix_bypass_en;
-    bool tx_mix_bp_en;
-    bool rx_mix_bp_en;
-    bool hpf_en;
-    bool lpf_en;
-    bool amp_bypass_en;
-    bool tx_amp_en;
-    bool rx_amp_en;
-    bool ant_bias_en;
-
-    constexpr Config(
-        const Direction direction,
-        const Band band,
-        const bool amplify,
-        const bool ant_bias)
-        : tx(direction == Direction::Transmit),
-          rx(direction == Direction::Receive),
-          mix_bypass_en(band == Band::Mid),
-          tx_mix_bp_en((direction == Direction::Transmit) && (band == Band::Mid)),
-          rx_mix_bp_en((direction == Direction::Receive) && (band == Band::Mid)),
-          hpf_en(band == Band::High),
-          lpf_en(band == Band::Low),
-          amp_bypass_en(!amplify),
-          tx_amp_en((direction == Direction::Transmit) && amplify),
-          rx_amp_en((direction == Direction::Receive) && amplify),
-          ant_bias_en(ant_bias) {
-    }
-
-    void apply() const {
-        // TX/RX primary switches
-        if (!hackrf_r9) {
-            og_tx.setState(tx);
-        }
-
-        if (hackrf_r9) {
-            r9_rx.setState(rx);
-        } else {
-            og_rx.setState(rx);
-        }
-
-        // Apply primary RF path states
-        rx_mix_bypass.setState(mix_bypass_en);
-        tx_mix_bp.setState(tx_mix_bp_en);
-        rx_mix_bp.setState(rx_mix_bp_en);
-        hpf.setState(hpf_en);
-        lpf.setState(lpf_en);
-        amp_bypass.setState(amp_bypass_en);
-        tx_amp.setState(tx_amp_en);
-        rx_amp.setState(rx_amp_en);
-
-        tx_mix_bypass.setState(mix_bypass_en);
-        tx_amp_pwr.setState(tx_amp_en);
-        rx_amp_pwr.setState(rx_amp_en);
-        ant_bias.setState(ant_bias_en);
-    }
-};
-
-#endif /* PRALINE */
-
-} /* namespace */
-
 void Path::init() {
+    /* Set safe initial default states */
+    direction = Direction::Receive;
+    rf_amp_en = false;
+    ant_bias_en = false;
+
 #ifdef PRALINE
-    /* Set safe initial state: RX mode, mixer enabled, LPF on, amp off, no bias */
-    PralineConfig config = {
-        .tx_en = false,
-        .mix_bypass_en = true,
-        .lpf_en = true,
-        .rf_amp_en = false,
-        .ant_bias_en = false};
-    config.apply();
+    band = Band::Low;
 #else
-    update();
+    band = Band::Mid;
 #endif
+
+    update();
 }
 
 void Path::set_direction(const Direction new_direction) {
@@ -140,22 +50,21 @@ void Path::set_direction(const Direction new_direction) {
 
 void Path::set_band(const Band new_band) {
     band = new_band;
-    _band = new_band;
     update();
 }
 
 void Path::set_rf_amp(const bool new_rf_amp) {
-    rf_amp = new_rf_amp;
+    rf_amp_en = new_rf_amp;
     update();
 }
 
 void Path::set_ant_bias(const bool new_ant_bias) {
-    ant_bias = new_ant_bias;
+    ant_bias_en = new_ant_bias;
     update();
 }
 
 bool Path::get_ant_bias() const {
-    return ant_bias;
+    return ant_bias_en;
 }
 
 void Path::update() {
@@ -163,31 +72,60 @@ void Path::update() {
      * 0 ^ 1 => 1 & 0 = 0 ^ 0 = 0 (ignore change to 1)
      * 1 ^ 0 => 1 & 1 = 1 ^ 1 = 0 (allow change to 0)
      * 1 ^ 1 => 0 & 1 = 0 ^ 1 = 1 (no change) */
+    const bool is_tx = (direction == Direction::Transmit);
+
 #ifdef PRALINE
-    /* PRALINE RF path control:
-     * - tx_en: 1 for TX, 0 for RX
-     * - mix_bypass: 1 to enable RF path mixer bypass (GPIO3[2])
-     * - lpf_en: 1 for low band (< 2.4 GHz), 0 for high band
-     * - rf_amp_en: 1 to enable RF amplifier
-     */
+    // PRALINE specific RF path control directly applied to pins.
+    // Active-low pin inversion is handled internally inside setState().
 
-    PralineConfig config;
+    tx_enable.setState(is_tx);
 
-    config.tx_en = (direction == Direction::Transmit);
+    // On the PRALINE board, the mixer is used ONLY on the Low band.
+    // Since setState() internally handles the active-low (MIX_ENABLE_N) hardware inversion,
+    // we simply pass 'true' to enable the mixer on Low band, and 'false' for Mid/High bands.
 
-    /* BUGFIX: PRALINE enables mixer on Low band! */
-    config.mix_bypass_en = (band == Band::Low);
+    mix_bypass.setState(band == Band::Low);
 
-    config.lpf_en = (band == Band::Low);
-    config.rf_amp_en = rf_amp;
+    lpf.setState(band == Band::Low);
+    rf_amp_enable.setState(rf_amp_en);
+    ant_bias.setState(ant_bias_en);
 
-    config.ant_bias_en = ant_bias;
-
-    config.apply();
 #else
-    /* HackRF One RF path control - On the fly calculation */
-    Config config(direction, band, rf_amp, ant_bias);
-    config.apply();
+
+    const bool is_rx = (direction == Direction::Receive);
+
+    // HackRF One (OG & R9) RF path control
+    const bool mix_bypass_en = (band == Band::Mid);
+    const bool amplify = rf_amp_en;
+
+    // Primary TX/RX routing switches
+    if (!hackrf_r9) {
+        og_tx.setState(is_tx);
+    }
+
+    if (hackrf_r9) {
+        r9_rx.setState(is_rx);  // Single pin handles directional switching on R9
+    } else {
+        og_rx.setState(is_rx);
+    }
+
+    // RF path switch configuration matrix
+    rx_mix_bypass.setState(mix_bypass_en);
+    tx_mix_bp.setState(is_tx && mix_bypass_en);
+    rx_mix_bp.setState(is_rx && mix_bypass_en);
+
+    hpf.setState(band == Band::High);
+    lpf.setState(band == Band::Low);
+
+    amp_bypass.setState(!amplify);
+    tx_amp.setState(is_tx && amplify);
+    rx_amp.setState(is_rx && amplify);
+
+    tx_mix_bypass.setState(mix_bypass_en);
+    tx_amp_pwr.setState(is_tx && amplify);
+    rx_amp_pwr.setState(is_rx && amplify);
+
+    ant_bias.setState(ant_bias_en);
 #endif
 }
 
