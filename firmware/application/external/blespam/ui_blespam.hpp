@@ -40,6 +40,8 @@
 #include "log_file.hpp"
 #include "utility.hpp"
 
+#include <vector>
+
 using namespace ui;
 
 namespace ui::external_app::blespam {
@@ -53,7 +55,8 @@ enum ATK_TYPE {
     ATK_NAMESPAM,
     ATK_NAMERANDOM,
     ATK_ALL_SAFE,
-    ATK_ALL
+    ATK_ALL,
+    ATK_CUSTOM
 };
 enum PKT_TYPE {
     PKT_TYPE_INVALID_TYPE,
@@ -132,7 +135,8 @@ class BLESpamView : public View {
          {"NameSpam", 5},
          {"NameRandom", 6},
          {"All-Safe", 7},
-         {"All", 8}}};
+         {"All", 8},
+         {"Custom", 9}}};
 
     bool is_running{false};
 
@@ -143,6 +147,10 @@ class BLESpamView : public View {
 
     bool randomMac{true};
     bool randomDev{true};
+
+    std::vector<std::string> custom_names_{};  // names loaded from SD card for Custom mode
+    bool custom_loaded_{false};                // true once a load attempt has been made
+    size_t custom_index_{0};                   // next name to use, cycles through the list
 
     uint8_t channel_number = 37;
     char mac[13] = "010203040407";
@@ -156,7 +164,10 @@ class BLESpamView : public View {
     void createIosPacket(bool crash);
     void createSamsungPacket();
     void createWindowsPacket();
+    void buildNamePacket(const char* name);  // shared name advertisement builder (NameSpam / Custom)
     void createNameSpamPacket();
+    void createCustomPacket();
+    void load_custom_names();  // read device names from /BLESPAM/NAME.txt (one per line)
     void createNameRandomPacket();
     void createAnyPacket(bool safe);
     void createPacket(ATK_TYPE attackType);
