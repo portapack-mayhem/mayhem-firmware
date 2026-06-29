@@ -391,14 +391,6 @@ set(MODE_CPPSRC
 DeclareTargets(PAMA am_audio)
 
 
-### VOR TX
-
-set(MODE_CPPSRC
-	proc_vor_tx.cpp
-)
-DeclareTargets(PVTX vor_tx)
-
-
 ### Capture
 
 set(MODE_CPPSRC
@@ -517,6 +509,13 @@ DeclareTargets(PFUT flash_utility)
 ### Place external app and disabled images below so they don't get added to the firmware
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
+
+### VOR TX
+
+set(MODE_CPPSRC
+	proc_vor_tx.cpp
+)
+DeclareTargets(PVTX vor_tx)
 
 ### FLEX RX
 
