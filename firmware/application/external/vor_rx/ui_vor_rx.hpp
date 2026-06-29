@@ -49,21 +49,21 @@ class VorLogger {
 };
 
 class VorCdiIndicator : public Widget {
-    public:
-     VorCdiIndicator(Point position);
+   public:
+    VorCdiIndicator(Point position);
 
-     void set_course(uint16_t course_deg);
-     void set_radial(uint16_t radial_deg);
-     void set_valid(bool valid);
+    void set_course(uint16_t course_deg);
+    void set_radial(uint16_t radial_deg);
+    void set_valid(bool valid);
 
-     void paint(Painter& painter) override;
+    void paint(Painter& painter) override;
 
-    private:
-     static float normalize_signed_degrees(float degrees);
+   private:
+    static float normalize_signed_degrees(float degrees);
 
-     uint16_t course_deg_{0};
-     uint16_t radial_deg_{0};
-     bool valid_{false};
+    uint16_t course_deg_{0};
+    uint16_t radial_deg_{0};
+    bool valid_{false};
 };
 
 class VorRxView : public View {

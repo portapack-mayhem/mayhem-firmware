@@ -517,6 +517,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PVTX vor_tx)
 
+### VOR RX
+
+set(MODE_CPPSRC
+	proc_vor_rx.cpp
+)
+DeclareTargets(PVRX vor_rx)
+
 ### FLEX RX
 
 set(MODE_CPPSRC

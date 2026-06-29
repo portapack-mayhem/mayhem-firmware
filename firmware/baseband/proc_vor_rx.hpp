@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2026 PortaPack Mayhem
  *
  * This file is part of PortaPack.
  *
@@ -19,8 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_AM_AUDIO_H__
-#define __PROC_AM_AUDIO_H__
+#ifndef __PROC_VOR_RX_H__
+#define __PROC_VOR_RX_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
@@ -33,18 +34,27 @@
 #include "audio_output.hpp"
 #include "spectrum_collector.hpp"
 
+#include <array>
 #include <cstdint>
+#include <cmath>
 
-class NarrowbandAMAudio : public BasebandProcessor {
+// Standalone VOR receiver baseband.
+// Demodulates the AM channel at 48 kHz (so the 9960 Hz subcarrier stays
+// representable) and decodes the 30 Hz reference vs. variable phase to derive
+// the radial. Shipped as an external baseband alongside the VOR RX app so it
+// consumes no internal flash.
+class VorRx : public BasebandProcessor {
    public:
-    NarrowbandAMAudio();  // Phase 2: Explicit constructor for manual thread start
+    VorRx();
 
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
    private:
     static constexpr size_t baseband_fs = 3072000;
-    static constexpr size_t decim_2_decimation_factor = 4;
+    // VOR runs the channel at 48 kHz (decim_2 factor 1) instead of the AM audio
+    // 12 kHz, so the 9960 Hz subcarrier is below Nyquist.
+    static constexpr size_t decim_2_decimation_factor = 1;
     static constexpr size_t channel_filter_decimation_factor = 1;
 
     std::array<complex16_t, 512> dst{};
@@ -64,12 +74,30 @@ class NarrowbandAMAudio : public BasebandProcessor {
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
     bool configured{false};
+    bool vor_enabled{false};
 
-    // bool modulation_ssb = false;  // Origianlly we only had 2 AM demod types {DSB = 0, SSB = 1} , and we could handle it with bool var , 1 bit.
-    int8_t modulation_ssb = 0;  // Now we have 3 AM demod types we will send now index integer  {DSB = 0, SSB = 1, SSB_FM = 2}
+    static constexpr float vor_reference_hz{30.0f};
+    static constexpr float vor_subcarrier_hz{9960.0f};
+    static constexpr uint32_t vor_window_samples{4800};  // 100 ms at 48 kHz
+
+    struct PhaseOscillator {
+        float sin_v{0.0f};
+        float cos_v{1.0f};
+        float step_sin{0.0f};
+        float step_cos{1.0f};
+
+        void configure(float frequency_hz, float sample_rate_hz);
+        float cosine() const { return cos_v; }
+        float sine() const { return sin_v; }
+        void advance();
+    } vor_reference_osc{}, vor_subcarrier_osc{};
+    float vor_ref_i{0.0f};
+    float vor_ref_q{0.0f};
+    float vor_var_i{0.0f};
+    float vor_var_q{0.0f};
+    uint32_t vor_sample_count{0};
+
     dsp::demodulate::AM demod_am{};
-    dsp::demodulate::SSB demod_ssb{};
-    dsp::demodulate::SSB_FM demod_ssb_fm{};  // added for Wfax mode.
     FeedForwardCompressor audio_compressor{};
     AudioOutput audio_output{};
 
@@ -78,17 +106,18 @@ class NarrowbandAMAudio : public BasebandProcessor {
     /* NB: Threads should be the last members in the class definition. */
 #ifdef PRALINE
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive,
-                                   /*auto_start*/ false};  // Phase 2: Manual start
-    RSSIThread rssi_thread{/*auto_start*/ false};          // Phase 2: Manual start
+                                   /*auto_start*/ false};
+    RSSIThread rssi_thread{/*auto_start*/ false};
 #else
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 #endif
 
     void configure(const AMConfigureMessage& message);
-    void capture_config(const CaptureConfigMessage& message);
-
-    buffer_f32_t demodulate(const buffer_c16_t& channel);
+    void configure_vor(const VorRxConfigureMessage& message);
+    void process_vor_metrics(const buffer_f32_t& audio);
+    void send_vor_status(uint16_t phase_deg, uint16_t radial_deg, uint16_t ref_level, uint16_t var_level, uint8_t quality, bool valid, bool to_from);
+    static uint16_t normalize_degrees(float degrees);
 };
 
-#endif /*__PROC_AM_AUDIO_H__*/
+#endif /*__PROC_VOR_RX_H__*/

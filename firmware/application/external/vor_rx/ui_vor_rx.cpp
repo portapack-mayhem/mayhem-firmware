@@ -169,7 +169,7 @@ void VorRxView::focus() {
 }
 
 void VorRxView::start_receiver() {
-    baseband::run_image(portapack::spi_flash::image_tag_am_audio);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     baseband::set_vor_config(true);
 
     receiver_model.set_hidden_offset(0);
