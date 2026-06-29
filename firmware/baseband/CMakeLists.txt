@@ -391,6 +391,14 @@ set(MODE_CPPSRC
 DeclareTargets(PAMA am_audio)
 
 
+### VOR TX
+
+set(MODE_CPPSRC
+	proc_vor_tx.cpp
+)
+DeclareTargets(PVTX vor_tx)
+
+
 ### Capture
 
 set(MODE_CPPSRC

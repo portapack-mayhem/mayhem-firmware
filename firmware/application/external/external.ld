@@ -112,6 +112,7 @@ MEMORY
     ram_external_app_hard_reset            (rwx) : org = 0xAE070000, len = 32k
     ram_external_app_secplustx             (rwx) : org = 0xAE080000, len = 32k
     ram_external_app_vor_rx                (rwx) : org = 0xAE090000, len = 32k
+    ram_external_app_vor_tx                (rwx) : org = 0xAE0A0000, len = 32k
 }
 
 SECTIONS
@@ -397,6 +398,12 @@ SECTIONS
         KEEP(*(.external_app.app_vor_rx.application_information));
         *(*ui*external_app*vor_rx*);
     } > ram_external_app_vor_rx
+
+    .external_app_vor_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_vor_tx.application_information));
+        *(*ui*external_app*vor_tx*);
+    } > ram_external_app_vor_tx
 
     .external_app_breakout : ALIGN(4) SUBALIGN(4)
     {

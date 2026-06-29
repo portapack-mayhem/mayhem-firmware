@@ -164,6 +164,7 @@ class Message {
         EPIRBRXConfig = 106,
         VorRxConfigure = 107,
         VorRxStatusData = 108,
+        VorTxConfigure = 109,
         MAX
     };
 
@@ -1938,6 +1939,23 @@ class VorRxStatusDataMessage : public Message {
     uint8_t quality{0};
     bool valid{false};
     bool to_from{false};
+};
+
+class VorTxConfigureMessage : public Message {
+   public:
+    constexpr VorTxConfigureMessage(
+        uint16_t radial_deg = 0,
+        bool ident_enabled = true,
+        bool enabled = true)
+        : Message{ID::VorTxConfigure},
+          radial_deg{radial_deg},
+          ident_enabled{ident_enabled},
+          enabled{enabled} {
+    }
+
+    uint16_t radial_deg{0};
+    bool ident_enabled{true};
+    bool enabled{true};
 };
 
 class FlexTosendMessage : public Message {
