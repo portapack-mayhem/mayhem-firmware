@@ -162,6 +162,8 @@ class Message {
         ToneDetectConfig = 104,
         FlexTosend = 105,
         EPIRBRXConfig = 106,
+        VorRxConfigure = 107,
+        VorRxStatusData = 108,
         MAX
     };
 
@@ -1897,6 +1899,45 @@ class ToneDetectConfigureMessage : public Message {
           ctcss_freq_x10{ctcss_freq_x10} {}
     uint8_t squelch_level{0};
     uint32_t ctcss_freq_x10{0};  // CTCSS frequency × 10 (e.g. 1000 = 100.0 Hz); 0 = None
+};
+
+class VorRxConfigureMessage : public Message {
+   public:
+    constexpr VorRxConfigureMessage(bool enabled = true)
+        : Message{ID::VorRxConfigure},
+          enabled{enabled} {
+    }
+
+    bool enabled{true};
+};
+
+class VorRxStatusDataMessage : public Message {
+   public:
+    constexpr VorRxStatusDataMessage(
+        uint16_t phase_deg = 0,
+        uint16_t radial_deg = 0,
+        uint16_t reference_level = 0,
+        uint16_t variable_level = 0,
+        uint8_t quality = 0,
+        bool valid = false,
+        bool to_from = false)
+        : Message{ID::VorRxStatusData},
+          phase_deg{phase_deg},
+          radial_deg{radial_deg},
+          reference_level{reference_level},
+          variable_level{variable_level},
+          quality{quality},
+          valid{valid},
+          to_from{to_from} {
+    }
+
+    uint16_t phase_deg{0};
+    uint16_t radial_deg{0};
+    uint16_t reference_level{0};
+    uint16_t variable_level{0};
+    uint8_t quality{0};
+    bool valid{false};
+    bool to_from{false};
 };
 
 class FlexTosendMessage : public Message {

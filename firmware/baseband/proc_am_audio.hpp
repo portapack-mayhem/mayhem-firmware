@@ -34,6 +34,7 @@
 #include "spectrum_collector.hpp"
 
 #include <cstdint>
+#include <cmath>
 
 class NarrowbandAMAudio : public BasebandProcessor {
    public:
@@ -64,6 +65,27 @@ class NarrowbandAMAudio : public BasebandProcessor {
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
     bool configured{false};
+    bool vor_enabled{false};
+    static constexpr float vor_reference_hz{30.0f};
+    static constexpr float vor_subcarrier_hz{9960.0f};
+    static constexpr uint32_t vor_window_samples{4800};  // 100 ms at 48 kHz
+
+    struct PhaseOscillator {
+        float sin_v{0.0f};
+        float cos_v{1.0f};
+        float step_sin{0.0f};
+        float step_cos{1.0f};
+
+        void configure(float frequency_hz, float sample_rate_hz);
+        float cosine() const { return cos_v; }
+        float sine() const { return sin_v; }
+        void advance();
+    } vor_reference_osc{}, vor_subcarrier_osc{};
+    float vor_ref_i{0.0f};
+    float vor_ref_q{0.0f};
+    float vor_var_i{0.0f};
+    float vor_var_q{0.0f};
+    uint32_t vor_sample_count{0};
 
     // bool modulation_ssb = false;  // Origianlly we only had 2 AM demod types {DSB = 0, SSB = 1} , and we could handle it with bool var , 1 bit.
     int8_t modulation_ssb = 0;  // Now we have 3 AM demod types we will send now index integer  {DSB = 0, SSB = 1, SSB_FM = 2}
@@ -86,7 +108,11 @@ class NarrowbandAMAudio : public BasebandProcessor {
 #endif
 
     void configure(const AMConfigureMessage& message);
+    void configure_vor(const VorRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
+    void process_vor_metrics(const buffer_f32_t& audio);
+    void send_vor_status(uint16_t phase_deg, uint16_t radial_deg, uint16_t ref_level, uint16_t var_level, uint8_t quality, bool valid, bool to_from);
+    static uint16_t normalize_degrees(float degrees);
 
     buffer_f32_t demodulate(const buffer_c16_t& channel);
 };

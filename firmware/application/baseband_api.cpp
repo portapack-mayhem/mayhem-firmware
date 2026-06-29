@@ -361,6 +361,11 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_vor_config(bool enabled) {
+    const VorRxConfigureMessage message{enabled};
+    send_message(&message);
+}
+
 void set_flex_config() {
     const FlexConfigureMessage message{};
     send_message(&message);
