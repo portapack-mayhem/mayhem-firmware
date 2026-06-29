@@ -19,10 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "external_app.hpp"
 #include "ui.hpp"
-#include "ui_navigation.hpp"
 #include "ui_vor_rx.hpp"
+#include "ui_navigation.hpp"
+#include "external_app.hpp"
 
 namespace ui::external_app::vor_rx {
 

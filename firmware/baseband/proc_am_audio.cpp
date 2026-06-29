@@ -23,6 +23,7 @@
 
 #include "audio_output.hpp"
 #include "audio_dma.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "event_m4.hpp"
 
