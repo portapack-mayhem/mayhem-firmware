@@ -366,7 +366,7 @@ bool BLESpamView::read_next_custom_name() {
             continue;                          // skip blank lines / CRLF pairs
         }
 
-        if (custom_name_.size() < 19)          // clamp; keep scanning rest of long line
+        if (custom_name_.size() < 19)  // clamp; keep scanning rest of long line
             custom_name_.push_back(c);
     }
     return true;
