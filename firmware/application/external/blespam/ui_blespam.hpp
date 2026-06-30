@@ -53,9 +53,9 @@ enum ATK_TYPE {
     ATK_SAMSUNG,
     ATK_NAMESPAM,
     ATK_NAMERANDOM,
+    ATK_CUSTOM,
     ATK_ALL_SAFE,
-    ATK_ALL,
-    ATK_CUSTOM
+    ATK_ALL
 };
 enum PKT_TYPE {
     PKT_TYPE_INVALID_TYPE,
@@ -133,9 +133,9 @@ class BLESpamView : public View {
          {"Samsung", 4},
          {"NameSpam", 5},
          {"NameRandom", 6},
-         {"All-Safe", 7},
-         {"All", 8},
-         {"Custom", 9}}};
+         {"NameCustom", 7},
+         {"All-Safe", 8},
+         {"All", 9}}};
 
     bool is_running{false};
 
