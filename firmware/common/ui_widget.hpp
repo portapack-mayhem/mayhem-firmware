@@ -519,6 +519,7 @@ class NewButton : public Widget {
     void set_text(const std::string& value);
     void set_color(Color value);
     void set_bg_color(Color value);
+    void set_progress_color(Color value);
     void set_vertical_center(bool value);
     std::string text() const;
     const Bitmap* bitmap();
@@ -538,6 +539,8 @@ class NewButton : public Widget {
     virtual Style paint_style();
     Color color_;
     Color bg_color_{Theme::getInstance()->bg_medium->background};
+    Color progress_color_{};
+    bool has_progress_color_{false};  // only grid buttons draw the progress block
 
    private:
     std::string text_;

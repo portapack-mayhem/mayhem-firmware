@@ -1364,6 +1364,12 @@ void NewButton::set_bg_color(Color color) {
     set_dirty();
 }
 
+void NewButton::set_progress_color(Color color) {
+    progress_color_ = color;
+    has_progress_color_ = true;
+    set_dirty();
+}
+
 void NewButton::set_vertical_center(bool value) {
     vertical_center_ = value;
     set_dirty();
@@ -1449,6 +1455,12 @@ void NewButton::paint(Painter& painter) {
             }
         }
     }
+
+    // Development-progress indicator: 6x6 block in the bottom-left corner (grid buttons only).
+    if (has_progress_color_)
+        painter.fill_rectangle(
+            {r.left() + 2, r.top() + r.height() - 8, 6, 6},
+            progress_color_);
 }
 
 Style NewButton::paint_style() {
