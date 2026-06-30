@@ -196,6 +196,7 @@ SystemStatusView::SystemStatusView(
     rtc_battery_workaround();
 
     ui::load_blacklist();
+    ui::load_app_colors();
 
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
