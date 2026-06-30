@@ -67,12 +67,17 @@ static uint8_t hexToByte(char high, char low) {
     return (hexval(high) << 4) | hexval(low);
 }
 
-std::string EPIRBTXAppView::frame_to_hex_string(bool start) {
-    return beacon_to_hex_string(epirb_tx_message.data, start);
+std::string EPIRBTXAppView::frame_to_hex_string_range(int offset_bytes, int count_bytes) {
+    return beacon_to_hex_string_range(epirb_tx_message.data, offset_bytes, count_bytes);
 }
 
 void EPIRBTXAppView::generate_frame(BeaconParams params) {
-    epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data, params);
+    if (format_sgb) {
+        uint32_t elapsed_s = sgb_start_time > 0 ? (chTimeNow() - sgb_start_time) / 1000 : 0;
+        epirb_tx_message.data_len = generate_sgb_beacon(epirb_tx_message.data, params, elapsed_s);
+    } else {
+        epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data, params);
+    }
 }
 
 void EPIRBTXAppView::on_timer() {
@@ -167,9 +172,16 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         // In manual mode, generate frame content for current beacon params
         generate_frame(beacon_params);
         // Update frame content on display
-        text_frame.set(frame_to_hex_string(true));
-        text_frame_end.set(frame_to_hex_string(false));
-        text_frame_sgb_end.set("");
+        if (format_sgb) {
+            // SGB: 32 bytes across 3 lines (BEACON_HEXA_SPLIT_SGB = 22 hex chars = 11 bytes)
+            text_frame.set(frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_SGB / 2));
+            text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB  / 2, BEACON_HEXA_SPLIT_SGB / 2));
+            text_frame_sgb_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB, (BEACON_HEXA_SPLIT_SGB / 2)-1));
+        } else {
+            text_frame.set(frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_FGB / 2));
+            text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_FGB / 2, BEACON_HEXA_SPLIT_FGB / 2));
+            text_frame_sgb_end.set("");
+        }
     }
     if (updateConfig && send_on_change && loop) {
         // Need to update config / send new beacon
@@ -207,6 +219,13 @@ void EPIRBTXAppView::set_tx_button_state(bool active) {
 }
 
 void EPIRBTXAppView::start_tx() {
+    if (format_sgb && !mode_file) {
+        // Track start time for the SGB rotating field elapsed-time counter
+        if (!transmitting) sgb_start_time = chTimeNow();
+        // update_frame regenerates the SGB frame with current elapsed time and refreshes display
+        update_frame(false);
+        set_dirty();
+    }
     last_frame_time = chTimeNow();
     update_config();
     loop = loop_enabled;
@@ -319,6 +338,7 @@ void EPIRBTXAppView::update_mode() {
     options_beacon_type.hidden(mode_file);
     options_beacon_protocol.hidden(mode_file);
     options_beacon_country.hidden(mode_file);
+    options_format.hidden(mode_file);
     text_field_beacon_locator.hidden(mode_file);
 }
 
@@ -332,6 +352,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_beacon_type,
                   &options_beacon_type,
                   &options_beacon_protocol,
+                  &options_format,
                   &text_beacon_country,
                   &options_beacon_country,
                   &checkbox_beacon_internal,
@@ -386,6 +407,7 @@ EPIRBTXAppView::EPIRBTXAppView(
     init_from_locator(beacon_params.location);
     update_mode();
     update_location();
+    options_format.set_by_value(format_sgb ? 1 : 0);
 
     options_mode.on_change = [this](size_t, OptionsField::value_t value) {
         mode_file = (((BeaconMode)value) == BeaconMode::FILE);
@@ -411,6 +433,13 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_beacon_country.on_change = [this](size_t, OptionsField::value_t v) {
         beacon_params.country = v;
         beacon_country = v;
+        update_frame();
+        set_dirty();
+    };
+
+    options_format.on_change = [this](size_t, OptionsField::value_t v) {
+        format_sgb = (v == 1);
+        sgb_start_time = 0;  // reset elapsed counter when format changes
         update_frame();
         set_dirty();
     };
