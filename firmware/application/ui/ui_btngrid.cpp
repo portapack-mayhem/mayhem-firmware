@@ -31,6 +31,9 @@
 
 namespace ui {
 
+// Maps an app display name to its config.ini icon color; grey if unlisted. Defined with the loader below.
+static Color app_color_from_config(const std::string& app_name);
+
 /* BtnGridView **************************************************************/
 
 BtnGridView::BtnGridView(
@@ -227,7 +230,8 @@ void BtnGridView::update_items() {
             item->hidden(false);
             item->set_text(menu_items[i + offset].text);
             item->set_bitmap(menu_items[i + offset].bitmap);
-            item->set_color(menu_items[i + offset].color);
+            item->set_color(app_color_from_config(menu_items[i + offset].text));  // icon color from config.ini
+            item->set_progress_color(menu_items[i + offset].color);               // progress block keeps original color
             item->set_bg_color(bg_color);
             item->on_select = menu_items[i + offset].on_select;
             item->set_dirty();
@@ -417,6 +421,55 @@ bool BtnGridView::blacklisted_app(GridItem new_item) {
         return false;
 
     return blacklist_data.find(app_name) != std::string::npos;
+}
+
+/* App icon color overrides ******************************************/
+
+std::string app_colors_data{};
+
+// Load config.ini into a buffer bracketed by '\n' so every record reads as "\nname,c".
+void load_app_colors() {
+    File f;
+    auto error = f.open(APP_COLORS);
+    if (error)
+        return;
+    // Resize to fit file + 2 newlines, prefilled with '\n' (first byte stays as the leading delimiter)
+    app_colors_data.assign(f.size() + 2, '\n');
+    if (f.read(app_colors_data.data() + 1, f.size())) {
+        // Normalize CR to '\n' so both LF and CRLF files parse the same
+        for (char& c : app_colors_data)
+            if (c == '\r') c = '\n';
+    } else {
+        app_colors_data.clear();  // Clear if read fails
+    }
+}
+
+// Find "\nname," and translate the following abbrev char to a color. Unlisted/undefined -> grey.
+static Color app_color_from_config(const std::string& app_name) {
+    if (app_colors_data.size() < app_name.size() + 3)
+        return Color::grey();
+
+    const std::string key = "\n" + app_name + ",";
+    const auto pos = app_colors_data.find(key);
+    if (pos == std::string::npos)
+        return Color::grey();
+
+    const size_t ci = pos + key.size();
+    if (ci >= app_colors_data.size())
+        return Color::grey();
+
+    switch (app_colors_data[ci]) {
+        case 'r': return Color::red();
+        case 'g': return Color::green();
+        case 'b': return Color::blue();
+        case 'y': return Color::yellow();
+        case 'c': return Color::cyan();
+        case 'm': return Color::magenta();
+        case 'o': return Color::orange();
+        case 'p': return Color::purple();
+        case 'w': return Color::white();
+        default:  return Color::grey();
+    }
 }
 
 void BtnGridView::page_up() {

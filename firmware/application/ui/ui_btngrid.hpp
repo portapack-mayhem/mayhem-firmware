@@ -40,6 +40,9 @@
 // file used for listing apps to hide from menu
 #define BLACKLIST u"/SETTINGS/blacklist"
 
+// per-app icon color overrides, one "app_display_name,abbrev" per line (SD root)
+#define APP_COLORS u"/config.ini"
+
 namespace ui {
 
 struct GridItem {
@@ -52,6 +55,7 @@ struct GridItem {
 };
 
 void load_blacklist();
+void load_app_colors();
 
 class BtnGridView : public View {
    public:
