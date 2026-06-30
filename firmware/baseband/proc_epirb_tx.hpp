@@ -26,6 +26,7 @@
 #include "baseband_thread.hpp"
 #include "portapack_shared_memory.hpp"
 #include "tonesets.hpp"
+#include <algorithm>
 #include <cmath>
 
 /**
@@ -42,8 +43,12 @@ class EPIRBTXProcessor : public BasebandProcessor {
    private:
     // True when the processor has received a configuration message from the app
     bool configured{false};
-    // True when in BPSK transmission mode, false for AM transmission mode
-    bool mode_bpsk{false};
+    // True when in 406 MHz transmission mode, false for AM transmission mode
+    bool mode_406{false};
+    // True when current 406 frame is a 2nd generation DSSS-OQPSK frame
+    bool mode_sgb{false};
+    // True when in self-test mode (detected from bit 5 of message.data)
+    bool mode_sgb_selftest{false};
 
     // True when the transmission has to be stopped (e.g. at the end of a frame)
     bool end_of_transmission{};
@@ -55,10 +60,15 @@ class EPIRBTXProcessor : public BasebandProcessor {
     // Configured post-count value: used to continue the carrier for config_post_count samples after the end of a frame
     uint32_t config_post_count = 0;
 
-    // Data of the frame to send in BPSK mode
-    uint8_t frame_data[18]{0};
-    // Size of the frame to send in BPSK mode
+    // Data of the frame to send in 406 mode (FGB BPSK or SGB DSSS-OQPSK)
+    static constexpr uint8_t frame_data_max_len = 32;
+    static constexpr uint8_t frame_data_fgb_max_len = 18;
+    static constexpr uint8_t frame_data_sgb_len = 32;  // ceil(250 / 8)
+    uint8_t frame_data[frame_data_max_len]{0};
+    // Size of the frame to send in bytes
     uint8_t frame_data_len = 0;
+    // Size of the frame payload in bits
+    uint16_t frame_sgb_bits_len = 0;
 
     // BPSK parameters: Target phase +/-1.1 RAD as per COSPAS/SARSAT specifications
     static constexpr float phase_rad = 1.1f;
@@ -88,6 +98,40 @@ class EPIRBTXProcessor : public BasebandProcessor {
     uint8_t current_bit = 0;
     // Position in the current manchester bit
     bool manchester_half = false;  // false = first half
+
+    // 2G SGB DSSS-OQPSK parameters
+    static constexpr uint16_t sgb_message_bits = 256; // 250 bits of data + 6 bits padding
+    static constexpr uint32_t sgb_chip_rate = 38400;
+    static constexpr uint32_t sgb_chips_per_bit = 256;
+    static constexpr uint32_t sgb_preamble_bits_per_channel = 25;
+    static constexpr uint32_t sgb_bits_per_channel = 150;
+    static constexpr uint32_t sgb_segment_chips = 38400;
+    static constexpr uint32_t sgb_samples_per_chip = TONES_SAMPLERATE / sgb_chip_rate;
+    static constexpr uint32_t sgb_half_chip_samples = sgb_samples_per_chip / 2;
+    // SGB burst duration is exactly 1 second.
+    static constexpr uint32_t sgb_total_samples = sgb_segment_chips * sgb_samples_per_chip;
+    static constexpr int8_t sgb_chip_amplitude = 90;
+
+    static constexpr uint32_t sgb_init_normal_i = 0x1;
+    static constexpr uint32_t sgb_init_normal_q = 0x1AC1FC;
+    static constexpr uint32_t sgb_init_selftest_i = 0x52C9E0;
+    static constexpr uint32_t sgb_init_selftest_q = 0x3D2A50;
+
+    struct SGBChannelState {
+        uint32_t prn_state = 1;
+        uint32_t chip_index = 0;
+        uint32_t sample_in_chip = 0;
+        int8_t chip_level = 0;
+    };
+
+    SGBChannelState sgb_i{};
+    SGBChannelState sgb_q{};
+    uint32_t sgb_sample_counter = 0;
+
+    uint8_t get_frame_bit(uint16_t bit_pos) const;
+    int8_t compute_sgb_chip_level(SGBChannelState& channel, bool q_channel);
+    int8_t sample_sgb_channel(SGBChannelState& channel, bool q_channel);
+    void init_sgb_channel(SGBChannelState& channel, uint32_t initial_state);
 
     // 127.5 AM signal parameters
     static const uint32_t sweep_rate = 3;  // 3 Hz

@@ -1128,11 +1128,11 @@ class SigGenToneMessage : public Message {
 
 class EPIRBTXDataMessage : public Message {
    public:
-    static constexpr uint8_t max_len = 18;
+    static constexpr uint8_t max_len = 32;
     constexpr EPIRBTXDataMessage()
         : Message{ID::EPIRBTXData} {
     }
-    bool mode_bpsk = true;
+    bool mode_406 = true;
     uint8_t data[max_len]{0};
     uint8_t data_len = 0;
     uint32_t pre_count = 0;

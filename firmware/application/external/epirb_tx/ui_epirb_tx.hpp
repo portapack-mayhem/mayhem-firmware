@@ -33,9 +33,12 @@
 #include "message.hpp"
 #include "tonesets.hpp"
 
-#define BEACON_HEXA_SIZE 36
-#define BEACON_HEXA_HALF_SIZE 18
-#define BEACON_SIZE 18
+#define BEACON_SIZE_FGB 18
+#define BEACON_SIZE_SGB 32
+#define BEACON_HEXA_SIZE_FGB BEACON_SIZE_FGB*2
+#define BEACON_HEXA_SIZE_SGB BEACON_SIZE_SGB*2
+#define BEACON_HEXA_SPLIT_FGB 18
+#define BEACON_HEXA_SPLIT_SGB 22
 
 #define AM_TEST_FREQUENCY 121375000
 #define AM_REAL_FREQUENCY 121500000
@@ -49,6 +52,7 @@
 #define BPSK_FREQUENCY_K 406052000
 #define BPSK_FREQUENCY_N 406061000
 #define BPSK_FREQUENCY_O 406064000
+#define BPSK_FREQUENCY_SGB 406050000
 
 namespace ui::external_app::epirb_tx {
 
@@ -85,7 +89,8 @@ enum class BpskChannel {
     K = 6,
     N = 7,
     O = 8,
-    MANUAL = 10
+    MANUAL = 10,
+    SGB = 100
 };
 
 struct Location {
@@ -337,6 +342,9 @@ class EPIRBTXAppView : public View {
     Text text_frame_end{
         {UI_POS_X(6), UI_POS_Y(7), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
         ""};
+    Text text_frame_sgb_end{
+        {UI_POS_X(6), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
+        ""};
 
     Text text_timeout{
         {UI_POS_X(14), UI_POS_Y(10), UI_POS_WIDTH(2), UI_POS_DEFAULT_HEIGHT},
@@ -389,6 +397,7 @@ class EPIRBTXAppView : public View {
          {"406.052 MHz (K)", (uint8_t)BpskChannel::K},
          {"406.061 MHz (N)", (uint8_t)BpskChannel::N},
          {"406.064 MHz (O)", (uint8_t)BpskChannel::O},
+         {"406.050 MHz (SGB)", (uint8_t)BpskChannel::SGB},
          {"Manual", (uint8_t)BpskChannel::MANUAL}}};
 
     // Transmitter view
