@@ -32,7 +32,6 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
-#include "file.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -333,49 +332,54 @@ void BLESpamView::createNameSpamPacket() {
     buildNamePacket(names[rand() % 9]);
 }
 
-// Loads device names from /BLESPAM/NAME.txt (one name per line) into custom_names_.
-// Done once per app session; on any failure the list is left empty.
-void BLESpamView::load_custom_names() {
-    custom_loaded_ = true;  // attempt only once, even on failure
-    custom_names_.clear();
+// Opens /BLESPAM/NAME.txt once and keeps it open for the session.
+void BLESpamView::open_custom_file() {
+    custom_loaded_ = true;  // attempt only once
+    auto open_error = custom_file_.open(u"/BLESPAM/NAME.txt");
+    custom_file_valid_ = !open_error;  // false -> caller falls back to NameSpam
+}
 
-    File name_file;
-    auto open_error = name_file.open(u"/BLESPAM/NAME.txt");
-    if (open_error) return;  // file missing or unreadable -> list stays empty
+// Reads the next line into custom_name_ (clamped to 19 chars), advancing the
+// file position. At end of file it seeks back to the start to cycle. Returns
+// false if the file holds no usable name. Only one line is ever held in RAM.
+bool BLESpamView::read_next_custom_name() {
+    if (!custom_file_valid_) return false;
 
-    // Read the whole (small) file, then split it into lines.
-    std::string content;
-    char read_buffer[128];
+    custom_name_.clear();
+    bool wrapped = false;
+    char c;
+
     while (true) {
-        auto read_result = name_file.read(read_buffer, sizeof(read_buffer));
-        if (read_result.is_error() || read_result.value() == 0) break;
-        content.append(read_buffer, read_result.value());
-    }
+        auto read_result = custom_file_.read(&c, 1);
+        if (read_result.is_error()) return false;
 
-    std::string line;
-    for (char c : content) {
-        if (c == '\n' || c == '\r') {
-            if (!line.empty()) {
-                custom_names_.push_back(line);
-                line.clear();
-            }
-        } else {
-            line.push_back(c);
+        if (read_result.value() == 0) {        // end of file
+            if (!custom_name_.empty()) break;  // use the final line
+            if (wrapped) return false;         // no usable name in file
+            custom_file_.seek(0);              // loop back to the first line
+            wrapped = true;
+            continue;
         }
+
+        if (c == '\n' || c == '\r') {
+            if (!custom_name_.empty()) break;  // got a complete line
+            continue;                          // skip blank lines / CRLF pairs
+        }
+
+        if (custom_name_.size() < 19)          // clamp; keep scanning rest of long line
+            custom_name_.push_back(c);
     }
-    if (!line.empty()) custom_names_.push_back(line);  // last line without trailing newline
+    return true;
 }
 
 void BLESpamView::createCustomPacket() {
-    if (!custom_loaded_) load_custom_names();
+    if (!custom_loaded_) open_custom_file();
 
-    if (custom_names_.empty()) {  // no file / empty file -> fall back to built-in names
+    if (!read_next_custom_name()) {  // no file / unreadable / empty -> fall back
         createNameSpamPacket();
         return;
     }
-    if (custom_index_ >= custom_names_.size()) custom_index_ = 0;  // cycle back to the first name
-    buildNamePacket(custom_names_[custom_index_].c_str());
-    custom_index_++;
+    buildNamePacket(custom_name_.c_str());
 }
 
 char BLESpamView::randomNameChar() {

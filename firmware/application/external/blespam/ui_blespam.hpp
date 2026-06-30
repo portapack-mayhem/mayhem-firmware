@@ -39,8 +39,7 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
-
-#include <vector>
+#include "file.hpp"
 
 using namespace ui;
 
@@ -148,9 +147,10 @@ class BLESpamView : public View {
     bool randomMac{true};
     bool randomDev{true};
 
-    std::vector<std::string> custom_names_{};  // names loaded from SD card for Custom mode
-    bool custom_loaded_{false};                // true once a load attempt has been made
-    size_t custom_index_{0};                   // next name to use, cycles through the list
+    File custom_file_{};            // kept open while in Custom mode
+    std::string custom_name_{};     // holds only the current name (clamped)
+    bool custom_loaded_{false};     // true once an open attempt has been made
+    bool custom_file_valid_{false};  // true if /BLESPAM/NAME.txt opened successfully
 
     uint8_t channel_number = 37;
     char mac[13] = "010203040407";
@@ -167,7 +167,8 @@ class BLESpamView : public View {
     void buildNamePacket(const char* name);  // shared name advertisement builder (NameSpam / Custom)
     void createNameSpamPacket();
     void createCustomPacket();
-    void load_custom_names();  // read device names from /BLESPAM/NAME.txt (one per line)
+    void open_custom_file();         // open /BLESPAM/NAME.txt once (one name per line)
+    bool read_next_custom_name();    // read next line into custom_name_, looping at EOF
     void createNameRandomPacket();
     void createAnyPacket(bool safe);
     void createPacket(ATK_TYPE attackType);
