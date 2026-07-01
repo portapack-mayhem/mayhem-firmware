@@ -24,7 +24,7 @@ jobs:
 
   build:
     needs: check_date
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.check_date.outputs.should_run != 'false' }}
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
     runs-on: ubuntu-latest
     name: build (${{ matrix.device_name }})
     strategy:
