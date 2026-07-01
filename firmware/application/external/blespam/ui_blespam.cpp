@@ -356,7 +356,7 @@ bool BLESpamView::read_next_custom_name() {
         if (read_result.value() == 0) {        // end of file
             if (!custom_name_.empty()) break;  // use the final line
             if (wrapped) return false;         // no usable name in file
-            custom_file_.seek(0);              // loop back to the first line
+            if (custom_file_.seek(0).is_error()) return false;  // loop back to the first line
             wrapped = true;
             continue;
         }
