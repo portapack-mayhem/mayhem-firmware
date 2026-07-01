@@ -201,7 +201,6 @@ void VorRxView::stop_receiver() {
 void VorRxView::update_status() {
     text_status.set(running_ ? "Audio on" : "Off");
     button_start_stop.set_text(running_ ? "Stop" : "Start");
-    set_dirty();
 }
 
 void VorRxView::update_logging() {
@@ -224,13 +223,11 @@ void VorRxView::on_vor_status(const VorRxStatusDataMessage& message) {
     if (logger && logging_) {
         logger->log_status(message, field_course.value());
     }
-    set_dirty();
 }
 
 void VorRxView::update_cdi() {
     text_course.set(to_string_dec_uint(field_course.value(), 3) + " deg");
     cdi_indicator.set_course(field_course.value());
-    set_dirty();
 }
 
 }  // namespace ui::external_app::vor_rx
