@@ -81,11 +81,17 @@ class VorRxView : public View {
     void update_status();
     void on_vor_status(const VorRxStatusDataMessage& message);
     void update_cdi();
+    void refresh_radial();
+    uint16_t calibrated_radial(uint16_t radial_deg) const;
     void update_logging();
 
     NavigationView& nav_;
     bool running_{false};
     bool logging_{false};
+    bool have_status_{false};
+    uint16_t last_radial_deg_{0};
+    bool last_valid_{false};
+    bool last_to_from_{false};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
@@ -106,13 +112,21 @@ class VorRxView : public View {
         1,
         '0'};
 
+    NumberField field_calibration{
+        {UI_POS_X(14), UI_POS_Y(7)},
+        4,
+        {-180, 180},
+        1,
+        ' '};
+
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Status:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(2)}, "Band:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(3)}, "Next:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(4)}, "Course (OBS):", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(5)}, "Radial:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(6)}, "Flag:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(6)}, "Flag:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(7)}, "Calib.:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_status{
         {UI_POS_X(14), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
@@ -132,6 +146,9 @@ class VorRxView : public View {
     Text text_flag{
         {UI_POS_X(14), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
         "--"};
+    Text text_calib_unit{
+        {UI_POS_X(19), UI_POS_Y(7), UI_POS_WIDTH_REMAINING(19), UI_POS_HEIGHT(1)},
+        "deg"};
 
     Text text_cdi_title{
         {UI_POS_X(0), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)},

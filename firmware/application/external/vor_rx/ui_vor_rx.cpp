@@ -125,6 +125,8 @@ VorRxView::VorRxView(NavigationView& nav)
                   &text_next,
                   &field_course,
                   &text_course_unit,
+                  &field_calibration,
+                  &text_calib_unit,
                   &text_radial,
                   &text_flag,
                   &text_cdi_title,
@@ -140,6 +142,11 @@ VorRxView::VorRxView(NavigationView& nav)
     field_course.set_value(0);
     field_course.on_change = [this](int32_t) {
         update_cdi();
+    };
+
+    field_calibration.set_value(0);
+    field_calibration.on_change = [this](int32_t) {
+        refresh_radial();
     };
 
     logger = std::make_unique<VorLogger>();
@@ -216,14 +223,38 @@ void VorRxView::on_vor_status(const VorRxStatusDataMessage& message) {
         return;
     }
 
-    text_radial.set(to_string_dec_uint(message.radial_deg, 3) + " deg");
+    last_radial_deg_ = message.radial_deg;
+    last_valid_ = message.valid;
+    last_to_from_ = message.to_from;
+    have_status_ = true;
+
     text_next.set(message.valid ? "Decoder locked" : "Decoder pending");
-    text_flag.set(message.valid ? (message.to_from ? "TO" : "FROM") : "--");
-    cdi_indicator.set_radial(message.radial_deg);
-    cdi_indicator.set_valid(message.valid);
+    refresh_radial();
     if (logger && logging_) {
-        logger->log_status(message, field_course.value());
+        VorRxStatusDataMessage calibrated = message;
+        calibrated.radial_deg = calibrated_radial(message.radial_deg);
+        logger->log_status(calibrated, field_course.value());
     }
+}
+
+uint16_t VorRxView::calibrated_radial(uint16_t radial_deg) const {
+    int32_t value = (static_cast<int32_t>(radial_deg) + field_calibration.value()) % 360;
+    if (value < 0) {
+        value += 360;
+    }
+    return static_cast<uint16_t>(value);
+}
+
+void VorRxView::refresh_radial() {
+    if (!have_status_) {
+        return;
+    }
+
+    const uint16_t radial = calibrated_radial(last_radial_deg_);
+    text_radial.set(to_string_dec_uint(radial, 3) + " deg");
+    text_flag.set(last_valid_ ? (last_to_from_ ? "TO" : "FROM") : "--");
+    cdi_indicator.set_radial(radial);
+    cdi_indicator.set_valid(last_valid_);
 }
 
 void VorRxView::update_cdi() {
