@@ -463,16 +463,26 @@ static Color app_color_from_config(const std::string& app_name) {
         return Color::grey();
 
     switch (app_colors_data[ci]) {
-        case 'r': return Color::red();
-        case 'g': return Color::green();
-        case 'b': return Color::blue();
-        case 'y': return Color::yellow();
-        case 'c': return Color::cyan();
-        case 'm': return Color::magenta();
-        case 'o': return Color::orange();
-        case 'p': return Color::purple();
-        case 'w': return Color::white();
-        default:  return Color::grey();
+        case 'r':
+            return Color::red();
+        case 'g':
+            return Color::green();
+        case 'b':
+            return Color::blue();
+        case 'y':
+            return Color::yellow();
+        case 'c':
+            return Color::cyan();
+        case 'm':
+            return Color::magenta();
+        case 'o':
+            return Color::orange();
+        case 'p':
+            return Color::purple();
+        case 'w':
+            return Color::white();
+        default:
+            return Color::grey();
     }
 }
 
