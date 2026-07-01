@@ -47,7 +47,7 @@ void VorLogger::log_status(const VorRxStatusDataMessage& message, uint16_t cours
 }
 
 VorCdiIndicator::VorCdiIndicator(Point position)
-    : Widget{{position, {screen_width, 48}}} {
+    : Widget{{position, {screen_width, 32}}} {
 }
 
 void VorCdiIndicator::set_course(uint16_t course_deg) {
@@ -84,32 +84,32 @@ float VorCdiIndicator::normalize_signed_degrees(float degrees) {
 void VorCdiIndicator::paint(Painter& painter) {
     const auto r = screen_rect();
     const auto theme = Theme::getInstance();
-    const auto frame_color = valid_ ? theme->fg_green->foreground : theme->bg_medium->foreground;
-    const auto line_color = valid_ ? theme->fg_light->foreground : theme->bg_darkest->foreground;
+    const auto line_color = valid_ ? theme->fg_light->foreground : theme->bg_medium->foreground;
     const auto needle_color = valid_ ? theme->fg_red->foreground : theme->bg_medium->foreground;
 
-    painter.draw_rectangle(r, frame_color);
+    // Clear background so old needle positions don't linger.
+    painter.fill_rectangle(r, theme->bg_darkest->background);
 
-    const auto center = Point{static_cast<Coord>(r.left() + r.width() / 2), static_cast<Coord>(r.top() + r.height() / 2)};
-    painter.draw_hline({static_cast<Coord>(r.left() + 4), center.y()}, r.width() - 8, line_color);
-    painter.draw_vline({center.x(), static_cast<Coord>(r.top() + 4)}, r.height() - 8, line_color);
+    const auto center_x = static_cast<Coord>(r.left() + r.width() / 2);
+    const auto center_y = static_cast<Coord>(r.top() + r.height() / 2);
 
+    // Horizontal scale line.
+    painter.draw_hline({static_cast<Coord>(r.left() + 8), center_y}, r.width() - 16, line_color);
+
+    // Evenly spaced tick marks, longer at center.
+    constexpr int32_t tick_spacing = 40;
     for (int32_t tick = -2; tick <= 2; ++tick) {
-        const auto x = center.x() + (tick * 24);
-        painter.draw_vline({static_cast<Coord>(x), static_cast<Coord>(center.y() - 4)}, 9, line_color);
+        const auto x = static_cast<Coord>(center_x + tick * tick_spacing);
+        const auto len = (tick == 0) ? 14 : 8;
+        painter.draw_vline({x, static_cast<Coord>(center_y - len / 2)}, len, line_color);
     }
 
+    // Deviation needle, clamped to +/-10 degrees full-scale.
     const float deviation = normalize_signed_degrees(static_cast<float>(radial_deg_) - static_cast<float>(course_deg_));
     const float scaled = std::max(-10.0f, std::min(10.0f, deviation));
-    const int16_t needle_offset = static_cast<int16_t>(std::lround((scaled / 10.0f) * 48.0f));
-    const auto needle_x = static_cast<Coord>(center.x() + needle_offset);
-    painter.draw_vline({needle_x, static_cast<Coord>(r.top() + 6)}, r.height() - 12, needle_color);
-    painter.draw_hline({static_cast<Coord>(needle_x - 4), static_cast<Coord>(r.top() + 8)}, 9, needle_color);
-    painter.draw_hline({static_cast<Coord>(needle_x - 4), static_cast<Coord>(r.bottom() - 8)}, 9, needle_color);
-
-    const auto flag = valid_ ? (std::abs(normalize_signed_degrees(static_cast<float>(course_deg_) - static_cast<float>(radial_deg_))) > 90.0f ? "TO" : "FROM") : "--";
-    painter.draw_string({r.left() + 6, r.top() + 4}, *theme->fg_light, "Course Deviation Indicator");
-    painter.draw_string({r.right() - 34, r.top() + 4}, *theme->fg_light, flag);
+    const int16_t needle_offset = static_cast<int16_t>(std::lround((scaled / 10.0f) * (2 * tick_spacing)));
+    const auto needle_x = static_cast<Coord>(center_x + needle_offset);
+    painter.draw_vline({needle_x, static_cast<Coord>(r.top() + 4)}, r.height() - 8, needle_color);
 }
 
 VorRxView::VorRxView(NavigationView& nav)
@@ -127,6 +127,7 @@ VorRxView::VorRxView(NavigationView& nav)
                   &text_course,
                   &text_radial,
                   &text_flag,
+                  &text_cdi_title,
                   &cdi_indicator,
                   &check_log,
                   &button_start_stop});

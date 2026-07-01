@@ -133,20 +133,24 @@ class VorRxView : public View {
         {UI_POS_X(8), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
         "--"};
 
-    VorCdiIndicator cdi_indicator{
-        {UI_POS_X(0), UI_POS_Y(8)}};
+    Text text_cdi_title{
+        {UI_POS_X(0), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)},
+        "Course Deviation Indicator"};
 
-    Checkbox check_log{
-        {UI_POS_X(13), UI_POS_Y(13)},
-        3,
-        "LOG",
-        true};
+    VorCdiIndicator cdi_indicator{
+        {UI_POS_X(0), UI_POS_Y(9)}};
 
     std::unique_ptr<VorLogger> logger{};
 
     Button button_start_stop{
-        {UI_POS_X(9), UI_POS_Y(11), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X(9), UI_POS_Y(13), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Start"};
+
+    Checkbox check_log{
+        {UI_POS_X(13), UI_POS_Y(16)},
+        3,
+        "LOG",
+        true};
 
     MessageHandlerRegistration message_handler_vor_status{
         Message::ID::VorRxStatusData,
