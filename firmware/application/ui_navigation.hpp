@@ -419,6 +419,7 @@ class SystemMenuView : public BtnGridView {
    private:
     NavigationView& nav_;
     void on_populate() override;
+    bool config_reorder_enabled() const override { return false; }  // Home menu keeps its fixed layout.
     void hackrf_mode(NavigationView& nav);
 };
 
