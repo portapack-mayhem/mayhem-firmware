@@ -220,11 +220,17 @@ endif()
 
 # Upstream hackrf headers now gate on IS_* macros normally populated by
 # hackrf/firmware/platform-detect.cmake. We don't include that here, so derive
-# the IS_* set from BOARD ourselves. IS_H1_R9 is forced to 0 (compile-time
-# constant) so `if (IS_H1_R9)` branches resolve without needing the runtime
-# detected_platform() symbol, which mayhem doesn't link in.
+# the IS_* set from BOARD ourselves. IS_H1_R9 must mirror the upstream
+# HACKRF_ONE definition: a *runtime* check on detected_platform(). The only
+# baseband image that compiles IS_H1_R9-gated upstream files (rf_path.c,
+# si5351c.c, sgpio.c, platform_gpio.c, platform_scu.c) is sd_over_usb, which
+# does link platform_detect.c and calls detect_hardware_platform() at startup.
+# Forcing IS_H1_R9=0 here silently compiled out all H1R9 behaviour, so a real
+# HackRF One r9 was configured with the OG clock/GPIO/RF-path setup in that
+# image. All usages are `#ifdef IS_H1_R9` + `if (IS_H1_R9)` (never arithmetic
+# `#if`), so a function-call expression is safe.
 if(BOARD STREQUAL "HACKRF_ONE")
-    set(BOARD_IS_DEFS "-DIS_HACKRF_ONE=1 -DIS_NOT_PRALINE=1 -DIS_H1_R9=0 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_H1_OR_RAD1O=1 -DIS_H1_OR_JAWBREAKER=1 -DIS_EXPANSION_COMPATIBLE=1")
+    set(BOARD_IS_DEFS "-DIS_HACKRF_ONE=1 -DIS_NOT_PRALINE=1 -D'IS_H1_R9=(detected_platform()==BOARD_ID_HACKRF1_R9)' -D'IS_NOT_H1_R9=(!IS_H1_R9)' -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_H1_OR_RAD1O=1 -DIS_H1_OR_JAWBREAKER=1 -DIS_EXPANSION_COMPATIBLE=1")
 elseif(BOARD STREQUAL "PRALINE")
     set(BOARD_IS_DEFS "-DIS_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_FOUR_LEDS=1 -DIS_EXPANSION_COMPATIBLE=1")
 elseif(BOARD STREQUAL "RAD1O")
