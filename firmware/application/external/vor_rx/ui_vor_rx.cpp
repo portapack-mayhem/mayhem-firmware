@@ -108,7 +108,7 @@ void VorCdiIndicator::paint(Painter& painter) {
     painter.draw_hline({static_cast<Coord>(needle_x - 4), static_cast<Coord>(r.bottom() - 8)}, 9, needle_color);
 
     const auto flag = valid_ ? (std::abs(normalize_signed_degrees(static_cast<float>(course_deg_) - static_cast<float>(radial_deg_))) > 90.0f ? "TO" : "FROM") : "--";
-    painter.draw_string({r.left() + 6, r.top() + 4}, *theme->fg_light, "CDI");
+    painter.draw_string({r.left() + 6, r.top() + 4}, *theme->fg_light, "Course Deviation Indicator");
     painter.draw_string({r.right() - 34, r.top() + 4}, *theme->fg_light, flag);
 }
 

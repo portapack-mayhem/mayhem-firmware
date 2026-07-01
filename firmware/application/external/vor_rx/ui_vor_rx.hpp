@@ -134,10 +134,10 @@ class VorRxView : public View {
         "--"};
 
     VorCdiIndicator cdi_indicator{
-        {UI_POS_X(0), UI_POS_Y(7)}};
+        {UI_POS_X(0), UI_POS_Y(8)}};
 
     Checkbox check_log{
-        {UI_POS_X(0), UI_POS_Y(9)},
+        {UI_POS_X(13), UI_POS_Y(13)},
         3,
         "LOG",
         true};
@@ -145,7 +145,7 @@ class VorRxView : public View {
     std::unique_ptr<VorLogger> logger{};
 
     Button button_start_stop{
-        {UI_POS_X(0), UI_POS_Y(10), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X(9), UI_POS_Y(11), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Start"};
 
     MessageHandlerRegistration message_handler_vor_status{
