@@ -83,6 +83,8 @@ class VorRxView : public View {
     void update_cdi();
     void refresh_radial();
     uint16_t calibrated_radial(uint16_t radial_deg) const;
+    uint16_t smooth_radial(uint16_t radial_deg);
+    const char* to_from_label(uint16_t radial_deg);
     void update_logging();
 
     NavigationView& nav_;
@@ -91,7 +93,13 @@ class VorRxView : public View {
     bool have_status_{false};
     uint16_t last_radial_deg_{0};
     bool last_valid_{false};
-    bool last_to_from_{false};
+    uint8_t flag_state_{0};  // TO/FROM hysteresis: 0=unknown, 1=FROM, 2=TO
+    // Circular exponential moving average of the radial. Each 100 ms estimate
+    // is noisy (~10 deg std even when locked), so smooth it as a unit vector
+    // (sin/cos) to average correctly across the 0/360 deg wrap.
+    bool radial_filter_valid_{false};
+    float radial_sin_{0.0f};
+    float radial_cos_{0.0f};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},

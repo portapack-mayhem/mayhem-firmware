@@ -180,6 +180,9 @@ void VorRxView::start_receiver() {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     baseband::set_vor_config(true);
 
+    radial_filter_valid_ = false;
+    flag_state_ = 0;
+
     receiver_model.set_hidden_offset(0);
     receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
     receiver_model.set_frequency_step(8333);
@@ -229,16 +232,47 @@ void VorRxView::on_vor_status(const VorRxStatusDataMessage& message) {
 
     last_radial_deg_ = message.radial_deg;
     last_valid_ = message.valid;
-    last_to_from_ = message.to_from;
     have_status_ = true;
+
+    if (message.valid) {
+        last_radial_deg_ = smooth_radial(message.radial_deg);
+    } else {
+        // Drop the filter history so a fresh lock doesn't drag from stale data.
+        radial_filter_valid_ = false;
+    }
 
     text_next.set(message.valid ? "Decoder locked" : "Decoder pending");
     refresh_radial();
     if (logger && logging_) {
         VorRxStatusDataMessage calibrated = message;
-        calibrated.radial_deg = calibrated_radial(message.radial_deg);
+        calibrated.radial_deg = calibrated_radial(last_radial_deg_);
+        calibrated.to_from = (flag_state_ == 2);
         logger->log_status(calibrated, field_course.value());
     }
+}
+
+uint16_t VorRxView::smooth_radial(uint16_t radial_deg) {
+    // Weight on the accumulated history. At ~10 updates/s this gives a time
+    // constant of roughly half a second while cutting the jitter by ~3x.
+    constexpr float alpha = 0.8f;
+    const float angle = static_cast<float>(radial_deg) * static_cast<float>(M_PI) / 180.0f;
+    const float s = sinf(angle);
+    const float c = cosf(angle);
+
+    if (!radial_filter_valid_) {
+        radial_sin_ = s;
+        radial_cos_ = c;
+        radial_filter_valid_ = true;
+    } else {
+        radial_sin_ = (alpha * radial_sin_) + ((1.0f - alpha) * s);
+        radial_cos_ = (alpha * radial_cos_) + ((1.0f - alpha) * c);
+    }
+
+    float deg = atan2f(radial_sin_, radial_cos_) * 180.0f / static_cast<float>(M_PI);
+    if (deg < 0.0f) {
+        deg += 360.0f;
+    }
+    return static_cast<uint16_t>(deg + 0.5f) % 360;
 }
 
 uint16_t VorRxView::calibrated_radial(uint16_t radial_deg) const {
@@ -256,9 +290,35 @@ void VorRxView::refresh_radial() {
 
     const uint16_t radial = calibrated_radial(last_radial_deg_);
     text_radial.set(to_string_dec_uint(radial, 3) + " deg");
-    text_flag.set(last_valid_ ? (last_to_from_ ? "TO" : "FROM") : "--");
+    text_flag.set(to_from_label(radial));
     cdi_indicator.set_radial(radial);
     cdi_indicator.set_valid(last_valid_);
+}
+
+const char* VorRxView::to_from_label(uint16_t radial_deg) {
+    if (!last_valid_) {
+        flag_state_ = 0;
+        return "--";
+    }
+
+    // TO/FROM is set by the selected OBS course relative to the received radial,
+    // not by the radial alone. Take the difference wrapped to [-180, 180]: the
+    // switch is at the 90 deg abeam point. |diff| < 90 means the selected course
+    // leads away from the station (FROM); |diff| > 90 means toward it (TO).
+    int32_t diff = (static_cast<int32_t>(radial_deg) - field_course.value() + 540) % 360 - 180;
+    const int32_t adiff = (diff < 0) ? -diff : diff;
+
+    // Hysteresis: hold the current flag within a +/-5 deg dead zone around the
+    // 90 deg boundary so noise near abeam doesn't rapidly toggle TO/FROM.
+    if (adiff < 85) {
+        flag_state_ = 1;  // FROM
+    } else if (adiff > 95) {
+        flag_state_ = 2;  // TO
+    }
+
+    if (flag_state_ == 1) return "FROM";
+    if (flag_state_ == 2) return "TO";
+    return "--";  // abeam / ambiguous
 }
 
 void VorRxView::update_cdi() {

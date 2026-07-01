@@ -230,7 +230,10 @@ void VorRx::process_vor_metrics(const buffer_f32_t& audio) {
         const auto ref_level = static_cast<uint16_t>(std::min(65535.0f, ref_amp * 10000.0f));
         const auto var_level = static_cast<uint16_t>(std::min(65535.0f, var_ratio * 1000.0f));
         const bool valid = (ref_amp > 0.03f) && (var_ratio > 0.15f);
-        const bool to_from = phase_deg < 180;
+        // TO/FROM depends on the operator-selected OBS course, which only the
+        // application knows, so it is derived there (see VorRxView). Emit a
+        // stable placeholder here rather than a radial-only guess.
+        const bool to_from = false;
         uint8_t quality = 0;
         if (valid) {
             const float q = (ref_amp / 0.065f) * 100.0f;

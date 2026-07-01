@@ -41,8 +41,7 @@
 // Standalone VOR receiver baseband.
 // Demodulates the AM channel at 48 kHz (so the 9960 Hz subcarrier stays
 // representable) and decodes the 30 Hz reference vs. variable phase to derive
-// the radial. Shipped as an external baseband alongside the VOR RX app so it
-// consumes no internal flash.
+// the radial.
 class VorRx : public BasebandProcessor {
    public:
     VorRx();
