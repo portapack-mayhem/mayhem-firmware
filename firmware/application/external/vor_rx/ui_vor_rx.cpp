@@ -185,9 +185,13 @@ void VorRxView::start_receiver() {
     receiver_model.set_frequency_step(8333);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
+    receiver_model.enable();
+
+    // enable() applies the AM configuration, which forces the audio codec to
+    // 12 kHz. The VOR baseband keeps its channel at 48 kHz (so the 9960 Hz
+    // subcarrier stays representable), so re-assert 48 kHz audio afterwards.
     audio::set_rate(audio::Rate::Hz_48000);
     audio::output::start();
-    receiver_model.enable();
 
     running_ = true;
     update_status();

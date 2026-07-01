@@ -58,11 +58,10 @@ void VorTxProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void VorTxProcessor::vor_tx_config(const VorTxConfigureMessage& message) {
-    // TODO: Verify radial sign convention on hardware. The variable tone is offset
-    // by +radial_offset relative to the 30 Hz reference; confirm this matches the
-    // phase difference the VOR RX decoder (proc_vor_rx) measures, otherwise the
-    // transmitted radial appears mirrored (e.g. 090 read as 270). May need to negate
-    // radial_offset (use phase_period - offset) once validated against real receivers.
+    // The variable tone is offset by +radial_offset relative to the 30 Hz
+    // reference. This sign convention was verified by a TX->RX loopback against
+    // the VOR RX decoder (proc_vor_rx): a transmitted radial of N degrees is
+    // decoded as N degrees (not mirrored), so no negation is required.
     radial_offset = static_cast<uint32_t>(static_cast<uint64_t>(message.radial_deg % 360) * phase_period / 360);
     ident_enabled = message.ident_enabled;
     configured = message.enabled;

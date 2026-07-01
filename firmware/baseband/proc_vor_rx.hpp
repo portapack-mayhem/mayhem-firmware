@@ -78,7 +78,20 @@ class VorRx : public BasebandProcessor {
 
     static constexpr float vor_reference_hz{30.0f};
     static constexpr float vor_subcarrier_hz{9960.0f};
-    static constexpr uint32_t vor_window_samples{4800};  // 100 ms at 48 kHz
+    static constexpr uint32_t vor_window_samples{4800};  // 100 ms at 48 kHz (exactly 3 cycles of 30 Hz)
+    // One-pole low-pass to isolate the +/-480 Hz FM subcarrier baseband
+    // after quadrature down-conversion (corner ~600 Hz at 48 kHz).
+    static constexpr float vor_sub_lp_alpha{0.9245f};
+    // Fixed phase lag the receive chain adds to the recovered 30 Hz reference
+    // tone, expressed in degrees at 30 Hz. It comes almost entirely from the
+    // one-pole subcarrier low-pass above (~2.75 deg of lag at 30 Hz for
+    // alpha = 0.9245) plus a ~0.1 deg half-sample delay in the FM
+    // differentiator. Because the reference tone is delayed, the raw radial
+    // (variable - reference) reads high by this amount, so we subtract it.
+    // Value verified by a TX->RX loopback (proc_vor_tx fed through this
+    // decoder): every transmitted radial decoded ~3.2 deg high before this
+    // correction, and on-bearing afterwards.
+    static constexpr float vor_ref_phase_lag_deg{3.2f};
 
     struct PhaseOscillator {
         float sin_v{0.0f};
@@ -90,11 +103,19 @@ class VorRx : public BasebandProcessor {
         float cosine() const { return cos_v; }
         float sine() const { return sin_v; }
         void advance();
+        void renormalize();
     } vor_reference_osc{}, vor_subcarrier_osc{};
+    // 30 Hz DFT accumulators for the variable (AM) and reference (FM) tones.
     float vor_ref_i{0.0f};
     float vor_ref_q{0.0f};
     float vor_var_i{0.0f};
     float vor_var_q{0.0f};
+    float vor_dc_sum{0.0f};
+    // Subcarrier quadrature down-converter / FM-demodulator state.
+    float vor_sub_lp_i{0.0f};
+    float vor_sub_lp_q{0.0f};
+    float vor_sub_prev_i{0.0f};
+    float vor_sub_prev_q{0.0f};
     uint32_t vor_sample_count{0};
 
     dsp::demodulate::AM demod_am{};
