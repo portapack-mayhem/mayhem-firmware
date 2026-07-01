@@ -77,7 +77,8 @@ class VorRx : public BasebandProcessor {
 
     static constexpr float vor_reference_hz{30.0f};
     static constexpr float vor_subcarrier_hz{9960.0f};
-    static constexpr uint32_t vor_window_samples{4800};  // 100 ms at 48 kHz (exactly 3 cycles of 30 Hz)
+    // 100 ms at 48 kHz (exactly 3 cycles of 30 Hz)
+    static constexpr uint32_t vor_window_samples{4800};
     // One-pole low-pass to isolate the +/-480 Hz FM subcarrier baseband
     // after quadrature down-conversion (corner ~600 Hz at 48 kHz).
     static constexpr float vor_sub_lp_alpha{0.9245f};
