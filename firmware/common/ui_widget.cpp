@@ -1456,10 +1456,11 @@ void NewButton::paint(Painter& painter) {
         }
     }
 
-    // Development-progress indicator: 4x4 block in the top-right corner, 1px from the edges (grid buttons only).
+    // Development-progress indicator: 6x6 block near the top-right corner (grid buttons only).
+    // Anchored to the former 4x4 top-right corner, then shifted 2px down and 3px left.
     if (has_progress_color_)
         painter.fill_rectangle(
-            {r.left() + r.width() - 5, r.top() + 1, 4, 4},
+            {r.left() + r.width() - 10, r.top() + 3, 6, 6},
             progress_color_);
 }
 
