@@ -52,10 +52,9 @@
  */
 
 #ifdef PRALINE
-// #pragma message "PRALINE DEFINED - SZAMOLJUK AZ ELEMEKET"
 #define SCU_ARRAY_SIZE 80
 #else
-#define SCU_ARRAY_SIZE 58
+#define SCU_ARRAY_SIZE 57
 #endif
 
 typedef struct {

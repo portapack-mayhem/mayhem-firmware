@@ -68,10 +68,6 @@ bool Path::get_ant_bias() const {
 }
 
 void Path::update() {
-    /* 0 ^ 0 => 0 & 0 = 0 ^ 0 = 0 (no change)
-     * 0 ^ 1 => 1 & 0 = 0 ^ 0 = 0 (ignore change to 1)
-     * 1 ^ 0 => 1 & 1 = 1 ^ 1 = 0 (allow change to 0)
-     * 1 ^ 1 => 0 & 1 = 0 ^ 1 = 1 (no change) */
     const bool is_tx = (direction == Direction::Transmit);
 
 #ifdef PRALINE
@@ -125,7 +121,9 @@ void Path::update() {
     tx_amp_pwr.setState(is_tx && amplify);
     rx_amp_pwr.setState(is_rx && amplify);
 
-    ant_bias.setState(ant_bias_en);
+    if (hackrf_r9) {
+        ant_bias.setState(ant_bias_en);
+    }
 #endif
 }
 

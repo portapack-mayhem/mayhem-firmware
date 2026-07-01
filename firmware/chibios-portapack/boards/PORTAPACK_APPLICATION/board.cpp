@@ -70,8 +70,6 @@ const PALConfig pal_default_config = {
               | boot_bit(sgpio_12, 0)    // P1_18: SGPIO12, HOST_Q_INVERT
               | boot_bit(sgpio_11, 0)    // P1_17: SGPIO11, HOST_DIRECTION, Praline: FPGA HOST_DIRECTION
               | (1 << 10)                // P1_3:  SSP1_MISO
-              | (0 << 9)                 // P1_2:  Varies by revision, float until detection
-              | (0 << 8)                 // P1_1:  Varies by revision, float until detection
               | (0 << 6)                 // P3_6:  SPIFI_MISO
               | boot_bit(sgpio_5, 1)     // P6_6:  SGPIO5, HOST_DATA5, Praline: FPGA HOST_DATA5
               | boot_bit(sgpio_7, 1)     // P1_0:  SGPIO7, HOST_DATA7, Praline: FPGA HOST_DATA7
@@ -175,9 +173,9 @@ const PALConfig pal_default_config = {
                     | (1 << 13)               // P5_4:  MIXER_ENX, 10K PU
                     | boot_bit(rx_mix_bp, 1)  // P5_3:  RX_MIX_BP
                     | boot_bit(tx_mix_bp, 0)  // P5_2:  TX_MIX_BP
-                    | boot_bit(lpf, 0)        // P5_1:  LP
+                    | boot_bit(lpf, 0)        // P5_1:  LPF
                     | (0 << 9)                // P5_0:  Varies by revision
-                    | boot_bit(hpf, 0)        // P4_0:  HP
+                    | boot_bit(hpf, 0)        // P4_0:  HPF
                     | boot_bit(sgpio_9, 1)    // P4_3:  SGPIO9, HOST_CAPTURE
                     | (0 << 6)                // P4_6:  XCVR_EN, 10K PD
                     | boot_bit(led_tx, 0)     // P6_12: LED3 (TX)
@@ -207,7 +205,7 @@ const PALConfig pal_default_config = {
                 | boot_bit(tx_mix_bp, 1)  // P5_2:  TX_MIX_BP
                 | boot_bit(lpf, 1)        // P5_1:  LPF
                 | (0 << 9)                // P5_0:  Varies by revision
-                | boot_bit(hpf, 1)        // P4_0:  HP
+                | boot_bit(hpf, 1)        // P4_0:  HPF
                 | boot_bit(sgpio_9, 0)    // P4_3:  SGPIO9, HOST_CAPTURE
                 | (1 << 6)                // P4_6:  XCVR_EN, 10K PD
 #endif
@@ -565,8 +563,7 @@ const PALConfig pal_default_config = {
         {11, 2, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // PB_2: Unused IN
         {11, 4, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // PB_4: Unused IN
 #else
-        {map_og_rx.scu_port, map_og_rx.scu_pin, scu_config_normal_drive_t{.mode = map_og_rx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_5
-        {4, 8, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                     // P4_8
+        {4, 8, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P4_8
 #endif
 
         // PORTAPACK SPECIFIC & JTAG (CPLD, UI, Audio, SD)
@@ -677,17 +674,17 @@ static const std::array<gpio_setup_t, 6> gpio_setup_r9{{
 }};
 
 /* Additional SCU configuration for HackRF OG */
-static const std::array<scu_setup_t, 6> pins_setup_og{{
+static const std::array<scu_setup_t, 7> pins_setup_og{{
 
     /* Power control */
     {map_og_VAA_en.scu_port, map_og_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
     {map_og_1v8_en.scu_port, map_og_1v8_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_1v8_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* EN1V8/P70: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */
 
     /* Radio section control */
-    {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                    /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
-    {4, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                    /* TXENABLE/P55: MAX2837.TXENABLE(I) */
-    {map_og_tx.scu_port, map_og_tx.scu_pin, scu_config_normal_drive_t{.mode = map_og_tx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* TX/P42: U7.VCTL2(I), U10.VCTL2(I), U2.VCTL2(I) */
-
+    {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                     /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
+    {4, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                     /* TXENABLE/P55: MAX2837.TXENABLE(I) */
+    {map_og_tx.scu_port, map_og_tx.scu_pin, scu_config_normal_drive_t{.mode = map_og_tx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  /* TX/P42: U7.VCTL2(I), U10.VCTL2(I), U2.VCTL2(I) */
+    {map_og_rx.scu_port, map_og_rx.scu_pin, scu_config_normal_drive_t{.mode = map_og_rx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_5
     /* SGPIO for sample transfer interface to HackRF CPLD. */
     {map_sgpio_13.scu_port, map_sgpio_13.scu_pin, scu_config_normal_drive_t{.mode = map_sgpio_13.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* SGPIO13/BANK2F3M2: CPLD.90/HOST_SYNC_EN(I) */
 }};
