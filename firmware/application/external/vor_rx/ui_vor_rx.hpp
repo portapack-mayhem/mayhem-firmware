@@ -100,7 +100,7 @@ class VorRxView : public View {
         {screen_width - 2 * 8, UI_POS_Y(0)}};
 
     NumberField field_course{
-        {UI_POS_X(0), UI_POS_Y(4)},
+        {UI_POS_X(14), UI_POS_Y(4)},
         3,
         {0, 359},
         1,
@@ -110,27 +110,27 @@ class VorRxView : public View {
         {{UI_POS_X(0), UI_POS_Y(1)}, "Status:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(2)}, "Band:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(3)}, "Next:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(4)}, "OBS:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(4)}, "Course (OBS):", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(5)}, "Radial:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(6)}, "Flag:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_status{
-        {UI_POS_X(8), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
+        {UI_POS_X(14), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
         "Idle"};
     Text text_band{
-        {UI_POS_X(8), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
-        "108.00 - 117.95 MHz"};
+        {UI_POS_X(14), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
+        "108.00-117.95MHz"};
     Text text_next{
-        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
-        "Phase decoder pending"};
-    Text text_course{
-        {UI_POS_X(8), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
-        "000 deg"};
+        {UI_POS_X(14), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
+        "Pending"};
+    Text text_course_unit{
+        {UI_POS_X(18), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(18), UI_POS_HEIGHT(1)},
+        "deg"};
     Text text_radial{
-        {UI_POS_X(8), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
-        "Radial: --"};
+        {UI_POS_X(14), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
+        "--"};
     Text text_flag{
-        {UI_POS_X(8), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
+        {UI_POS_X(14), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
         "--"};
 
     Text text_cdi_title{

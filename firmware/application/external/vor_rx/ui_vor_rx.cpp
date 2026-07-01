@@ -124,7 +124,7 @@ VorRxView::VorRxView(NavigationView& nav)
                   &text_band,
                   &text_next,
                   &field_course,
-                  &text_course,
+                  &text_course_unit,
                   &text_radial,
                   &text_flag,
                   &text_cdi_title,
@@ -216,7 +216,7 @@ void VorRxView::on_vor_status(const VorRxStatusDataMessage& message) {
         return;
     }
 
-    text_radial.set("Radial: " + to_string_dec_uint(message.radial_deg) + " deg");
+    text_radial.set(to_string_dec_uint(message.radial_deg, 3) + " deg");
     text_next.set(message.valid ? "Decoder locked" : "Decoder pending");
     text_flag.set(message.valid ? (message.to_from ? "TO" : "FROM") : "--");
     cdi_indicator.set_radial(message.radial_deg);
@@ -227,7 +227,6 @@ void VorRxView::on_vor_status(const VorRxStatusDataMessage& message) {
 }
 
 void VorRxView::update_cdi() {
-    text_course.set(to_string_dec_uint(field_course.value(), 3) + " deg");
     cdi_indicator.set_course(field_course.value());
 }
 
