@@ -94,6 +94,7 @@ class BtnGridView : public View {
 
     void reload_items();
     void update_items();
+    void reorder_menu_items();  // Reorder items per config.ini line order; see .cpp.
     void set_btn_height_fixed(uint8_t h) {
         button_h = h;
     }
@@ -103,6 +104,9 @@ class BtnGridView : public View {
 
    protected:
     virtual void on_populate() = 0;
+    // Whether config.ini line order should reposition this grid's items.
+    // The home menu overrides this to false to preserve its fixed layout.
+    virtual bool config_reorder_enabled() const { return true; }
 
    private:
     int rows_{3};

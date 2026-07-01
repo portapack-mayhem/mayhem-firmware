@@ -28,6 +28,7 @@
 #include "rtc_time.hpp"
 #include "sd_card.hpp"
 #include <algorithm>
+#include <climits>
 
 namespace ui {
 
@@ -207,6 +208,9 @@ void BtnGridView::show_hide_arrows() {
 void BtnGridView::reload_items() {
     menu_items.clear();
     on_populate();
+    // Apply config.ini line order to this grid (home menu opts out to keep its fixed layout).
+    if (config_reorder_enabled())
+        reorder_menu_items();
     set_highlighted(highlighted_item, true);
     show_hide_arrows();
 
@@ -470,6 +474,58 @@ static Color app_color_from_config(const std::string& app_name) {
         case 'w': return Color::white();
         default:  return Color::grey();
     }
+}
+
+/* App menu ordering *************************************************/
+
+// Return the 0-based line index of app_name in config.ini, or -1 if not listed.
+// The line order in config.ini is what determines on-screen position, so the file
+// needs no explicit position numbers. app_colors_data starts with a '\n' sentinel
+// and separates records by '\n', so the count of newlines strictly before the match
+// is exactly the record's 0-based index.
+static int app_config_order(const std::string& app_name) {
+    if (app_colors_data.empty())
+        return -1;
+
+    const std::string key = "\n" + app_name + ",";
+    const auto pos = app_colors_data.find(key);
+    if (pos == std::string::npos)
+        return -1;
+
+    int index = 0;
+    for (size_t i = 0; i < pos; i++)
+        if (app_colors_data[i] == '\n')
+            index++;
+    return index;
+}
+
+// Non-app control tiles that must stay pinned to the front of a grid regardless of
+// config.ini. Matches the literals used to create these tiles in ui_navigation.cpp
+// (".." return icon, "ExtAppErr" no-SD/read-error notice).
+static bool is_pinned_tile(const std::string& text) {
+    return text == ".." || text == "ExtAppErr";
+}
+
+// Sort rank for a grid item: pinned tiles first, then config-listed apps by line
+// order, then unlisted apps last. Equal ranks keep original order via stable_sort.
+static int item_sort_rank(const GridItem& item) {
+    if (is_pinned_tile(item.text))
+        return INT_MIN;
+    const int order = app_config_order(item.text);
+    return (order >= 0) ? order : INT_MAX;
+}
+
+// Reposition items to: [pinned control tiles] [config-listed apps in file order]
+// [unlisted apps, original order]. Missing apps listed in config are ignored for
+// free -- they simply have no item here, so their line index is an unused gap.
+void BtnGridView::reorder_menu_items() {
+    if (menu_items.empty())
+        return;
+
+    std::stable_sort(menu_items.begin(), menu_items.end(),
+                     [](const GridItem& a, const GridItem& b) {
+                         return item_sort_rank(a) < item_sort_rank(b);
+                     });
 }
 
 void BtnGridView::page_up() {
