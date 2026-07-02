@@ -119,4 +119,12 @@ constexpr iir_biquad_config_t apt_audio_12k_lpf_2000hz_config{
     {0.15505103f, 0.31010205f, 0.15505103f},
     {1.00000000f, -0.6202041f, 0.24040821f}};
 
+// scipy.signal.butter(2, 3200 / 24000.0, 'low', analog=False)
+// VOR RX audio low-pass. Removes the 9960 Hz FM subcarrier (the annoying
+// high-pitch whine) while passing voice and the 1020 Hz ident tone. Cascade
+// two of these sections for a 4th-order roll-off (~44 dB at 9960 Hz).
+constexpr iir_biquad_config_t audio_48k_lpf_3200hz_config{
+    {0.03357181f, 0.06714362f, 0.03357181f},
+    {1.00000000f, -1.41898265f, 0.55326989f}};
+
 #endif /*__DSP_IIR_CONFIG_H__*/

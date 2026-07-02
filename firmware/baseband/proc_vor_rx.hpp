@@ -29,6 +29,7 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
+#include "dsp_iir.hpp"
 #include "audio_compressor.hpp"
 
 #include "audio_output.hpp"
@@ -118,6 +119,12 @@ class VorRx : public BasebandProcessor {
     uint32_t vor_sample_count{0};
 
     dsp::demodulate::AM demod_am{};
+    // Two cascaded 2nd-order Butterworth low-passes (4th-order total) that strip
+    // the 9960 Hz FM subcarrier out of the audio before it reaches the speaker.
+    // The channel is kept wide (48 kHz) so the subcarrier survives for the
+    // radial decode, so it must be filtered out of the audible path here.
+    IIRBiquadFilter audio_lpf_1{};
+    IIRBiquadFilter audio_lpf_2{};
     FeedForwardCompressor audio_compressor{};
     AudioOutput audio_output{};
 

@@ -24,6 +24,7 @@
 
 #include "audio_output.hpp"
 #include "audio_dma.hpp"
+#include "dsp_iir_config.hpp"
 #include "portapack_shared_memory.hpp"
 
 #include "event_m4.hpp"
@@ -61,6 +62,10 @@ void VorRx::execute(const buffer_c8_t& buffer) {
     auto audio = demod_am.execute(channel_out, audio_buffer);
     if (vor_enabled) {
         process_vor_metrics(audio);
+        // Strip the 9960 Hz subcarrier from the audible signal (the metrics
+        // above still ran on the unfiltered audio so the decode is unaffected).
+        audio_lpf_1.execute_in_place(audio);
+        audio_lpf_2.execute_in_place(audio);
     }
     audio_compressor.execute_in_place(audio);
     audio_output.write(audio);
@@ -135,6 +140,8 @@ void VorRx::configure_vor(const VorRxConfigureMessage& message) {
     vor_enabled = message.enabled;
     vor_reference_osc.configure(vor_reference_hz, 48000.0f);
     vor_subcarrier_osc.configure(vor_subcarrier_hz, 48000.0f);
+    audio_lpf_1.configure(audio_48k_lpf_3200hz_config);
+    audio_lpf_2.configure(audio_48k_lpf_3200hz_config);
     vor_ref_i = 0.0f;
     vor_ref_q = 0.0f;
     vor_var_i = 0.0f;
