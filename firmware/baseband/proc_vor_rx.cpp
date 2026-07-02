@@ -51,8 +51,10 @@ void VorRx::execute(const buffer_c8_t& buffer) {
 
     channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
 
-    const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);
-    const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
+    // No decim_2 stage: the standard AM decim_2 filter is a ~4.5 kHz low-pass
+    // that would attenuate the 9960 Hz VOR subcarrier by ~60 dB and destroy the
+    // reference phase. The channel stays at 48 kHz so the subcarrier survives.
+    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 
     feed_channel_stats(channel_out);
 
@@ -87,13 +89,11 @@ void VorRx::on_message(const Message* const message) {
 void VorRx::configure(const AMConfigureMessage& message) {
     decim_0.configure(message.decim_0_filter.taps);
     decim_1.configure(message.decim_1_filter.taps);
-    decim_2.configure(message.decim_2_filter.taps, decim_2_decimation_factor);
     channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
 
     constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
     constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
-    constexpr size_t decim_2_output_fs = decim_1_output_fs / decim_2_decimation_factor;
-    constexpr size_t channel_filter_input_fs = decim_2_output_fs;
+    constexpr size_t channel_filter_input_fs = decim_1_output_fs;
 
     channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
     channel_filter_high_f = message.channel_filter.high_frequency_normalized * channel_filter_input_fs;

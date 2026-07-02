@@ -51,9 +51,9 @@ class VorRx : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 3072000;
-    // VOR runs the channel at 48 kHz (decim_2 factor 1) instead of the AM audio
-    // 12 kHz, so the 9960 Hz subcarrier is below Nyquist.
-    static constexpr size_t decim_2_decimation_factor = 1;
+    // VOR keeps the channel at 48 kHz instead of the AM audio 12 kHz, so the
+    // 9960 Hz subcarrier stays below Nyquist. The standard AM decim_2 stage is
+    // therefore omitted (its ~4.5 kHz low-pass would remove the subcarrier).
     static constexpr size_t channel_filter_decimation_factor = 1;
 
     std::array<complex16_t, 512> dst{};
@@ -67,7 +67,6 @@ class VorRx : public BasebandProcessor {
 
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-    dsp::decimate::FIRAndDecimateComplex decim_2{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
