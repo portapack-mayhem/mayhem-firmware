@@ -169,7 +169,8 @@ const PALConfig pal_default_config = {
                     | boot_bit(led_rx, 1)   // P4_2:  LED2 (RX)
                     | boot_bit(led_usb, 1)  // P4_1:  LED1 (USB)
 #else
-                    | boot_bit(tx_amp, 0)     // P5_6:  TX_AMP
+                    | boot_bit(tx_amp, 0)     // P5_6:  TX_AMP
+
                     | (1 << 13)               // P5_4:  MIXER_ENX, 10K PU
                     | boot_bit(rx_mix_bp, 1)  // P5_3:  RX_MIX_BP
                     | boot_bit(tx_mix_bp, 0)  // P5_2:  TX_MIX_BP
@@ -536,7 +537,7 @@ const PALConfig pal_default_config = {
         {map_tx_enable.scu_port, map_tx_enable.scu_pin, scu_config_normal_drive_t{.mode = map_tx_enable.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},              // P6_5: TX enable
         {10, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                            // PA_1: LPF enable
         {10, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                            // PA_2: RF amp enable
-        {map_mix_bypass.scu_port, map_mix_bypass.scu_pin, scu_config_normal_drive_t{.mode = map_mix_bypass.gpio_mode, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}},           // P6_8 P6_3: MIX_ENABLE_N
+        {map_mix_bypass.scu_port, map_mix_bypass.scu_pin, scu_config_normal_drive_t{.mode = map_mix_bypass.gpio_mode, .epd = 0, .epun = 0, .ehs = 1, .ezi = 0, .zif = 0}},           // P6_3: MIX_ENABLE_N
         {map_rf_amp_enable.scu_port, map_rf_amp_enable.scu_pin, scu_config_normal_drive_t{.mode = map_rf_amp_enable.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PA_2 RF_AMP_EN
 #else
         {map_rx_mix_bp.scu_port, map_rx_mix_bp.scu_pin, scu_config_normal_drive_t{.mode = map_rx_mix_bp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},              // P5_3 RX_MIX_BP
