@@ -29,9 +29,12 @@
 #include "rtc_time.hpp"
 #include "portapack.hpp"
 #include "ui.hpp"
+#include "ui_audio.hpp"
+#include "ui_channel.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_rssi.hpp"
 
 namespace ui::external_app::vor_rx {
 
@@ -112,6 +115,13 @@ class VorRxView : public View {
         {UI_POS_X(18), UI_POS_Y(0)}};
     AudioVolumeField field_volume{
         {screen_width - 2 * 8, UI_POS_Y(0)}};
+
+    RSSI rssi{
+        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(21) - UI_POS_WIDTH(2), 4}};
+    Channel channel{
+        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(21) - UI_POS_WIDTH(2), 4}};
+    Audio audio{
+        {UI_POS_X(21), 10, UI_POS_WIDTH_REMAINING(21) - UI_POS_WIDTH(2), 4}};
 
     NumberField field_course{
         {UI_POS_X(14), UI_POS_Y(4)},
