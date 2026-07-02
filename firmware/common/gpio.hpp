@@ -511,7 +511,7 @@ constexpr Pin pin_rf_amp_enable{map_rf_amp_enable.scu_port, map_rf_amp_enable.sc
 constexpr GPIO rf_amp_enable{pin_rf_amp_enable, map_rf_amp_enable.gpio_port, map_rf_amp_enable.gpio_pad, map_rf_amp_enable.gpio_mode};  // GPIO[4]9
 
 constexpr Pin pin_aux_power_enable{map_aux_power_enable.scu_port, map_aux_power_enable.scu_pin};                                                       // SCU: P6_7
-constexpr GPIO aux_power_enable{pin_aux_power_enable, map_aux_power_enable.gpio_port, map_aux_power_enable.gpio_pad, map_aux_power_enable.gpio_mode};  // GPIO[5]15
+constexpr GPIO aux_power_enable{pin_aux_power_enable, map_aux_power_enable.gpio_port, map_aux_power_enable.gpio_pad, map_aux_power_enable.gpio_mode, Polarity::ActiveLow};  // GPIO[5]15
 
 constexpr Pin pin_aux_power_oc{map_aux_power_oc.scu_port, map_aux_power_oc.scu_pin};                                               // SCU: P6_11
 constexpr GPIO aux_power_oc{pin_aux_power_oc, map_aux_power_oc.gpio_port, map_aux_power_oc.gpio_pad, map_aux_power_oc.gpio_mode};  // GPIO[3]7
