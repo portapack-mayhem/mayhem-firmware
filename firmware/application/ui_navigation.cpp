@@ -145,7 +145,7 @@ bool NavigationView::StartAppByName(const char* name) {
 namespace {
 
 // ASCII, allocation-free, case-insensitive lowering. Kept local so this TU
-// doesn't drag in <cctype>/locale just for one small comparison.
+// doesn't need to include <cctype> just for one small comparison.
 char ascii_lower(char c) {
     return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
 }
