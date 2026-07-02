@@ -139,12 +139,12 @@ class VorRxView : public View {
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Status:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(2)}, "Band:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(3)}, "Next:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(2)}, "VOR Band:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(3)}, "Decoder:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(4)}, "Course (OBS):", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(5)}, "Radial:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(5)}, "Rec. Radial:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(0), UI_POS_Y(6)}, "Flag:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(7)}, "Calib.:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(7)}, "Calibration:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_status{
         {UI_POS_X(14), UI_POS_Y(1), UI_POS_WIDTH_REMAINING(14), UI_POS_HEIGHT(1)},
@@ -169,22 +169,22 @@ class VorRxView : public View {
         "deg"};
 
     Text text_cdi_title{
-        {UI_POS_X(0), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), UI_POS_Y(9), UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)},
         "Course Deviation Indicator"};
 
     VorCdiIndicator cdi_indicator{
-        {UI_POS_X(0), UI_POS_Y(9)}};
+        {UI_POS_X(0), UI_POS_Y(10)}};
 
     std::unique_ptr<VorLogger> logger{};
 
     Button button_start_stop{
-        {UI_POS_X(9), UI_POS_Y(13), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X(9), UI_POS_Y(14), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Start"};
 
     Checkbox check_log{
-        {UI_POS_X(13), UI_POS_Y(16)},
+        {UI_POS_X(9), UI_POS_Y(17)},
         3,
-        "LOG",
+        "LOG to SD Card",
         true};
 
     MessageHandlerRegistration message_handler_vor_status{

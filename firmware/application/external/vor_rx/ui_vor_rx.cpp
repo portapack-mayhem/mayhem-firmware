@@ -220,7 +220,7 @@ void VorRxView::stop_receiver() {
 }
 
 void VorRxView::update_status() {
-    text_status.set(running_ ? "Audio on" : "Off");
+    text_status.set(running_ ? "Running" : "Idle");
     button_start_stop.set_text(running_ ? "Stop" : "Start");
 }
 
@@ -247,7 +247,7 @@ void VorRxView::on_vor_status(const VorRxStatusDataMessage& message) {
         radial_filter_valid_ = false;
     }
 
-    text_next.set(message.valid ? "Decoder locked" : "Decoder pending");
+    text_next.set(message.valid ? "Locked" : "Searching");
     refresh_radial();
     if (logger && logging_) {
         VorRxStatusDataMessage calibrated = message;
