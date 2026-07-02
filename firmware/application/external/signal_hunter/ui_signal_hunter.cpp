@@ -14,31 +14,63 @@ namespace ui::external_app::signal_hunter {
 // --- TAB 1: Main View ---
 HunterMainView::HunterMainView(Rect parent_rect, SignalHunterAppView& parent)
     : View(parent_rect), parent_app(parent) {
-    add_children({&big_display, &text_status, &button_start_stop, &text_hits});
-    big_display.set(433920000);
+    add_children({&text_current_freq, &text_status, &button_start_stop, &text_hits});
+    update_frequency(433920000);
 
     button_start_stop.on_select = [this](Button&) {
         parent_app.is_hunting = !parent_app.is_hunting;
         if (parent_app.is_hunting) {
             button_start_stop.set_text("STOP");
+            // Set initial frequency based on set mode (single freq / freq hopping)
+            if (parent_app.freq_hop_mode && !parent_app.frequency_list.empty()) {
+                parent_app.current_freq_index = 0;
+                auto freq = parent_app.frequency_list[0];
+                receiver_model.set_target_frequency(freq);
+                update_frequency(freq);
+            } else {
+                receiver_model.set_target_frequency(parent_app.single_frequency);
+                update_frequency(parent_app.single_frequency);
+            }
             update_status("HUNTING...", Theme::getInstance()->fg_green);
-            parent_app.send_hunter_config(true); // Send START to M4
+            parent_app.send_hunter_config(true);
         } else {
             button_start_stop.set_text("START");
             update_status("IDLE", Theme::getInstance()->fg_light);
-            parent_app.send_hunter_config(false); // Send STOP to M4
+            set_recording_state(false);
+            parent_app.send_hunter_config(false);
         }
-    };
+    }; 
+}
+
+void HunterMainView::on_show() {
+  if (!parent_app.freq_hop_mode) {
+        current_freq_ = receiver_model.target_frequency();
+    }
+
+    update_frequency(current_freq_);  // force repaint
 }
 
 void HunterMainView::focus() {
-    big_display.set(current_freq_);
+    if (!parent_app.freq_hop_mode) {
+          current_freq_ = receiver_model.target_frequency();
+      }
+
+    update_frequency(current_freq_);
     button_start_stop.focus();
+}
+
+void HunterMainView::set_recording_state(bool recording) {
+    // TODO: Color change not working
+    if (recording)
+        text_current_freq.set_style(Theme::getInstance()->fg_red);
+    else
+        text_current_freq.set_style(Theme::getInstance()->fg_light);
+    update_frequency(current_freq_);  // repaint with the new color
 }
 
 void HunterMainView::update_frequency(rf::Frequency freq) {
     current_freq_ = freq;
-    big_display.set(current_freq_);
+    text_current_freq.set(to_string_dec_uint(freq) + " Hz");
 }
 
 void HunterMainView::update_status(const std::string& status, const Style* style) {
@@ -53,7 +85,17 @@ void HunterMainView::update_hits(uint32_t hits) {
 // --- TAB 2: Freqs View ---
 HunterFreqsView::HunterFreqsView(Rect parent_rect, SignalHunterAppView& parent)
     : View(parent_rect), parent_app(parent) {
-    add_children({&button_load_file, &button_clear, &text_loaded_info});
+    
+    add_children({
+        &button_load_file,
+        &button_clear,
+        &labels,
+        &field_dwell,
+        &text_loaded_info
+    });
+
+    field_dwell.set_value(parent_app.hop_dwell_ms);
+    field_dwell.on_change = [this](int32_t v) { parent_app.hop_dwell_ms = v; };
 
     button_load_file.on_select = [this](Button&) {
         auto* view = parent_app.get_nav().push<FileLoadView>(".TXT");
@@ -61,7 +103,6 @@ HunterFreqsView::HunterFreqsView(Rect parent_rect, SignalHunterAppView& parent)
             view->on_changed = [this](std::filesystem::path path) {
                 parent_app.frequency_list.clear();
                 parent_app.current_freq_index = 0;
-
                 FreqmanDB db{};
                 db.open(path);
                 for (const auto& entry : db) {
@@ -69,7 +110,17 @@ HunterFreqsView::HunterFreqsView(Rect parent_rect, SignalHunterAppView& parent)
                         parent_app.frequency_list.push_back(entry.frequency_a);
                 }
                 parent_app.freqman_file = path.stem().string();
+                
+                // Switch to HOP mode if a file was loaded
+                if (!parent_app.frequency_list.empty())
+                    parent_app.freq_hop_mode = true;
+                
                 update_list_count();
+                
+                // Update the mode display in the Config tab
+                if (parent_app.get_config_view()) {
+                    parent_app.get_config_view()->update_mode_display();
+                }
             };
         }
     };
@@ -77,28 +128,67 @@ HunterFreqsView::HunterFreqsView(Rect parent_rect, SignalHunterAppView& parent)
     button_clear.on_select = [this](Button&) {
         parent_app.frequency_list.clear();
         parent_app.current_freq_index = 0;
+        parent_app.freq_hop_mode = false;
+        
         update_list_count();
+        
+        // Update the mode display in the Config tab
+        if (parent_app.get_config_view()) {
+            parent_app.get_config_view()->update_mode_display();
+        }
     };
+}
+
+void HunterFreqsView::update_list_count() {
+    text_loaded_info.set("Loaded: " +
+        to_string_dec_uint(parent_app.frequency_list.size()) + " freqs");
 }
 
 void HunterFreqsView::focus() {
     button_load_file.focus();
 }
 
-void HunterFreqsView::update_list_count() {
-    text_loaded_info.set("Loaded: " + to_string_dec_uint(parent_app.frequency_list.size()) + " freqs");
-}
 
 // --- TAB 3: Config View ---
 HunterConfigView::HunterConfigView(Rect parent_rect, SignalHunterAppView& parent)
-    : View(parent_rect), parent_app(parent) {
-    add_children({&labels, &field_threshold, &field_hang_time, &text_info_config});
+    : View(parent_rect), parent_app(parent), field_single_freq{{UI_POS_X(2), UI_POS_Y(4)}, parent.get_nav()} {
+    add_children({
+        &button_mode,
+        &field_single_freq,
+        &labels, 
+        &field_threshold, 
+        &field_hang_time, 
+        &text_info_config
+    });
 
+    button_mode.on_select = [this](Button&) {
+        parent_app.freq_hop_mode = !parent_app.freq_hop_mode;
+        update_mode_display();
+    };
+
+    field_single_freq.set_value(parent_app.single_frequency);
+    
     field_threshold.set_value(parent_app.energy_threshold);
     field_threshold.on_change = [this](int32_t v) { parent_app.energy_threshold = v; };
 
     field_hang_time.set_value(parent_app.hangtime_ms);
     field_hang_time.on_change = [this](int32_t v) { parent_app.hangtime_ms = v; };
+
+    update_mode_display();
+}
+
+void HunterConfigView::on_show() {
+    auto current = receiver_model.target_frequency();
+    parent_app.single_frequency = current;
+    field_single_freq.set_value(current);
+}
+
+void HunterConfigView::update_mode_display() {
+    if (parent_app.freq_hop_mode)
+        button_mode.set_text("MODE: HOP (" +
+            to_string_dec_uint(parent_app.frequency_list.size()) + " freqs)");
+    else
+        button_mode.set_text("MODE: SINGLE");
 }
 
 void HunterConfigView::focus() {
@@ -148,12 +238,18 @@ SignalHunterAppView::SignalHunterAppView(ui::NavigationView& nav)
         SettingBindings{
             {"threshold"sv, &energy_threshold},
             {"hangtime_ms"sv, &hangtime_ms},
+            {"hop_dwell_ms"sv, &hop_dwell_ms},
+            {"single_freq"sv,  &single_frequency},
             {"file"sv,      &freqman_file}
         }
     );
 }
 
 SignalHunterAppView::~SignalHunterAppView() {
+    if (!freq_hop_mode) {
+        single_frequency = receiver_model.target_frequency();
+    }
+
     // Safely shutdown recording
     stop_recording();
     receiver_model.disable();
@@ -163,6 +259,29 @@ SignalHunterAppView::~SignalHunterAppView() {
 void SignalHunterAppView::focus() {
     if (tab_view)
         tab_view->focus();
+}
+
+// TIMER LOGIC: Based on display refresh rate 
+void SignalHunterAppView::on_frame_sync() {
+    // Timer running only if, HUNTING, in HOPPING mode, not recording + we have the freqs list
+    if (is_hunting && freq_hop_mode && !capture_thread && !frequency_list.empty()) {
+        hop_timer_ms += 17; // 1 frame in a 60 Hz display ~ 16.6 ms
+        
+        // if Dwell Time has passed, change frequency
+        if (hop_timer_ms >= hop_dwell_ms) {
+            hop_timer_ms = 0;
+            
+            current_freq_index = (current_freq_index + 1) % frequency_list.size();
+            auto next_freq = frequency_list[current_freq_index];
+            receiver_model.set_target_frequency(next_freq);
+            
+            if (view_main) {
+                view_main->update_frequency(next_freq);
+            }
+        }
+    } else {
+        hop_timer_ms = 0; // if not hunting / recording -> timer = 0
+    }
 }
 
 // Recording control logic via M0 <-> M4 IPC
@@ -181,20 +300,29 @@ void SignalHunterAppView::on_hunter_trigger(const HunterTriggerMessage* /*messag
         trigger_hits++;
         view_main->update_hits(trigger_hits);
         view_main->update_status("RECORDING!", Theme::getInstance()->fg_red);
+        view_main->set_recording_state(true);
         
         start_recording();
     }
 }
 
-void SignalHunterAppView::on_hunter_stop(const HunterStopMessage* /*message*/) {
-    // Hangtime expired - M4 signals stop condition
+void SignalHunterAppView::on_hunter_stop(const HunterStopMessage*) {
     if (capture_thread) {
         stop_recording();
-        
+        view_main->set_recording_state(false);
+
         if (is_hunting) {
+            if (freq_hop_mode && !frequency_list.empty()) {
+                // Next frequency
+                current_freq_index = (current_freq_index + 1) % frequency_list.size();
+                auto next_freq = frequency_list[current_freq_index];
+                receiver_model.set_target_frequency(next_freq);
+                view_main->update_frequency(next_freq);
+                
+                // Reset the timer 
+                hop_timer_ms = 0; 
+            }
             view_main->update_status("HUNTING...", Theme::getInstance()->fg_green);
-            // TODO: Future enhancement - increment current_freq_index
-            // and tune to next frequency in list for multi-frequency scanning.
         }
     }
 }
@@ -204,7 +332,7 @@ void SignalHunterAppView::start_recording() {
     rtc_time::now(datetime);
     
     // Generate timestamped filename for capture session
-    current_capture_filename = "HUN_" +
+    current_capture_filename = "HNT_" +
         to_string_dec_uint(datetime.year(),   4, '0') +
         to_string_dec_uint(datetime.month(),  2, '0') +
         to_string_dec_uint(datetime.day(),    2, '0') + "T" +
@@ -227,7 +355,7 @@ void SignalHunterAppView::start_recording() {
         4096, 
         4,
         []() {}, 
-        [this](File::Error) {}
+        [](File::Error) {}
     );
     
     if (view_main) view_main->update_status("RECORDING!", Theme::getInstance()->fg_red);
