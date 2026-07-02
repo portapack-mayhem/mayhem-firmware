@@ -4,8 +4,8 @@
 #include "ui_fileman.hpp"
 #include "freqman_db.hpp"
 #include "string_format.hpp"
-#include "io_file.hpp"                 // PRIDANÉ pre zápis na SD
-#include "rtc_time.hpp"                // PRIDANÉ pre timestamp názvu súboru
+#include "io_file.hpp"                 // For SD card file writing
+#include "rtc_time.hpp"                // For timestamped capture filenames
 
 using namespace portapack;
 
@@ -22,11 +22,11 @@ HunterMainView::HunterMainView(Rect parent_rect, SignalHunterAppView& parent)
         if (parent_app.is_hunting) {
             button_start_stop.set_text("STOP");
             update_status("HUNTING...", Theme::getInstance()->fg_green);
-            parent_app.send_hunter_config(true); // Odošli START do M4
+            parent_app.send_hunter_config(true); // Send START to M4
         } else {
             button_start_stop.set_text("START");
             update_status("IDLE", Theme::getInstance()->fg_light);
-            parent_app.send_hunter_config(false); // Odošli STOP do M4
+            parent_app.send_hunter_config(false); // Send STOP to M4
         }
     };
 }
@@ -154,8 +154,8 @@ SignalHunterAppView::SignalHunterAppView(ui::NavigationView& nav)
 }
 
 SignalHunterAppView::~SignalHunterAppView() {
-    // Ak sa appka zatvorí, bezpečne ukončíme nahrávanie
-    stop_recording(); 
+    // Safely shutdown recording
+    stop_recording();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -165,10 +165,10 @@ void SignalHunterAppView::focus() {
         tab_view->focus();
 }
 
-// --- PRIDANÁ LOGIKA NAHRÁVANIA (M0 -> M4 IPC) ---
+// Recording control logic via M0 <-> M4 IPC
 void SignalHunterAppView::send_hunter_config(bool start) {
-    // Používame našu novú API funkciu - toto posiela správu správnym smerom (M0 -> M4)
-    baseband::set_hunter_config(energy_threshold, hangtime_ms, start);  
+    // Send config to baseband processor via IPC mechanism
+    baseband::set_hunter_config(energy_threshold, hangtime_ms, start);
 
     if (!start) {
         stop_recording();
@@ -176,7 +176,7 @@ void SignalHunterAppView::send_hunter_config(bool start) {
 }
 
 void SignalHunterAppView::on_hunter_trigger(const HunterTriggerMessage* /*message*/) {
-    // Prišla správa z M4 - signál nájdený
+    // M4 has detected signal above threshold - start I/Q capture
     if (!capture_thread) {
         trigger_hits++;
         view_main->update_hits(trigger_hits);
@@ -187,14 +187,14 @@ void SignalHunterAppView::on_hunter_trigger(const HunterTriggerMessage* /*messag
 }
 
 void SignalHunterAppView::on_hunter_stop(const HunterStopMessage* /*message*/) {
-    // Prišla správa z M4 - hangtime vypršal
+    // Hangtime expired - M4 signals stop condition
     if (capture_thread) {
         stop_recording();
         
         if (is_hunting) {
             view_main->update_status("HUNTING...", Theme::getInstance()->fg_green);
-            // TODO pre budúcnosť: Tu môžeš inkrementovať current_freq_index
-            // a naladiť rádio na ďalšiu frekvenciu zo zoznamu.
+            // TODO: Future enhancement - increment current_freq_index
+            // and tune to next frequency in list for multi-frequency scanning.
         }
     }
 }
@@ -203,7 +203,7 @@ void SignalHunterAppView::start_recording() {
     rtc::RTC datetime{};
     rtc_time::now(datetime);
     
-    // Uložíme si základ názvu do triedy, aby sme ho mali k dispozícii pri ukončení
+    // Generate timestamped filename for capture session
     current_capture_filename = "HUN_" +
         to_string_dec_uint(datetime.year(),   4, '0') +
         to_string_dec_uint(datetime.month(),  2, '0') +
@@ -212,7 +212,8 @@ void SignalHunterAppView::start_recording() {
         to_string_dec_uint(datetime.minute(), 2, '0') +
         to_string_dec_uint(datetime.second(), 2, '0');
 
-    // Bleskové otvorenie priamo .C16
+    // Use FileWriter for direct raw I/Q dump to avoid M0 CPU bottlenecks.
+    // FileConvertWriter is heavier
     auto writer = std::make_unique<FileWriter>();
     auto create_error = writer->create(std::filesystem::path(u"/CAPTURES") / (current_capture_filename + ".C16"));
 
@@ -233,24 +234,24 @@ void SignalHunterAppView::start_recording() {
 }
 
 void SignalHunterAppView::stop_recording() {
-    // 1. Zastavíme ťažké I/Q nahrávanie a uvoľníme SD kartu
-    capture_thread.reset(); 
+    // Stop I/Q capture and release SD card for metadata write
+    capture_thread.reset();
 
-    // 2. V kľude vytvoríme .TXT súbor s metadátami, keďže rádio už nepotrebuje SD kartu
+    // Generate metadata file after capture completes
     if (!current_capture_filename.empty()) {
         File txt_file;
         auto txt_error = txt_file.create(std::filesystem::path(u"/CAPTURES") / (current_capture_filename + ".TXT"));
         
-        // Ak nevznikla chyba (is_valid() znamená, že "obsahuje chybu")
+        // is_valid() returns true only if error is present (counter-intuitive)
         if (!txt_error.is_valid()) {
             std::string metadata = 
                 "center_frequency=" + to_string_dec_uint(receiver_model.target_frequency()) + "\n" +
-                // Vydelíme hlavný sample rate našou decimáciou (8), aby to sedelo s C16 súborom
-                "sample_rate=" + to_string_dec_uint(receiver_model.sampling_rate() / 8) + "\n"; 
+                // Divide main sample rate by decimation factor (8) to match C16 sample rate
+                "sample_rate=" + to_string_dec_uint(receiver_model.sampling_rate() / 8) + "\n";
                 
             txt_file.write(metadata.c_str(), metadata.length());
         }
-        // Vymažeme názov, sme pripravení na ďalší lov
+        // Clear filename for next capture cycle
         current_capture_filename.clear();
     }
 }

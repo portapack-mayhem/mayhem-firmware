@@ -19,7 +19,7 @@ void SignalHunterProcessor::reset_hunt_state() {
     for (auto& v : iq_ring) v = complex16_t{0, 0};
     hangtime_counter = 0;
     hunt_state = HuntState::IDLE;
-    flush_pending = false;  // ADD
+    flush_pending = false;
 }
 
 void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
@@ -28,10 +28,9 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
     const auto out = decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(out);
 
-    // Pre-roll flush: prvý execute() po vytvorení streamu
-    // Bezpečné tu (nie v on_message) — M0 CaptureThread už beží a konzumuje buffery
+    // Pre-roll flush: first execute() call after CaptureConfigMessage creates stream.
     if (flush_pending && stream) {
-        // Zapíšeme ring buffer od najstaršej po najnovšiu vzorku (2 chunky kvôli wrap)
+        // Write ring buffer from oldest to newest sample (2 chunks due to wrap-around)
         size_t first = IQ_RING_SAMPLES - flush_start_idx;
         stream->write(&iq_ring[flush_start_idx], first * sizeof(complex16_t));
         if (flush_start_idx > 0)
@@ -81,14 +80,13 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
                 }
                 break;
             case HuntState::AWAITING_CLOSE:
-                // Neprechádzame do IDLE sami — čakáme na CaptureConfigMessage(nullptr)
-                // ktorý príde cez BasebandCapture deštruktor po ukončení CaptureThread
+                // Do not transition to IDLE by ourselves — wait for CaptureConfigMessage(nullptr)
+                // which arrives via BasebandCapture destructor after CaptureThread is destroyed
                 break;
         }
     }
 
-    // KĽÚČOVÝ FIX: píšeme VŽDY keď stream existuje, aj v AWAITING_CLOSE
-    // Bez toho CaptureThread uviazne v buffers.get() a chThdWait() zmrazí UI
+    // CRITICAL: Continue writing to stream whenever it exists, even in AWAITING_CLOSE state.
     if (stream) {
         stream->write(out.p, sizeof(complex16_t) * out.count);
     }
@@ -100,7 +98,9 @@ void SignalHunterProcessor::on_message(const Message* const message) {
             const auto& m = *reinterpret_cast<const HunterConfigMessage*>(message);
             energy_threshold = m.energy_threshold;
 
-            // PREPOČET: 1 ms = 250 vzoriek (pri 250kHz post-decimation)
+            // Convert hangtime to post-decimation samples:
+            // 1 ms = 250 samples @ 250 kHz post-decimation rate (from 2 MHz baseband / 8x decimator)
+            // This dynamic hangtime allows configurable silence tolerance (e.g., 500 ms)
             hangtime_samples_limit = m.hangtime_ms * 250;
 
             if (!configured) configure();
@@ -117,8 +117,8 @@ void SignalHunterProcessor::on_message(const Message* const message) {
             const auto& m = *reinterpret_cast<const CaptureConfigMessage*>(message);
             if (m.config) {
                 stream = std::make_unique<StreamInput>(m.config);
-                flush_start_idx = iq_ring_idx;  // snapshot — sem sme sa dopísali
-                flush_pending = true;           // execute() spracuje ring buffer flush
+                flush_start_idx = iq_ring_idx;  // Snapshot: current write position
+                flush_pending = true;           // execute() will process ring buffer pre-roll
                 hunt_state = HuntState::RECORDING;
             } else {
                 stream.reset();

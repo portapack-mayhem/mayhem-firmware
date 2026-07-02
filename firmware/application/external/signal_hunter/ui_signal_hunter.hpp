@@ -76,7 +76,7 @@ class SignalHunterAppView final : public ui::View {
     std::string title() const override { return "SignalHunter"; }
     ui::NavigationView& get_nav() { return nav_; }
 
-    // Zdieľaný stav
+    // Application state shared across all views
     std::vector<rf::Frequency> frequency_list;
     uint32_t current_freq_index{0};
     uint32_t energy_threshold{5000};
