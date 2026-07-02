@@ -86,6 +86,14 @@ struct AppInfoConsole {
     const app_location_t appLocation;
 };
 
+// One row in the app-search results list. Strings are owned copies: the
+// external-app enumerator hands back pointers to short-lived buffers.
+struct AppSearchEntry {
+    std::string display;       // friendly name shown to the user
+    ViewFactoryBase* factory;  // internal app factory, or nullptr for external/standalone
+    std::string call_name;     // external/standalone file name (no extension); unused when internal
+};
+
 class NavigationView : public View {
    public:
     std::function<void(const View&)> on_view_changed{};
@@ -138,11 +146,33 @@ class NavigationView : public View {
     bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
     void handle_autostart();
 
+    // Opens a keyboard; once confirmed, shows a pick-list of every internal,
+    // external (.ppma) and standalone (.ppmp) app whose name matches the query.
+    // Reuses the transient text-entry view, so the only steady-state cost is
+    // the two members below; the keyboard and the results list are allocated
+    // only while a search is in progress.
+    void start_app_search();
+
+    // Launches one search result and drops the search UI first, so only one app
+    // is ever resident. 'factory' non-null selects an internal app; otherwise
+    // 'call_name' is an external/standalone app file name (no extension).
+    // Arguments are taken by value on purpose: home() below frees the results
+    // view (and the button that called this), so nothing here may touch it.
+    void launch_search_entry(ViewFactoryBase* factory, std::string call_name);
+
    private:
     struct ViewState {
         std::unique_ptr<View> view;
         std::function<void()> on_pop;
     };
+
+    // Builds and pushes the results list. Runs from the keyboard view's on_pop,
+    // i.e. after that view is fully destroyed, so pushing here can't be
+    // clobbered by the keyboard's own trailing pop().
+    void open_app_search_results();
+
+    std::string app_search_query_{};    // keyboard buffer, owned across its lifetime
+    bool app_search_committed_{false};  // true only when the user confirmed a non-empty query
 
     std::vector<ViewState> view_stack{};
 
@@ -329,6 +359,9 @@ class InformationView : public View {
     void refresh();
     bool firmware_checksum_error();
 
+    // Whole info bar is a touch target that opens the app search.
+    bool on_touch(const TouchEvent event) override;
+
    private:
     // static constexpr auto version_string = "v1.4.4"; // This is commented out as we are now setting the version via ENV (VERSION_STRING=v1.0.0)
     NavigationView& nav_;
@@ -337,8 +370,15 @@ class InformationView : public View {
         {0, 0, screen_width, 16},
         Theme::getInstance()->bg_darker->background};
 
+    // Visual hint that the info bar starts an app search when tapped.
+    Image search_icon{
+        {2, 0, 16, 16},
+        &bitmap_icon_search,
+        Color::yellow(),
+        Theme::getInstance()->bg_darker->background};
+
     Text version{
-        {2, 0, 11 * 8, 16},
+        {18, 0, 9 * 8, 16},  // 9 chars keeps room for the "FLASH ERR" indicator; right edge unchanged from before the icon
         VERSION_STRING};
 
     LiveDateTime ltime{
@@ -420,6 +460,19 @@ class SystemMenuView : public BtnGridView {
     NavigationView& nav_;
     void on_populate() override;
     void hackrf_mode(NavigationView& nav);
+};
+
+// Pick-list of apps matching an app-search query. Reuses the button grid so it
+// behaves (and launches on tap) exactly like the normal app menus.
+class AppSearchResultsView : public BtnGridView {
+   public:
+    AppSearchResultsView(NavigationView& nav, std::vector<AppSearchEntry>&& entries);
+    std::string title() const override { return "Search"; };
+
+   private:
+    NavigationView& nav_;
+    std::vector<AppSearchEntry> entries_;
+    void on_populate() override;
 };
 
 class SystemView : public View {
