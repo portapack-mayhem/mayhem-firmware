@@ -205,10 +205,13 @@ void VorRx::process_vor_metrics(const buffer_f32_t& audio) {
         const float inv_n = 1.0f / static_cast<float>(vor_window_samples);
         const float variable_phase = atan2f(vor_var_q, vor_var_i);
         const float reference_phase = atan2f(vor_ref_q, vor_ref_i);
-        // Subtract the receive-chain phase lag (see vor_ref_phase_lag_deg) so
-        // the reported radial matches the transmitted bearing without needing
-        // the user's manual calibration offset.
-        float phase_diff = ((variable_phase - reference_phase) * 180.0f / kPi) - vor_ref_phase_lag_deg;
+        // Real VOR radials increase clockwise, i.e. the variable tone lags the
+        // reference by the bearing. The decoder therefore reports
+        // (reference - variable); the opposite order mirrors every bearing to
+        // 360 - true. Add back the receive-chain phase lag (see
+        // vor_ref_phase_lag_deg): with this subtraction order the delayed
+        // reference makes the raw radial read low, so the correction is added.
+        float phase_diff = ((reference_phase - variable_phase) * 180.0f / kPi) + vor_ref_phase_lag_deg;
         while (phase_diff < 0.0f) {
             phase_diff += 360.0f;
         }

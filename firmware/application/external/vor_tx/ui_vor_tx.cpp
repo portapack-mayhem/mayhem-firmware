@@ -104,7 +104,7 @@ VorTxView::~VorTxView() {
 }
 
 void VorTxView::focus() {
-    field_radial.focus();
+    tx_view.focus();
 }
 
 void VorTxView::update_config() {

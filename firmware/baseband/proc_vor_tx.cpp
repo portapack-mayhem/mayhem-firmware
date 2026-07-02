@@ -34,7 +34,7 @@ void VorTxProcessor::execute(const buffer_c8_t& buffer) {
 
         // 30 Hz reference and variable tones (same frequency, offset by the radial).
         const int32_t ref_sine = sine_table_i8[(phase_30 >> 24) & 0xFF];
-        const int32_t var_sine = sine_table_i8[((phase_30 + radial_offset) >> 24) & 0xFF];
+        const int32_t var_sine = sine_table_i8[((phase_30 - radial_offset) >> 24) & 0xFF];
         phase_30 += delta_30;
 
         // 9960 Hz subcarrier, FM-modulated +/- 480 Hz by the 30 Hz reference tone.
@@ -59,10 +59,11 @@ void VorTxProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void VorTxProcessor::vor_tx_config(const VorTxConfigureMessage& message) {
-    // The variable tone is offset by +radial_offset relative to the 30 Hz
-    // reference. This sign convention was verified by a TX->RX loopback against
-    // the VOR RX decoder (proc_vor_rx): a transmitted radial of N degrees is
-    // decoded as N degrees (not mirrored), so no negation is required.
+    // Real VOR radials increase clockwise: the variable tone lags the 30 Hz
+    // reference by the bearing, so the offset is subtracted (see the matching
+    // (reference - variable) decode in proc_vor_rx). A TX->RX loopback with this
+    // convention still decodes a transmitted radial of N degrees as N degrees,
+    // and it now matches real ground-station VOR bearings.
     radial_offset = static_cast<uint32_t>(static_cast<uint64_t>(message.radial_deg % 360) * phase_period / 360);
     ident_enabled = message.ident_enabled;
 

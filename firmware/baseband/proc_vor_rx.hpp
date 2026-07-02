@@ -86,9 +86,9 @@ class VorRx : public BasebandProcessor {
     // one-pole subcarrier low-pass above (~2.75 deg of lag at 30 Hz for
     // alpha = 0.9245) plus a ~0.1 deg half-sample delay in the FM
     // differentiator. Because the reference tone is delayed, the raw radial
-    // (variable - reference) reads high by this amount, so we subtract it.
+    // (reference - variable) reads low by this amount, so we add it back.
     // Value verified by a TX->RX loopback (proc_vor_tx fed through this
-    // decoder): every transmitted radial decoded ~3.2 deg high before this
+    // decoder): every transmitted radial decoded ~3.2 deg low before this
     // correction, and on-bearing afterwards.
     static constexpr float vor_ref_phase_lag_deg{3.2f};
 
