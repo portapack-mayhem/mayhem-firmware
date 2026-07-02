@@ -162,6 +162,9 @@ class Message {
         ToneDetectConfig = 104,
         FlexTosend = 105,
         EPIRBRXConfig = 106,
+        HunterConfig = 107,
+        HunterTrigger = 108,
+        HunterStop = 109,
         MAX
     };
 
@@ -1917,6 +1920,28 @@ class FlexTosendMessage : public Message {
     uint8_t type = 0;
     uint8_t msglen = 0;
     uint8_t msg[240] = {0};
+};
+
+class HunterConfigMessage : public Message {
+   public:
+    uint32_t energy_threshold{5000};
+    uint32_t hangtime_ms{500};
+    bool start{false};
+    constexpr HunterConfigMessage()
+        : Message{ID::HunterConfig} {}
+};
+
+class HunterTriggerMessage : public Message {
+   public:
+    uint32_t energy{0};
+    constexpr HunterTriggerMessage()
+        : Message{ID::HunterTrigger} {}
+};
+
+class HunterStopMessage : public Message {
+   public:
+    constexpr HunterStopMessage()
+        : Message{ID::HunterStop} {}
 };
 
 #endif /*__MESSAGE_H__*/

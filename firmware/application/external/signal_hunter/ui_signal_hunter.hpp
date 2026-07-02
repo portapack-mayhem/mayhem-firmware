@@ -1,0 +1,146 @@
+#ifndef __UI_SIGNAL_HUNTER_H__
+#define __UI_SIGNAL_HUNTER_H__
+
+#include "app_settings.hpp"
+#include "rf_path.hpp"
+#include "ui_widget.hpp"
+#include "ui_navigation.hpp"
+#include "ui_receiver.hpp"
+#include "ui_tabview.hpp"
+#include "capture_thread.hpp" // PRIDANÉ
+#include "message.hpp"        // PRIDANÉ
+#include <vector>
+#include <memory>
+#include "io_convert.hpp"
+
+namespace ui::external_app::signal_hunter {
+
+class SignalHunterAppView;
+
+// --- TAB 1: Main View ---
+class HunterMainView : public View {
+   public:
+    HunterMainView(Rect parent_rect, SignalHunterAppView& parent);
+    void focus() override;
+    void update_status(const std::string& status, const Style* style);
+    void update_hits(uint32_t hits);
+    void update_frequency(rf::Frequency freq);
+
+   private:
+    SignalHunterAppView& parent_app;
+    rf::Frequency current_freq_{433920000};
+    BigFrequency big_display{{4, 24, 224, 52}, 0};
+    Text text_status{{UI_POS_X_CENTER(12), UI_POS_Y(6), 96, 16}, "IDLE"};
+    Button button_start_stop{{UI_POS_X_CENTER(10), UI_POS_Y(8), 80, 32}, "START"};
+    Text text_hits{{UI_POS_X_CENTER(10), UI_POS_Y(11), 80, 16}, "Hits: 0"};
+};
+
+// --- TAB 2: Freqs View ---
+// (Zostáva úplne bez zmeny)
+class HunterFreqsView : public View {
+   public:
+    HunterFreqsView(Rect parent_rect, SignalHunterAppView& parent);
+    void focus() override;
+    void update_list_count();
+
+   private:
+    SignalHunterAppView& parent_app;
+    Button button_load_file{{UI_POS_X(2), UI_POS_Y(1), 80, 28}, "LOAD FILE"};
+    Button button_clear{{UI_POS_X_RIGHT(12), UI_POS_Y(1), 80, 28}, "CLEAR"};
+    Text text_loaded_info{{UI_POS_X(2), UI_POS_Y(4), 208, 16}, "Loaded: 0 freqs"};
+};
+
+// --- TAB 3: Config View ---
+// (Zostáva úplne bez zmeny)
+class HunterConfigView : public View {
+   public:
+    HunterConfigView(Rect parent_rect, SignalHunterAppView& parent);
+    void focus() override;
+
+   private:
+    SignalHunterAppView& parent_app;
+    Labels labels{
+        {{UI_POS_X(2), UI_POS_Y(1)}, "Energy Threshold:", Color::light_grey()},
+        {{UI_POS_X(2), UI_POS_Y(3)}, "Pre-Buffer (ms):", Color::light_grey()}};
+    NumberField field_threshold{{UI_POS_X_RIGHT(8), UI_POS_Y(1)}, 5, {100, 99999}, 100, ' '};
+    NumberField field_hang_time{{UI_POS_X_RIGHT(8), UI_POS_Y(3)}, 4, {10, 5000}, 10, ' '};
+    Text text_info_config{
+        {16, 120, 208, 16}, 
+        "Restart HUNT after change"
+    };
+};
+
+// --- MAIN APP VIEW ---
+class SignalHunterAppView final : public ui::View {
+   public:
+    SignalHunterAppView(ui::NavigationView& nav);
+    ~SignalHunterAppView();
+    void focus() override;
+    std::string title() const override { return "SignalHunter"; }
+    ui::NavigationView& get_nav() { return nav_; }
+
+    // Zdieľaný stav
+    std::vector<rf::Frequency> frequency_list;
+    uint32_t current_freq_index{0};
+    uint32_t energy_threshold{5000};
+    uint32_t hangtime_ms{500};
+    std::string freqman_file{"TARGETS"};
+    bool is_hunting{false};
+    uint32_t trigger_hits{0};
+
+    // PRIDANÉ METÓDY PRE LOGIKU NAHRÁVANIA
+    void send_hunter_config(bool start);
+    HunterMainView* get_main_view() { return view_main.get(); }
+
+   private:
+    ui::NavigationView& nav_;
+
+    std::unique_ptr<app_settings::SettingsManager> settings_{};
+    std::unique_ptr<HunterMainView> view_main{};
+    std::unique_ptr<HunterFreqsView> view_freqs{};
+    std::unique_ptr<HunterConfigView> view_config{};
+    std::unique_ptr<TabView> tab_view{};
+
+    // PRIDANÉ: Objekt pre vlákno nahrávania na SD
+    std::string current_capture_filename{};
+    std::unique_ptr<CaptureThread> capture_thread{};
+
+    ui::LNAGainField field_lna{{UI_POS_X(0), UI_POS_Y(0)}};
+    ui::VGAGainField field_vga{{UI_POS_X(7), UI_POS_Y(0)}};
+    ui::RFAmpField field_rf_amp{{UI_POS_X(14), UI_POS_Y(0)}};
+    ui::RSSI rssi{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, 4}};
+
+    static constexpr Dim tab_bar_h = 20;
+
+    Rect view_rect{
+        0, UI_POS_Y(2) + 4, UI_POS_MAXWIDTH,
+        screen_height - (UI_POS_Y(2) + 4) - UI_POS_HEIGHT(1)};
+
+    Rect content_rect{
+        0, UI_POS_Y(2) + 4 + tab_bar_h, UI_POS_MAXWIDTH,
+        screen_height - (UI_POS_Y(2) + 4 + tab_bar_h) - UI_POS_HEIGHT(1)};
+
+    // PRIDANÉ: Handlery správ a metódy
+    void on_hunter_trigger(const HunterTriggerMessage* message);
+    void on_hunter_stop(const HunterStopMessage* message);
+    void start_recording();
+    void stop_recording();
+
+    MessageHandlerRegistration message_handler_trigger {
+        Message::ID::HunterTrigger,
+        [this](const Message* const p) {
+            this->on_hunter_trigger(static_cast<const HunterTriggerMessage*>(p));
+        }
+    };
+
+    MessageHandlerRegistration message_handler_stop {
+        Message::ID::HunterStop,
+        [this](const Message* const p) {
+            this->on_hunter_stop(static_cast<const HunterStopMessage*>(p));
+        }
+    };
+};
+
+}  // namespace ui::external_app::signal_hunter
+
+#endif /*__UI_SIGNAL_HUNTER_H__*/
