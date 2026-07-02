@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2026 Matej Sochan
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
 #ifndef __PROC_SIGNAL_HUNTER_H__
 #define __PROC_SIGNAL_HUNTER_H__
 
@@ -19,13 +40,11 @@ class SignalHunterProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    // TODO: Verify baseband_fs = 2 MHz is correct for the use case.
     static constexpr size_t baseband_fs = 2000000;
 
-    // TODO: taps_4k25_decim_0 is placeholder copied from RTTY processor.
-    // Verify correct tap coefficients for 2M->250k decimation ratio with your target bandwidth.
-    // Reference: See how proc_capture.cpp selects taps (e.g., taps_200k_decim_0) based on
-    // baseband sample rate and oversample configuration.
+    // Hardcoded Decimate-by-8 FIR filter.
+    // 2,000,000 Hz / 8 = 250,000 Hz target sample rate.
+    // Used to avoid SD Card bottlenecks
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
 
     std::array<complex16_t, 512> dst_buffer_data{};
