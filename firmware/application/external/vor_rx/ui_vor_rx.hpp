@@ -59,7 +59,7 @@ class VorCdiIndicator : public Widget {
     void paint(Painter& painter) override;
 
    private:
-    static float normalize_signed_degrees(float degrees);
+    static int32_t normalize_signed_degrees(int32_t degrees);
 
     uint16_t course_deg_{0};
     uint16_t radial_deg_{0};
@@ -95,11 +95,11 @@ class VorRxView : public View {
     bool last_valid_{false};
     uint8_t flag_state_{0};  // TO/FROM hysteresis: 0=unknown, 1=FROM, 2=TO
     // Circular exponential moving average of the radial. Each 100 ms estimate
-    // is noisy (~10 deg std even when locked), so smooth it as a unit vector
-    // (sin/cos) to average correctly across the 0/360 deg wrap.
+    // is noisy (~10 deg std even when locked), so blend it along the shortest
+    // arc in 1/64 deg fixed point to average correctly across the 0/360 deg
+    // wrap without trig.
     bool radial_filter_valid_{false};
-    float radial_sin_{0.0f};
-    float radial_cos_{0.0f};
+    int32_t radial_smoothed_fp_{0};
 
     RxFrequencyField field_frequency{
         {UI_POS_X(0), UI_POS_Y(0)},
