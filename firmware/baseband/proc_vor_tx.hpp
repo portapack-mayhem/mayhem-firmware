@@ -38,7 +38,6 @@ class VorTxProcessor : public BasebandProcessor {
    private:
     static constexpr size_t baseband_fs = 1536000;
     static constexpr uint64_t phase_period = 1ULL << 32;
-
     // Per-sample phase increments (top byte indexes the 256-entry sine table).
     static constexpr uint32_t delta_30 = static_cast<uint32_t>(30ULL * phase_period / baseband_fs);
     static constexpr uint32_t delta_sub = static_cast<uint32_t>(9960ULL * phase_period / baseband_fs);
@@ -51,6 +50,21 @@ class VorTxProcessor : public BasebandProcessor {
     static constexpr int32_t sub_depth = 18;  // ~30% of carrier
     static constexpr int32_t id_depth = 6;    // ~10% of carrier
 
+    // CW identifier keying. Real VOR stations key the 1020 Hz ident tone in
+    // Morse at ~7 words per minute, so the schedule below is expressed in
+    // "dot" time units and rendered to on/off sample runs at config time.
+    static constexpr uint32_t ident_wpm = 7;
+    static constexpr size_t max_ident_segments = 128;
+
+    // VOR ident is transmitted at least every 10 s; repeat the keyed identifier
+    // on a fixed 10 s cycle (ident start to next ident start).
+    static constexpr uint32_t ident_period_samples = 10 * baseband_fs;
+
+    struct IdentSegment {
+        bool on;
+        uint32_t length;  // duration in samples
+    };
+
     uint32_t phase_30{0};
     uint32_t phase_sub{0};
     uint32_t phase_id{0};
@@ -59,7 +73,15 @@ class VorTxProcessor : public BasebandProcessor {
     bool ident_enabled{true};
     bool configured{false};
 
+    char ident_text[8]{};
+    IdentSegment ident_segments[max_ident_segments]{};
+    size_t ident_segment_count{0};
+    size_t ident_index{0};
+    uint32_t ident_sample_counter{0};
+
     void vor_tx_config(const VorTxConfigureMessage& message);
+    void build_ident_schedule();
+    bool ident_tone_active();
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Transmit};

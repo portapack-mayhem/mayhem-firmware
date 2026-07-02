@@ -21,6 +21,7 @@
 
 #include "proc_vor_tx.hpp"
 
+#include "morse.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"
 
@@ -43,7 +44,7 @@ void VorTxProcessor::execute(const buffer_c8_t& buffer) {
 
         // Optional 1020 Hz identification tone.
         int32_t id_sine = 0;
-        if (ident_enabled) {
+        if (ident_enabled && ident_tone_active()) {
             id_sine = sine_table_i8[(phase_id >> 24) & 0xFF];
             phase_id += delta_1020;
         }
@@ -64,7 +65,94 @@ void VorTxProcessor::vor_tx_config(const VorTxConfigureMessage& message) {
     // decoded as N degrees (not mirrored), so no negation is required.
     radial_offset = static_cast<uint32_t>(static_cast<uint64_t>(message.radial_deg % 360) * phase_period / 360);
     ident_enabled = message.ident_enabled;
+
+    for (size_t i = 0; i < sizeof(ident_text); ++i)
+        ident_text[i] = message.ident_text[i];
+    ident_text[sizeof(ident_text) - 1] = '\0';
+    build_ident_schedule();
+
     configured = message.enabled;
+}
+
+// Render the ident text into a repeating sequence of keyed-on / keyed-off
+// sample runs using the shared ITU Morse table. Timing is derived from the
+// standard "dot = 1200 / wpm" relation; letters are separated by a 3-unit gap,
+// words by 7 units, and a trailing gap pads each cycle to a fixed 10 s period.
+void VorTxProcessor::build_ident_schedule() {
+    ident_segment_count = 0;
+    ident_index = 0;
+    ident_sample_counter = 0;
+
+    const uint32_t dot_samples = static_cast<uint32_t>(1200ULL * baseband_fs / (ident_wpm * 1000ULL));
+
+    uint32_t total_samples = 0;
+    auto push_samples = [&](bool on, uint32_t samples) {
+        if (ident_segment_count >= max_ident_segments) return;
+        ident_segments[ident_segment_count++] = {on, samples};
+        total_samples += samples;
+    };
+    auto push = [&](bool on, uint32_t units) {
+        push_samples(on, units * dot_samples);
+    };
+
+    bool any = false;
+    for (size_t n = 0; n < sizeof(ident_text) && ident_text[n]; ++n) {
+        char ch = ident_text[n];
+        if (ch >= 'a' && ch <= 'z') ch -= 32;
+
+        uint16_t code = 0;
+        if (ch >= '!' && ch <= '_') code = morse::morse_ITU[ch - '!'];
+
+        if (!code) {
+            // Space or unsupported character: word gap between symbols.
+            if (any) push(false, MORSE_WORD_SPACE);
+            continue;
+        }
+
+        const uint16_t code_size = code & 7;
+        for (uint16_t c = 0; c < code_size; ++c) {
+            const bool dash = ((code << c) & 0x8000) != 0;
+            push(true, dash ? MORSE_DASH : MORSE_DOT);
+            if (c + 1 < code_size)
+                push(false, MORSE_SYMBOL_SPACE);
+        }
+        push(false, MORSE_LETTER_SPACE);
+        any = true;
+    }
+
+    if (!any) {
+        // No sendable characters: disable keying entirely.
+        ident_segment_count = 0;
+        return;
+    }
+
+    // Pad the trailing silence so ident-start to ident-start is a full 10 s.
+    // If the keyed sequence is somehow longer than the period, fall back to a
+    // one word-space gap so repeats never run back-to-back.
+    const uint32_t min_gap = MORSE_WORD_SPACE * dot_samples;
+    const uint32_t gap = (ident_period_samples > total_samples + min_gap)
+                             ? ident_period_samples - total_samples
+                             : min_gap;
+    push_samples(false, gap);
+}
+
+// Advances the keying schedule by one sample and returns whether the ident
+// tone should be sounding right now. Returns false when there is nothing to
+// send so the caller leaves the ident tone off.
+bool VorTxProcessor::ident_tone_active() {
+    if (ident_segment_count == 0) return false;
+
+    if (ident_sample_counter == 0)
+        ident_sample_counter = ident_segments[ident_index].length;
+
+    const bool on = ident_segments[ident_index].on;
+
+    if (ident_sample_counter == 0 || --ident_sample_counter == 0) {
+        ++ident_index;
+        if (ident_index >= ident_segment_count) ident_index = 0;
+    }
+
+    return on;
 }
 
 void VorTxProcessor::on_message(const Message* const msg) {

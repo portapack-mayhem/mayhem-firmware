@@ -22,6 +22,7 @@
 #include "ui_vor_tx.hpp"
 
 #include "string_format.hpp"
+#include "ui_textentry.hpp"
 
 using namespace portapack;
 using namespace ui;
@@ -36,6 +37,7 @@ VorTxView::VorTxView(NavigationView& nav)
                   &field_radial,
                   &text_radial_unit,
                   &check_ident,
+                  &button_ident_text,
                   &text_status,
                   &tx_view});
 
@@ -53,6 +55,16 @@ VorTxView::VorTxView(NavigationView& nav)
         if (transmitting_) {
             update_config();
         }
+    };
+
+    button_ident_text.set_text(ident_text_);
+    button_ident_text.on_select = [this](Button&) {
+        text_prompt(nav_, ident_text_, 7, ENTER_KEYBOARD_MODE_ALPHA, [this](std::string&) {
+            button_ident_text.set_text(ident_text_);
+            if (transmitting_) {
+                update_config();
+            }
+        });
     };
 
     tx_view.on_edit_frequency = [this, &nav]() {
@@ -96,7 +108,7 @@ void VorTxView::focus() {
 }
 
 void VorTxView::update_config() {
-    baseband::set_vor_tx_config(static_cast<uint16_t>(radial_), ident_);
+    baseband::set_vor_tx_config(static_cast<uint16_t>(radial_), ident_, ident_text_);
 }
 
 void VorTxView::start_tx() {

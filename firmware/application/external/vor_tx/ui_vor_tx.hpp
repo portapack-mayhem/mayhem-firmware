@@ -53,6 +53,7 @@ class VorTxView : public View {
 
     uint32_t radial_{0};
     bool ident_{true};
+    std::string ident_text_{"VOR"};
 
     TxRadioState radio_state_{
         113'500'000 /* frequency */,
@@ -66,13 +67,15 @@ class VorTxView : public View {
         {
             {"radial"sv, &radial_},
             {"ident"sv, &ident_},
+            {"ident_text"sv, &ident_text_},
         }};
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(1)}, "Radial:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(3)}, "Status:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(5)}, "Lab use: set any freq &", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(0), UI_POS_Y(6)}, "TX into a dummy load.", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(5)}, "Ident:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(8)}, "Status:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(10)}, "Lab use: set any freq &", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(11)}, "TX into a dummy load.", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_radial{
         {UI_POS_X(8), UI_POS_Y(1)},
@@ -86,13 +89,17 @@ class VorTxView : public View {
         "deg"};
 
     Checkbox check_ident{
-        {UI_POS_X(16), UI_POS_Y(1)},
-        5,
-        "Ident",
+        {UI_POS_X(0), UI_POS_Y(3)},
+        13,
+        "CW identifier",
         true};
 
+    Button button_ident_text{
+        {UI_POS_X(8), UI_POS_Y(5), UI_POS_WIDTH(10), UI_POS_HEIGHT(2)},
+        "VOR"};
+
     Text text_status{
-        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
+        {UI_POS_X(8), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(8), UI_POS_HEIGHT(1)},
         "Idle"};
 
     TransmitterView tx_view{

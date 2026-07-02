@@ -1943,19 +1943,25 @@ class VorRxStatusDataMessage : public Message {
 
 class VorTxConfigureMessage : public Message {
    public:
-    constexpr VorTxConfigureMessage(
+    VorTxConfigureMessage(
         uint16_t radial_deg = 0,
         bool ident_enabled = true,
+        const char* ident = "",
         bool enabled = true)
         : Message{ID::VorTxConfigure},
           radial_deg{radial_deg},
           ident_enabled{ident_enabled},
           enabled{enabled} {
+        size_t i = 0;
+        for (; ident && ident[i] && i < sizeof(ident_text) - 1; ++i)
+            ident_text[i] = ident[i];
+        ident_text[i] = '\0';
     }
 
     uint16_t radial_deg{0};
     bool ident_enabled{true};
     bool enabled{true};
+    char ident_text[8]{};  // CW identifier, null-terminated (max 7 chars)
 };
 
 class FlexTosendMessage : public Message {
