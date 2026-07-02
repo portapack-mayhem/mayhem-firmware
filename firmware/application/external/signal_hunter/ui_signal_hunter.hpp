@@ -7,11 +7,10 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_tabview.hpp"
-#include "capture_thread.hpp" // PRIDANÉ
-#include "message.hpp"        // PRIDANÉ
+#include "capture_thread.hpp"
+#include "message.hpp"
 #include <vector>
 #include <memory>
-#include "io_convert.hpp"
 
 namespace ui::external_app::signal_hunter {
 
@@ -36,7 +35,6 @@ class HunterMainView : public View {
 };
 
 // --- TAB 2: Freqs View ---
-// (Zostáva úplne bez zmeny)
 class HunterFreqsView : public View {
    public:
     HunterFreqsView(Rect parent_rect, SignalHunterAppView& parent);
@@ -51,7 +49,6 @@ class HunterFreqsView : public View {
 };
 
 // --- TAB 3: Config View ---
-// (Zostáva úplne bez zmeny)
 class HunterConfigView : public View {
    public:
     HunterConfigView(Rect parent_rect, SignalHunterAppView& parent);
@@ -88,7 +85,6 @@ class SignalHunterAppView final : public ui::View {
     bool is_hunting{false};
     uint32_t trigger_hits{0};
 
-    // PRIDANÉ METÓDY PRE LOGIKU NAHRÁVANIA
     void send_hunter_config(bool start);
     HunterMainView* get_main_view() { return view_main.get(); }
 
@@ -101,7 +97,6 @@ class SignalHunterAppView final : public ui::View {
     std::unique_ptr<HunterConfigView> view_config{};
     std::unique_ptr<TabView> tab_view{};
 
-    // PRIDANÉ: Objekt pre vlákno nahrávania na SD
     std::string current_capture_filename{};
     std::unique_ptr<CaptureThread> capture_thread{};
 
@@ -120,7 +115,6 @@ class SignalHunterAppView final : public ui::View {
         0, UI_POS_Y(2) + 4 + tab_bar_h, UI_POS_MAXWIDTH,
         screen_height - (UI_POS_Y(2) + 4 + tab_bar_h) - UI_POS_HEIGHT(1)};
 
-    // PRIDANÉ: Handlery správ a metódy
     void on_hunter_trigger(const HunterTriggerMessage* message);
     void on_hunter_stop(const HunterStopMessage* message);
     void start_recording();

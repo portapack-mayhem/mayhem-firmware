@@ -4,8 +4,6 @@
 #include "ui_fileman.hpp"
 #include "freqman_db.hpp"
 #include "string_format.hpp"
-#include "spi_image.hpp"
-#include "portapack_shared_memory.hpp" // PRIDANÉ pre aplikáciu IPC queue
 #include "io_file.hpp"                 // PRIDANÉ pre zápis na SD
 #include "rtc_time.hpp"                // PRIDANÉ pre timestamp názvu súboru
 
@@ -112,9 +110,6 @@ SignalHunterAppView::SignalHunterAppView(ui::NavigationView& nav)
     : frequency_list{},
       nav_(nav) {
 
-    // UPOZORNENIE: Tu musíš načítať SVOJ custom baseband, nie wfm_audio!
-    // baseband::run_image(portapack::spi_flash::image_tag_signal_hunter);
-    //baseband::run_prepared_image(_application_information_signal_hunter.m4_app_offset);
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     receiver_model.set_target_frequency(433920000);
