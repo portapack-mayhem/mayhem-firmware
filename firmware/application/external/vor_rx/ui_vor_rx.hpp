@@ -182,7 +182,7 @@ class VorRxView : public View {
         "Start"};
 
     Checkbox check_log{
-        {UI_POS_X(9), UI_POS_Y(17)},
+        {UI_POS_X(7), UI_POS_Y(17)},
         3,
         "LOG to SD Card",
         true};
