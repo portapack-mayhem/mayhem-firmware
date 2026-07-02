@@ -133,7 +133,7 @@ class VorRxView : public View {
     NumberField field_calibration{
         {UI_POS_X(14), UI_POS_Y(7)},
         4,
-        {-180, 180},
+        {-359, 359},
         1,
         ' '};
 
