@@ -58,7 +58,7 @@ class HunterConfigView : public View {
     SignalHunterAppView& parent_app;
     Labels labels{
         {{UI_POS_X(2), UI_POS_Y(1)}, "Energy Threshold:", Color::light_grey()},
-        {{UI_POS_X(2), UI_POS_Y(3)}, "Pre-Buffer (ms):", Color::light_grey()}};
+        {{UI_POS_X(2), UI_POS_Y(3)}, "Hang-Time (ms):", Color::light_grey()}};
     NumberField field_threshold{{UI_POS_X_RIGHT(8), UI_POS_Y(1)}, 5, {100, 99999}, 100, ' '};
     NumberField field_hang_time{{UI_POS_X_RIGHT(8), UI_POS_Y(3)}, 4, {10, 5000}, 10, ' '};
     Text text_info_config{
