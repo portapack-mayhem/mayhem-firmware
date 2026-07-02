@@ -366,8 +366,8 @@ void set_vor_config(bool enabled) {
     send_message(&message);
 }
 
-void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled) {
-    const VorTxConfigureMessage message{radial_deg, ident_enabled, true};
+void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled, bool enabled) {
+    const VorTxConfigureMessage message{radial_deg, ident_enabled, enabled};
     send_message(&message);
 }
 
