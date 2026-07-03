@@ -53,7 +53,7 @@ class SignalHunterProcessor : public BasebandProcessor {
     // --- Energy sliding window for threshold detection ---
     static constexpr size_t WINDOW_SIZE = 64;
     uint32_t window_buf[WINDOW_SIZE]{};
-    size_t   window_idx{0};
+    size_t window_idx{0};
     uint32_t window_sum{0};
 
     bool flush_pending{false};
@@ -68,16 +68,16 @@ class SignalHunterProcessor : public BasebandProcessor {
     size_t iq_ring_idx{0};
 
     uint32_t energy_threshold{5000};
-    bool     hunting{false};
-    bool     configured{false};
+    bool hunting{false};
+    bool configured{false};
 
     // State machine tracking signal detection lifecycle
     enum class HuntState {
-        IDLE,            // Awaiting energy threshold crossing
+        IDLE, // Awaiting energy threshold crossing
         AWAITING_STREAM, // Trigger sent; waiting for CaptureConfigMessage from M0 to create stream
-        RECORDING,       // Stream active; writing live decimated samples
-        HANGTIME,        // Energy dropped below threshold; checking if signal returns
-        AWAITING_CLOSE   // Stop sent; waiting for CaptureConfigMessage(nullptr) from M0 to destroy stream
+        RECORDING, // Stream active; writing live decimated samples
+        HANGTIME, // Energy dropped below threshold; checking if signal returns
+        AWAITING_CLOSE // Stop sent; waiting for CaptureConfigMessage(nullptr) from M0 to destroy stream
     };
     HuntState hunt_state{HuntState::IDLE};
 
@@ -93,7 +93,7 @@ class SignalHunterProcessor : public BasebandProcessor {
     void reset_hunt_state();
 
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
-    RSSIThread     rssi_thread{};
+    RSSIThread rssi_thread{};
 };
 
 #endif /*__PROC_SIGNAL_HUNTER_H__*/

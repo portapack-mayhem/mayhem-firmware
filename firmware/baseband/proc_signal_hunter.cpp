@@ -65,8 +65,7 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
         iq_ring[iq_ring_idx] = s;
         iq_ring_idx = (iq_ring_idx + 1) % IQ_RING_SAMPLES;
 
-        uint32_t energy = ((int32_t)s.real() * s.real() +
-                           (int32_t)s.imag() * s.imag()) >> 16;
+        uint32_t energy = ((int32_t)s.real() * s.real() + (int32_t)s.imag() * s.imag()) >> 16;
         window_sum -= window_buf[window_idx];
         window_buf[window_idx] = energy;
         window_sum += energy;
@@ -146,7 +145,7 @@ void SignalHunterProcessor::on_message(const Message* const message) {
                 reset_hunt_state();
             }
             break;
-        } 
+        }
 
         default:
             break;
