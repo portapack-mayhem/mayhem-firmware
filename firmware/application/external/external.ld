@@ -111,6 +111,7 @@ MEMORY
     ram_external_app_flex_tx               (rwx) : org = 0xAE060000, len = 32k
     ram_external_app_hard_reset            (rwx) : org = 0xAE070000, len = 32k
     ram_external_app_secplustx             (rwx) : org = 0xAE080000, len = 32k
+    ram_external_app_constellation         (rwx) : org = 0xAE090000, len = 32k
 }
 
 SECTIONS
@@ -642,4 +643,10 @@ SECTIONS
         KEEP(*(.external_app.app_secplustx.application_information));
         *(*ui*external_app*secplustx*);
     } > ram_external_app_secplustx
+
+    .external_app_constellation : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_constellation.application_information));
+        *(*ui*external_app*constellation*);
+    } > ram_external_app_constellation
 }

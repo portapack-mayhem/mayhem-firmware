@@ -764,6 +764,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTSK time_sink)
 
+
+
+### Constellation
+
+set(MODE_CPPSRC
+	proc_constellation.cpp
+)
+DeclareTargets(PCON constellation)
+
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 
