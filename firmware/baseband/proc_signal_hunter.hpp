@@ -73,12 +73,18 @@ class SignalHunterProcessor : public BasebandProcessor {
 
     // State machine tracking signal detection lifecycle
     enum class HuntState {
-        IDLE, // Awaiting energy threshold crossing
-        AWAITING_STREAM, // Trigger sent; waiting for CaptureConfigMessage from M0 to create stream
-        RECORDING, // Stream active; writing live decimated samples
-        HANGTIME, // Energy dropped below threshold; checking if signal returns
-        AWAITING_CLOSE // Stop sent; waiting for CaptureConfigMessage(nullptr) from M0 to destroy stream
+        // Awaiting energy threshold crossing
+        IDLE,
+        // Trigger sent; waiting for CaptureConfigMessage from M0 to create stream
+        AWAITING_STREAM,
+        // Stream active; writing live decimated samples
+        RECORDING,
+        // Energy dropped below threshold; checking if signal returns
+        HANGTIME,
+        // Stop sent; waiting for CaptureConfigMessage(nullptr) from M0 to destroy stream
+        AWAITING_CLOSE
     };
+
     HuntState hunt_state{HuntState::IDLE};
 
     uint32_t hangtime_counter{0};
