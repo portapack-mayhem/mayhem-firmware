@@ -69,12 +69,11 @@ class HunterFreqsView : public View {
     SignalHunterAppView& parent_app;
     Button button_load_file{{UI_POS_X(2), UI_POS_Y(1), 80, 28}, "LOAD FILE"};
     Button button_clear{{UI_POS_X_RIGHT(12), UI_POS_Y(1), 80, 28}, "CLEAR"};
-    
+
     Labels labels{
-        {{UI_POS_X(2), UI_POS_Y(4)}, "Dwell Time (ms):", Color::light_grey()}
-    };
+        {{UI_POS_X(2), UI_POS_Y(4)}, "Dwell Time (ms):", Color::light_grey()}};
     NumberField field_dwell{{UI_POS_X_RIGHT(8), UI_POS_Y(4)}, 4, {10, 9999}, 10, ' '};
-    
+
     Text text_loaded_info{{UI_POS_X(2), UI_POS_Y(6), 208, 16}, "Loaded: 0 freqs"};
 };
 
@@ -88,25 +87,23 @@ class HunterConfigView : public View {
 
    private:
     SignalHunterAppView& parent_app;
-    
+
     Button button_mode{
-        {UI_POS_X(2), UI_POS_Y(2), 208, 28}, "MODE: SINGLE"
-    };
-    
-    RxFrequencyField field_single_freq; //UI_POS_Y(4) 
-    
+        {UI_POS_X(2), UI_POS_Y(2), 208, 28},
+        "MODE: SINGLE"};
+
+    RxFrequencyField field_single_freq;  // UI_POS_Y(4)
+
     Labels labels{
         {{UI_POS_X(2), UI_POS_Y(6)}, "Energy Threshold:", Color::light_grey()},
-        {{UI_POS_X(2), UI_POS_Y(8)}, "Hang-Time (ms):", Color::light_grey()}
-    };
-    
+        {{UI_POS_X(2), UI_POS_Y(8)}, "Hang-Time (ms):", Color::light_grey()}};
+
     NumberField field_threshold{{UI_POS_X_RIGHT(8), UI_POS_Y(6)}, 5, {100, 99999}, 100, ' '};
     NumberField field_hang_time{{UI_POS_X_RIGHT(8), UI_POS_Y(8)}, 4, {10, 5000}, 10, ' '};
-    
+
     Text text_info_config{
-        {UI_POS_X(2), UI_POS_Y(10), 208, 16}, 
-        "Restart HUNT after change"
-    };
+        {UI_POS_X(2), UI_POS_Y(10), 208, 16},
+        "Restart HUNT after change"};
 };
 
 // --- MAIN APP VIEW ---
@@ -166,30 +163,27 @@ class SignalHunterAppView final : public ui::View {
     void start_recording();
     void stop_recording();
 
-    // timer variables 
+    // timer variables
     uint32_t hop_timer_ms{0};
     void on_frame_sync();
 
-    MessageHandlerRegistration message_handler_frame_sync {
+    MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
             this->on_frame_sync();
-        }
-    };
+        }};
 
-    MessageHandlerRegistration message_handler_trigger {
+    MessageHandlerRegistration message_handler_trigger{
         Message::ID::HunterTrigger,
         [this](const Message* const p) {
             this->on_hunter_trigger(static_cast<const HunterTriggerMessage*>(p));
-        }
-    };
+        }};
 
-    MessageHandlerRegistration message_handler_stop {
+    MessageHandlerRegistration message_handler_stop{
         Message::ID::HunterStop,
         [this](const Message* const p) {
             this->on_hunter_stop(static_cast<const HunterStopMessage*>(p));
-        }
-    };
+        }};
 };
 
 }  // namespace ui::external_app::signal_hunter
