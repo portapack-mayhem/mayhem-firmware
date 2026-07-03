@@ -25,7 +25,7 @@
 #include "dsp_fir_taps.hpp"
 
 void SignalHunterProcessor::configure() {
-    decim_0.configure(taps_4k25_decim_0.taps);
+    decim_0.configure(taps_200k_decim_0.taps);
 
     window_idx = 0;
     window_sum = 0;
