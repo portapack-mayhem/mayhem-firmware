@@ -343,12 +343,12 @@ void SignalHunterAppView::start_recording() {
 
     // Generate timestamped filename for capture session
     const std::string capture_filename = "HNT_" +
-                               to_string_dec_uint(datetime.year(), 4, '0') +
-                               to_string_dec_uint(datetime.month(), 2, '0') +
-                               to_string_dec_uint(datetime.day(), 2, '0') + "T" +
-                               to_string_dec_uint(datetime.hour(), 2, '0') +
-                               to_string_dec_uint(datetime.minute(), 2, '0') +
-                               to_string_dec_uint(datetime.second(), 2, '0');
+                                         to_string_dec_uint(datetime.year(), 4, '0') +
+                                         to_string_dec_uint(datetime.month(), 2, '0') +
+                                         to_string_dec_uint(datetime.day(), 2, '0') + "T" +
+                                         to_string_dec_uint(datetime.hour(), 2, '0') +
+                                         to_string_dec_uint(datetime.minute(), 2, '0') +
+                                         to_string_dec_uint(datetime.second(), 2, '0');
 
     // Use FileWriter for direct raw I/Q dump to avoid M0 CPU bottlenecks.
     // FileConvertWriter is heavier
