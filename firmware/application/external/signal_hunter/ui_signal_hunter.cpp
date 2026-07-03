@@ -357,6 +357,11 @@ void SignalHunterAppView::start_recording() {
 
     if (create_error.is_valid()) {
         if (view_main) view_main->update_status("SD ERROR", Theme::getInstance()->fg_red);
+
+        send_hunter_config(false);
+        is_hunting = false;
+        if (view_main) view_main->set_start_button_text("START");
+
         return;
     }
 

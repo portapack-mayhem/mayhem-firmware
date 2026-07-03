@@ -48,6 +48,7 @@ class HunterMainView : public View {
     void update_hits(uint32_t hits);
     void update_frequency(rf::Frequency freq);
     void set_recording_state(bool recording);
+    void set_start_button_text(const std::string& text) { button_start_stop.set_text(text); }
 
    private:
     SignalHunterAppView& parent_app;
