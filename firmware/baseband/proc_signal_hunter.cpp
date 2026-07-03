@@ -122,6 +122,9 @@ void SignalHunterProcessor::on_message(const Message* const message) {
             // 1 ms = 250 samples @ 250 kHz post-decimation rate (from 2 MHz baseband / 8x decimator)
             // This dynamic hangtime allows configurable silence tolerance (e.g., 500 ms)
             hangtime_samples_limit = m.hangtime_ms * 250;
+            if (hangtime_samples_limit == 0) { //addresses "WHAT-IF" integer underflow
+                hangtime_samples_limit = 1;
+            }
 
             if (!configured) configure();
 
