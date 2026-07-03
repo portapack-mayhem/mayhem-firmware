@@ -342,7 +342,7 @@ void SignalHunterAppView::start_recording() {
     rtc_time::now(datetime);
 
     // Generate timestamped filename for capture session
-    current_capture_filename = "HNT_" +
+    const std::string capture_filename = "HNT_" +
                                to_string_dec_uint(datetime.year(), 4, '0') +
                                to_string_dec_uint(datetime.month(), 2, '0') +
                                to_string_dec_uint(datetime.day(), 2, '0') + "T" +
@@ -353,12 +353,14 @@ void SignalHunterAppView::start_recording() {
     // Use FileWriter for direct raw I/Q dump to avoid M0 CPU bottlenecks.
     // FileConvertWriter is heavier
     auto writer = std::make_unique<FileWriter>();
-    auto create_error = writer->create(std::filesystem::path(u"/CAPTURES") / (current_capture_filename + ".C16"));
+    auto create_error = writer->create(std::filesystem::path(u"/CAPTURES") / (capture_filename + ".C16"));
 
     if (create_error.is_valid()) {
         if (view_main) view_main->update_status("SD ERROR", Theme::getInstance()->fg_red);
         return;
     }
+
+    current_capture_filename = capture_filename;
 
     capture_thread = std::make_unique<CaptureThread>(
         std::move(writer),
