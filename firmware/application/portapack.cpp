@@ -57,13 +57,13 @@ using asahi_kasei::ak4951::AK4951;
 #include "battery.hpp"
 
 #include "gpio.hpp"
+using namespace gpio_control;
 
 extern "C" {
 #include "platform_detect.h"
 
 #ifdef PRALINE
 #include "fpga_bridge.h"
-#include "board.h"
 #endif
 }
 
@@ -74,11 +74,9 @@ const char* init_error = nullptr;
 portapack::IO io{
     portapack::gpio_dir,
     portapack::gpio_lcd_rdx,
-    portapack::gpio_lcd_wrx,
     portapack::gpio_io_stbx,
     portapack::gpio_addr,
     portapack::gpio_lcd_te,
-    portapack::gpio_dfu,
 };
 
 portapack::BacklightCAT4004 backlight_cat4004;

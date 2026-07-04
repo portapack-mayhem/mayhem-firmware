@@ -33,6 +33,9 @@
 #include "gpio.hpp"
 #include "ui.hpp"
 
+#include "gpio.hpp"
+using namespace gpio_control;
+
 // #include "portapack_persistent_memory.hpp"
 
 // Darkened pixel bit mask for each possible shift value.
@@ -108,18 +111,14 @@ class IO {
     constexpr IO(
         GPIO gpio_dir,
         GPIO gpio_lcd_rdx,
-        GPIO gpio_lcd_wrx,
         GPIO gpio_io_stbx,
         GPIO gpio_addr,
-        GPIO gpio_rot_a,
-        GPIO gpio_rot_b)
+        GPIO gpio_rot_a)
         : gpio_dir{gpio_dir},
           gpio_lcd_rdx{gpio_lcd_rdx},
-          gpio_lcd_wrx{gpio_lcd_wrx},
           gpio_io_stbx{gpio_io_stbx},
           gpio_addr{gpio_addr},
-          gpio_rot_a{gpio_rot_a},
-          gpio_rot_b{gpio_rot_b} {};
+          gpio_rot_a{gpio_rot_a} {};
 
     void init();
 
@@ -270,18 +269,12 @@ class IO {
         return gpio_rot_a.read();
     }
 
-    uint32_t dfu_read() {
-        return gpio_rot_b.read();
-    }
-
    private:
     const GPIO gpio_dir;
     const GPIO gpio_lcd_rdx;
-    const GPIO gpio_lcd_wrx;
     const GPIO gpio_io_stbx;
     const GPIO gpio_addr;
     const GPIO gpio_rot_a;
-    const GPIO gpio_rot_b;
 
     static constexpr ioportid_t gpio_data_port_id = 3;
     static constexpr size_t gpio_data_shift = 8;
@@ -298,11 +291,11 @@ class IO {
     }
 
     void lcd_wr_assert() {
-        gpio_lcd_wrx.clear();
+        lcd_wrx.setInactive();
     }
 
     void lcd_wr_deassert() {
-        gpio_lcd_wrx.set();
+        lcd_wrx.setActive();
     }
 
     void io_stb_assert() {
