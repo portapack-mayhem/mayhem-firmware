@@ -593,9 +593,8 @@ AudioVolumeField::AudioVolumeField(
     set_value(receiver_model.normalized_headphone_volume());
 
     on_change = [](int32_t vol) {
-        // don't call receiver model, because this widget should be able to handle volume settings from any app,
-        // regardless of the receiver model's enabled state. like the tx apps should be able to set volume too.
-        // this is identical to the receiver model's method.
+        // Don't call receiver_model here so volume can be adjusted even when ReceiverModel is disabled (e.g. TX apps/games).
+        // The dB mapping mirrors ReceiverModel::set_normalized_headphone_volume().
         uint8_t v = clip<uint8_t>(vol, 0, 99);
         auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
         persistent_memory::set_headphone_volume(new_volume);
