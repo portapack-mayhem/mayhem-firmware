@@ -516,6 +516,20 @@ DeclareTargets(PFUT flash_utility)
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
 
+### VOR TX
+
+set(MODE_CPPSRC
+	proc_vor_tx.cpp
+)
+DeclareTargets(PVTX vor_tx)
+
+### VOR RX
+
+set(MODE_CPPSRC
+	proc_vor_rx.cpp
+)
+DeclareTargets(PVRX vor_rx)
+
 ### FLEX RX
 
 set(MODE_CPPSRC
