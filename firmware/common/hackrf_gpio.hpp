@@ -34,23 +34,6 @@ namespace one {
 /* GPIO */
 
 #ifdef PRALINE
-// PRALINE: GPIO2[13] is SPI CS only, FPGA controls ENX/RESETX
-constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];  // P5_4: SPI CS (ENX)
-constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];  // P5_5: LPC43xx controls directly
-#else
-constexpr GPIO gpio_rffc5072_select = gpio[GPIO2_13];
-constexpr GPIO gpio_rffc5072_resetx = gpio[GPIO2_14];
-#endif
-
-#ifdef PRALINE
-constexpr GPIO gpio_rffc5072_clock = gpio[GPIO5_18];
-constexpr GPIO gpio_rffc5072_data = gpio[GPIO4_14];
-#else
-constexpr GPIO gpio_rffc5072_clock = gpio[GPIO5_6];
-constexpr GPIO gpio_rffc5072_data = gpio[GPIO3_3];
-#endif
-
-#ifdef PRALINE
 constexpr GPIO gpio_max283x_select = gpio[GPIO6_28];
 #else
 constexpr GPIO gpio_max283x_select = gpio[GPIO0_15];

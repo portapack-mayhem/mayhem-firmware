@@ -394,6 +394,12 @@ constexpr PinMap map_lpf{10, 1, 4, 8, 4};
 constexpr PinMap map_tx_enable{6, 5, 3, 4, 0};
 constexpr PinMap map_rf_amp_enable{10, 2, 4, 9, 0};
 constexpr PinMap map_pps_in_out{2, 5, 5, 5, 4};
+
+constexpr PinMap map_rffc5072_clock{9, 5, 5, 18, 4};
+constexpr PinMap map_rffc5072_sdata{9, 2, 4, 14, 0};
+
+constexpr PinMap map_sct_clk_in{6, 4, 3, 3, 1};
+
 // constexpr PinMap map_unused_1{2, 7, 0, 7, 0};
 
 #else
@@ -425,9 +431,17 @@ constexpr PinMap map_ant_bias{4, 4, 2, 4, 0};
 constexpr PinMap map_r9_mcu_clk_en{1, 1, 0, 8, 0};
 constexpr PinMap map_r9_clkout_en{1, 2, 0, 9, 0};
 constexpr PinMap map_r9_clkin_en{6, 7, 5, 15, 4};
+
+constexpr PinMap map_rffc5072_clock{2, 6, 5, 6, 4};
+constexpr PinMap map_rffc5072_sdata{6, 4, 3, 3, 0};
+
 #endif
 
-constexpr PinMap map_sgpio_0{0, 0, 0, 0, 3};
+constexpr PinMap map_sgpio_0{0,
+                             0,
+                             0,
+                             0,
+                             3};
 constexpr PinMap map_sgpio_1{0, 1, 0, 1, 3};
 constexpr PinMap map_sgpio_2{1, 15, 0, 2, 2};
 constexpr PinMap map_sgpio_3{1, 16, 0, 3, 2};
@@ -445,6 +459,10 @@ constexpr PinMap map_dfu_boot_1{1, 2, 0, 9, 0};
 constexpr PinMap map_dfu_button{2, 8, 5, 7, 4};
 constexpr PinMap map_lcd_wrx{2, 9, 1, 10, 0};
 constexpr PinMap map_isp{2, 7, 0, 7, 0};
+
+constexpr PinMap map_rffc5072_select{5, 4, 2, 13, 0};
+constexpr PinMap map_rffc5072_resetx{5, 5, 2, 14, 0};
+
 #ifdef PRALINE
 
 // P1 Multiplexer control pins
@@ -521,6 +539,9 @@ constexpr GPIO ant_bias_oc{pin_ant_bias_oc, map_ant_bias_oc.gpio_port, map_ant_b
 
 constexpr Pin pin_pps_in_out{map_pps_in_out.scu_port, map_pps_in_out.scu_pin};                                           // SCU: P2_5
 constexpr GPIO pps_in_out{pin_pps_in_out, map_pps_in_out.gpio_port, map_pps_in_out.gpio_pad, map_pps_in_out.gpio_mode};  // GPIO[5]5
+
+constexpr Pin pin_sct_clk_in{map_sct_clk_in.scu_port, map_sct_clk_in.scu_pin};                                           // SCU: P6_4
+constexpr GPIO sct_clk_in{pin_sct_clk_in, map_sct_clk_in.gpio_port, map_sct_clk_in.gpio_pad, map_sct_clk_in.gpio_mode};  // GPIO[3]3
 
 #else
 constexpr Pin pin_sgpio_13{map_sgpio_13.scu_port, map_sgpio_13.scu_pin};                                       // SCU: P4_8
@@ -670,6 +691,18 @@ constexpr GPIO lcd_wrx{pin_lcd_wrx, map_lcd_wrx.gpio_port, map_lcd_wrx.gpio_pad,
 
 constexpr Pin pin_isp{map_isp.scu_port, map_isp.scu_pin};                                 // SCU: P2_7
 constexpr GPIO dfu_isp{pin_isp, map_isp.gpio_port, map_isp.gpio_pad, map_isp.gpio_mode};  // GPIO[0]7
+
+constexpr Pin pin_rffc5072_clock{map_rffc5072_clock.scu_port, map_rffc5072_clock.scu_pin};                                                   // SCU: P2_6, PRALINE: P9_5
+constexpr GPIO rffc5072_clock{pin_rffc5072_clock, map_rffc5072_clock.gpio_port, map_rffc5072_clock.gpio_pad, map_rffc5072_clock.gpio_mode};  // GPIO[5]6, PRALINE: GPIO[5]18
+
+constexpr Pin pin_rffc5072_sdata{map_rffc5072_sdata.scu_port, map_rffc5072_sdata.scu_pin};                                                   // SCU: P6_4, PRALINE: P9_0
+constexpr GPIO rffc5072_sdata{pin_rffc5072_sdata, map_rffc5072_sdata.gpio_port, map_rffc5072_sdata.gpio_pad, map_rffc5072_sdata.gpio_mode};  // GPIO[3]3, PRALINE: GPIO[4]12
+
+constexpr Pin pin_rffc5072_select{map_rffc5072_select.scu_port, map_rffc5072_select.scu_pin};                                                                          // SCU: P5_4
+constexpr GPIO rffc5072_select{pin_rffc5072_select, map_rffc5072_select.gpio_port, map_rffc5072_select.gpio_pad, map_rffc5072_select.gpio_mode, Polarity::ActiveLow};  // GPIO[2]13
+
+constexpr Pin pin_rffc5072_resetx{map_rffc5072_resetx.scu_port, map_rffc5072_resetx.scu_pin};                                                              // SCU: P5_5
+constexpr GPIO rffc5072_resetx{pin_isp, map_rffc5072_resetx.gpio_port, map_rffc5072_resetx.gpio_pad, map_rffc5072_resetx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]14
 
 }  // namespace gpio_control
 
