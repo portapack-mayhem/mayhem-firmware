@@ -307,9 +307,8 @@ void MAX2839::configure_rx_gain() {
     }
 
     _map.r.lpf_vga_2.L = lna::gain_ordinal(lna_gain);
-    _dirty[Register::RXRF_2] = 1;
     _map.r.lpf_vga_2.VGA = vga::gain_ordinal(vga_gain);
-    _dirty[Register::LPF_VGA_2] = 1;
+    _dirty[Register::LPF_VGA_2] = 1; /* both L (LNA) and VGA live in LPF_VGA_2 */
     flush();
 }
 

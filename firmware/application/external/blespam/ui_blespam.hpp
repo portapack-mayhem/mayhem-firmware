@@ -39,6 +39,7 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "file.hpp"
 
 using namespace ui;
 
@@ -52,6 +53,7 @@ enum ATK_TYPE {
     ATK_SAMSUNG,
     ATK_NAMESPAM,
     ATK_NAMERANDOM,
+    ATK_CUSTOM,
     ATK_ALL_SAFE,
     ATK_ALL
 };
@@ -131,8 +133,9 @@ class BLESpamView : public View {
          {"Samsung", 4},
          {"NameSpam", 5},
          {"NameRandom", 6},
-         {"All-Safe", 7},
-         {"All", 8}}};
+         {"NameCustom", 7},
+         {"All-Safe", 8},
+         {"All", 9}}};
 
     bool is_running{false};
 
@@ -143,6 +146,11 @@ class BLESpamView : public View {
 
     bool randomMac{true};
     bool randomDev{true};
+
+    File custom_file_{};             // kept open while in Custom mode
+    std::string custom_name_{};      // holds only the current name (clamped)
+    bool custom_loaded_{false};      // true once an open attempt has been made
+    bool custom_file_valid_{false};  // true if /BLESPAM/NAME.txt opened successfully
 
     uint8_t channel_number = 37;
     char mac[13] = "010203040407";
@@ -156,7 +164,11 @@ class BLESpamView : public View {
     void createIosPacket(bool crash);
     void createSamsungPacket();
     void createWindowsPacket();
+    void buildNamePacket(const char* name);  // shared name advertisement builder (NameSpam / Custom)
     void createNameSpamPacket();
+    void createCustomPacket();
+    void open_custom_file();       // open /BLESPAM/NAME.txt once (one name per line)
+    bool read_next_custom_name();  // read next line into custom_name_, looping at EOF
     void createNameRandomPacket();
     void createAnyPacket(bool safe);
     void createPacket(ATK_TYPE attackType);

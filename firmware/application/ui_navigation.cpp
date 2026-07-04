@@ -49,6 +49,7 @@
 #include "ui_recon.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
+#include "ui_textentry.hpp"
 #include "ui_sonde.hpp"
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
@@ -137,6 +138,115 @@ bool NavigationView::StartAppByName(const char* name) {
         }
     }
     return false;
+}
+
+/* App search ***********************************************************/
+
+namespace {
+
+// ASCII, allocation-free, case-insensitive lowering. Kept local so this TU
+// doesn't need to include <cctype> just for one small comparison.
+char ascii_lower(char c) {
+    return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
+}
+
+// True when 'needle' occurs anywhere in 'haystack', case-insensitive.
+bool name_contains(const char* haystack, const std::string& needle) {
+    const size_t n = needle.size();
+    if (n == 0)
+        return false;
+    for (size_t i = 0; haystack[i] != '\0'; ++i) {
+        size_t j = 0;
+        while (j < n && haystack[i + j] != '\0' &&
+               ascii_lower(haystack[i + j]) == ascii_lower(needle[j]))
+            ++j;
+        if (j == n)
+            return true;
+    }
+    return false;
+}
+
+}  // namespace
+
+void NavigationView::start_app_search() {
+    app_search_query_.clear();
+    app_search_committed_ = false;
+
+    // Reuse the shared keyboard view; it is destroyed as soon as the user
+    // confirms or cancels, so no search UI ever lingers in RAM.
+    text_prompt(*this, app_search_query_, 20, ENTER_KEYBOARD_MODE_ALPHA,
+                [this](std::string& query) {
+                    // Runs while the keyboard is still alive: only record that a
+                    // query was confirmed; results are built once it has popped.
+                    app_search_committed_ = !query.empty();
+                });
+
+    // Defer building/showing the results until the keyboard view has popped.
+    set_on_pop([this]() { open_app_search_results(); });
+}
+
+void NavigationView::open_app_search_results() {
+    if (!app_search_committed_)
+        return;  // user cancelled with Back, or the query was empty
+    app_search_committed_ = false;
+
+    std::vector<AppSearchEntry> matches;
+
+    // Internal apps: match on the name shown in the menus.
+    for (const auto& app : appList) {
+        if (app.displayName != nullptr && app.viewFactory != nullptr &&
+            name_contains(app.displayName, app_search_query_))
+            matches.push_back({app.displayName, app.viewFactory, {}});
+    }
+
+    // External (.ppma) and standalone (.ppmp) apps on the SD card. The
+    // enumerator hands back pointers to short-lived buffers, so the names are
+    // copied into owned strings here. Match on both the friendly name and the
+    // file (call) name. module_included=false: PPmod apps can't be launched by
+    // path, so they're intentionally excluded.
+    ExternalItemsMenuLoader::load_all_external_items_callback(
+        [this, &matches](AppInfoConsole& info) {
+            if (name_contains(info.appFriendlyName, app_search_query_) ||
+                name_contains(info.appCallName, app_search_query_))
+                matches.push_back({info.appFriendlyName, nullptr, info.appCallName});
+        },
+        false);
+
+    if (matches.empty()) {
+        display_modal("Search", "No matching app found.");
+        return;
+    }
+
+    push<AppSearchResultsView>(std::move(matches));
+}
+
+void NavigationView::launch_search_entry(ViewFactoryBase* factory, std::string call_name) {
+    // Same close-then-open contract as StartAppByName: drop the search UI
+    // (freeing the results view and the very button that called us) before
+    // starting the target, so only one app is ever resident. Everything used
+    // below is a by-value argument or this resident NavigationView.
+    home(false);
+
+    if (factory != nullptr) {
+        push_view(factory->produce(*this));
+        return;
+    }
+
+    // External/standalone: AppInfoConsole doesn't record which kind it is, so
+    // try both extensions the way handle_autostart() does.
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+
+    std::string appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppma";
+    std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
+    if (ExternalItemsMenuLoader::run_external_app(*this, pth))
+        return;
+
+    appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppmp";
+    pth = conv.from_bytes(appwithpath.c_str());
+    if (ExternalItemsMenuLoader::run_standalone_app(*this, pth))
+        return;
+
+    display_modal("Search", "Failed to start:\n" + call_name);
 }
 
 /* StatusTray ************************************************************/
@@ -561,6 +671,7 @@ InformationView::InformationView(
     NavigationView& nav)
     : nav_(nav) {
     add_children({&backdrop,
+                  &search_icon,
                   &version,
                   &ltime});
 
@@ -602,6 +713,19 @@ bool InformationView::firmware_checksum_error() {
 #endif
     }
     return fw_checksum_error;
+}
+
+bool InformationView::on_touch(const TouchEvent event) {
+    // The whole info bar is one touch target. Capture on Start so the End
+    // event is delivered here, then act on release like a normal button tap.
+    switch (event.type) {
+        case TouchEvent::Type::End:
+            if (nav_.is_valid())
+                nav_.start_app_search();
+            return true;
+        default:
+            return true;
+    }
 }
 
 /* Navigation ************************************************************/
@@ -871,6 +995,32 @@ void GamesMenuView::on_populate() {
     }
     add_apps(nav_, *this, GAMES);
     add_external_items(nav_, app_location_t::GAMES, *this, return_icon ? 1 : 0);
+}
+
+/* AppSearchResultsView *************************************************/
+
+AppSearchResultsView::AppSearchResultsView(NavigationView& nav, std::vector<AppSearchEntry>&& entries)
+    : nav_(nav), entries_(std::move(entries)) {
+    set_max_rows(2);  // wider buttons: app names need the room
+}
+
+void AppSearchResultsView::on_populate() {
+    for (size_t i = 0; i < entries_.size(); ++i) {
+        const auto& entry = entries_[i];
+        // Internal apps are green, external/standalone orange, matching the
+        // "yellow-ish external" convention used elsewhere. No icon: the cheap
+        // enumerator doesn't decode external bitmaps.
+        add_item({entry.display,
+                  entry.factory ? Color::green() : Color::orange(),
+                  nullptr,
+                  [this, i]() {
+                      // Read the target off entries_ and pass it by value: the
+                      // call below frees this view via home(), so nothing after
+                      // it may touch 'this' or its members.
+                      nav_.launch_search_entry(entries_[i].factory, entries_[i].call_name);
+                  }},
+                 true);
+    }
 }
 
 /* SystemMenuView ********************************************************/
