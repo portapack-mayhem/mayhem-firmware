@@ -34,15 +34,7 @@ namespace one {
 /* GPIO */
 
 #ifdef PRALINE
-constexpr GPIO gpio_max283x_select = gpio[GPIO6_28];
-#else
-constexpr GPIO gpio_max283x_select = gpio[GPIO0_15];
-#endif
 
-#ifdef PRALINE
-// PRALINE uses MAX2831 transceiver with different control pins
-constexpr GPIO gpio_max283x_enable = gpio[GPIO7_1];  // MAX2831 ENABLE (PE_1)
-// constexpr GPIO gpio_max2831_enable = gpio[GPIO7_1];     // Alias
 constexpr GPIO gpio_max2831_rx_enable = gpio[GPIO7_2];  // MAX2831 RX_ENABLE (PE_2)
 // constexpr GPIO gpio_max2831_rxhp = gpio[GPIO6_29];      // MAX2831 RXHP (PD_15)
 constexpr GPIO gpio_max2831_ld = gpio[GPIO4_11];  // MAX2831 Lock Detect (P9_6)
@@ -51,7 +43,7 @@ constexpr GPIO gpio_max2837_rxenable = gpio[GPIO7_2];
 constexpr GPIO gpio_max2837_txenable = gpio[GPIO7_2];  // MAX2831 uses single RX/TX control
 constexpr GPIO gpio_max2839_rxtx = gpio[GPIO7_2];
 #else
-constexpr GPIO gpio_max283x_enable = gpio[GPIO2_6];
+
 constexpr GPIO gpio_max2837_rxenable = gpio[GPIO2_5];
 constexpr GPIO gpio_max2837_txenable = gpio[GPIO2_4];
 constexpr GPIO gpio_max2839_rxtx = gpio[GPIO2_5];

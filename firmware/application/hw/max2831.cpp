@@ -175,25 +175,25 @@ void MAX2831::set_mode(const Mode mode) {
         default:
         case Mode::Shutdown:
             gpio_max2831_rx_enable.write(0); /* RXTX=0 */
-            gpio_max283x_enable.write(0);    /* ENABLE=0 */
+            max283x_enable.setActive();      // pin is low
             set_rssi_mux(0);
             break;
         case Mode::Standby:
             gpio_max2831_rx_enable.write(1); /* RXTX=1 */
-            gpio_max283x_enable.write(0);    /* ENABLE=0 */
+            max283x_enable.setActive();
             set_rssi_mux(0);
             break;
         case Mode::Transmit:
         case Mode::Tx_Calibration:
             gpio_max2831_rx_enable.write(1); /* RXTX=1 for TX */
-            gpio_max283x_enable.write(1);    /* ENABLE=1 */
+            max283x_enable.setInactive();    // pin is high
             set_rssi_mux(2);                 // transmit power
             break;
         case Mode::Receive:
         case Mode::Rx_Calibration:
             gpio_max2831_rx_enable.write(0); /* RXTX=0 for RX */
-            gpio_max283x_enable.write(1);    /* ENABLE=1 */
-            set_rssi_mux(1);                 // RSSI
+            max283x_enable.setInactive();
+            set_rssi_mux(1);  // RSSI
             break;
     }
 

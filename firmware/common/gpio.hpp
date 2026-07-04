@@ -400,6 +400,9 @@ constexpr PinMap map_rffc5072_sdata{9, 2, 4, 14, 0};
 
 constexpr PinMap map_sct_clk_in{6, 4, 3, 3, 1};
 
+constexpr PinMap map_max283x_select{13, 14, 6, 28, 4};
+constexpr PinMap map_max283x_enable{14, 1, 7, 1, 4};
+
 // constexpr PinMap map_unused_1{2, 7, 0, 7, 0};
 
 #else
@@ -435,13 +438,12 @@ constexpr PinMap map_r9_clkin_en{6, 7, 5, 15, 4};
 constexpr PinMap map_rffc5072_clock{2, 6, 5, 6, 4};
 constexpr PinMap map_rffc5072_sdata{6, 4, 3, 3, 0};
 
+constexpr PinMap map_max283x_select{1, 20, 0, 15, 0};
+constexpr PinMap map_max283x_enable{4, 6, 2, 6, 0};
+
 #endif
 
-constexpr PinMap map_sgpio_0{0,
-                             0,
-                             0,
-                             0,
-                             3};
+constexpr PinMap map_sgpio_0{0, 0, 0, 0, 3};
 constexpr PinMap map_sgpio_1{0, 1, 0, 1, 3};
 constexpr PinMap map_sgpio_2{1, 15, 0, 2, 2};
 constexpr PinMap map_sgpio_3{1, 16, 0, 3, 2};
@@ -543,6 +545,9 @@ constexpr GPIO pps_in_out{pin_pps_in_out, map_pps_in_out.gpio_port, map_pps_in_o
 constexpr Pin pin_sct_clk_in{map_sct_clk_in.scu_port, map_sct_clk_in.scu_pin};                                           // SCU: P6_4
 constexpr GPIO sct_clk_in{pin_sct_clk_in, map_sct_clk_in.gpio_port, map_sct_clk_in.gpio_pad, map_sct_clk_in.gpio_mode};  // GPIO[3]3
 
+constexpr Pin pin_max283x_enable{map_max283x_enable.scu_port, map_max283x_enable.scu_pin};                                                                        // SCU: PE_1
+constexpr GPIO max283x_enable{pin_max283x_enable, map_max283x_enable.gpio_port, map_max283x_enable.gpio_pad, map_max283x_enable.gpio_mode, Polarity::ActiveLow};  // GPIO[7]1
+
 #else
 constexpr Pin pin_sgpio_13{map_sgpio_13.scu_port, map_sgpio_13.scu_pin};                                       // SCU: P4_8
 constexpr GPIO sgpio_13{pin_sgpio_13, map_sgpio_13.gpio_port, map_sgpio_13.gpio_pad, map_sgpio_13.gpio_mode};  // GPIO[5]12
@@ -615,6 +620,9 @@ constexpr GPIO r9_clkout_en{pin_r9_clkout_en, map_r9_clkout_en.gpio_port, map_r9
 
 constexpr Pin pin_r9_clkin_en{map_r9_clkin_en.scu_port, map_r9_clkin_en.scu_pin};                                             // SCU: P6_7
 constexpr GPIO r9_clkin_en{pin_r9_clkin_en, map_r9_clkin_en.gpio_port, map_r9_clkin_en.gpio_pad, map_r9_clkin_en.gpio_mode};  // GPIO[5]15
+
+constexpr Pin pin_max283x_enable{map_max283x_enable.scu_port, map_max283x_enable.scu_pin};                                                   // SCU: P4_6
+constexpr GPIO max283x_enable{pin_max283x_enable, map_max283x_enable.gpio_port, map_max283x_enable.gpio_pad, map_max283x_enable.gpio_mode};  // GPIO[2]6
 
 static const motocon_pwm_resources_t motocon_pwm_resources = {
     .base = {.clk = &LPC_CGU->BASE_APB1_CLK, .stat = &LPC_CCU1->BASE_STAT, .stat_mask = (1 << 1)},
@@ -703,6 +711,9 @@ constexpr GPIO rffc5072_select{pin_rffc5072_select, map_rffc5072_select.gpio_por
 
 constexpr Pin pin_rffc5072_resetx{map_rffc5072_resetx.scu_port, map_rffc5072_resetx.scu_pin};                                                              // SCU: P5_5
 constexpr GPIO rffc5072_resetx{pin_isp, map_rffc5072_resetx.gpio_port, map_rffc5072_resetx.gpio_pad, map_rffc5072_resetx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]14
+
+constexpr Pin pin_max283x_select{map_max283x_select.scu_port, map_max283x_select.scu_pin};                                                                        // SCU: P1_20, PRALINE: PD_14
+constexpr GPIO max283x_select{pin_max283x_select, map_max283x_select.gpio_port, map_max283x_select.gpio_pad, map_max283x_select.gpio_mode, Polarity::ActiveLow};  // GPIO[0]15, PRALINE: GPIO[6]28
 
 }  // namespace gpio_control
 

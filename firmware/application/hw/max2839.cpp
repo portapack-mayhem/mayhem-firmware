@@ -26,6 +26,9 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
+#include "gpio.hpp"
+using namespace gpio_control;
+
 #include "ch.h"
 #include "hal.h"
 
@@ -101,7 +104,6 @@ void MAX2839::init() {
     set_mode(Mode::Shutdown);
 
 #ifndef PRALINE
-    gpio_max283x_enable.output();
     gpio_max2839_rxtx.output();
 #endif
 
@@ -155,8 +157,7 @@ void MAX2839::set_tx_LO_iq_phase_calibration(const size_t v) {
     set_mode(Mode::Tx_Calibration);  // write to ram 3 LOGIC Pins .
 
 #ifndef PRALINE
-    gpio_max283x_enable.output();  // max2839 has only 2 x pins + regs to decide mode.
-    gpio_max2839_rxtx.output();    // Here is combined rx & tx pin in one port.
+    gpio_max2839_rxtx.output();  // Here is combined rx & tx pin in one port.
 #endif
 
     _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)
@@ -207,7 +208,7 @@ void MAX2839::set_mode(const Mode mode) {
     _mode = mode;
 
     Mask mask = mode_mask(mode);
-    gpio_max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
+    max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
     gpio_max2839_rxtx.write(toUType(mask) & toUType(Mask::RxTx));
 }
 
@@ -396,8 +397,7 @@ void MAX2839::set_rx_LO_iq_phase_calibration(const size_t v) {
     set_mode(Mode::Rx_Calibration);  // write to ram 3 LOGIC Pins .
 
 #ifndef PRALINE
-    gpio_max283x_enable.output();  // max2839 has only 2 x pins + regs to decide mode.
-    gpio_max2839_rxtx.output();    // Here is combined rx & tx pin in one port.
+    gpio_max2839_rxtx.output();  // Here is combined rx & tx pin in one port.
 #endif
 
     _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)

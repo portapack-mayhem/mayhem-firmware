@@ -25,6 +25,9 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
+#include "gpio.hpp"
+using namespace gpio_control;
+
 #include "ch.h"
 #include "hal.h"
 
@@ -100,7 +103,6 @@ void MAX2837::init() {
     set_mode(Mode::Shutdown);
 
 #ifndef PRALINE
-    gpio_max283x_enable.output();
     gpio_max2837_rxenable.output();
     gpio_max2837_txenable.output();
 #endif
@@ -160,7 +162,6 @@ void MAX2837::set_tx_LO_iq_phase_calibration(const size_t v) {
     set_mode(Mode::Tx_Calibration);  // write to ram 3 LOGIC Pins .
 
 #ifndef PRALINE
-    gpio_max283x_enable.output();
     gpio_max2837_rxenable.output();
     gpio_max2837_txenable.output();
 #endif
@@ -214,7 +215,7 @@ void MAX2837::set_mode(const Mode mode) {  // We set up the 3 Logic Pins ENABLE,
     _mode = mode;
 
     Mask mask = mode_mask(mode);
-    gpio_max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
+    max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
     gpio_max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));
     gpio_max2837_txenable.write(toUType(mask) & toUType(Mask::TxEnable));
 }
@@ -353,7 +354,6 @@ void MAX2837::set_rx_LO_iq_phase_calibration(const size_t v) {
     set_mode(Mode::Rx_Calibration);  // write to ram 3 LOGIC Pins .
 
 #ifndef PRALINE
-    gpio_max283x_enable.output();
     gpio_max2837_rxenable.output();
     gpio_max2837_txenable.output();
 #endif
