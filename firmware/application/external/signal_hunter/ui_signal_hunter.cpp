@@ -306,7 +306,7 @@ void SignalHunterAppView::send_hunter_config(bool start) {
 
 void SignalHunterAppView::on_hunter_trigger(const HunterTriggerMessage* /*message*/) {
     // M4 has detected signal above threshold - start I/Q capture
-    if (!capture_thread) {
+    if (!capture_thread && is_hunting) {
         trigger_hits++;
         view_main->update_hits(trigger_hits);
         view_main->update_status("RECORDING!", Theme::getInstance()->fg_red);

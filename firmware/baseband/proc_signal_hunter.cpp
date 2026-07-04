@@ -44,13 +44,24 @@ void SignalHunterProcessor::reset_hunt_state() {
 }
 
 void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
-    if (!hunting) return;
+    // Process stream closure.
+    // Deferred teardown ensures exclusive mutation of the hunt state by the BasebandThread,
+    // preventing data races with on_message().
+    if (stream_close_requested.exchange(false)) {
+        stream.reset();
+        reset_hunt_state();
+    }
+
+    // CRITICAL IPC FIX: If M0 is tearing down the capture thread, it needs one last buffer
+    // to unblock buffers.get() and exit gracefully. We MUST continue decimating and writing
+    // as long as the stream exists, even if hunting was set to false by a manual UI stop.
+    if (!hunting && !stream) return;
 
     const auto out = decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(out);
 
     // Pre-roll flush: first execute() call after CaptureConfigMessage creates stream.
-    if (flush_pending && stream) {
+    if (flush_pending && stream_active && stream) {
         // Write ring buffer from oldest to newest sample (2 chunks due to wrap-around)
         size_t first = IQ_RING_SAMPLES - flush_start_idx;
         stream->write(&iq_ring[flush_start_idx], first * sizeof(complex16_t));
@@ -73,23 +84,28 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
 
         uint32_t avg = window_sum / WINDOW_SIZE;
 
-        switch (hunt_state) {
+        switch (hunt_state.load()) {
             case HuntState::IDLE:
-                if (avg > energy_threshold) {
+                // Only trigger new recordings if we are actively hunting.
+                // Prevents a stray trigger from starting a new capture right after manual STOP.
+                if (hunting && (avg > energy_threshold)) {
                     HunterTriggerMessage msg{};
                     msg.energy = avg;
                     shared_memory.application_queue.push(msg);
                     hunt_state = HuntState::AWAITING_STREAM;
                 }
                 break;
+
             case HuntState::AWAITING_STREAM:
                 break;
+
             case HuntState::RECORDING:
                 if (avg < energy_threshold) {
                     hangtime_counter = hangtime_samples_limit;
                     hunt_state = HuntState::HANGTIME;
                 }
                 break;
+
             case HuntState::HANGTIME:
                 if (avg > energy_threshold) {
                     hunt_state = HuntState::RECORDING;
@@ -99,15 +115,17 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
                     hunt_state = HuntState::AWAITING_CLOSE;
                 }
                 break;
+
             case HuntState::AWAITING_CLOSE:
                 // Do not transition to IDLE by ourselves — wait for CaptureConfigMessage(nullptr)
-                // which arrives via BasebandCapture destructor after CaptureThread is destroyed
+                // which arrives via BasebandCapture destructor after CaptureThread is destroyed.
                 break;
         }
     }
 
-    // CRITICAL: Continue writing to stream whenever it exists, even in AWAITING_CLOSE state.
-    if (stream) {
+    // CRITICAL: Continue writing to stream whenever it exists, even in AWAITING_CLOSE state,
+    // and even after a manual STOP — M0's CaptureThread needs this final data to unblock.
+    if (stream_active && stream) {
         stream->write(out.p, sizeof(complex16_t) * out.count);
     }
 }
@@ -122,6 +140,7 @@ void SignalHunterProcessor::on_message(const Message* const message) {
             // 1 ms = 250 samples @ 250 kHz post-decimation rate (from 2 MHz baseband / 8x decimator)
             // This dynamic hangtime allows configurable silence tolerance (e.g., 500 ms)
             hangtime_samples_limit = m.hangtime_ms * 250;
+
             // Addresses "WHAT-IF" integer underflow
             if (hangtime_samples_limit == 0) {
                 hangtime_samples_limit = 1;
@@ -129,25 +148,32 @@ void SignalHunterProcessor::on_message(const Message* const message) {
 
             if (!configured) configure();
 
-            if (!m.start && hunting) {
-                stream.reset();
-                reset_hunt_state();
-            }
+            // DO NOT close the stream here if (!m.start).
+            // M4 must keep producing buffers until M0 explicitly sends CaptureConfig(nullptr)
+            // to prevent the M0 CaptureThread from deadlocking in buffers.get().
             hunting = m.start;
             break;
         }
 
         case Message::ID::CaptureConfig: {
             const auto& m = *reinterpret_cast<const CaptureConfigMessage*>(message);
+
             if (m.config) {
+                // Synchronous allocation guarantees validity of m.config pointer
+                // (must not be deferred into execute(), see prior HardFault).
                 stream = std::make_unique<StreamInput>(m.config);
                 flush_start_idx = iq_ring_idx;  // Snapshot: current write position
                 flush_pending = true;           // execute() will process ring buffer pre-roll
+                stream_active = true;
                 hunt_state = HuntState::RECORDING;
             } else {
-                stream.reset();
-                reset_hunt_state();
+                // This is the ONLY safe place to initiate stream teardown —
+                // it arrives after M0's CaptureThread has already fully drained
+                // and exited, so it's safe for execute() to reset() the stream.
+                stream_active = false;
+                stream_close_requested = true;
             }
+
             break;
         }
 

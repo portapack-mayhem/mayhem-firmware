@@ -22,6 +22,8 @@
 #ifndef __PROC_SIGNAL_HUNTER_H__
 #define __PROC_SIGNAL_HUNTER_H__
 
+#include <atomic>
+
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
@@ -56,7 +58,7 @@ class SignalHunterProcessor : public BasebandProcessor {
     size_t window_idx{0};
     uint32_t window_sum{0};
 
-    bool flush_pending{false};
+    std::atomic<bool> flush_pending{false};
     size_t flush_start_idx{0};
 
     // Pre-trigger IQ ring buffer
@@ -68,7 +70,11 @@ class SignalHunterProcessor : public BasebandProcessor {
     size_t iq_ring_idx{0};
 
     uint32_t energy_threshold{5000};
-    bool hunting{false};
+
+    std::atomic<bool> hunting{false};
+    std::atomic<bool> stream_active{false};
+    std::atomic<bool> stream_close_requested{false};
+
     bool configured{false};
 
     // State machine tracking signal detection lifecycle
@@ -85,7 +91,7 @@ class SignalHunterProcessor : public BasebandProcessor {
         AWAITING_CLOSE
     };
 
-    HuntState hunt_state{HuntState::IDLE};
+    std::atomic<HuntState> hunt_state{HuntState::IDLE};
 
     uint32_t hangtime_counter{0};
     // Dynamic hangtime configuration: holds sample count in post-decimation domain (250 kHz rate).
