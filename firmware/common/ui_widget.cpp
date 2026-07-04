@@ -564,18 +564,6 @@ void LiveDateTime::set_seconds_enabled(bool new_value) {
 
 /* BigFrequency **********************************************************/
 
-BigFrequency::BigFrequency(
-    Rect parent_rect,
-    rf::Frequency frequency)
-    : Widget{parent_rect},
-      _frequency{frequency} {
-}
-
-void BigFrequency::set(const rf::Frequency frequency) {
-    _frequency = frequency;
-    set_dirty();
-}
-
 void BigFrequency::paint(Painter& painter) {
     uint32_t i, digit_def;
     std::array<char, 7> digits;
@@ -583,63 +571,59 @@ void BigFrequency::paint(Painter& painter) {
     Point digit_pos;
     ui::Color segment_color;
 
-    if (_frequency != _previous_frequency) {
-        _previous_frequency = _frequency;
+    rf::Frequency frequency{_frequency};
+    const auto rect = screen_rect();  // why not use screen_rect() directly for width, ...? it may be too small, but ...
 
-        rf::Frequency frequency{_frequency};
-        const auto rect = screen_rect();  // why not use screen_rect() directly for width, ...? it may be too small, but ...
+    // Erase
+    painter.fill_rectangle(
+        {{0, rect.location().y()}, {screen_width, 52}},
+        Theme::getInstance()->bg_darkest->background);
 
-        // Erase
-        painter.fill_rectangle(
-            {{0, rect.location().y()}, {screen_width, 52}},
-            Theme::getInstance()->bg_darkest->background);
+    // Prepare digits
+    if (!frequency) {
+        digits.fill(10);  // ----.---
+        digit_pos = {(screen_width - ((7 * digit_width) + 8)) / 2, rect.location().y()};
+    } else {
+        frequency /= 1000;  // GMMM.KKK(uuu)
 
-        // Prepare digits
-        if (!frequency) {
-            digits.fill(10);  // ----.---
-            digit_pos = {(screen_width - ((7 * digit_width) + 8)) / 2, rect.location().y()};
-        } else {
-            frequency /= 1000;  // GMMM.KKK(uuu)
-
-            for (i = 0; i < 7; i++) {
-                digits[6 - i] = frequency % 10;
-                frequency /= 10;
-            }
-
-            // Remove leading zeros
-            for (i = 0; i < 3; i++) {
-                if (!digits[i])
-                    digits[i] = 16;  // "Don't draw" code
-                else
-                    break;
-            }
-
-            digit_pos = {(Coord)(screen_width - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
+        for (i = 0; i < 7; i++) {
+            digits[6 - i] = frequency % 10;
+            frequency /= 10;
         }
 
-        segment_color = style().foreground;
+        // Remove leading zeros
+        for (i = 0; i < 3; i++) {
+            if (!digits[i])
+                digits[i] = 16;  // "Don't draw" code
+            else
+                break;
+        }
 
-        // Draw
-        for (i = 0; i < 7; i++) {
-            digit = digits[i];
+        digit_pos = {(Coord)(screen_width - ((7 * digit_width) + 8) - (i * digit_width)) / 2, rect.location().y()};
+    }
 
-            if (digit < 16) {
-                digit_def = segment_font[(uint8_t)digit];
+    segment_color = style().foreground;
 
-                for (size_t s = 0; s < 7; s++) {
-                    if (digit_def & 1)
-                        painter.fill_rectangle({digit_pos + segments[s].location(), segments[s].size()}, segment_color);
-                    digit_def >>= 1;
-                }
+    // Draw
+    for (i = 0; i < 7; i++) {
+        digit = digits[i];
+
+        if (digit < 16) {
+            digit_def = segment_font[(uint8_t)digit];
+
+            for (size_t s = 0; s < 7; s++) {
+                if (digit_def & 1)
+                    painter.fill_rectangle({digit_pos + segments[s].location(), segments[s].size()}, segment_color);
+                digit_def >>= 1;
             }
+        }
 
-            if (i == 3) {
-                // Dot
-                painter.fill_rectangle({digit_pos + Point(34, 48), {4, 4}}, segment_color);
-                digit_pos += {(digit_width + 8), 0};
-            } else {
-                digit_pos += {digit_width, 0};
-            }
+        if (i == 3) {
+            // Dot
+            painter.fill_rectangle({digit_pos + Point(34, 48), {4, 4}}, segment_color);
+            digit_pos += {(digit_width + 8), 0};
+        } else {
+            digit_pos += {digit_width, 0};
         }
     }
 }
