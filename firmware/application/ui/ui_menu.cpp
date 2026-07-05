@@ -22,6 +22,7 @@
 
 #include "ui_menu.hpp"
 #include "rtc_time.hpp"
+#include <string_view>
 
 namespace ui {
 
@@ -29,57 +30,112 @@ namespace ui {
 
 void MenuItemView::set_item(MenuItem* item_) {
     item = item_;
+    scroll_offset = 0;
+    can_scroll = false;
 }
 
 void MenuItemView::highlight() {
     set_highlighted(true);
+    scroll_offset = 0;
     set_dirty();
 }
 
 void MenuItemView::unhighlight() {
     set_highlighted(false);
+    scroll_offset = 0;
     set_dirty();
 }
 
-void MenuItemView::paint(Painter& painter) {
-    Coord offset_x{};
+void MenuItemView::set_scroll_offset(size_t offset) {
+    if (can_scroll && scroll_offset != offset) {
+        scroll_offset = offset;
+        set_dirty();
+    }
+}
 
+void MenuItemView::paint(Painter& painter) {
     if (!item) return;
 
-    const auto r = screen_rect();
-
+    const auto rect = screen_rect();
     const auto paint_style = (highlighted() && (parent()->has_focus() || keep_highlight)) ? style().invert() : style();
 
-    const auto font_height = paint_style.font.line_height();
+    const int char_width = paint_style.font.char_width();
+    const int line_height = paint_style.font.line_height();
+
+    if (char_width == 0 || line_height == 0) return;
+
+    const int margin_x = char_width / 2;
 
     ui::Color final_item_color = (highlighted() && (parent()->has_focus() || keep_highlight)) ? paint_style.foreground : item->color;
     ui::Color final_bg_color = (highlighted() && (parent()->has_focus() || keep_highlight)) ? item->color : paint_style.background;
 
     if (final_item_color.v == final_bg_color.v) final_item_color = paint_style.foreground;
 
-    painter.fill_rectangle(
-        r,
-        final_bg_color);
+    painter.fill_rectangle(rect, final_bg_color);
+
+    Coord offset_x = 0;
 
     if (item->bitmap) {
         painter.draw_bitmap(
-            {r.location().x() + 4, r.location().y() + 4},
+            {rect.location().x() + 4, rect.location().y() + 4},
             *item->bitmap,
             final_item_color,
             final_bg_color);
         offset_x = 26;
-    } else
+    } else {
         offset_x = 0;
+    }
 
-    Style text_style{
-        .font = paint_style.font,
-        .background = final_bg_color,
-        .foreground = final_item_color};
+    Style text_style{.font = paint_style.font, .background = final_bg_color, .foreground = final_item_color};
 
-    painter.draw_string(
-        {r.location().x() + offset_x, r.location().y() + (r.size().height() - font_height) / 2},
-        text_style,
-        item->text);
+    std::string_view full_text = item->text;
+    std::string_view file_name = full_text;
+    std::string_view file_size_text = "";
+
+    auto tab_pos = full_text.find('\t');
+    if (tab_pos != std::string_view::npos) {
+        file_size_text = full_text.substr(tab_pos + 1);
+        file_name = full_text.substr(0, tab_pos);
+    }
+
+    int available_width_px = rect.width() - offset_x;
+    if (available_width_px <= 0) return;
+
+    size_t max_name_chars = available_width_px / char_width;
+    if (max_name_chars == 0) return;
+
+    if (!file_size_text.empty() && max_name_chars > file_size_text.length()) {
+        max_name_chars = max_name_chars - file_size_text.length() - 1;
+    }
+
+    if (max_name_chars == 0) return;
+
+    can_scroll = (file_name.length() > max_name_chars);
+
+    std::string_view display_name = file_name;
+    if (file_name.length() > max_name_chars) {
+        if (highlighted()) {
+            size_t max_scroll = file_name.length() - max_name_chars;
+            size_t actual_offset = scroll_offset % (max_scroll + 1);
+            display_name = file_name.substr(actual_offset, max_name_chars);
+        } else {
+            display_name = file_name.substr(0, max_name_chars);
+        }
+    }
+
+    Coord text_y = rect.location().y() + (rect.height() - line_height) / 2;
+
+    painter.draw_string({rect.location().x() + offset_x, text_y}, text_style, display_name);
+
+    if (!file_size_text.empty()) {
+        int file_size_width = static_cast<int>(file_size_text.length()) * char_width;
+        int file_size_x = rect.width() - file_size_width - margin_x;
+
+        // Csak akkor rajzoljuk ki, ha pozitív koordinátára esik és nem takarja el az ikont/nevet
+        if (file_size_x > offset_x) {
+            painter.draw_string({rect.location().x() + static_cast<Coord>(file_size_x), text_y}, text_style, file_size_text);
+        }
+    }
 }
 
 /* MenuView **************************************************************/
@@ -117,6 +173,7 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
             remove_child(item.get());
 
         menu_item_views.clear();
+        menu_item_views.shrink_to_fit();
     }
 
     for (size_t c = 0; c < displayed_max; c++) {
@@ -133,6 +190,20 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
     update_items();
 }
 
+void MenuView::increment_scroll() {
+    if (menu_items.empty()) return;
+    const size_t view_index = highlighted_item - offset;
+    if (view_index >= menu_item_views.size()) {
+        return;
+    }
+    // The MenuView checks if the currently highlighted item needs scrolling
+    scroll_offset++;
+    auto* view = item_view(view_index);
+    if (view) {
+        view->set_scroll_offset(scroll_offset);
+    }
+}
+
 void MenuView::on_tick_second() {
     if (more && blink)
         arrow_more.set_foreground(Theme::getInstance()->bg_darkest->foreground);
@@ -140,8 +211,9 @@ void MenuView::on_tick_second() {
         arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 
     blink = !blink;
-
     arrow_more.set_dirty();
+
+    increment_scroll();
 }
 
 void MenuView::clear() {
@@ -149,24 +221,25 @@ void MenuView::clear() {
         item->set_item(nullptr);
 
     menu_items.clear();
+    menu_items.shrink_to_fit();
     highlighted_item = 0;
     offset = 0;
+    reset_scroll();
 }
 
 size_t MenuView::item_count() const {
     return menu_items.size();
 }
 
-void MenuView::add_item(MenuItem new_item) {
-    menu_items.push_back(new_item);
+void MenuView::add_item(MenuItem&& new_item) {
+    menu_items.push_back(std::move(new_item));
 
     update_items();
 }
 
 void MenuView::add_items(std::initializer_list<MenuItem> new_items) {
-    for (auto item : new_items) {
-        add_item(item);
-    }
+    menu_items.insert(menu_items.end(), new_items);
+    update_items();
 }
 
 void MenuView::update_items() {
@@ -223,6 +296,8 @@ bool MenuView::set_highlighted(int32_t new_value) {
         highlighted_item = new_value;
         item_view(highlighted_item - offset)->highlight();
     }
+
+    reset_scroll();
 
     if (on_highlight)
         on_highlight();

@@ -537,6 +537,9 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
     uint8_t msg_codewords = 0;
     // Also build raw alpha for heuristic (before non-printable replacement).
     std::string raw_alpha{};
+    // Track whether any characters came from uncorrectable codewords.
+    // If so, heuristic scoring is unreliable — skip it and default to alpha.
+    bool has_bad_chars = false;
 
     while (state.codeword_index < codeword_max) {
         auto codeword = batch[state.codeword_index];
@@ -578,7 +581,9 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                 if (is_address) {
                     // Got another address. Run heuristic before returning if we have pending data.
                     if (!state.type_decided && msg_codewords > 0) {
-                        state.detected = detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
+                        state.detected = has_bad_chars
+                                             ? DET_ALPHA
+                                             : detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
                         state.type_decided = true;
                         state.msg_codewords = msg_codewords;
                         if (state.detected == DET_NUMERIC) {
@@ -600,7 +605,9 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                 if (is_address) {
                     // Message ended. Run heuristic before returning.
                     if (!state.type_decided && msg_codewords > 0) {
-                        state.detected = detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
+                        state.detected = has_bad_chars
+                                             ? DET_ALPHA
+                                             : detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
                         state.type_decided = true;
                         state.msg_codewords = msg_codewords;
                         if (state.detected == DET_NUMERIC) {
@@ -632,9 +639,8 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                 state.ascii_idx += 20;
 
                 while (state.ascii_idx >= 7) {
-                    // Determine error level for this character.
-                    // If some bits came from previous codeword and some from current,
-                    // use the worst of both error levels.
+                    // Per-character error level from codeword error tracking.
+                    // Characters spanning a codeword boundary get the worst level.
                     uint8_t char_err;
                     if (bits_from_prev >= 7) {
                         // Entire character from previous codeword's leftover bits.
@@ -663,8 +669,11 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                     if (!state.type_decided)
                         raw_alpha += ascii_char;
 
-                    // Translate non-printable chars.
-                    if (ascii_char < 32 || ascii_char > 126)
+                    // Substitute '?' for characters from uncorrectable codewords
+                    if (char_err >= 3) {
+                        state.output += "?";
+                        has_bad_chars = true;
+                    } else if (ascii_char < 32 || ascii_char > 126)
                         state.output += ".";
                     else
                         state.output += ascii_char;
@@ -694,7 +703,9 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
 
     // End of batch. If we have message data and type not yet decided, run heuristic.
     if (state.out_type == MESSAGE && !state.type_decided && msg_codewords > 0) {
-        state.detected = detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
+        state.detected = has_bad_chars
+                             ? DET_ALPHA
+                             : detect_message_type(raw_alpha, nibbles, nibble_count, msg_codewords);
         state.type_decided = true;
         state.msg_codewords = msg_codewords;
         if (state.detected == DET_NUMERIC) {

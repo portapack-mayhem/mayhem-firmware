@@ -67,9 +67,13 @@ class MenuItemView : public Widget {
     void highlight();
     void unhighlight();
 
+    void set_scroll_offset(size_t offset);
+
    private:
     MenuItem* item{nullptr};
     bool keep_highlight = false;
+    size_t scroll_offset{0};
+    bool can_scroll{false};
 };
 
 class MenuView : public View {
@@ -83,7 +87,10 @@ class MenuView : public View {
 
     ~MenuView();
 
-    void add_item(MenuItem new_item);
+    // This function takes a temporary to avoid copies and heap allocations.
+    // To pass a variable 'item', use add_item(std::move(item)),
+    // or construct the MenuItem in the call, add_item(MenuItem{...})
+    void add_item(MenuItem&& new_item);
     void add_items(std::initializer_list<MenuItem> new_items);
     void clear();
     size_t item_count() const;
@@ -105,6 +112,10 @@ class MenuView : public View {
     void update_items();
     void on_tick_second();
 
+    // SCROLLING
+    void increment_scroll();
+    inline void reset_scroll() { scroll_offset = 0; }
+
     bool keep_highlight{false};
 
     SignalToken signal_token_tick_second{};
@@ -123,6 +134,8 @@ class MenuView : public View {
     size_t displayed_max{0};
     size_t highlighted_item{0};
     size_t offset{0};
+
+    size_t scroll_offset{0};
 };
 
 } /* namespace ui */

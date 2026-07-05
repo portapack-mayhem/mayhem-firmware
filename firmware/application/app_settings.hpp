@@ -33,6 +33,7 @@
 #include <variant>
 
 #include "file.hpp"
+#include "hackrf_hal.hpp"
 #include "max283x.hpp"
 #include "string_format.hpp"
 
@@ -47,6 +48,7 @@ class BoundSetting {
     /* The type of bound setting. */
     enum class SettingType : uint8_t {
         I64,
+        U64,
         I32,
         U32,
         U8,
@@ -58,6 +60,9 @@ class BoundSetting {
    public:
     BoundSetting(std::string_view name, int64_t* target)
         : name_{name}, target_{target}, type_{SettingType::I64} {}
+
+    BoundSetting(std::string_view name, uint64_t* target)
+        : name_{name}, target_{target}, type_{SettingType::U64} {}
 
     BoundSetting(std::string_view name, int32_t* target)
         : name_{name}, target_{target}, type_{SettingType::I32} {}
@@ -134,7 +139,7 @@ struct AppSettings {
     uint8_t vga = 32;
     uint8_t rx_amp = 0;
     uint8_t tx_amp = 0;
-    uint8_t tx_gain = 35;
+    uint8_t tx_gain = hackrf::one::default_tx_gain_db;
     uint32_t channel_bandwidth = 1;
     uint32_t rx_frequency;
     uint32_t tx_frequency;

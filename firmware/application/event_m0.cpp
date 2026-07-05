@@ -37,8 +37,20 @@
 
 #include "ch.h"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+#include "gpio.hpp"
+using namespace gpio_control;
+
+#include "irq_rtc.hpp"
+
+#include "i2c_lld.h"
+
+#include "i2cdevmanager.hpp"
+#include "i2cdev_ppmod.hpp"
+
+#include "lpc43xx.inc"
+#include "nvic.h"
+#include "lpc43xx_m0.h"
+#include "rffc507x_spi.hpp"
 
 #include <array>
 
@@ -134,7 +146,186 @@ void EventDispatcher::set_display_sleep(const bool sleep) {
         // Let frame sync handler turn on backlight after repaint.
     }
     EventDispatcher::display_sleep = sleep;
-};
+}
+
+void EventDispatcher::charge_deep_sleep(const bool sleep) {
+    bool detect = false;
+    uint8_t valid_mask = 0;
+    uint8_t percent = 0;
+    uint16_t voltage = 0;
+    int32_t current = 0;
+
+    constexpr I2CConfig i2c_config_12mhz{
+        .high_count = 15,
+        .low_count = 15,
+    };
+
+    if (sleep) {
+        auto dev = (i2cdev::I2cDev_PPmod*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDECMDL_PPMOD);
+        if (dev) dev->send_poweroff_command();
+
+        rffc507x::spi::SPI().power_down();
+        portapack::shutdown(false, true);
+
+        // Unmount SD card and stop driver
+        f_mount(nullptr, reinterpret_cast<const TCHAR*>(_T("")), 0);
+        sdcDisconnect(&SDCD1);
+        sdcStop(&SDCD1);
+
+        // Signal application shutdown
+        ShutdownMessage shutdown_message;
+        shared_memory.application_queue.push(shutdown_message);
+        shared_memory.baseband_message = nullptr;
+
+        // Disable core interrupts and system tick
+        nvicDisableVector(DMA_IRQn);
+        nvicDisableVector(M4CORE_IRQn);
+        chSysDisable();
+        systick_stop();
+
+        SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
+
+        power_control::vaa_power_off();
+        power_control::core_power_off();
+
+#ifdef PRALINE
+        // Power management and GPIO configuration for Praline hardware
+        LPC_GPIO->DIR[0] &= ~0xFFFF4000;
+        LPC_GPIO->DIR[1] &= ~0xFFFF1000;
+        LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
+        LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
+        LPC_GPIO->DIR[5] &= ~(1 << 16);
+#else
+        // Power management and GPIO configuration for legacy hardware
+        LPC_GPIO->DIR[0] &= ~0xFFFF4000;
+        LPC_GPIO->DIR[1] &= ~0xFFFF1000;
+        LPC_GPIO->DIR[2] &= ~((1 << 14) | (1 << 13) | (1 << 12) | (1 << 11) | (1 << 10) | (1 << 6) | (1 << 0));
+        LPC_GPIO->DIR[3] &= ~((1 << 7) | (1 << 5));
+        LPC_GPIO->DIR[5] &= ~(1 << 16);
+#endif
+
+        // Power down peripherals (CGU cleanup)
+        LPC_RGU->RESET_CTRL[0] = (1 << 5);  // USB0 Reset
+        LPC_CGU->PLL0USB_CTRL.PD = 1;
+        LPC_CGU->BASE_USB0_CLK.PD = 1;
+        LPC_CREG->CREG0 |= (1 << 5);
+
+        LPC_CGU->BASE_USB1_CLK.PD = 1;
+        LPC_CGU->BASE_UART0_CLK.PD = 1;
+        LPC_CGU->BASE_UART1_CLK.PD = 1;
+        LPC_CGU->BASE_UART2_CLK.PD = 1;
+        LPC_CGU->BASE_UART3_CLK.PD = 1;
+        LPC_CGU->BASE_SPI_CLK.PD = 1;
+        LPC_CGU->BASE_PERIPH_CLK.PD = 1;
+        LPC_CGU->BASE_SDIO_CLK.PD = 1;
+        LPC_CGU->BASE_SSP0_CLK.PD = 1;
+        LPC_CGU->BASE_SSP1_CLK.PD = 1;
+        LPC_CGU->BASE_LCD_CLK.PD = 1;
+        LPC_CGU->BASE_OUT_CLK.PD = 1;
+
+        (*(volatile uint32_t*)(&LPC_CGU->PLL0AUDIO_CTRL)) |= (1 << 0);
+
+        LPC_ADC0->CR &= ~(1 << 21);
+        LPC_ADC1->CR &= ~(1 << 21);
+        led_rx.setInactive();
+        led_usb.setInactive();
+
+        rtc_wakeup_init();
+        NVIC_EnableIRQ(I2C0_OR_I2C1_IRQn);
+
+        while (1) {
+            // --- Battery Status Check (I2C) ---
+            detect = battery::BatteryManagement::isDetected();
+            if (detect) {
+                bool dummy;
+                battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current, dummy);
+
+                bool is_full = (valid_mask == 31 && percent == 100 && current <= 10) ||
+                               (valid_mask == 1 && percent == 100);
+
+                if (is_full) {
+                    // Case 1: Battery full (All LEDs off)
+                    led_rx.setInactive();
+                    led_tx.setInactive();
+                } else if ((voltage < 4150 && current < 10) || valid_mask == 0) {
+                    // Case 2: Not full but low current draw (<10mA) -> Charging error
+                    led_tx.setActive();  // LED indicates error/idle
+                    led_rx.setInactive();
+                } else {
+                    // Case 3: Actively charging
+                    led_rx.setActive();  // LED indicates charging
+                    led_tx.setInactive();
+                }
+            } else {
+                // Case 4: Battery IC not detected -> Error or H2 or older, so don't show that as an error.
+                led_tx.setActive();
+                led_rx.setActive();
+            }
+
+            // Shut down I2C and power down the APB bus for sleep
+            portapack::i2c0.stop();
+            LPC_CGU->BASE_APB1_CLK.PD = 1;
+
+            // Save interrupt states before mass disable
+            uint32_t saved_iser0 = NVIC->ISER[0];
+
+            // Disable and clear all pending interrupts
+            NVIC->ICER[0] = 0xFFFFFFFF;
+
+            NVIC->ICPR[0] = 0xFFFFFFFF;
+
+            // Re-enable only necessary wakeup sources
+            NVIC_EnableIRQ(RTC_IRQn);
+            NVIC_EnableIRQ(EVENTROUTER_IRQn);
+
+            // Configure RTC wakeup interval
+            if (valid_mask != 0 || detect) {
+                rtc_wakeup(60);
+            } else {
+                rtc_wakeup(3);
+            }
+
+            LPC_RTC->ILR = 3;
+            LPC_EVENTROUTER->CLR_STAT = 0xFFFFFFFF;
+            NVIC_ClearPendingIRQ(RTC_IRQn);
+            NVIC_ClearPendingIRQ(EVENTROUTER_IRQn);
+
+            __disable_irq();
+
+            // Configure and enter Deep Sleep
+            SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+
+            __DSB();
+            __ISB();
+
+            // CPU enters sleep here
+            __WFI();
+
+            // --- WAKEUP SEQUENCE ---
+            __enable_irq();
+            SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+
+            // Cleanup RTC and restore peripheral clocks
+            LPC_RTC->AMR = 0xFF;
+            LPC_RTC->ILR = 3;
+            LPC_CGU->BASE_APB1_CLK.PD = 0;
+            LPC_RGU->RESET_CTRL[1] = (1 << 16);
+
+            // Short delay for power stability (3V3 rail)
+            for (volatile int d = 0; d < 10000; d++);
+
+            // Restart I2C controller
+            LPC_CGU->BASE_APB1_CLK.PD = 0;
+            portapack::i2c0.start(i2c_config_12mhz);
+
+            // Restore original interrupt enable states
+            NVIC->ISER[0] = saved_iser0;
+
+        }  // End of while(1) deep sleep loop
+    } else {
+        portapack::display.wake(true);
+    }
+}
 
 eventmask_t EventDispatcher::wait() {
     return chEvtWaitAny(ALL_EVENTS);

@@ -24,7 +24,7 @@ struct FlexPacket {
     uint32_t bitrate;     // 1600, 3200, 6400
     uint64_t capcode;     // supports long addresses (up to 4,297,068,542)
     uint32_t function;    // 0-3 (or BIW word index for type=9)
-    uint32_t type;        // 0=SEC 1=INS 2=TON 3=NUM 4=SNUM 5=ALN 6=HEX 7=NNUM 8=SMSG 9=BIW
+    uint32_t type;        // 0=SEC 1=INS 2=TON 3=NUM 4=SNUM 5=ALN 6=HEX 7=NNUM 8=SHORT 9=BIW
     char message[256];    // Decoded message text (not used for BIW)
     uint32_t status;      // 0=OK, other=Errors
     uint8_t cycle;        // FIW cycle (0-14)
@@ -34,19 +34,17 @@ struct FlexPacket {
     uint8_t addr_type;    // 0=short 1=long 2=temp 3=oper 4=net 5=info 6=rsvd 7=unk
 
     // Fragment flags (ALN/SEC/HEX)
-    uint8_t frag;           // F field: 3=first, 0/1/2=continuation
-    uint8_t more_frag;      // C bit
-    uint8_t seq;            // N field (0-63)
-    uint8_t is_new;         // R bit
-    uint8_t maildrop;       // M bit
-    uint8_t sig;            // 7-bit signature
-    uint8_t has_flags;      // 1=fragment flags valid
-    uint8_t sec_enc;        // secure encoding (0-3)
-    uint8_t nnum_s;         // NNUM S flag
-    uint8_t fiw_roaming;    // FIW n bit: 1=roaming supported
-    uint8_t is_group;       // 1=group address
-    uint8_t is_temp_group;  // 1=temporary group
-    uint8_t is_priority;    // 1=priority address (in BIW1 P section)
+    uint8_t frag;         // F field: 3=first, 0/1/2=continuation
+    uint8_t more_frag;    // C bit
+    uint8_t seq;          // N field (0-63)
+    uint8_t is_new;       // R bit
+    uint8_t maildrop;     // M bit
+    uint8_t sig;          // 7-bit signature
+    uint8_t has_flags;    // 1=fragment flags valid
+    uint8_t sec_enc;      // secure encoding (0-3)
+    uint8_t nnum_s;       // NNUM S flag
+    uint8_t fiw_roaming;  // FIW n bit: 1=roaming supported
+    uint8_t is_priority;  // 1=priority address (in BIW1 P section)
 
     // BIW raw values (type=9 only). biw_field identifies the content.
     // 0=SSID1 1=DATE 2=TIME 5=SYSINFO 7=SSID2

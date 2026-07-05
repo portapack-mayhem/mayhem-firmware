@@ -192,6 +192,7 @@ set(CPPSRC
 	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
+	${COMMON}/gpio.cpp
 	app_settings.cpp
 	audio.cpp
 	baseband_api.cpp
@@ -512,3 +513,5 @@ add_custom_target(
 	${PROJECT_NAME}
 	DEPENDS ${PROJECT_NAME}.bin
 )
+
+add_dependencies(${PROJECT_NAME} baseband)

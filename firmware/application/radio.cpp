@@ -50,8 +50,11 @@ using namespace hackrf::one;
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
-
+#include "baseband_api.hpp"
 #include "hal.h"  // For LPC_SGPIO
+
+#include "gpio.hpp"
+using namespace gpio_control;
 
 #include <array>
 
@@ -148,10 +151,6 @@ void init() {
     /* PRALINE uses MAX2831 transceiver */
     second_if = (max283x::MAX283x*)&second_if_max2831;
 #else
-    if (hackrf_r9) {
-        gpio_r9_not_ant_pwr.write(1);
-        gpio_r9_not_ant_pwr.output();
-    }
     second_if = hackrf_r9
                     ? (max283x::MAX283x*)&second_if_max2839
                     : (max283x::MAX283x*)&second_if_max2837;
@@ -280,9 +279,9 @@ void set_direction(const rf::Direction new_direction) {
     baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
 
     if (direction == rf::Direction::Receive)
-        led_rx.on();
+        led_rx.setActive();
     else
-        led_tx.on();
+        led_tx.setActive();
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
@@ -390,18 +389,24 @@ void set_baseband_rate(const uint32_t rate) {
 }
 
 void set_antenna_bias(const bool on) {
-    /* Pull MOSFET gate low to turn on antenna bias. */
 #ifdef PRALINE
-    // Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW)
-    LPC_GPIO->CLR[1] = on ? (1 << 12) : 0;
-    LPC_GPIO->SET[1] = on ? 0 : (1 << 12);
+    /* Praline: P2_12 = GPIO1[12], ANT_BIAS_EN_N (active LOW) */
+    rf_path.set_ant_bias(on);
 #else
     if (hackrf_r9) {
-        gpio_r9_not_ant_pwr.write(on ? 0 : 1);
+        rf_path.set_ant_bias(on);
     } else {
         first_if.set_gpo1(on ? 0 : 1);
     }
 #endif
+}
+
+bool get_mixer_invert() {
+    return mixer_invert;
+}
+
+bool get_baseband_invert() {
+    return baseband_invert;
 }
 
 void set_tx_max283x_iq_phase_calibration(const size_t v) {
@@ -413,6 +418,19 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 }
 
 void disable() {
+    if (direction == rf::Direction::Transmit && baseband::is_image_running()) {
+        static constexpr uint32_t radio_tx_drain_timeout_ms = 100;
+        shared_memory.radio_tx_drain = 1;  // Request drain of the current DMA queue.
+        for (uint32_t waited_ms = 0;
+             shared_memory.radio_tx_drain && (waited_ms < radio_tx_drain_timeout_ms);
+             ++waited_ms) {
+            chThdSleepMilliseconds(1);
+        }
+    }
+    /* Never allow shutdown to block indefinitely waiting for a drain
+     * acknowledgement that may never arrive in normal operation. */
+    shared_memory.radio_tx_drain = 0;
+
     set_antenna_bias(false);
     baseband_codec.set_mode(max5864::Mode::Shutdown);
 #ifdef PRALINE
@@ -423,8 +441,8 @@ void disable() {
     first_if.disable();
     set_rf_amp(false);
 
-    led_rx.off();
-    led_tx.off();
+    led_rx.setInactive();
+    led_tx.setInactive();
 }
 
 #ifdef PRALINE

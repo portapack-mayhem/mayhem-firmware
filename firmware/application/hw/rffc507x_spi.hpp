@@ -41,6 +41,7 @@ class SPI {
     };
 
     void init();
+    void power_down();
 
     reg_t read(const address_t address) {
         return transfer_word(Direction::Read, address, 0);

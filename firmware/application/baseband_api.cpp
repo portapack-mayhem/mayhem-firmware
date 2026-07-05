@@ -361,6 +361,16 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_vor_config(bool enabled) {
+    const VorRxConfigureMessage message{enabled};
+    send_message(&message);
+}
+
+void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled, const std::string& ident, bool enabled) {
+    const VorTxConfigureMessage message{radial_deg, ident_enabled, ident.c_str(), enabled};
+    send_message(&message);
+}
+
 void set_flex_config() {
     const FlexConfigureMessage message{};
     send_message(&message);
@@ -432,6 +442,10 @@ void set_epirb_tx_config(EPIRBTXDataMessage& message) {
     send_message(&message);
 }
 
+void set_epirb_rx_config(EPIRBRXConfig& message) {
+    send_message(&message);
+}
+
 void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
     const size_t max_len = sizeof(shared_memory.bb_data.data);
     if (frame_length > max_len) frame_length = max_len;
@@ -442,6 +456,10 @@ void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
 }
 
 static bool baseband_image_running = false;
+
+bool is_image_running() {
+    return baseband_image_running;
+}
 
 void run_image(const spi_flash::image_tag_t image_tag) {
     if (baseband_image_running) {

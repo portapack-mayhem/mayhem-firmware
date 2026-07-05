@@ -206,7 +206,11 @@ void Widget::set_style(const Style* new_style) {
 }
 
 const Style& Widget::style() const {
-    return style_ ? *style_ : parent()->style();
+    for (const Widget* curr = this; curr; curr = curr->parent()) {
+        if (curr->style_) return *curr->style_;
+    }
+    // default style should always be set by SystemView
+    return *style_;
 }
 
 void Widget::drawn(bool v) {
@@ -393,27 +397,56 @@ void Text::getAccessibilityText(std::string& result) {
 void Text::getWidgetName(std::string& result) {
     result = "Text";
 }
+
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
-    auto s = has_focus() ? style().invert() : style();
-    painter.fill_rectangle(rect, s.background);
-    const int char_width = s.font.char_width();
-    const int line_height = s.font.line_height();
+    auto default_style = has_focus() ? style().invert() : style();
+    painter.fill_rectangle(rect, default_style.background);
+    const int char_width = default_style.font.char_width();
+    const int line_height = default_style.font.line_height();
     if (char_width == 0 || line_height == 0) return;
     const size_t chars_per_line = rect.width() / char_width;
     if (chars_per_line == 0) return;
     size_t lines_capacity = rect.height() / line_height;
-    if (lines_capacity == 0) lines_capacity = 1;  // at least one line, even if it overflows vertically
+    if (lines_capacity == 0) lines_capacity = 1;
     auto text_view = std::string_view{text};
     size_t current_offset = 0;
+    // Track the active text color across line breaks
+    Color active_color = default_style.foreground;
     for (size_t line_idx = 0; line_idx < lines_capacity; ++line_idx) {
         if (current_offset >= text_view.length()) break;
-        size_t chunk_len = std::min(chars_per_line, text_view.length() - current_offset);
+        size_t scan_offset = current_offset;
+        size_t printable_count = 0;
+        Color next_color = active_color;  // This will hold the color state as we scan the current chunk
+        // Scan forward to find chunk length AND track color changes
+        while (scan_offset < text_view.length() && printable_count < chars_per_line) {
+            if (text_view[scan_offset] == '\x1B') {
+                scan_offset++;
+                if (scan_offset < text_view.length()) {
+                    uint8_t color_idx = text_view[scan_offset];
+                    // Mirror the logic from Painter::draw_string
+                    if (color_idx < std::size(term_colors)) {
+                        next_color = term_colors[color_idx];
+                    } else {
+                        next_color = active_color;
+                    }
+                    scan_offset++;
+                }
+            } else {
+                scan_offset++;
+                printable_count++;
+            }
+        }
+        size_t chunk_len = scan_offset - current_offset;
+        // Create a temporary style for this line, initialized with the carried-over color
+        Style line_style = {.font = default_style.font, .background = default_style.background, .foreground = active_color};
         painter.draw_string(
             rect.location() + Point(0, line_idx * line_height),
-            s,
+            line_style,
             text_view.substr(current_offset, chunk_len));
         current_offset += chunk_len;
+        // Carry the final color state of this line into the start of the next line
+        active_color = next_color;
     }
 }
 
@@ -703,7 +736,7 @@ void Console::clear(bool clear_buffer = false) {
     pos = {0, 0};
 }
 
-void Console::write(std::string message) {
+void Console::write(const std::string& message) {
     bool escape = false;
 
     if (!hidden() && drawn()) {
@@ -754,7 +787,7 @@ void Console::getWidgetName(std::string& result) {
     result = "Console";
 }
 
-void Console::writeln(std::string message) {
+void Console::writeln(const std::string& message) {
     write(message + "\n");
 }
 
@@ -845,7 +878,7 @@ Checkbox::Checkbox(
     set_focusable(true);
 }
 
-void Checkbox::set_text(const std::string value) {
+void Checkbox::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -977,7 +1010,7 @@ Button::Button(
     set_focusable(true);
 }
 
-void Button::set_text(const std::string value) {
+void Button::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1124,7 +1157,7 @@ ButtonWithEncoder::ButtonWithEncoder(
     set_focusable(true);
 }
 
-void ButtonWithEncoder::set_text(const std::string value) {
+void ButtonWithEncoder::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1296,7 +1329,7 @@ NewButton::NewButton(
     set_focusable(true);
 }
 
-void NewButton::set_text(const std::string value) {
+void NewButton::set_text(const std::string& value) {
     text_ = value;
     set_dirty();
 }
@@ -1381,17 +1414,17 @@ void NewButton::paint(Painter& painter) {
 
         if (!text_.empty()) {
             auto label_r = style.font.size_of(text_);
-            std::string text_to_draw = text_;
-            if (label_r.width() > r.width() - 2) {
-                // Truncate text to fit
-                size_t max_chars = (r.width() - 2) / style.font.char_width();
-                text_to_draw = text_.substr(0, max_chars);
-                label_r = style.font.size_of(text_to_draw);
-            }
             if (bitmap_) {
                 y += spacing;
             }
-            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+            if (label_r.width() > r.width() - 2) {
+                size_t max_chars = (r.width() - 2) / style.font.char_width();
+                std::string text_to_draw = text_.substr(0, max_chars);
+                label_r = style.font.size_of(text_to_draw);
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_to_draw);
+            } else {
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y}, style, text_);
+            }
         }
     } else {  // no valign
         if (bitmap_) {
@@ -1406,15 +1439,14 @@ void NewButton::paint(Painter& painter) {
 
         if (!text_.empty()) {
             auto label_r = style.font.size_of(text_);
-            std::string text_to_draw = text_;
             if (label_r.width() > r.width() - 2) {
-                // Truncate text to fit
                 size_t max_chars = (r.width() - 2) / style.font.char_width();
-                text_to_draw = text_.substr(0, max_chars);
+                std::string text_to_draw = text_.substr(0, max_chars);
                 label_r = style.font.size_of(text_to_draw);
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style, text_to_draw);
+            } else {
+                painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style, text_);
             }
-            painter.draw_string({r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2}, style,
-                                text_to_draw);
         }
     }
 }
@@ -2156,7 +2188,7 @@ bool TextField::on_touch(TouchEvent event) {
 
 BatteryIcon::BatteryIcon(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(percent <= 100 ? 1 : 0, percent, false);
+    this->set_battery(percent <= 100 ? 1 : 0, percent, false, false);
     set_focusable(true);
 }
 
@@ -2167,11 +2199,13 @@ void BatteryIcon::getWidgetName(std::string& result) {
     result = "Battery percent";
 }
 
-void BatteryIcon::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
-    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask) return;
+void BatteryIcon::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge, bool batt_changed) {
+    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask && batt_changed == batt_changed_) return;
     percent_ = percentage;
     charge_ = charge;
     valid_ = valid_mask;
+    batt_changed_ = batt_changed;
+
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }
@@ -2199,6 +2233,7 @@ void BatteryIcon::paint(Painter& painter) {
     ui::Rect rect = screen_rect();                                                                                                                        // 10, 1 * 16
     painter.fill_rectangle(rect, has_focus() || highlighted() ? Theme::getInstance()->fg_light->foreground : Theme::getInstance()->bg_dark->background);  // clear
     ui::Color battColor = (charge_) ? Theme::getInstance()->fg_blue->foreground : Theme::getInstance()->fg_green->foreground;
+    if (batt_changed_) battColor = Theme::getInstance()->fg_orange->foreground;
     // batt body:
     painter.draw_vline({rect.left() + 1, rect.top() + 2}, rect.height() - 4, battColor);
     painter.draw_vline({rect.right() - 2, rect.top() + 2}, rect.height() - 4, battColor);
@@ -2223,6 +2258,7 @@ void BatteryIcon::paint(Painter& painter) {
         else
             battColor = Theme::getInstance()->fg_red->foreground;
     }
+    if (batt_changed_) battColor = Theme::getInstance()->fg_orange->foreground;
     // fill the bars
     for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
@@ -2233,7 +2269,7 @@ void BatteryIcon::paint(Painter& painter) {
 
 BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(percent <= 100 ? 1 : 0, percent, false);
+    this->set_battery(percent <= 100 ? 1 : 0, percent, false, false);
     set_focusable(true);
 }
 
@@ -2247,8 +2283,11 @@ void BatteryTextField::paint(Painter& painter) {
         xdelta = 5;
     else if (txt_batt.length() == 2)
         xdelta = 2;
+    std::string post = " %";
+    if (charge_) post = "+%";
+    if (batt_changed_) post = "!%";
     painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, txt_batt);
-    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, (charge_) ? "+%" : " %");
+    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, post);
 }
 
 void BatteryTextField::getAccessibilityText(std::string& result) {
@@ -2258,11 +2297,12 @@ void BatteryTextField::getWidgetName(std::string& result) {
     result = "Battery percent";
 }
 
-void BatteryTextField::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
-    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask) return;
+void BatteryTextField::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge, bool batt_changed) {
+    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask && batt_changed == batt_changed_) return;
     charge_ = charge;
     percent_ = percentage;
     valid_ = valid_mask;
+    batt_changed_ = batt_changed;
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }

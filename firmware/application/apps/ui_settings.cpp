@@ -1163,6 +1163,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
                   &field_battcap,
                   &button_help_cap,
                   &checkbox_overridebatt,
+                  &checkbox_battery_replaceable,
                   &checkbox_battery_charge_hint});
 
     if (i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055)) add_children({&button_reset, &labels2});
@@ -1170,13 +1171,19 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_override_batt_calc(checkbox_overridebatt.value());
         pmem::set_ui_battery_charge_hint(checkbox_battery_charge_hint.value());
+        pmem::set_battery_replaceable(checkbox_battery_replaceable.value());
         battery::BatteryManagement::set_calc_override(checkbox_overridebatt.value());
-        if (((uint32_t)field_battcap.value() != pmem::battery_cap_mah()) || (!pmem::battery_cap_valid())) {
+        i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+        if (dev) dev->resetChangedFlag();
+        if ((((uint32_t)field_battcap.value() != pmem::battery_cap_mah()) || (!pmem::battery_cap_valid())) || (dev && dev->getIsBattChanged())) {
             pmem::set_battery_cap_mah(field_battcap.value());
-            i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
             if (dev && !dev->reInit()) {
                 nav.display_modal("Error", "Battery gauge re-init failed");
                 return;
+            }
+            if (dev) {
+                dev->resetChangedFlag();
+                dev->update();  // resend the new data
             }
         }
         send_system_refresh();
@@ -1206,6 +1213,7 @@ SetBatteryView::SetBatteryView(NavigationView& nav) {
 
     checkbox_overridebatt.set_value(pmem::ui_override_batt_calc());
     checkbox_battery_charge_hint.set_value(pmem::ui_battery_charge_hint());
+    checkbox_battery_replaceable.set_value(pmem::battery_replaceable());
 
     field_battcap.set_value(pmem::battery_cap_mah());
 

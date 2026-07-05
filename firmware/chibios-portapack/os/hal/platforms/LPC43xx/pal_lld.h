@@ -50,10 +50,18 @@
  * @note    Implementations may extend this structure to contain more,
  *          architecture dependent, fields.
  */
+
+#ifdef PRALINE
+#define SCU_ARRAY_SIZE 80
+#else
+#define SCU_ARRAY_SIZE 57
+#endif
+
 typedef struct {
-  /** @brief GPIO setup data.*/
-  gpio_setup_t    P[8];
-  scu_setup_t     SCU[60];
+    /** @brief GPIO setup data.*/
+    gpio_setup_t P[8];
+    scu_setup_t SCU[SCU_ARRAY_SIZE];
+
 } PALConfig;
 
 /**
@@ -94,50 +102,50 @@ typedef uint8_t iopadid_t;
 /**
  * @brief   GPIO0 port identifier.
  */
-#define IOPORT1         0
-#define GPIO0           0
+#define IOPORT1 0
+#define GPIO0 0
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT2         1
-#define GPIO1           1
+#define IOPORT2 1
+#define GPIO1 1
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT3         2
-#define GPIO2           2
+#define IOPORT3 2
+#define GPIO2 2
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT4         3
-#define GPIO3           3
+#define IOPORT4 3
+#define GPIO3 3
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT5         4
-#define GPIO4           4
+#define IOPORT5 4
+#define GPIO4 4
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT6         5
-#define GPIO5           5
+#define IOPORT6 5
+#define GPIO5 5
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT7         6
-#define GPIO6           6
+#define IOPORT7 6
+#define GPIO6 6
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT8         7
-#define GPIO7           7
+#define IOPORT8 7
+#define GPIO7 7
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
@@ -237,7 +245,7 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-//#define pal_lld_readgroup(port, mask, offset) 0
+// #define pal_lld_readgroup(port, mask, offset) 0
 
 /**
  * @brief   Writes a group of bits.
@@ -253,7 +261,7 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-//#define pal_lld_writegroup(port, mask, offset, bits) (void)bits
+// #define pal_lld_writegroup(port, mask, offset, bits) (void)bits
 
 /**
  * @brief   Pads group mode setup.
@@ -268,8 +276,8 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+    _pal_lld_setgroupmode(port, mask << offset, mode)
 
 /**
  * @brief   Reads a logical state from an I/O pad.
@@ -285,8 +293,8 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-#define pal_lld_readpad(port, pad)                                          \
-  (LPC_GPIO->B[((port) * 32) + (pad)])
+#define pal_lld_readpad(port, pad) \
+    (LPC_GPIO->B[((port) * 32) + (pad)])
 
 /**
  * @brief   Writes a logical state on an output pad.
@@ -303,8 +311,8 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-#define pal_lld_writepad(port, pad, bit)                                    \
-   ((LPC_GPIO->B[((port) * 32) + (pad)]) = (bit))
+#define pal_lld_writepad(port, pad, bit) \
+    ((LPC_GPIO->B[((port) * 32) + (pad)]) = (bit))
 
 /**
  * @brief   Sets a pad logical state to @p PAL_HIGH.
@@ -317,8 +325,8 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-#define pal_lld_setpad(port, pad)                                           \
-  (LPC_GPIO->SET[(port)] = 1 << (pad))
+#define pal_lld_setpad(port, pad) \
+    (LPC_GPIO->SET[(port)] = 1 << (pad))
 
 /**
  * @brief   Clears a pad logical state to @p PAL_LOW.
@@ -331,7 +339,7 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-#define pal_lld_clearpad(port, pad)                                         \
+#define pal_lld_clearpad(port, pad) \
     (LPC_GPIO->CLR[(port)] = 1 << (pad))
 
 /**
@@ -345,8 +353,8 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-#define pal_lld_togglepad(port, pad)                                        \
-  (LPC_GPIO->NOT[(port)] = 1 << (pad))
+#define pal_lld_togglepad(port, pad) \
+    (LPC_GPIO->NOT[(port)] = 1 << (pad))
 
 /**
  * @brief   Pad mode setup.
@@ -362,7 +370,7 @@ typedef uint8_t iopadid_t;
  *
  * @notapi
  */
-//#define pal_lld_setpadmode(port, pad, mode)
+// #define pal_lld_setpadmode(port, pad, mode)
 
 #if !defined(__DOXYGEN__)
 extern const PALConfig pal_default_config;
@@ -371,10 +379,10 @@ extern const PALConfig pal_default_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+void _pal_lld_setgroupmode(ioportid_t port,
+                           ioportmask_t mask,
+                           iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

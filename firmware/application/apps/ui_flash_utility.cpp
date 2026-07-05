@@ -32,7 +32,7 @@ static const char* hackrf_magic = "HACKRFFW";
 #define FIRST_CHECKSUM_NIGHTLY 240125
 
 Thread* FlashUtilityView::thread{nullptr};
-static constexpr size_t max_filename_length = 26;
+static constexpr size_t max_filename_length = 60;  // max length of filename
 
 bool valid_firmware_file(std::filesystem::path::string_type path) {
     File firmware_file;
@@ -134,12 +134,6 @@ bool FlashUtilityView::endsWith(const std::u16string& str, const std::u16string&
     }
 }
 
-void FlashUtilityView::wait_till_loaded() {
-    while (!isLoaded) {
-        chThdSleepMilliseconds(50);
-    }
-}
-
 std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::string_type path, ui::Painter& painter) {
     //
     painter.fill_rectangle(
@@ -157,6 +151,7 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
 
 bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
     ui::Painter painter;
+    menu_view.hidden(true);
     if (endsWith(path, u".tar")) {
         // extract, then update
         path = extract_tar(u'/' + path, painter).native();
@@ -166,13 +161,14 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, Theme::getInstance()->bg_darkest->background);
         painter.draw_string({0, 60}, *Theme::getInstance()->fg_red, "BAD FIRMWARE FILE OR W/R ERR");
         chThdSleepMilliseconds(5000);
+        menu_view.hidden(false);
         return false;
     }
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
         Theme::getInstance()->bg_darkest->background);
 
-    painter.draw_string({12, 24}, this->nav_.style(), "This will take 15 seconds.");
+    painter.draw_string({12, 24}, this->nav_.style(), "This will take 15-45 sec.");
     painter.draw_string({12, 64}, this->nav_.style(), "Please wait while LED RX");
     painter.draw_string({12, 84}, this->nav_.style(), "is on and TX is flashing.");
     painter.draw_string({12, 124}, this->nav_.style(), "Device will then restart.");

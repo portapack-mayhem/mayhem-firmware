@@ -113,11 +113,14 @@ void set_morsetx_config(uint8_t mode, uint32_t tone, float fm_delta);
 void set_morsetx_key(bool key_down);
 void set_wefax_config(uint8_t lpm, uint8_t ioc);
 void set_noaaapt_config();
+void set_vor_config(bool enabled = true);
+void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled = true, const std::string& ident = "", bool enabled = true);
 void set_flex_config();
 void set_bitstream_config(uint32_t deviation, uint8_t mode);                                                   // mode 0 for am, 1 for 2fsk
 void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload = nullptr, uint16_t payload_length = 0);  // baud*100
 void set_rtty_config(RTTYDataMessage& message);
 void set_epirb_tx_config(EPIRBTXDataMessage& message);
+void set_epirb_rx_config(EPIRBRXConfig& message);
 void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length);
 
 void request_roger_beep();
@@ -125,6 +128,7 @@ void request_rssi_beep();
 void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);
 
+bool is_image_running();
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void run_prepared_image(const uint32_t m4_code);
 void shutdown();

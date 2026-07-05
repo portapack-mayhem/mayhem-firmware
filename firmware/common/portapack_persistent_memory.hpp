@@ -47,7 +47,7 @@
 
 // to check battery mins and maxes in pmem, and validity
 #define BATT_18650_MIN_MAH 1000
-#define BATT_18650_MAX_MAH 5000
+#define BATT_18650_MAX_MAH 20000
 
 using namespace modems;
 using namespace serializer;
@@ -395,6 +395,8 @@ uint32_t pmem_calculated_checksum(void);
 void set_battery_cap_mah(uint16_t mah);  // 0 is not known; use assumed default based on device type/build config
 uint32_t battery_cap_mah();
 bool battery_cap_valid();
+void set_battery_replaceable(bool v);
+bool battery_replaceable();
 
 size_t data_size();
 

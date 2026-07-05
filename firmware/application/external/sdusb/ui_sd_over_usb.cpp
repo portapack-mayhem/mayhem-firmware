@@ -45,7 +45,7 @@ SdOverUsbView::SdOverUsbView(NavigationView& nav)
         sdcDisconnect(&SDCD1);
         sdcStop(&SDCD1);
 
-        portapack::shutdown(true);
+        portapack::shutdown(true, false);
         baseband::run_prepared_image(portapack::memory::map::m4_code.base());
         m0_halt();
         /* will not return*/

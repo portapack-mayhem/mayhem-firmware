@@ -175,8 +175,14 @@ struct SynthConfig {
  */
 
 void RFFC507x::init() {
+#ifdef PRALINE
+    gpio_control::rf5072_mix_en.setActive();  // RF5072_MIX_EN
+#endif
+
     gpio_rffc5072_resetx.set();
+#ifndef PRALINE
     gpio_rffc5072_resetx.output();
+#endif
     reset();
 
     _bus.init();

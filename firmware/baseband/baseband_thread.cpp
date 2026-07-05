@@ -90,7 +90,7 @@ void BasebandThread::run() {
 #ifdef PRALINE
     shared_memory.m4_streaming_marker = 0xAA;  // Phase 0 instrumentation
 #endif
-
+    uint8_t buffer_drained = 0;  // to count how many dma buffers we already emptied
     while (!chThdShouldTerminate()) {
 #ifdef PRALINE
         shared_memory.m4_baseband_loops++;  // Phase 0 instrumentation
@@ -117,11 +117,20 @@ void BasebandThread::run() {
             }
 
             if (baseband_processor_) {
-                baseband_processor_->execute(buffer);
+                if (shared_memory.radio_tx_drain == 0) {  // only generate if not draining.
+                    baseband_processor_->execute(buffer);
+                }
+            }
+            if (shared_memory.radio_tx_drain == 1) {
+                buffer_drained++;
+                if (buffer_drained >= 4) {             // We have 4 buffers, so after draining 4 we should be safe to disable.
+                    shared_memory.radio_tx_drain = 0;  // Clear the drain request to allow normal operation to resume.
+                    buffer_drained = 0;
+                }
             }
         }
     }
-
+    shared_memory.radio_tx_drain = 0;
     i2s::i2s0::tx_mute();
     baseband::dma::disable();
     baseband_sgpio.streaming_disable();

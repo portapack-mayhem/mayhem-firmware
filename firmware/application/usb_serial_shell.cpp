@@ -157,8 +157,7 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     // call nav with flash
     auto open_view = nav->push<ui::FlashUtilityView>();
     chprintf(chp, "Flashing started\r\n");
-    chThdSleepMilliseconds(50);     // to give display some time to paint the screen
-    open_view->wait_till_loaded();  // also wait for first frame sync
+    chThdSleepMilliseconds(150);  // to give display some time to paint the screen
     if (!open_view->flash_firmware(path.native())) {
         chprintf(chp, "error\r\n");
     }
@@ -704,6 +703,7 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
 }
 
 static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) {
+    if (element.id == nullptr) return;
     if (strlen(element.id) == 0) return;
     chprintf(chp, element.id);
     chprintf(chp, " ");
@@ -740,9 +740,9 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    // TODO(u-foka): Somehow order static and dynamic app lists together
-    for (auto& element : ui::NavigationView::appMap) {  // Use the map as its ordered by id
-        printAppInfo(chp, element.second);
+    // todo U-foka : sort the list
+    for (auto& element : ui::NavigationView::appList) {
+        printAppInfo(chp, element);
     }
     ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
         printAppInfo(chp, info);

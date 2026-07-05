@@ -46,8 +46,6 @@ class OOKProcessor : public BasebandProcessor {
     uint16_t bit_pos{0};
     uint8_t cur_bit{0};
     uint32_t sample_count{0};
-    uint32_t tone_phase{0}, phase{0}, sphase{0};
-    int32_t tone_sample{0}, sig{0}, frq{0};
 
     TXProgressMessage txprogress_message{};
 

@@ -217,7 +217,31 @@ set(CPPWARN "-Wall -Wextra")
 if(NOT DEFINED BOARD)
     set(BOARD "HACKRF_ONE")
 endif()
-set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -D${BOARD} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
+
+# Upstream hackrf headers now gate on IS_* macros normally populated by
+# hackrf/firmware/platform-detect.cmake. We don't include that here, so derive
+# the IS_* set from BOARD ourselves. IS_H1_R9 must mirror the upstream
+# HACKRF_ONE definition: a *runtime* check on detected_platform(). The only
+# baseband image that compiles IS_H1_R9-gated upstream files (rf_path.c,
+# si5351c.c, sgpio.c, platform_gpio.c, platform_scu.c) is sd_over_usb, which
+# does link platform_detect.c and calls detect_hardware_platform() at startup.
+# Forcing IS_H1_R9=0 here silently compiled out all H1R9 behaviour, so a real
+# HackRF One r9 was configured with the OG clock/GPIO/RF-path setup in that
+# image. All usages are `#ifdef IS_H1_R9` + `if (IS_H1_R9)` (never arithmetic
+# `#if`), so a function-call expression is safe.
+if(BOARD STREQUAL "HACKRF_ONE")
+    set(BOARD_IS_DEFS "-DIS_HACKRF_ONE=1 -DIS_NOT_PRALINE=1 -D'IS_H1_R9=(detected_platform()==BOARD_ID_HACKRF1_R9)' -D'IS_NOT_H1_R9=(!IS_H1_R9)' -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_H1_OR_RAD1O=1 -DIS_H1_OR_JAWBREAKER=1 -DIS_EXPANSION_COMPATIBLE=1")
+elseif(BOARD STREQUAL "PRALINE")
+    set(BOARD_IS_DEFS "-DIS_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_PRALINE=1 -DIS_FOUR_LEDS=1 -DIS_EXPANSION_COMPATIBLE=1")
+elseif(BOARD STREQUAL "RAD1O")
+    set(BOARD_IS_DEFS "-DIS_RAD1O=1 -DIS_NOT_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_JAWBREAKER=1 -DIS_H1_OR_RAD1O=1 -DIS_FOUR_LEDS=1")
+elseif(BOARD STREQUAL "JAWBREAKER")
+    set(BOARD_IS_DEFS "-DIS_JAWBREAKER=1 -DIS_NOT_PRALINE=1 -DIS_NOT_HACKRF_ONE=1 -DIS_NOT_H1_R9=1 -DIS_NOT_RAD1O=1 -DIS_H1_OR_JAWBREAKER=1")
+else()
+    set(BOARD_IS_DEFS "")
+endif()
+
+set(DDEFS "-DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -D${BOARD} ${BOARD_IS_DEFS} -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)
@@ -492,6 +516,20 @@ DeclareTargets(PFUT flash_utility)
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
 
+### VOR TX
+
+set(MODE_CPPSRC
+	proc_vor_tx.cpp
+)
+DeclareTargets(PVTX vor_tx)
+
+### VOR RX
+
+set(MODE_CPPSRC
+	proc_vor_rx.cpp
+)
+DeclareTargets(PVRX vor_rx)
+
 ### FLEX RX
 
 set(MODE_CPPSRC
@@ -758,6 +796,7 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
 	${HACKRF_PATH}/firmware/common/platform_detect.c
+	${HACKRF_PATH}/firmware/common/delay.c
 	${HACKRF_PATH}/firmware/common/platform_gpio.c
 	${HACKRF_PATH}/firmware/common/platform_scu.c
 	${HACKRF_PATH}/firmware/common/gpio_lpc.c
@@ -765,7 +804,6 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/si5351c.c
 	${HACKRF_PATH}/firmware/common/i2c_bus.c
 	${HACKRF_PATH}/firmware/common/mixer.c
-	${HACKRF_PATH}/firmware/common/clkin.c
 	${HACKRF_PATH}/firmware/common/spi_bus.c
 	${HACKRF_PATH}/firmware/common/sgpio.c
 	${HACKRF_PATH}/firmware/common/rf_path.c
@@ -773,7 +811,6 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/spi_ssp.c
 	${HACKRF_PATH}/firmware/common/rffc5071_spi.c
 	${HACKRF_PATH}/firmware/common/rffc5071.c
-	${HACKRF_PATH}/firmware/common/clkin.c
 	${HACKRF_PATH}/firmware/common/gpdma.c
 
 	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/nvic.c
@@ -790,11 +827,19 @@ endif()
 
 ### HackRF "factory" firmware
 
+# The RAM image (${HACKRF_FIRMWARE_BIN_IMAGE}) is produced by the hackrf
+# "hackrf_usb_ram.bin" custom target (objcopy of the .elf). The previous
+# DEPENDS used the bare filename ${HACKRF_FIRMWARE_BIN_FILENAME}, which CMake
+# silently dropped, so the embed (hackrf.lz4/hackrf.img) was never regenerated
+# when the hackrf firmware changed -> stale RAM image baked into the build.
+# Depend on the full path (marked GENERATED so Make doesn't look for a file
+# rule) AND on the producing custom target (for build ordering).
+set_source_files_properties(${HACKRF_FIRMWARE_BIN_IMAGE} PROPERTIES GENERATED TRUE)
 add_custom_command(
 	OUTPUT hackrf.img
 	COMMAND ${LZ4} -f -9 ${HACKRF_FIRMWARE_BIN_IMAGE} hackrf.lz4
 	COMMAND ${MAKE_IMAGE_CHUNK} hackrf.lz4 HRF1 hackrf.img
-	DEPENDS ${HACKRF_FIRMWARE_BIN_FILENAME} ${MAKE_IMAGE_CHUNK}
+	DEPENDS ${HACKRF_FIRMWARE_BIN_IMAGE} hackrf_usb_ram.bin ${MAKE_IMAGE_CHUNK}
 	VERBATIM
 )
 

@@ -49,6 +49,7 @@
 #include "ui_recon.hpp"
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
+#include "ui_textentry.hpp"
 #include "ui_sonde.hpp"
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
@@ -73,6 +74,8 @@
 #include "file_path.hpp"
 #include "ff.h"
 
+#include "i2cdev_max17055.hpp"
+
 #include <locale>
 #include <codecvt>
 
@@ -81,28 +84,6 @@ using portapack::transmitter_model;
 namespace pmem = portapack::persistent_memory;
 
 namespace ui {
-
-bool CstrCmp::operator()(const char* a, const char* b) const {
-    return strcmp(a, b) < 0;
-}
-
-static NavigationView::AppMap generate_app_map(const NavigationView::AppList& appList) {
-    NavigationView::AppMap out;
-
-    for (auto& app : appList) {
-        if (app.id == nullptr) {
-            // Skip items with no id
-            continue;
-        }
-
-        auto res = out.emplace(app.id, app);
-        if (!res.second) {
-            chDbgPanic("Application cannot be added, ID not unique!");
-        }
-    }
-
-    return out;
-}
 
 // TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
 const NavigationView::AppList NavigationView::appList = {
@@ -147,18 +128,125 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
 };
 
-const NavigationView::AppMap NavigationView::appMap = generate_app_map(NavigationView::appList);
-
 bool NavigationView::StartAppByName(const char* name) {
     home(false);
 
-    auto it = appMap.find(name);
-    if (it != appMap.end()) {
-        push_view(std::unique_ptr<View>(it->second.viewFactory->produce(*this)));
-        return true;
+    for (const auto& app : appList) {
+        if (app.id != nullptr && strcmp(app.id, name) == 0) {
+            push_view(app.viewFactory->produce(*this));
+            return true;
+        }
+    }
+    return false;
+}
+
+/* App search ***********************************************************/
+
+namespace {
+
+// ASCII, allocation-free, case-insensitive lowering. Kept local so this TU
+// doesn't need to include <cctype> just for one small comparison.
+char ascii_lower(char c) {
+    return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
+}
+
+// True when 'needle' occurs anywhere in 'haystack', case-insensitive.
+bool name_contains(const char* haystack, const std::string& needle) {
+    const size_t n = needle.size();
+    if (n == 0)
+        return false;
+    for (size_t i = 0; haystack[i] != '\0'; ++i) {
+        size_t j = 0;
+        while (j < n && haystack[i + j] != '\0' &&
+               ascii_lower(haystack[i + j]) == ascii_lower(needle[j]))
+            ++j;
+        if (j == n)
+            return true;
+    }
+    return false;
+}
+
+}  // namespace
+
+void NavigationView::start_app_search() {
+    app_search_query_.clear();
+    app_search_committed_ = false;
+
+    // Reuse the shared keyboard view; it is destroyed as soon as the user
+    // confirms or cancels, so no search UI ever lingers in RAM.
+    text_prompt(*this, app_search_query_, 20, ENTER_KEYBOARD_MODE_ALPHA,
+                [this](std::string& query) {
+                    // Runs while the keyboard is still alive: only record that a
+                    // query was confirmed; results are built once it has popped.
+                    app_search_committed_ = !query.empty();
+                });
+
+    // Defer building/showing the results until the keyboard view has popped.
+    set_on_pop([this]() { open_app_search_results(); });
+}
+
+void NavigationView::open_app_search_results() {
+    if (!app_search_committed_)
+        return;  // user cancelled with Back, or the query was empty
+    app_search_committed_ = false;
+
+    std::vector<AppSearchEntry> matches;
+
+    // Internal apps: match on the name shown in the menus.
+    for (const auto& app : appList) {
+        if (app.displayName != nullptr && app.viewFactory != nullptr &&
+            name_contains(app.displayName, app_search_query_))
+            matches.push_back({app.displayName, app.viewFactory, {}});
     }
 
-    return false;
+    // External (.ppma) and standalone (.ppmp) apps on the SD card. The
+    // enumerator hands back pointers to short-lived buffers, so the names are
+    // copied into owned strings here. Match on both the friendly name and the
+    // file (call) name. module_included=false: PPmod apps can't be launched by
+    // path, so they're intentionally excluded.
+    ExternalItemsMenuLoader::load_all_external_items_callback(
+        [this, &matches](AppInfoConsole& info) {
+            if (name_contains(info.appFriendlyName, app_search_query_) ||
+                name_contains(info.appCallName, app_search_query_))
+                matches.push_back({info.appFriendlyName, nullptr, info.appCallName});
+        },
+        false);
+
+    if (matches.empty()) {
+        display_modal("Search", "No matching app found.");
+        return;
+    }
+
+    push<AppSearchResultsView>(std::move(matches));
+}
+
+void NavigationView::launch_search_entry(ViewFactoryBase* factory, std::string call_name) {
+    // Same close-then-open contract as StartAppByName: drop the search UI
+    // (freeing the results view and the very button that called us) before
+    // starting the target, so only one app is ever resident. Everything used
+    // below is a by-value argument or this resident NavigationView.
+    home(false);
+
+    if (factory != nullptr) {
+        push_view(factory->produce(*this));
+        return;
+    }
+
+    // External/standalone: AppInfoConsole doesn't record which kind it is, so
+    // try both extensions the way handle_autostart() does.
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+
+    std::string appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppma";
+    std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
+    if (ExternalItemsMenuLoader::run_external_app(*this, pth))
+        return;
+
+    appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppmp";
+    pth = conv.from_bytes(appwithpath.c_str());
+    if (ExternalItemsMenuLoader::run_standalone_app(*this, pth))
+        return;
+
+    display_modal("Search", "Failed to start:\n" + call_name);
 }
 
 /* StatusTray ************************************************************/
@@ -347,21 +435,21 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
         // Only show charging modal when transitioning to charging state
         nav_.display_modal(
             "CHARGING",
-            "Screen on while charging?",
+            "Enter deep sleep? \n \nExit: Press reset button. \n \nRX LED: Charging. \nTX LED: Charging error. \nLEDs OFF: Charge complete.",
             YESNO,
-            [this](bool keep_screen_on) {
-                if (!keep_screen_on) {
-                    EventDispatcher::set_display_sleep(true);
+            [this](bool deepsleep) {
+                if (deepsleep) {
+                    EventDispatcher::charge_deep_sleep(true);
                 }
             });
     }
     was_charging = msg->on_charger;
 
     if (!pmem::ui_hide_numeric_battery()) {
-        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger, msg->battMayChanged);
     }
     if (!pmem::ui_hide_battery_icon()) {
-        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
+        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger, msg->battMayChanged);
     }
 }
 
@@ -497,9 +585,8 @@ void SystemStatusView::on_camera() {
     auto error = png.create(path);
     if (error)
         return;
-
+    std::vector<ColorRGB888> row(ui::screen_width);
     for (int i = 0; i < screen_height; i++) {
-        std::vector<ColorRGB888> row(ui::screen_width);
         portapack::display.read_pixels({0, i, screen_width, 1}, row);
         png.write_scanline(row);
     }
@@ -584,6 +671,7 @@ InformationView::InformationView(
     NavigationView& nav)
     : nav_(nav) {
     add_children({&backdrop,
+                  &search_icon,
                   &version,
                   &ltime});
 
@@ -625,6 +713,19 @@ bool InformationView::firmware_checksum_error() {
 #endif
     }
     return fw_checksum_error;
+}
+
+bool InformationView::on_touch(const TouchEvent event) {
+    // The whole info bar is one touch target. Capture on Start so the End
+    // event is delivered here, then act on release like a normal button tap.
+    switch (event.type) {
+        case TouchEvent::Type::End:
+            if (nav_.is_valid())
+                nav_.start_app_search();
+            return true;
+        default:
+            return true;
+    }
 }
 
 /* Navigation ************************************************************/
@@ -781,7 +882,7 @@ void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
             grid.add_item({app.displayName, app.iconColor, app.icon,
                            [&nav, &app]() {
                             i2cdev::I2CDevManager::set_autoscan_interval(0); //if i navigate away from any menu, turn off autoscan
-                            nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }},
+                            nav.push_view(app.viewFactory->produce(nav)); }},
                           true);
         }
     };
@@ -810,9 +911,9 @@ void add_external_items(NavigationView& nav, app_location_t location, BtnGridVie
 
         for (auto const& gridItem : externalItems) {
             if (gridItem.desired_position < 0) {
-                grid.add_item(gridItem, true);
+                grid.add_item(std::move(gridItem), true);
             } else {
-                grid.insert_item(gridItem, gridItem.desired_position, true);
+                grid.insert_item(std::move(gridItem), gridItem.desired_position, true);
             }
 
         }
@@ -896,6 +997,32 @@ void GamesMenuView::on_populate() {
     add_external_items(nav_, app_location_t::GAMES, *this, return_icon ? 1 : 0);
 }
 
+/* AppSearchResultsView *************************************************/
+
+AppSearchResultsView::AppSearchResultsView(NavigationView& nav, std::vector<AppSearchEntry>&& entries)
+    : nav_(nav), entries_(std::move(entries)) {
+    set_max_rows(2);  // wider buttons: app names need the room
+}
+
+void AppSearchResultsView::on_populate() {
+    for (size_t i = 0; i < entries_.size(); ++i) {
+        const auto& entry = entries_[i];
+        // Internal apps are green, external/standalone orange, matching the
+        // "yellow-ish external" convention used elsewhere. No icon: the cheap
+        // enumerator doesn't decode external bitmaps.
+        add_item({entry.display,
+                  entry.factory ? Color::green() : Color::orange(),
+                  nullptr,
+                  [this, i]() {
+                      // Read the target off entries_ and pass it by value: the
+                      // call below frees this view via home(), so nothing after
+                      // it may touch 'this' or its members.
+                      nav_.launch_search_entry(entries_[i].factory, entries_[i].call_name);
+                  }},
+                 true);
+    }
+}
+
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
@@ -905,6 +1032,10 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
         YESNO,
         [this](bool choice) {
             if (choice) {
+                i2cdev::I2cDev_MAX17055* dev = (i2cdev::I2cDev_MAX17055*)i2cdev::I2CDevManager::get_dev_by_model(I2C_DEVMDL::I2CDEVMDL_MAX17055);
+                if (dev) {
+                    dev->sleep_config(false);  // don't enable sleep even if no i2c communication. so we won't lose any data. on reboot (like exit hackrf mode) we set it to true again.
+                }
                 EventDispatcher::request_stop();
             }
         });
@@ -994,7 +1125,8 @@ void SystemView::toggle_overlay() {
     static uint8_t last_perf_counter_status = shared_memory.request_m4_performance_counter;
     switch (++overlay_active) {
         case 1:
-            this->add_child(&this->overlay);
+            overlay = std::make_unique<DfuMenu>(navigation_view);
+            this->add_child(overlay.get());
             this->set_dirty();
             shared_memory.request_m4_performance_counter = 1;
             shared_memory.m4_performance_counter = 0;
@@ -1002,17 +1134,19 @@ void SystemView::toggle_overlay() {
             shared_memory.m4_stack_usage = 0;
             break;
         case 2:
-            this->remove_child(&this->overlay);
-            this->add_child(&this->overlay2);
+            this->remove_child(overlay.get());
+            overlay.reset();
+            overlay2 = std::make_unique<DfuMenu2>(navigation_view);
+            this->add_child(overlay2.get());
             this->set_dirty();
             shared_memory.request_m4_performance_counter = 2;
             break;
         case 3:
-            this->remove_child(&this->overlay2);
+            this->remove_child(overlay2.get());
+            overlay2.reset();
             this->set_dirty();
             shared_memory.request_m4_performance_counter = last_perf_counter_status;
             overlay_active = 0;
-            break;
     }
 }
 
@@ -1024,10 +1158,10 @@ void SystemView::paint_overlay() {
             return;
 
         last_paint_state = !last_paint_state;
-        if (overlay_active == 1)
-            this->overlay.set_dirty();
-        else
-            this->overlay2.set_dirty();
+        if (overlay_active == 1 && overlay)
+            overlay->set_dirty();
+        else if (overlay_active == 2 && overlay2)
+            overlay2->set_dirty();
     }
 }
 

@@ -91,14 +91,14 @@ enum class BpskChannel {
 struct Location {
     std::string locator;
     bool south;
-    uint16_t lat_deg;
-    uint8_t lat_min;
-    uint8_t lat_sec;
+    int16_t lat_deg;
+    int8_t lat_min;
+    int8_t lat_sec;
     float latitude;
     bool west;
-    uint16_t long_deg;
-    uint8_t long_min;
-    uint8_t long_sec;
+    int16_t long_deg;
+    int8_t long_min;
+    int8_t long_sec;
     float longitude;
 };
 
@@ -142,6 +142,8 @@ class EPIRBTXAppView : public View {
         std::string description{};
         std::string frame{};
     };
+    NavigationView& nav_;
+
     std::vector<Beacon> beacons{};
     Beacon default_beacon{"Self test", "Serial User Location Protocol", "FFFED0D6E6202820000C29FF51041775302D"};
 
@@ -167,6 +169,8 @@ class EPIRBTXAppView : public View {
 
     // True when using a beacon from the BEACONS.TXT file
     bool mode_file{false};
+    // True when slideshow is enabled for file mode (change beacon after every transmission)
+    bool slideshow_enabled{false};
     // True when looping on sending beacons is enabled
     bool loop_enabled{true};
     // True if AM emergency signal transmission is enabled
@@ -202,6 +206,7 @@ class EPIRBTXAppView : public View {
             {"loop"sv, &loop_enabled},
             {"delay"sv, &delay},
             {"file"sv, &mode_file},
+            {"slideshow"sv, &slideshow_enabled},
             {"am"sv, &am_enabled},
             {"soc"sv, &send_on_change},
             {"type"sv, &beacon_type},
@@ -236,23 +241,31 @@ class EPIRBTXAppView : public View {
         {{UI_POS_X(17), UI_POS_Y(9)}, "s.", Theme::getInstance()->fg_light->foreground}};
 
     // For file mode
-    Text text_beacon{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
-        "Beacon:"};
-    // Beacon selection from BEACONS.TXT
-    OptionsField options_frame{
-        {UI_POS_X(7), UI_POS_Y(1)},
-        30,
-        {}};
-    Text text_description_label{
-        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
-        "Description:"};
-    Text text_description{
-        {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
-        ""};
-    Text text_description_end{
-        {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
-        ""};
+    struct FileModeWidgets {
+        Text text_beacon{
+            {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_DEFAULT_HEIGHT},
+            "Beacon:"};
+        // Beacon selection from BEACONS.TXT
+        OptionsField options_frame{
+            {UI_POS_X(7), UI_POS_Y(1)},
+            30,
+            {}};
+        Text text_description_label{
+            {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_DEFAULT_HEIGHT},
+            "Description:"};
+        Text text_description{
+            {UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+            ""};
+        Text text_description_end{
+            {UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(0), UI_POS_DEFAULT_HEIGHT},
+            ""};
+        Checkbox checkbox_slideshow{
+            {UI_POS_X(0), UI_POS_Y(5)},
+            9,
+            "Slideshow",
+            true};
+    };
+    std::unique_ptr<FileModeWidgets> file_mode_ui{};
 
     // For manual mode
     Text text_beacon_type{

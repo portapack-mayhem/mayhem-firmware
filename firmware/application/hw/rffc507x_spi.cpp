@@ -33,8 +33,10 @@ void SPI::init() {
     gpio_rffc5072_select.set();
     gpio_rffc5072_clock.clear();
 
+#ifndef PRALINE
     gpio_rffc5072_select.output();
     gpio_rffc5072_clock.output();
+#endif
     gpio_rffc5072_data.input();
 
     gpio_rffc5072_data.clear();
@@ -101,6 +103,14 @@ data_t SPI::transfer_word(const Direction direction, const address_t address, co
     transfer_bits(0, 2);
 
     return data_in;
+}
+
+void SPI::power_down() {
+    // A 0x01 address the MIX_CTRL register. A 0x0000
+    transfer_word(Direction::Write, 0x01, 0x0000);
+
+    // a chip 300 µA-es Power Down
+    transfer_word(Direction::Write, 0x00, 0x0000);
 }
 
 }  // namespace spi

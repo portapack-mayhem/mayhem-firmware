@@ -27,7 +27,7 @@
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 #include "standalone_app.hpp"
-
+#include <cstring>
 #include "file.hpp"
 
 #define EXT_APP_EXPECTED_CHECKSUM 0x00000000

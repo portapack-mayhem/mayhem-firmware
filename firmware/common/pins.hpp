@@ -115,7 +115,9 @@ enum Pins {
     PA_1,
     PA_2,
     // Port 8 pins (PRALINE power control and LED4)
-    P8_1,
+    P8_1,  // VAA_EN
+    P8_4,  // VBUS_IN_EN
+    P8_5,  // VIN_IN_EN
     P8_6,
     P8_7,
     // Port E pins (PRALINE transceiver control)
@@ -227,6 +229,8 @@ constexpr Pin pins[]{
     [PA_2] = {0xA, 2},
     // Port 8 pins
     [P8_1] = {8, 1},
+    [P8_4] = {8, 4},
+    [P8_5] = {8, 5},
     [P8_6] = {8, 6},
     [P8_7] = {8, 7},
     // Port E pins (function 4 = GPIO)
@@ -333,6 +337,8 @@ enum GPIOs {
     GPIO4_14,
     // Power control and LED4
     GPIO4_1,
+    GPIO4_4,  // VBUS_IN_EN
+    GPIO4_5,  // VIN_IN_EN
     GPIO4_6,
     GPIO4_7,
     // RF path control
@@ -445,6 +451,8 @@ constexpr GPIO gpio[] = {
 #ifdef PRALINE
     [GPIO4_14] = {pins[P9_2], 4, 14, 0},   // RFFC5072 mixer data
     [GPIO4_1] = {pins[P8_1], 4, 1, 0},     // VAA disable
+    [GPIO4_4] = {pins[P8_4], 4, 4, 0},     // VBUS_IN_EN
+    [GPIO4_5] = {pins[P8_5], 4, 5, 0},     // VIN_IN_EN
     [GPIO4_6] = {pins[P8_6], 4, 6, 0},     // LED4
     [GPIO4_7] = {pins[P8_7], 4, 7, 0},     // 1V2 enable
     [GPIO4_8] = {pins[PA_1], 4, 8, 0},     // LPF enable
@@ -462,6 +470,8 @@ constexpr GPIO gpio[] = {
     // Placeholder entries for non-PRALINE builds (use P0_0 as dummy)
     [GPIO4_14] = {pins[P0_0], 4, 14, 0},
     [GPIO4_1] = {pins[P0_0], 4, 1, 0},
+    [GPIO4_4] = {pins[P0_0], 4, 4, 0},
+    [GPIO4_5] = {pins[P0_0], 4, 5, 0},
     [GPIO4_6] = {pins[P0_0], 4, 6, 0},
     [GPIO4_7] = {pins[P0_0], 4, 7, 0},
     [GPIO4_8] = {pins[P0_0], 4, 8, 0},

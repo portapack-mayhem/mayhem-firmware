@@ -133,6 +133,14 @@ set(EXTCPPSRC
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
+	#vor_rx
+	external/vor_rx/main.cpp
+	external/vor_rx/ui_vor_rx.cpp
+
+	#vor_tx
+	external/vor_tx/main.cpp
+	external/vor_tx/ui_vor_tx.cpp
+
 	#shoppingcart_lock 272 bytes
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp
@@ -263,6 +271,10 @@ set(EXTCPPSRC
 	#epirb_rx 168 byte flash 
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
+	external/epirb_rx/ui_beaconlist.cpp
+	external/epirb_rx/beacon_db.cpp
+	external/epirb_rx/beacon.cpp
+	external/epirb_rx/location.cpp
 
 	#epirb_tx
 	external/epirb_tx/main.cpp
@@ -323,7 +335,7 @@ set(EXTCPPSRC
 	external/rtty_tx/ui_rtty_tx.cpp
 	external/rtty_tx/baudot.cpp
 
-    #pocsag_tx
+	#pocsag_tx
 	external/pocsag_tx/main.cpp
 	external/pocsag_tx/ui_pocsag_tx.cpp
 
@@ -353,7 +365,16 @@ set(EXTCPPSRC
 
 	#two_tone_rx
 	external/two_tone_rx/main.cpp
-	external/two_tone_rx/ui_two_tone_rx.cpp 
+	external/two_tone_rx/ui_two_tone_rx.cpp
+
+	#hard_reset
+	external/hard_reset/main.cpp
+	external/hard_reset/ui_hard_reset.cpp
+
+	#secplustx
+	external/secplustx/main.cpp
+	external/secplustx/ui_secplustx.cpp
+	external/secplustx/secplustx.cpp
 )
 
 set(EXTAPPLIST
@@ -388,6 +409,8 @@ set(EXTAPPLIST
 	acars_rx
 	wefax_rx
 	noaaapt_rx
+	vor_rx
+	vor_tx
 	shoppingcart_lock
 	ookbrute
 	ook_editor
@@ -442,6 +465,8 @@ set(EXTAPPLIST
 	p25_tx
 	two_tone_pager
 	two_tone_rx
+	hard_reset
+	secplustx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

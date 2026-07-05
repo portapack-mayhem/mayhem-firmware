@@ -132,7 +132,6 @@ Continuous (Fox-oring)
 #include "spi_image.hpp"
 
 #include "debug.hpp"
-#include "led.hpp"
 
 #include "gcc.hpp"
 
@@ -141,7 +140,12 @@ Continuous (Fox-oring)
 #include <string.h>
 #include "i2cdevmanager.hpp"
 
+#include "lpc43xx.inc"
+
 #include "rffc507x.hpp" /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
+
+#include "gpio.hpp"
+
 rffc507x::RFFC507x first_if;
 ui::SystemView* system_view_ptr;
 
@@ -181,6 +185,10 @@ static void event_loop() {
 }
 
 int main(void) {
+    rtc_reset_default();
+
+    power_control::vaa_power_on();
+
 #ifndef PRALINE      // Do not perform quick set up of GP01_RFF507X = 1 for PRALINE
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
 #endif

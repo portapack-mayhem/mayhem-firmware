@@ -161,6 +161,10 @@ class Message {
         ToneDetectData = 103,
         ToneDetectConfig = 104,
         FlexTosend = 105,
+        EPIRBRXConfig = 106,
+        VorRxConfigure = 107,
+        VorRxStatusData = 108,
+        VorTxConfigure = 109,
         MAX
     };
 
@@ -388,6 +392,16 @@ class EPIRBPacketMessage : public Message {
     }
 
     baseband::Packet packet;
+};
+
+class EPIRBRXConfig : public Message {
+   public:
+    constexpr EPIRBRXConfig()
+        : Message{ID::EPIRBRXConfig} {
+    }
+    bool spectrum_on = false;
+    bool audio_on = true;
+    uint8_t squelch{50};
 };
 
 class TPMSPacketMessage : public Message {
@@ -1203,7 +1217,7 @@ class SSTVRXConfigureMessage : public Message {
    public:
     constexpr SSTVRXConfigureMessage(
         const uint8_t code)
-        : Message{id : ID::SSTVRXConfigure},
+        : Message{ID::SSTVRXConfigure},
           code(code) {
     }
 
@@ -1599,17 +1613,20 @@ class BatteryStateMessage : public Message {
         uint8_t valid_mask,
         uint8_t percent,
         bool on_charger,
-        uint16_t voltage)
+        uint16_t voltage,
+        bool battMayChanged)
         : Message{ID::BatteryStateData},
           valid_mask{valid_mask},
           percent{percent},
           on_charger{on_charger},
-          voltage{voltage} {
+          voltage{voltage},
+          battMayChanged{battMayChanged} {
     }
     uint8_t valid_mask = 0;
     uint8_t percent = 0;
     bool on_charger = false;
     uint16_t voltage = 0;  // mV
+    bool battMayChanged = false;
 };
 
 class ProtoViewDataMessage : public Message {
@@ -1883,6 +1900,68 @@ class ToneDetectConfigureMessage : public Message {
           ctcss_freq_x10{ctcss_freq_x10} {}
     uint8_t squelch_level{0};
     uint32_t ctcss_freq_x10{0};  // CTCSS frequency × 10 (e.g. 1000 = 100.0 Hz); 0 = None
+};
+
+class VorRxConfigureMessage : public Message {
+   public:
+    constexpr VorRxConfigureMessage(bool enabled = true)
+        : Message{ID::VorRxConfigure},
+          enabled{enabled} {
+    }
+
+    bool enabled{true};
+};
+
+class VorRxStatusDataMessage : public Message {
+   public:
+    constexpr VorRxStatusDataMessage(
+        uint16_t phase_deg = 0,
+        uint16_t radial_deg = 0,
+        uint16_t reference_level = 0,
+        uint16_t variable_level = 0,
+        uint8_t quality = 0,
+        bool valid = false,
+        bool to_from = false)
+        : Message{ID::VorRxStatusData},
+          phase_deg{phase_deg},
+          radial_deg{radial_deg},
+          reference_level{reference_level},
+          variable_level{variable_level},
+          quality{quality},
+          valid{valid},
+          to_from{to_from} {
+    }
+
+    uint16_t phase_deg{0};
+    uint16_t radial_deg{0};
+    uint16_t reference_level{0};
+    uint16_t variable_level{0};
+    uint8_t quality{0};
+    bool valid{false};
+    bool to_from{false};
+};
+
+class VorTxConfigureMessage : public Message {
+   public:
+    VorTxConfigureMessage(
+        uint16_t radial_deg = 0,
+        bool ident_enabled = true,
+        const char* ident = "",
+        bool enabled = true)
+        : Message{ID::VorTxConfigure},
+          radial_deg{radial_deg},
+          ident_enabled{ident_enabled},
+          enabled{enabled} {
+        size_t i = 0;
+        for (; ident && ident[i] && i < sizeof(ident_text) - 1; ++i)
+            ident_text[i] = ident[i];
+        ident_text[i] = '\0';
+    }
+
+    uint16_t radial_deg{0};
+    bool ident_enabled{true};
+    bool enabled{true};
+    char ident_text[8]{};  // CW identifier, null-terminated (max 7 chars)
 };
 
 class FlexTosendMessage : public Message {

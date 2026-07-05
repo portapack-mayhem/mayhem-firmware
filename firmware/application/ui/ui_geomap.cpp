@@ -237,29 +237,70 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
     if (map_zoom == 1) {
         map_file.read(buffer, pixels << 1);
     } else if (map_zoom > 1) {
-        map_file.read(buffer, (pixels / map_zoom) << 1);
-
-        // Zoom in: Expand each pixel to "map_zoom" number of pixels.
-        // Future TODO:  Add dithering to smooth out the pixelation.
-        // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
-        // For 240 width, than means no check is needed for map_zoom values up to 6.
-        // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
-        // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
-        for (int i = (width / map_zoom) - 1; i >= 0; i--) {
-            for (int j = 0; j < map_zoom; j++) {
-                buffer[(i * map_zoom) + j] = buffer[i];
+        // Calculate how many source pixels we actually need from the file
+        uint16_t src_pixels_needed = (pixels + map_zoom - 1) / map_zoom;
+        if (src_pixels_needed == 0) src_pixels_needed = 1;
+        // Position the source data at the very END of the buffer.
+        // This allows us to overwrite the buffer from left-to-right safely.
+        uint16_t src_offset = pixels - src_pixels_needed;
+        // Read directly into the tail of the target buffer. Zero extra RAM needed.
+        map_file.read(&buffer[src_offset], src_pixels_needed << 1);
+        // Process forwards. Because `dst` grows by 1 and the source index grows by 1/map_zoom,
+        // `dst` will never catch up to overwrite a source pixel before we are done with it.
+        for (uint16_t dst = 0; dst < pixels; ++dst) {
+            uint16_t i0 = dst / map_zoom;
+            uint16_t i1 = i0 + 1;
+            // Clamp the right-hand pixel to avoid reading out of bounds on the last iteration
+            if (i1 >= src_pixels_needed) {
+                i1 = src_pixels_needed - 1;
+            }
+            // 'frac' represents the integer distance from the left pixel (0 to map_zoom - 1)
+            uint16_t frac = dst % map_zoom;
+            // Fetch colors from the tail of our buffer
+            ui::Color c0 = buffer[src_offset + i0];
+            ui::Color c1 = buffer[src_offset + i1];
+            if (frac == 0) {
+                // Exact pixel match, bypass the math entirely for a speed boost
+                buffer[dst] = c0;
+            } else {
+                uint32_t inv_frac = map_zoom - frac;
+                uint8_t r = ((uint32_t)c0.r() * inv_frac + (uint32_t)c1.r() * frac) / map_zoom;
+                uint8_t g = ((uint32_t)c0.g() * inv_frac + (uint32_t)c1.g() * frac) / map_zoom;
+                uint8_t b = ((uint32_t)c0.b() * inv_frac + (uint32_t)c1.b() * frac) / map_zoom;
+                buffer[dst] = ui::Color(r, g, b);
             }
         }
     } else {
-        ui::Color* zoom_out_buffer = new ui::Color[(pixels * (-map_zoom))];
-        map_file.read(zoom_out_buffer, (pixels * (-map_zoom)) << 1);
-
-        // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
-        // Future TODO: Average each group of pixels (in both X & Y directions if possible).
-        for (int i = 0; i < width; i++) {
-            buffer[i] = zoom_out_buffer[i * (-map_zoom)];
+        const int skip = -map_zoom;
+        const int MAX_BUFFER_ELEMENTS = 256;
+        // Fixed-size local array avoids VLA crashes.
+        ui::Color zoom_out_buffer[MAX_BUFFER_ELEMENTS];
+        const int total_elements_needed = pixels * skip;
+        // Use the default size, but strictly cap it at 256 to protect the stack
+        const int chunk_size = total_elements_needed < MAX_BUFFER_ELEMENTS ? total_elements_needed : MAX_BUFFER_ELEMENTS;
+        int target_i = 0;
+        int current_file_offset = 0;
+        // Sequentially read through the required portion of the file in chunks
+        while (target_i < width && current_file_offset < total_elements_needed) {
+            // Calculate how many pixels we can read in this specific pass
+            int read_size = chunk_size < (total_elements_needed - current_file_offset) ? chunk_size : (total_elements_needed - current_file_offset);
+            // Read the chunk (<< 1 converts pixel count to byte count)
+            map_file.read(zoom_out_buffer, read_size << 1);
+            // Determine where the first valid "zoomed" pixel is located inside this specific chunk
+            int first_valid_index = 0;
+            int offset_modulo = current_file_offset % skip;
+            if (offset_modulo != 0) {
+                first_valid_index = skip - offset_modulo;
+            }
+            // Extract only the pixels we need, skipping the rest
+            for (int j = first_valid_index; j < read_size; j += skip) {
+                if (target_i < width) {
+                    buffer[target_i] = zoom_out_buffer[j];
+                    target_i++;
+                }
+            }
+            current_file_offset += read_size;
         }
-        delete[] zoom_out_buffer;
     }
 }
 
@@ -333,8 +374,9 @@ void GeoMap::set_osm_max_zoom(bool changeboth) {
     for (uint8_t i = map_osm_zoom; i > 0; i--) {
         int tile_x = lon2tile(lon_, i);
         int tile_y = lat2tile(lat_, i);
-        std::string filename = "/OSM/" + to_string_dec_int(i) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp";
-        std::filesystem::path file_path(filename);
+        char path_buffer[64];
+        snprintf(path_buffer, sizeof(path_buffer), "/OSM/%d/%d/%d.bmp", i, tile_x, tile_y);
+        std::filesystem::path file_path(path_buffer);
         if (file_exists(file_path)) {
             map_osm_real_zoom = i;
             if (changeboth) map_osm_zoom = i;
@@ -347,7 +389,7 @@ void GeoMap::set_osm_max_zoom(bool changeboth) {
 
 // checks if the tile file presents or not. to determine if we got osm or not
 uint8_t GeoMap::find_osm_file_tile() {
-    std::string filename = "/OSM/" + to_string_dec_int(0) + "/" + to_string_dec_int(0) + "/" + to_string_dec_int(0) + ".bmp";
+    std::string filename = "/OSM/0/0/0.bmp";
     std::filesystem::path file_path(filename);
     if (file_exists(file_path)) return 1;
     return 0;  // not found
@@ -416,8 +458,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         return true;
     }
 
-    BMPFile bmp{};
-    bmp.open("/OSM/" + to_string_dec_int(zoom) + "/" + to_string_dec_int(tile_x) + "/" + to_string_dec_int(tile_y) + ".bmp", true);
+    BMPFile* bmp = bmp_cache.get(zoom, tile_x, tile_y);
     // 1. Define the source and destination areas, starting with the full tile.
     int src_x = 0;
     int src_y = 0;
@@ -450,28 +491,30 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
         return true;
     }
 
-    if (!bmp.is_loaded()) {
+    if (!bmp || !bmp->is_loaded()) {
         // Draw an error rectangle using the calculated clipped dimensions
         ui::Rect error_rect{{dest_x + r.left(), dest_y + r.top()}, {clip_w, clip_h}};
         display.fill_rectangle(error_rect, Theme::getInstance()->bg_darkest->background);
         return false;
     }
-    std::vector<ui::Color> line(clip_w);
-    if (bmp.is_bottomup()) {
+
+    map_line_buffer.resize(clip_w);
+
+    if (bmp->is_bottomup()) {
         for (int y = clip_h - 1; y >= 0; --y) {
             int source_row = src_y + y;
             int dest_row = dest_y + y;
-            bmp.seek(src_x, source_row);
-            bmp.read_next_px_cnt(line.data(), clip_w, false);
-            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
+            bmp->seek(src_x, source_row);
+            bmp->read_next_px_cnt(map_line_buffer.data(), clip_w, false);
+            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, map_line_buffer);
         }
     } else {
         for (int y = 0; y < clip_h; ++y) {
             int source_row = src_y + y;
             int dest_row = dest_y + y;
-            bmp.seek(src_x, source_row);
-            bmp.read_next_px_cnt(line.data(), clip_w, false);
-            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, line);
+            bmp->seek(src_x, source_row);
+            bmp->read_next_px_cnt(map_line_buffer.data(), clip_w, false);
+            display.draw_pixels({dest_x + r.left(), dest_row + r.top(), clip_w, 1}, map_line_buffer);
         }
     }
     return true;
@@ -479,11 +522,11 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
 
 void GeoMap::paint(Painter& painter) {
     const auto r = screen_rect();
-    std::vector<ui::Color> map_line_buffer;
-    map_line_buffer.resize(r.width());
     int16_t zoom_seek_x, zoom_seek_y;
 
     if (!use_osm) {
+        map_line_buffer.resize(r.width());
+
         // Ony redraw map if it moved by at least 1 pixel or the markers list was updated
         if (map_zoom <= 1) {
             // Zooming out, or no zoom
@@ -755,7 +798,7 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
     display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
-void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
+void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string& itemTag, const Color color, const Color fontColor, const Color backColor) {
     const auto r = screen_rect();
 
     int tagOffset = 10;

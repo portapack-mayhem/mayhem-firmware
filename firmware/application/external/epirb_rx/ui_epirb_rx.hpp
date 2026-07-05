@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 EPIRB Decoder Implementation
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
  *
  * This file is part of PortaPack.
  *
@@ -29,267 +30,293 @@
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
 
+// Specan is disable to keep application size below the 32k limit
+// #define SPECAN
+
+// Comment to disable timout reset on select and save approx 200 bytes of flash
+#ifndef PRALINE
+// Application does not fit on Praline with RESET_TIMER enabled
+#define RESET_TIMER
+#endif
+// Comment to disable squelch control
+#define SQUELCH
+// Comment to disable beacon selection by encoder on detail tab
+#define DETAIL_TAB_BEACON_SEL
+// #define LOGGER
+
+#ifdef SPECAN
+#include "ui_spectrum.hpp"
+#endif
+
+#include "ui_tabview.hpp"
+
+#include "ui_qrcode.hpp"
+
 #include "event_m0.hpp"
-#include "signal.hpp"
 #include "message.hpp"
 #include "log_file.hpp"
 
 #include "baseband_packet.hpp"
 
-/* #include <cstdint>
-#include <cstddef>
-#include <string>
-#include <array> */
+#include "audio.hpp"
+
+#include "beacon.hpp"
+#include "beacon_db.hpp"
+#include "ui_beaconlist.hpp"
+#include "resources.hpp"
 
 namespace ui::external_app::epirb_rx {
 
-// EPIRB 406 MHz beacon types
-enum class BeaconType : uint8_t {
-    OrbitingLocationBeacon = 0,
-    PersonalLocatorBeacon = 1,
-    EmergencyLocatorTransmitter = 2,
-    SerialELT = 3,
-    NationalELT = 4,
-    Other = 15
-};
-
-// EPIRB distress and emergency types
-enum class EmergencyType : uint8_t {
-    Fire = 0,
-    Flooding = 1,
-    Collision = 2,
-    Grounding = 3,
-    Sinking = 4,
-    Disabled = 5,
-    Abandoning = 6,
-    Piracy = 7,
-    Man_Overboard = 8,
-    Other = 15
-};
-
-struct EPIRBLocation {
-    float latitude;   // degrees, -90 to +90
-    float longitude;  // degrees, -180 to +180
-    bool valid;
-
-    EPIRBLocation()
-        : latitude(0.0f), longitude(0.0f), valid(false) {}
-    EPIRBLocation(float lat, float lon)
-        : latitude(lat), longitude(lon), valid(true) {}
-};
-
+/**
+ * Status of a packet
+ */
 enum class PacketStatus : uint8_t {
     Valid = 0,
     Corrected = 1,
     Error = 2
 };
 
-struct EPIRBBeacon {
-    uint32_t beacon_id;
-    BeaconType beacon_type;
-    EmergencyType emergency_type;
-    EPIRBLocation location;
-    uint32_t country_code;
-    std::string vessel_name;
-    rtc::RTC timestamp;
-    uint32_t sequence_number;
-    PacketStatus packet_status;
-    uint8_t error_count;
+// Position of tabs in tab view
+#define EPIRB_TAB_POS_Y (UI_POS_Y(4) + 3 * 8)
+// Height of tabs in tab view
+#define EPIRB_TAB_HEIGHT (screen_height - EPIRB_TAB_POS_Y - UI_POS_HEIGHT(1))
 
-    EPIRBBeacon()
-        : beacon_id(0), beacon_type(BeaconType::Other), emergency_type(EmergencyType::Other), location(), country_code(0), vessel_name(), timestamp(), sequence_number(0), packet_status(PacketStatus::Error), error_count(0) {}
-};
-
-class EPIRBDecoder {
-   public:
-    static EPIRBBeacon decode_packet(const baseband::Packet& packet);
-
-   private:
-    static EPIRBLocation decode_location(const std::array<uint8_t, 16>& data);
-    static BeaconType decode_beacon_type(uint8_t type_bits);
-    static EmergencyType decode_emergency_type(uint8_t emergency_bits);
-    static uint32_t decode_country_code(const std::array<uint8_t, 16>& data);
-    static std::string decode_vessel_name(const std::array<uint8_t, 16>& data);
-
-    // BCH error correction methods
-    static PacketStatus perform_bch_check(std::array<uint8_t, 16>& data, uint8_t& error_count);
-    static uint32_t calculate_bch_syndrome(const std::array<uint8_t, 16>& data);
-    static bool correct_single_error(std::array<uint8_t, 16>& data, uint32_t syndrome);
-    static uint8_t count_bit_errors(const std::array<uint8_t, 16>& original, const std::array<uint8_t, 16>& corrected);
-};
-
+#ifdef LOGGER
 class EPIRBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
 
-    void on_packet(const EPIRBBeacon& beacon);
+    void on_packet(Beacon& beacon);
 
    private:
     LogFile log_file{};
 };
+#endif
 
-// Forward declarations of formatting functions
-std::string format_beacon_type(BeaconType type);
-std::string format_emergency_type(EmergencyType type);
-std::string format_packet_status(PacketStatus status);
-ui::Color get_packet_status_color(PacketStatus status);
-
-class EPIRBBeaconDetailView : public ui::View {
+/**
+ * Dedicated TextArea component used to optimize application code size
+ */
+class TextArea : public Widget {
    public:
-    std::function<void(void)> on_close{};
+    TextArea(Rect parent_rect);
 
-    EPIRBBeaconDetailView(ui::NavigationView& nav);
-    EPIRBBeaconDetailView(const EPIRBBeaconDetailView&) = delete;
-    EPIRBBeaconDetailView& operator=(const EPIRBBeaconDetailView&) = delete;
+#ifdef RESET_TIMER
+    std::function<void(TextArea&)> on_select{};
+    bool on_key(const KeyEvent key) override;
+#endif
 
-    void set_beacon(const EPIRBBeacon& beacon);
-    const EPIRBBeacon& beacon() const { return beacon_; }
-
-    void focus() override;
-    void paint(ui::Painter&) override;
-
-    ui::GeoMapView* get_geomap_view() { return geomap_view; }
+    void set_content(std::string_view value);
+    void paint(Painter& painter) override;
 
    private:
-    EPIRBBeacon beacon_{};
-
-    ui::Button button_done{
-        {125, 224, 96, 24},
-        "Done"};
-    ui::Button button_see_map{
-        {19, 224, 96, 24},
-        "See on map"};
-
-    ui::GeoMapView* geomap_view{nullptr};
-
-    ui::Rect draw_field(
-        ui::Painter& painter,
-        const ui::Rect& draw_rect,
-        const ui::Style& style,
-        const std::string& label,
-        const std::string& value);
+    std::string content{};
 };
 
-class EPIRBAppView : public ui::View {
+// Forward declaration
+class EPIRBAppView;
+
+/**
+ * View for beacon detail tab
+ */
+class EPIRBDetailView : public View {
+   public:
+    EPIRBDetailView(Rect parent_rect, EPIRBAppView& parent);
+    void set_beacon(Beacon& beacon);
+#ifdef DETAIL_TAB_BEACON_SEL
+    bool on_encoder(EncoderEvent delta) override;
+#endif
+
+   private:
+    TextArea text_beacon{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
+    EPIRBAppView& parent_app;
+};
+
+#define EPIRB_RX_DEFAULT_LATITUDE 43.604f
+#define EPIRB_RX_DEFAULT_LONGITUDE 1.458f
+
+/**
+ * View for beacon map tab
+ */
+class EPIRBMapView : public View {
+   public:
+    EPIRBMapView(Rect parent_rect);
+    void paint(Painter& painter) override;
+    void on_show() override;
+    void set_main_marker(const std::string& label, float lat, float lon);
+    void clear_markers();
+    void add_marker(GeoMarker& marker);
+    void hide_map(bool hide);
+    void repaint();
+
+   private:
+    GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
+    float lat_{EPIRB_RX_DEFAULT_LATITUDE};
+    float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
+    bool map_hidden{true};
+};
+
+#define QR_WIDTH 126
+#define QR_HEIGHT 127
+
+/**
+ * Vieaw for Beacon QR tab
+ */
+class EPRIBQRView : public View {
+   public:
+    EPRIBQRView(Rect parent_rect);
+    EPRIBQRView(const EPRIBQRView&) = delete;
+    EPRIBQRView& operator=(const EPRIBQRView&) = delete;
+
+    void set_beacon(Beacon* beacon);
+    void update_qr();
+    void update_display();
+
+   private:
+    bool show_map{true};
+    Beacon* current_beacon{nullptr};
+    char qr_url[128];
+
+    OptionsField options_qr{
+        {UI_POS_X(5), UI_POS_Y(1)},
+        6,
+        {{"Map", 0},
+         {"Detail", 1}}};
+
+    QRCodeImage qr_code{
+        {UI_POS_MAXWIDTH - QR_WIDTH - UI_POS_X(1), UI_POS_Y(1), QR_WIDTH, QR_HEIGHT}};
+
+    TextArea text_data{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT - UI_POS_Y(1)}};
+};
+
+#ifdef SPECAN
+class EPIRBRxView : public spectrum::WaterfallView {
+   public:
+    EPIRBRxView(EPIRBAppView& parent, Rect parent_rect);
+    void on_show() override;
+    void on_hide() override;
+
+   private:
+    EPIRBAppView& app_view;
+};
+#endif
+
+class EPIRBAppView final : public ui::View {
    public:
     EPIRBAppView(ui::NavigationView& nav);
     ~EPIRBAppView();
 
-    void set_parent_rect(const ui::Rect new_parent_rect) override;
-    void paint(ui::Painter&) override;
     void focus() override;
+    void refresh();
+
+    // Message to configure rx baseband
+    EPIRBRXConfig epirb_rx_config_message{};
+    void send_config();
+    // Beacons database
+    BeaconDB beacon_db{};
+    // Update display when beacon selection changed0
+    void on_beacon_change();
 
     std::string title() const override { return "EPIRB RX"; }
 
    private:
+    uint8_t squelch{50};
+    // The delay between each frame
+    uint32_t countdown{50};
     app_settings::SettingsManager settings_{
-        "rx_epirb", app_settings::Mode::RX};
+        "rx_epirb",
+        app_settings::Mode::RX,
+        {
+            {"epirb_squelch"sv, &squelch},
+            {"countdown"sv, &countdown},
+        }};
 
     ui::NavigationView& nav_;
 
-    std::vector<EPIRBBeacon> recent_beacons{};
+#ifdef LOGGER
     std::unique_ptr<EPIRBLogger> logger{};
+#endif
 
-    EPIRBBeaconDetailView beacon_detail_view{nav_};
-
-    static constexpr auto header_height = 4 * 16;
-
-    ui::Text label_frequency{
-        {UI_POS_X(0), UI_POS_Y(0), 4 * 8, 1 * 16},
-        "Freq"};
-
-    ui::OptionsField options_frequency{
-        {5 * 8, UI_POS_Y(0)},
+    OptionsField options_frequency{
+        {UI_POS_X(0), UI_POS_Y(0)},
         7,
-        {
-            {"406.028", 406028000},
-            {"406.025", 406025000},
-            {"406.037", 406037000},
-            {"433.025", 433025000},
-            {"144.875", 144875000},
-        }};
+        {}};
 
     ui::RFAmpField field_rf_amp{
-        {13 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(8), UI_POS_Y(0)}};
 
     ui::LNAGainField field_lna{
-        {15 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(10), UI_POS_Y(0)}};
 
     ui::VGAGainField field_vga{
-        {18 * 8, UI_POS_Y(0)}};
+        {UI_POS_X(13), UI_POS_Y(0)}};
 
     ui::RSSI rssi{
-        {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(16), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(22), 4}};
 
     ui::Channel channel{
-        {UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
+        {UI_POS_X(16), UI_POS_Y(0) + 5, UI_POS_WIDTH_REMAINING(22), 4}};
+
+    // ui::Audio audio{
+    //     {UI_POS_X(16), UI_POS_Y(0) + 10, UI_POS_WIDTH_REMAINING(22), 4}};
 
     ui::AudioVolumeField field_volume{
-        {screen_width - 2 * 8, UI_POS_Y(0)}};
+        {UI_POS_WIDTH_REMAINING(2), UI_POS_Y(0)}};
+
+#ifdef SQUELCH
+    NumberField field_squelch{
+        {UI_POS_WIDTH_REMAINING(5), UI_POS_Y(0)},
+        2,
+        {0, 99},
+        1,
+        ' '};
+#endif
 
     // Status display
-    ui::Text label_status{
-        {UI_POS_X(0), 1 * 16, 15 * 8, 1 * 16},
-        "Listening..."};
-
-    ui::Text label_beacons_count{
-        {16 * 8, 1 * 16, 14 * 8, 1 * 16},
-        "Beacons: 0"};
-
-    ui::Text label_packet_stats{
-        {UI_POS_X(0), 3 * 16, 29 * 8, 1 * 16},
-        ""};
-
-    // Latest beacon info display
-    ui::Text label_latest{
-        {UI_POS_X(0), 2 * 16, 8 * 8, 1 * 16},
-        "Latest:"};
-
-    ui::Text text_latest_info{
-        {8 * 8, 2 * 16, 22 * 8, 1 * 16},
-        ""};
-
-    // Beacon list
-    ui::Console console{
-        {0, 4 * 16, 240, 152}};
-
-    ui::Button button_map{
-        {0, 224, 60, 24},
-        "Map"};
-
-    ui::Button button_clear{
-        {64, 224, 60, 24},
-        "Clear"};
-
-    ui::Button button_log{
-        {128, 224, 60, 24},
-        "Log"};
-
+    TextArea text_status{{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(3)}};
+    TextArea text_timeout{
+        {UI_POS_X(13), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)}};
     SignalToken signal_token_tick_second{};
-    uint32_t beacons_received = 0;
-    uint32_t packets_valid = 0;
-    uint32_t packets_corrected = 0;
-    uint32_t packets_error = 0;
+    // Timeout string
+    int16_t timeout{0};
+
+    // Tab View
+    Rect view_rect = {0, EPIRB_TAB_POS_Y, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT};
+
+    BeaconUIList view_list{view_rect};
+    EPIRBDetailView view_detail{view_rect, (*this)};
+    EPIRBMapView view_map{view_rect};
+#ifdef SPECAN
+    EPIRBRxView view_rx{*this, view_rect};
+#endif
+
+    EPRIBQRView view_qr{view_rect};
+
+    TabView tab_view{
+        {"List", Theme::getInstance()->fg_cyan->foreground, &view_list},
+        {"Detail", Theme::getInstance()->fg_green->foreground, &view_detail},
+        {"Map", Theme::getInstance()->fg_yellow->foreground, &view_map},
+#ifdef SPECAN
+        {"RX", Theme::getInstance()->fg_orange->foreground, &view_rx},
+#endif
+        {"QR", Theme::getInstance()->fg_orange->foreground, &view_qr}};
+
+    uint16_t beacons_received = 0;
+    uint16_t packets_valid = 0;
+    uint16_t packets_corrected = 0;
+    uint16_t packets_error = 0;
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::EPIRBPacket,
-        [this](Message* const p) {
-            const auto message = static_cast<const EPIRBPacketMessage*>(p);
-            this->on_packet(message->packet);
-        }};
+        [this](Message* const p) { on_packet(p); }};
 
-    void on_packet(const baseband::Packet& packet);
-    void on_beacon_decoded(const EPIRBBeacon& beacon);
-    void on_show_map();
-    void on_clear_beacons();
-    void on_toggle_log();
+    static void decode_packet(const baseband::Packet& packet, Beacon& beacon);
+    void on_packet(Message* const p);
+    void update_map();
     void on_tick_second();
 
     void update_display();
-    std::string format_beacon_summary(const EPIRBBeacon& beacon);
-    std::string format_location(const EPIRBLocation& location);
 };
 
 }  // namespace ui::external_app::epirb_rx

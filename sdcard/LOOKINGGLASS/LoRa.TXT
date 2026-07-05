@@ -1,0 +1,9 @@
+# INI,END,DESCRIPTION
+# (Freq range in MHz, min separation 3MHz)
+# (Description up to 20 char)
+# (fields comma delimiter)
+# LoRa
+433,435,LoRa 443EU
+863,870,LoRa 868EU
+902,928,LoRa 915US
+779,787,LoRa 780CN

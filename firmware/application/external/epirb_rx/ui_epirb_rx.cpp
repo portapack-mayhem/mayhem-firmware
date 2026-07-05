@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 EPIRB Decoder Implementation
+ * Copyright (C) 2026 Frederic BORRY - ADRASEC 31
  *
  * This file is part of PortaPack.
  *
@@ -32,676 +33,605 @@ using namespace portapack;
 #include "ui.hpp"
 
 #include "message.hpp"
+#include "resources.hpp"
 
 namespace ui::external_app::epirb_rx {
 
-EPIRBBeacon EPIRBDecoder::decode_packet(const baseband::Packet& packet) {
-    EPIRBBeacon beacon;
+// URL templates
+#define MAPS_URL_TEMPLATE "https://www.google.com/maps/search/?api=1&query=%s%%2C%s"
+#define BEACON_URL_TEMPLATE "https://decoder2.herokuapp.com/decoded/"
 
-    if (packet.size() < 112) {
-        return beacon;  // Invalid packet
+#ifndef DISABLE_COUNTRY_CACHE
+int CountryManager::cache_count = 0;
+Country CountryManager::cache[16];
+#endif
+
+// ResourceManager class
+ResourceManager* ResourceManager::current = nullptr;
+
+void ResourceManager::destroy() {
+    if (current != nullptr)
+        delete current;
+    current = nullptr;
+}
+
+ResourceManager* ResourceManager::getInstance() {
+    if (current == nullptr) current = new ResourceManager();
+    return ResourceManager::current;
+}
+
+// TextArea class
+TextArea::TextArea(
+    Rect parent_rect)
+    : Widget{parent_rect} {
+}
+
+void TextArea::paint(Painter& painter) {
+    const auto rect = screen_rect();
+    const Style& s = has_focus() ? style().invert() : style();
+
+    painter.fill_rectangle(rect, s.background);
+
+    const int line_height = s.font.line_height();
+    int line_idx = 0;
+
+    // Efficiently draw lines separated by \t without heap allocations
+    std::string_view sv{content};
+    size_t start = 0;
+    size_t end;
+
+    while ((end = sv.find('\t', start)) != std::string_view::npos) {
+        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start, end - start));
+        start = end + 1;
+        line_idx++;
     }
 
+    if (start < sv.length()) {
+        painter.draw_string(rect.location() + Point(0, line_idx * line_height), s, sv.substr(start));
+    }
+}
+
+void TextArea::set_content(std::string_view value) {
+    content = std::string{value};
+    set_dirty();
+}
+
+#ifdef RESET_TIMER
+bool TextArea::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Select && on_select) {
+        on_select(*this);
+        set_dirty();
+        return true;
+    }
+    return false;
+}
+#endif
+
+// EPIRBAppView class
+void EPIRBAppView::decode_packet(const baseband::Packet& packet, Beacon& beacon) {
     // Convert packet bits to byte array for easier processing
-    std::array<uint8_t, 16> data{};
-    for (size_t i = 0; i < std::min(packet.size() / 8, data.size()); i++) {
+    uint8_t data[BEACON_DATA_SIZE]{};
+    size_t max_bytes = std::min(packet.size() / 8, (size_t)BEACON_DATA_SIZE);
+    size_t packet_bit_idx = 0;
+    for (size_t i = 0; i < max_bytes; i++) {
         uint8_t byte_val = 0;
-        for (int bit = 0; bit < 8 && (i * 8 + bit) < packet.size(); bit++) {
-            if (packet[i * 8 + bit]) {
+        for (int bit = 0; bit < 8; bit++, packet_bit_idx++) {
+            if (packet[packet_bit_idx]) {
                 byte_val |= (1 << (7 - bit));
             }
         }
         data[i] = byte_val;
     }
-
-    // Perform BCH error detection and correction
-    uint8_t error_count = 0;
-    beacon.packet_status = perform_bch_check(data, error_count);
-    beacon.error_count = error_count;
-
-    // Extract beacon ID (bits 26-85, 15 hex digits)
-    beacon.beacon_id = 0;
-    for (int i = 3; i < 11; i++) {
-        beacon.beacon_id = (beacon.beacon_id << 8) | data[i];
-    }
-
-    // Extract beacon type (bits 86-88)
-    uint8_t type_bits = (data[10] >> 5) & 0x07;
-    beacon.beacon_type = decode_beacon_type(type_bits);
-
-    // Extract emergency type (bits 91-94 for some beacon types)
-    uint8_t emergency_bits = (data[11] >> 4) & 0x0F;
-    beacon.emergency_type = decode_emergency_type(emergency_bits);
-
-    // Extract location if encoded (depends on beacon type and protocol)
-    beacon.location = decode_location(data);
-
-    // Extract country code (bits 1-10)
-    beacon.country_code = decode_country_code(data);
-
+    beacon.setFrame(data);
     // Set timestamp
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
-    beacon.timestamp = datetime;
-
-    return beacon;
+    beacon.date = datetime;
 }
 
-EPIRBLocation EPIRBDecoder::decode_location(const std::array<uint8_t, 16>& data) {
-    // EPIRB location encoding varies by protocol version
-    // This is a simplified decoder for the most common format
+#ifdef LOGGER
+void EPIRBLogger::on_packet(Beacon& beacon) {
+    std::string entry;
+    // Pre-allocate enough memory to avoid heap fragmentation and resizing
+    // 128 bytes should be plenty for this specific log line
+    entry.reserve(128);
+    entry += beacon.getType();
+    entry += ",";
+    entry += beacon.hexId;
+    entry += ",";
+    entry += beacon.getProtocolName();
 
-    // Check for location data presence (bit patterns vary)
-    if ((data[12] & 0x80) == 0) {
-        return EPIRBLocation();  // No location data
+    /* If you ever uncomment the rest of the logging,
+     * keep using the same pattern! Like this:
+     *
+     * if (!beacon.location.isUnknown()) {
+     * entry += beacon.location.toString(Location::LocationFormat::DECIMAL);
+     * } else {
+     * entry += ",";
+     * }
+     * entry += ",";
+     * entry += beacon.country.toString();
+     * entry += ",";
+     * entry += beacon.getSatus();
+     * entry += "\n";
+     */
+
+    log_file.write_entry(beacon.date, entry);
+}
+#endif
+
+// EPIRBDetailView class
+EPIRBDetailView::EPIRBDetailView(
+    Rect parent_rect,
+    EPIRBAppView& parent)
+    : View(parent_rect), parent_app(parent) {
+    add_children({&text_beacon});
+    set_focusable(true);
+}
+
+#ifdef DETAIL_TAB_BEACON_SEL
+bool EPIRBDetailView::on_encoder(EncoderEvent delta) {
+    // Change position in the list according to encoder
+    int32_t size = (int32_t)parent_app.beacon_db.size();
+    if (size == 0) return true;
+    // Get current  index
+    int32_t current_index = (int32_t)parent_app.beacon_db.get_current_beacon_index();
+    // Compute new index with wrap around
+    int32_t new_index = (current_index + delta + size) % size;
+    // Set new index
+    parent_app.beacon_db.set_current_beacon(new_index % size);
+    parent_app.on_beacon_change();
+    return true;
+}
+#endif
+
+// Append "CYAN<label>:WHITE <value>\t" — the most repeated pattern in set_beacon.
+// Shared format string deduplicates ~5 unique formats; %s for label lets the
+// per-call-site cost drop to a single function call.
+static char* append_field(char* p, const char* label, const char* value) {
+    return p + sprintf(p, STR_COLOR_CYAN "%s:" STR_COLOR_WHITE " %s\t", label, value);
+}
+
+void EPIRBDetailView::set_beacon(Beacon& beacon) {
+    // We use a single TextArea widget to display beacon information for code size optimization
+    char buffer[400];
+    char* p = buffer;
+    bool isReal = (beacon.frameMode == Beacon::FrameMode::NORMAL);
+    p += sprintf(p, STR_COLOR_CYAN "Beacon:" STR_COLOR_WHITE " %s(%s%s" STR_COLOR_WHITE ") - ",
+                 beacon.getType(),
+                 isReal ? STR_COLOR_YELLOW : STR_COLOR_GREEN,
+                 isReal ? "Real" : "Test");
+    p += beacon.formatTime(p);
+    *p++ = '\t';
+    p = append_field(p, "Protocol", beacon.getProtocolName());
+    p += sprintf(p, "%s\t", ResourceManager::get_beacon_resource((uint8_t)beacon.protocol));
+    if (beacon.hasAdditionalData) {
+        p += sprintf(p, "%s\t", beacon.additionalData);
     }
-
-    // Extract latitude (simplified - actual encoding is more complex)
-    int32_t lat_raw = ((data[12] & 0x7F) << 10) | (data[13] << 2) | ((data[14] >> 6) & 0x03);
-    if (lat_raw & 0x10000) lat_raw |= 0xFFFE0000;  // Sign extend
-    float latitude = lat_raw * (180.0f / 131072.0f);
-
-    // Extract longitude (simplified - actual encoding is more complex)
-    int32_t lon_raw = ((data[14] & 0x3F) << 12) | (data[15] << 4) | ((data[0] >> 4) & 0x0F);
-    if (lon_raw & 0x20000) lon_raw |= 0xFFFC0000;  // Sign extend
-    float longitude = lon_raw * (360.0f / 262144.0f);
-
-    // Validate coordinates
-    if (latitude < -90.0f || latitude > 90.0f || longitude < -180.0f || longitude > 180.0f) {
-        return EPIRBLocation();  // Invalid coordinates
+    if (beacon.hasEmergency) {
+        p += sprintf(p, STR_COLOR_CYAN "Emergency:" STR_COLOR_RED " %s\t", beacon.emergencyType);
     }
-
-    return EPIRBLocation(latitude, longitude);
-}
-
-BeaconType EPIRBDecoder::decode_beacon_type(uint8_t type_bits) {
-    switch (type_bits) {
-        case 0:
-            return BeaconType::OrbitingLocationBeacon;
-        case 1:
-            return BeaconType::PersonalLocatorBeacon;
-        case 2:
-            return BeaconType::EmergencyLocatorTransmitter;
-        case 3:
-            return BeaconType::SerialELT;
-        case 4:
-            return BeaconType::NationalELT;
-        default:
-            return BeaconType::Other;
+    p += sprintf(p, STR_COLOR_CYAN "Country:" STR_COLOR_WHITE " %s(%d) - %s\t" STR_COLOR_CYAN "Location:" STR_COLOR_WHITE " ",
+                 beacon.country.alphaCode, beacon.country.code, beacon.country.shortName);
+    p += beacon.location.toString(p, Location::LocationFormat::MAIDENHEAD_LOCATOR, 8);
+    *p++ = '\t';
+    if (!beacon.location.isUnknown()) {
+        p += beacon.location.toString(p, Location::LocationFormat::SEXAGESIMAL);
+        *p++ = '\t';
+        p += beacon.location.toString(p, Location::LocationFormat::DECIMAL);
+        *p++ = '\t';
     }
-}
-
-EmergencyType EPIRBDecoder::decode_emergency_type(uint8_t emergency_bits) {
-    switch (emergency_bits) {
-        case 0:
-            return EmergencyType::Fire;
-        case 1:
-            return EmergencyType::Flooding;
-        case 2:
-            return EmergencyType::Collision;
-        case 3:
-            return EmergencyType::Grounding;
-        case 4:
-            return EmergencyType::Sinking;
-        case 5:
-            return EmergencyType::Disabled;
-        case 6:
-            return EmergencyType::Abandoning;
-        case 7:
-            return EmergencyType::Piracy;
-        case 8:
-            return EmergencyType::Man_Overboard;
-        default:
-            return EmergencyType::Other;
+    // BCH status: color depends on validity/correction, so the color stays a %s substitution.
+    p += sprintf(p, STR_COLOR_CYAN "Control: %s%s",
+                 beacon.isBch1Valid() ? (beacon.bch1Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN) : STR_COLOR_RED,
+                 beacon.isBch1Valid() ? "BCH1-OK" : "BCH1-KO");
+    if (beacon.hasBch2) {
+        p += sprintf(p, " %s%s",
+                     beacon.isBch2Valid() ? (beacon.bch2Corrected ? STR_COLOR_YELLOW : STR_COLOR_GREEN) : STR_COLOR_RED,
+                     beacon.isBch2Valid() ? "BCH2-OK" : "BCH2-KO");
     }
-}
-
-uint32_t EPIRBDecoder::decode_country_code(const std::array<uint8_t, 16>& data) {
-    // Country code is in bits 1-10 (ITU country code)
-    return ((data[0] & 0x03) << 8) | data[1];
-}
-
-std::string EPIRBDecoder::decode_vessel_name(const std::array<uint8_t, 16>& /* data */) {
-    // Vessel name extraction depends on beacon type and protocol
-    // This is a placeholder - actual implementation would be more complex
-    return "";
-}
-
-PacketStatus EPIRBDecoder::perform_bch_check(std::array<uint8_t, 16>& data, uint8_t& error_count) {
-    // Make a copy to detect changes
-    std::array<uint8_t, 16> original_data = data;
-
-    // Calculate BCH syndrome
-    uint32_t syndrome = calculate_bch_syndrome(data);
-
-    if (syndrome == 0) {
-        // No errors detected
-        error_count = 0;
-        return PacketStatus::Valid;
+    *p++ = '\t';
+    p = append_field(p, "Hex ID", beacon.hexId);
+    if (beacon.hasSerialNumber) {
+        p = append_field(p, "S/N", beacon.serialNumber);
     }
-
-    // Try to correct single-bit error
-    if (correct_single_error(data, syndrome)) {
-        // Successfully corrected
-        error_count = count_bit_errors(original_data, data);
-        return PacketStatus::Corrected;
-    }
-
-    // Multiple errors or uncorrectable
-    error_count = 255;  // Indicate unknown error count
-    return PacketStatus::Error;
-}
-
-uint32_t EPIRBDecoder::calculate_bch_syndrome(const std::array<uint8_t, 16>& data) {
-    // BCH(127,92,5) polynomial for EPIRB: x^35 + x^2 + x + 1
-    // This is a simplified implementation - actual EPIRB uses BCH(63,21,6)
-    uint32_t syndrome = 0;
-    uint32_t polynomial = 0x80000007;  // x^31 + x^2 + x + 1 (simplified)
-
-    // Process each byte of the data
-    for (int i = 0; i < 14; i++) {  // Only data bits, not parity
-        uint32_t byte_val = data[i];
-        for (int bit = 7; bit >= 0; bit--) {
-            syndrome <<= 1;
-            if (byte_val & (1 << bit)) {
-                syndrome |= 1;
-            }
-
-            // XOR with polynomial if MSB is set
-            if (syndrome & 0x80000000) {
-                syndrome ^= polynomial;
-            }
+    if (beacon.hasMainLocatingDevice()) {
+        p = append_field(p, "Main loc. dev.", beacon.getMainLocatingDeviceName());
+        if (beacon.hasAuxLocatingDevice()) {
+            append_field(p, "Aux loc. dev.", beacon.getAuxLocatingDeviceName());
         }
     }
-
-    // XOR with parity bits
-    syndrome ^= (data[14] << 8) | data[15];
-
-    return syndrome & 0xFFFF;  // 16-bit syndrome
+    text_beacon.set_content(buffer);
 }
 
-bool EPIRBDecoder::correct_single_error(std::array<uint8_t, 16>& data, uint32_t syndrome) {
-    // Simplified single-error correction
-    // This is a basic implementation - real BCH correction is more complex
-
-    if (syndrome == 0) return true;  // No error
-
-    // Look up table for single-bit error patterns (simplified)
-    // In a real implementation, this would be a proper BCH syndrome table
-    for (int byte_idx = 0; byte_idx < 14; byte_idx++) {
-        for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
-            // Create test error pattern
-            std::array<uint8_t, 16> test_data = data;
-            test_data[byte_idx] ^= (1 << bit_idx);
-
-            // Check if this correction produces zero syndrome
-            if (calculate_bch_syndrome(test_data) == 0) {
-                // Found the error location, apply correction
-                data[byte_idx] ^= (1 << bit_idx);
-                return true;
-            }
-        }
-    }
-
-    return false;  // Could not correct
+// EPIRBMapView class
+EPIRBMapView::EPIRBMapView(
+    Rect parent_rect)
+    : View(parent_rect) {
+    add_children({&geomap});
+    geomap.set_mode(DISPLAY);
+    geomap.set_manual_panning(false);
+    geomap.init();
+    geomap.set_focusable(true);
+    geomap.clear_markers();
+    geomap.move(lon_, lat_);
+    // Hide for now
+    geomap.hidden(true);
 }
 
-uint8_t EPIRBDecoder::count_bit_errors(const std::array<uint8_t, 16>& original, const std::array<uint8_t, 16>& corrected) {
-    uint8_t count = 0;
-    for (size_t i = 0; i < 16; i++) {
-        uint8_t diff = original[i] ^ corrected[i];
-        // Count set bits in diff
-        while (diff) {
-            count += diff & 1;
-            diff >>= 1;
-        }
-    }
-    return count;
+void EPIRBMapView::set_main_marker(const std::string& label, float lat, float lon) {
+    geomap.set_tag(label);
+    lat_ = lat;
+    lon_ = lon;
+    geomap.move(lon_, lat_);
 }
 
-void EPIRBLogger::on_packet(const EPIRBBeacon& beacon) {
-    std::string entry = "EPIRB," +
-                        to_string_dec_uint(beacon.beacon_id, 15, '0') + "," +
-                        to_string_dec_uint(static_cast<uint8_t>(beacon.beacon_type)) + "," +
-                        to_string_dec_uint(static_cast<uint8_t>(beacon.emergency_type)) + ",";
-
-    if (beacon.location.valid) {
-        entry += to_string_decimal(beacon.location.latitude, 6) + "," +
-                 to_string_decimal(beacon.location.longitude, 6);
-    } else {
-        entry += ",";
-    }
-
-    entry += "," + to_string_dec_uint(beacon.country_code) + "," +
-             format_packet_status(beacon.packet_status) + "," +
-             to_string_dec_uint(beacon.error_count) + "\n";
-
-    log_file.write_entry(beacon.timestamp, entry);
+void EPIRBMapView::clear_markers() {
+    geomap.clear_markers();
 }
 
-std::string format_beacon_type(BeaconType type) {
-    switch (type) {
-        case BeaconType::OrbitingLocationBeacon:
-            return "OLB";
-        case BeaconType::PersonalLocatorBeacon:
-            return "PLB";
-        case BeaconType::EmergencyLocatorTransmitter:
-            return "ELT";
-        case BeaconType::SerialELT:
-            return "S-ELT";
-        case BeaconType::NationalELT:
-            return "N-ELT";
-        default:
-            return "Other";
+void EPIRBMapView::add_marker(GeoMarker& marker) {
+    geomap.store_marker(marker);
+}
+
+void EPIRBMapView::paint(Painter& painter) {
+    // Prevent view from clearing background if map is not hidden
+    if (map_hidden) {
+        View::paint(painter);
+        painter.draw_string({UI_POS_X_CENTER(7), UI_POS_MAXHEIGHT / 2 - (UI_POS_HEIGHT(1) / 2)}, *Theme::getInstance()->fg_light, "No data");
     }
 }
 
-std::string format_emergency_type(EmergencyType type) {
-    switch (type) {
-        case EmergencyType::Fire:
-            return "Fire";
-        case EmergencyType::Flooding:
-            return "Flooding";
-        case EmergencyType::Collision:
-            return "Collision";
-        case EmergencyType::Grounding:
-            return "Grounding";
-        case EmergencyType::Sinking:
-            return "Sinking";
-        case EmergencyType::Disabled:
-            return "Disabled";
-        case EmergencyType::Abandoning:
-            return "Abandoning";
-        case EmergencyType::Piracy:
-            return "Piracy";
-        case EmergencyType::Man_Overboard:
-            return "MOB";
-        default:
-            return "Other";
-    }
+void EPIRBMapView::on_show() {
+    // Force redrawing map
+    repaint();
 }
 
-std::string format_packet_status(PacketStatus status) {
-    switch (status) {
-        case PacketStatus::Valid:
-            return "OK";
-        case PacketStatus::Corrected:
-            return "CORR";
-        case PacketStatus::Error:
-            return "ERR";
-        default:
-            return "UNK";
-    }
+void EPIRBMapView::hide_map(bool hide) {
+    map_hidden = hide;
+    geomap.hidden(hide);
 }
 
-ui::Color get_packet_status_color(PacketStatus status) {
-    switch (status) {
-        case PacketStatus::Valid:
-            return ui::Color::green();
-        case PacketStatus::Corrected:
-            return ui::Color::yellow();
-        case PacketStatus::Error:
-            return ui::Color::red();
-        default:
-            return ui::Color::white();
-    }
-}
-
-EPIRBBeaconDetailView::EPIRBBeaconDetailView(ui::NavigationView& nav) {
-    add_children({&button_done,
-                  &button_see_map});
-
-    button_done.on_select = [this](Button&) {
-        if (on_close) on_close();
-    };
-
-    button_see_map.on_select = [this, &nav](Button&) {
-        if (beacon_.location.valid) {
-            nav.push<GeoMapView>(
-                to_string_hex(beacon_.beacon_id, 8),  // tag as string
-                0,                                    // altitude
-                GeoPos::alt_unit::METERS,
-                GeoPos::spd_unit::NONE,
-                beacon_.location.latitude,
-                beacon_.location.longitude,
-                0,  // angle
-                [this]() {
-                    if (on_close) on_close();
-                });
-        }
-    };
-}
-
-void EPIRBBeaconDetailView::set_beacon(const EPIRBBeacon& beacon) {
-    beacon_ = beacon;
+void EPIRBMapView::repaint() {
+    // Fake orientation change to force map redraw
+    geomap.update_my_orientation(180, false);
+    geomap.update_my_orientation(0, true);
     set_dirty();
 }
 
-void EPIRBBeaconDetailView::focus() {
-    button_see_map.focus();
+// EPRIBQRView class
+EPRIBQRView::EPRIBQRView(Rect parent_rect)
+    : View(parent_rect) {
+    add_children({&text_data, &options_qr, &qr_code});
+    // Hide for now
+    qr_code.hidden(true);
+    options_qr.on_change = [this](size_t, ui::OptionsField::value_t v) {
+        show_map = (v == 0);
+        update_qr();
+    };
+    update_display();
 }
 
-void EPIRBBeaconDetailView::paint(ui::Painter& painter) {
-    View::paint(painter);
+void EPRIBQRView::set_beacon(Beacon* beacon) {
+    current_beacon = beacon;
+    update_qr();
+    update_display();
+}
 
-    const auto rect = screen_rect();
-    const auto s = style();
-
-    auto draw_cursor = rect.location();
-    draw_cursor += {8, 8};
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Beacon ID", to_string_hex(beacon_.beacon_id, 15))
-                      .location();
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Type", format_beacon_type(beacon_.beacon_type))
-                      .location();
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Emergency", format_emergency_type(beacon_.emergency_type))
-                      .location();
-
-    if (beacon_.location.valid) {
-        draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                                 "Latitude", to_string_decimal(beacon_.location.latitude, 6) + "°")
-                          .location();
-
-        draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                                 "Longitude", to_string_decimal(beacon_.location.longitude, 6) + "°")
-                          .location();
-    } else {
-        draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                                 "Location", "Unknown")
-                          .location();
+void EPRIBQRView::update_display() {
+    // Update data => we use a single TextArea component for code size optimization
+    char buffer[128];
+    char* buffer_pointer = buffer;
+    buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "QR:" STR_COLOR_WHITE "\t\t\t\t\t\t\t\t");
+    if (current_beacon) {
+        buffer_pointer += sprintf(buffer_pointer, STR_COLOR_CYAN "Data:" STR_COLOR_WHITE "\t");
+        // HEX ID 30 Hexa or HEX ID 22 Hexa bit 26 to 112
+        buffer_pointer += current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 3, 11);
+        (*(buffer_pointer++)) = '\t';
+        if (current_beacon->longFrame) {
+            current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 11, 18);
+        } else {
+            current_beacon->toHexString(buffer_pointer, current_beacon->frame, true, 11, 14);
+        }
     }
+    text_data.set_content(buffer);
+}
 
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Country", to_string_dec_uint(beacon_.country_code))
-                      .location();
-
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Time", to_string_datetime(beacon_.timestamp, HMS))
-                      .location();
-
-    // Show packet status with appropriate color
-    std::string status_text = format_packet_status(beacon_.packet_status);
-    if (beacon_.error_count > 0 && beacon_.packet_status == PacketStatus::Corrected) {
-        status_text += " (" + to_string_dec_uint(beacon_.error_count) + " err)";
+void EPRIBQRView::update_qr() {
+    // Update QR code
+    bool show_qr = false;
+    if (current_beacon) {
+        // We have a beacon
+        if (show_map) {
+            // Map is selected
+            if (!current_beacon->location.isUnknown()) {
+                // Location is known => actually draw QR
+                current_beacon->location.formatFloatLocation(qr_url, MAPS_URL_TEMPLATE);
+                show_qr = true;
+            }
+        } else {
+            // Detail is selected
+            char* buffer_pointer = qr_url;
+            // Send to heroku decoder
+            buffer_pointer += sprintf(qr_url, BEACON_URL_TEMPLATE);
+            current_beacon->hexString(buffer_pointer, false);
+            show_qr = true;
+        }
     }
-    draw_cursor = draw_field(painter, {draw_cursor, {200, 16}}, s,
-                             "Status", status_text)
-                      .location();
+    if (show_qr) qr_code.set_text(qr_url);
+    qr_code.hidden(!show_qr);
+    set_dirty();
 }
 
-ui::Rect EPIRBBeaconDetailView::draw_field(
-    ui::Painter& painter,
-    const ui::Rect& draw_rect,
-    const ui::Style& style,
-    const std::string& label,
-    const std::string& value) {
-    const auto label_width = 8 * 8;
-
-    painter.draw_string({draw_rect.location()}, style, label + ":");
-    painter.draw_string({draw_rect.location() + ui::Point{label_width, 0}}, style, value);
-
-    return {draw_rect.location() + ui::Point{0, draw_rect.height()}, draw_rect.size()};
+#ifdef SPECAN
+EPIRBRxView::EPIRBRxView(
+    EPIRBAppView& parent,
+    Rect parent_rect)
+    : spectrum::WaterfallView(), app_view(parent) {
+    ui::Rect waterfall_rect{0, EPIRB_TAB_POS_Y, parent_rect.width(), parent_rect.height()};
+    spectrum::WaterfallView::set_parent_rect(waterfall_rect);
 }
 
+void EPIRBRxView::on_show() {
+    // Turn on spectrum
+    app_view.epirb_rx_config_message.spectrum_on = true;
+    app_view.send_config();
+    start();
+}
+
+void EPIRBRxView::on_hide() {
+    // Turn off spectrum
+    stop();
+    app_view.epirb_rx_config_message.spectrum_on = false;
+    app_view.send_config();
+    app_view.refresh();
+}
+#endif
+
+// App View
 EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
-    add_children({&label_frequency,
-                  &options_frequency,
+    add_children({&options_frequency,
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
                   &rssi,
+    //&audio,
+#ifdef SQUELCH
+                  &field_squelch,
+#endif
                   &field_volume,
                   &channel,
-                  &label_status,
-                  &label_beacons_count,
-                  &label_latest,
-                  &text_latest_info,
-                  &label_packet_stats,
-                  &console,
-                  &button_map,
-                  &button_clear,
-                  &button_log});
+                  &text_status,
+                  &text_timeout,
+                  &tab_view,
+                  &view_list,
+                  &view_detail,
+                  &view_map,
+#ifdef SPECAN
+                  &view_rx,
+#endif
+                  &view_qr});
 
-    button_map.on_select = [this](Button&) {
-        this->on_show_map();
-    };
-
-    button_clear.on_select = [this](Button&) {
-        this->on_clear_beacons();
-    };
-
-    button_log.on_select = [this](Button&) {
-        this->on_toggle_log();
-    };
+    ui::OptionsField::options_t frequ_options;
+    // Set frequency combo content according to FREQ.TXT file content
+    for (const auto& freq : ResourceManager::get_frequencies()) {
+        int32_t freq_value = atol(freq.c_str());
+        frequ_options.emplace_back(to_string_rounded_freq(freq_value, 3), freq_value);
+    }
+    options_frequency.set_options(frequ_options);
 
     options_frequency.on_change = [this](size_t, ui::OptionsField::value_t v) {
         receiver_model.set_target_frequency(v);
     };
+    // Restore frequency from preferences
     options_frequency.set_by_value(receiver_model.target_frequency());
 
+    // Tick second timer
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
 
-    // Configure receiver for default EPIRB frequency (406.028 MHz)
-    receiver_model.set_target_frequency(406028000);
-    receiver_model.set_rf_amp(true);
-    receiver_model.set_lna(32);
-    receiver_model.set_vga(32);
-    receiver_model.set_sampling_rate(2457600);
+#ifdef RESET_TIMER
+    text_timeout.set_focusable(true);
+    text_timeout.on_select = [this](TextArea&) {
+        timeout = ((countdown + 1) * -1);
+        on_tick_second();
+    };
+#endif
+
+    tab_view.set_parent_rect(Rect(0, UI_POS_HEIGHT(4), screen_width, 3 * 8));
+    view_list.hidden(false);
+    view_detail.hidden(true);
+    view_map.hidden(true);
+#ifdef SPECAN
+    view_rx.hidden(true);
+#endif
+    view_qr.hidden(true);
+
+    view_list.set_db(beacon_db);
+
+    view_list.on_select = [this](size_t selected) {
+        beacon_db.set_current_beacon(selected);
+        on_beacon_change();
+    };
+
+#ifdef SQUELCH
+    // Restore squelch value
+    field_squelch.set_value(squelch);
+#endif
+    epirb_rx_config_message.squelch = squelch;
+    send_config();
+#ifdef SQUELCH
+    field_squelch.on_change = [this](int32_t v) {
+        squelch = v;
+        epirb_rx_config_message.squelch = squelch;
+        send_config();
+    };
+#endif
+
+    // Force sample rate to match baseband processor
+    receiver_model.set_sampling_rate(3072000);
+
     receiver_model.enable();
 
+    audio::set_rate(audio::Rate::Hz_24000);
+    audio::output::start();
+
+    // Tint the channel-power bar red when the front-end overloads (ADC near
+    // full scale). Clipping distorts the constant-envelope carrier and the
+    // +/-1.1 rad biphase jumps the decoder relies on, so this cues the user to
+    // reduce RF-amp/LNA/VGA gain. -3 dBFS is a heuristic on the post-decimation
+    // level (not a literal ADC clip count); tune if it trips too early/late.
+    channel.set_overload_threshold(-3);
+
+    update_display();
+
+#ifdef LOGGER
     logger = std::make_unique<EPIRBLogger>();
     if (logger) {
         logger->append(logs_dir / "epirb_rx.txt");
     }
+#endif
 }
 
 EPIRBAppView::~EPIRBAppView() {
+    // Remove tick second timer
     rtc_time::signal_tick_second -= signal_token_tick_second;
-
+    // Stop audio processor
+    audio::output::stop();
+    // Stop receiver
     receiver_model.disable();
     baseband::shutdown();
+    // Cleanup ResourceManager
+    ResourceManager::destroy();
 }
 
-void EPIRBAppView::set_parent_rect(const ui::Rect new_parent_rect) {
-    View::set_parent_rect(new_parent_rect);
-
-    const auto console_rect = ui::Rect{
-        new_parent_rect.left(),
-        new_parent_rect.top() + header_height,
-        new_parent_rect.width(),
-        new_parent_rect.height() - header_height - 32};
-    console.set_parent_rect(console_rect);
-}
-
-void EPIRBAppView::paint(ui::Painter& /* painter */) {
-    // Custom painting if needed
+void EPIRBAppView::refresh() {
+    // Force map repaint
+    view_map.repaint();
 }
 
 void EPIRBAppView::focus() {
     options_frequency.focus();
 }
 
-void EPIRBAppView::on_packet(const baseband::Packet& packet) {
-    // Decode the EPIRB packet
-    auto beacon = EPIRBDecoder::decode_packet(packet);
+void EPIRBAppView::on_packet(Message* const p) {
+    const auto message = static_cast<const EPIRBPacketMessage*>(p);
+    const baseband::Packet& packet = message->packet;
 
-    if (beacon.beacon_id != 0) {  // Valid beacon decoded
-        on_beacon_decoded(beacon);
+    // Decode the EPIRB packet
+    if (packet.size() > 64) {
+        // Actual beacon
+        Beacon& beacon = beacon_db.add_beacon();
+        // Get a new beacon from database and load it
+        decode_packet(packet, beacon);
+        beacons_received++;
+
+        // Track packet statistics
+        if (beacon.isFrameValid()) {
+            if (beacon.bch1Corrected || beacon.bch2Corrected) {
+                packets_corrected++;
+            } else {
+                packets_valid++;
+            }
+        } else {
+            packets_error++;
+        }
+
+        // Update timeout
+        timeout = (countdown * -1);
+        // Reset selection
+        beacon_db.set_current_beacon(0);
+        // Update display
+        on_beacon_change();
+
+#ifdef LOGGER
+        // Log the beacon
+        if (logger) {
+            logger->on_packet(beacon);
+        }
+#endif
+
+        view_list.set_dirty();
     }
 }
 
-void EPIRBAppView::on_beacon_decoded(const EPIRBBeacon& beacon) {
-    beacons_received++;
-
-    // Track packet statistics
-    switch (beacon.packet_status) {
-        case PacketStatus::Valid:
-            packets_valid++;
-            break;
-        case PacketStatus::Corrected:
-            packets_corrected++;
-            break;
-        case PacketStatus::Error:
-            packets_error++;
-            break;
-    }
-
-    recent_beacons.push_back(beacon);
-
-    // Keep only last 50 beacons
-    if (recent_beacons.size() > 50) {
-        recent_beacons.erase(recent_beacons.begin());
-    }
-
+void EPIRBAppView::on_beacon_change() {
+    // Beacon selection has changed => get new selection
+    Beacon& cur_beacon = beacon_db.get_current_beacon();
+    // Update detail, qr and map tab
+    view_detail.set_beacon(cur_beacon);
+    view_qr.set_beacon(&cur_beacon);
+    update_map();
     // Update display
     update_display();
-
-    // Log the beacon
-    if (logger) {
-        logger->on_packet(beacon);
-    }
-
-    // Display in console with full details and colored status
-    std::string beacon_info = format_beacon_summary(beacon);
-    if (beacon.emergency_type != EmergencyType::Other) {
-        beacon_info += " [" + format_emergency_type(beacon.emergency_type) + "]";
-    }
-
-    // Add colored status indicator
-    std::string status_color;
-    switch (beacon.packet_status) {
-        case PacketStatus::Valid:
-            status_color = STR_COLOR_GREEN;
-            break;
-        case PacketStatus::Corrected:
-            status_color = STR_COLOR_YELLOW;
-            break;
-        case PacketStatus::Error:
-            status_color = STR_COLOR_RED;
-            break;
-        default:
-            status_color = STR_COLOR_WHITE;
-            break;
-    }
-
-    beacon_info += " [" + status_color + format_packet_status(beacon.packet_status) + STR_COLOR_WHITE + "]";
-    if (beacon.error_count > 0 && beacon.packet_status == PacketStatus::Corrected) {
-        beacon_info += " (" + to_string_dec_uint(beacon.error_count) + "e)";
-    }
-
-    console.write(beacon_info + "\n");
 }
 
-void EPIRBAppView::on_show_map() {
-    if (!recent_beacons.empty()) {
-        // Find latest beacon with valid location
-        for (auto it = recent_beacons.rbegin(); it != recent_beacons.rend(); ++it) {
-            if (it->location.valid) {
-                // Create a GeoMapView with all beacon locations
-                auto map_view = nav_.push<ui::GeoMapView>(
-                    "EPIRB",  // tag
-                    0,        // altitude
-                    ui::GeoPos::alt_unit::METERS,
-                    ui::GeoPos::spd_unit::NONE,
-                    it->location.latitude,
-                    it->location.longitude,
-                    0  // angle
-                );
-
-                // Add all beacons with valid locations as markers
-                for (const auto& beacon : recent_beacons) {
-                    if (beacon.location.valid) {
+void EPIRBAppView::update_map() {
+    // Clear previously saved markers
+    view_map.clear_markers();
+    bool hide_map = true;
+    size_t size = beacon_db.size();
+    if (size > 0) {
+        // Check if current beacon has a valid location
+        Beacon& beacon = beacon_db.get_current_beacon();
+        size_t cur_index = beacon_db.get_current_beacon_index();
+        if (!beacon.location.isUnknown()) {
+            hide_map = false;
+            // Set new position
+            std::string tag = beacon.getType();
+            tag += "-";
+            tag += beacon.shortId();
+            view_map.set_main_marker(tag, beacon.location.latitude.getFloatValue(), beacon.location.longitude.getFloatValue());
+            // Add all beacons with valid locations as markers
+            for (size_t j = 0; j < size; j++) {
+                if (cur_index != j) {
+                    Beacon& other_beacon = beacon_db.get_beacon(j);
+                    if (!other_beacon.location.isUnknown()) {
                         ui::GeoMarker marker;
-                        marker.lat = beacon.location.latitude;
-                        marker.lon = beacon.location.longitude;
-                        marker.angle = 0;
-                        marker.tag = to_string_hex(beacon.beacon_id, 8) + " " +
-                                     format_beacon_type(beacon.beacon_type);
-                        map_view->store_marker(marker);
+                        marker.lat = other_beacon.location.latitude.getFloatValue();
+                        marker.lon = other_beacon.location.longitude.getFloatValue();
+                        tag = other_beacon.getType();
+                        tag += "-";
+                        tag += other_beacon.shortId();
+                        marker.tag = tag;
+                        view_map.add_marker(marker);
                     }
                 }
-                return;
             }
         }
     }
-
-    // No valid location found
-    nav_.display_modal("No Location", "No beacons with valid\nlocation data found.");
-}
-
-void EPIRBAppView::on_clear_beacons() {
-    recent_beacons.clear();
-    beacons_received = 0;
-    packets_valid = 0;
-    packets_corrected = 0;
-    packets_error = 0;
-    console.clear(true);
-    update_display();
-}
-
-void EPIRBAppView::on_toggle_log() {
-    // Toggle logging functionality
-    if (logger) {
-        logger.reset();
-        button_log.set_text("Log");
-    } else {
-        logger = std::make_unique<EPIRBLogger>();
-        logger->append("epirb_rx.txt");
-        button_log.set_text("Stop");
-    }
+    view_map.hide_map(hide_map);
+    view_map.repaint();
 }
 
 void EPIRBAppView::on_tick_second() {
-    // Update status display every second
-    rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
-
-    label_status.set("Listening... " + to_string_datetime(datetime, HM));
+    timeout++;
+    // Limit to 3 digits
+    if (timeout > 999) timeout = 0;
+    text_timeout.set_content(to_string_dec_uint(abs(timeout)));
 }
 
 void EPIRBAppView::update_display() {
-    label_beacons_count.set("Beacons: " + to_string_dec_uint(beacons_received));
+    char buffer[128];
+    int len = sprintf(buffer,
+                      STR_COLOR_CYAN "Listening...    Beacon:" STR_COLOR_WHITE "%2d/%d\t" STR_COLOR_CYAN "Stats: " STR_COLOR_GREEN "%03dOK " STR_COLOR_YELLOW "%03dCOR " STR_COLOR_RED "%03dERR\t" STR_COLOR_CYAN "Current:" STR_COLOR_WHITE " ",
+                      (beacon_db.get_current_beacon_index() + 1), beacons_received,
+                      packets_valid, packets_corrected, packets_error);
 
-    // Update packet statistics display
-    std::string stats = std::string("Stats: ") +
-                        STR_COLOR_GREEN + to_string_dec_uint(packets_valid) + "OK " +
-                        STR_COLOR_YELLOW + to_string_dec_uint(packets_corrected) + "CORR " +
-                        STR_COLOR_RED + to_string_dec_uint(packets_error) + "ERR" + STR_COLOR_WHITE;
-    label_packet_stats.set(stats);
-
-    if (!recent_beacons.empty()) {
-        const auto& latest = recent_beacons.back();
-        text_latest_info.set(format_beacon_summary(latest));
-    }
-}
-
-std::string EPIRBAppView::format_beacon_summary(const EPIRBBeacon& beacon) {
-    std::string summary = to_string_hex(beacon.beacon_id, 8) + " " +
-                          format_beacon_type(beacon.beacon_type);
-
-    if (beacon.location.valid) {
-        summary += " " + format_location(beacon.location);
+    if (!beacon_db.empty()) {
+        beacon_db.get_current_beacon().formatSummary(buffer + len, false);
     }
 
-    // Add status indicator for summary display
-    summary += " " + format_packet_status(beacon.packet_status);
-
-    return summary;
+    text_status.set_content(buffer);
 }
 
-std::string EPIRBAppView::format_location(const EPIRBLocation& location) {
-    return to_string_decimal(location.latitude, 4) + "°," +
-           to_string_decimal(location.longitude, 4) + "°";
+void EPIRBAppView::send_config() {
+    // Send config to baseband
+    baseband::set_epirb_rx_config(epirb_rx_config_message);
 }
 
 }  // namespace ui::external_app::epirb_rx

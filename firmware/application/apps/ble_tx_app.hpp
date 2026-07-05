@@ -45,6 +45,9 @@
 #include <string>
 #include <memory>
 
+#define BLT_CHAN_AUTO 40
+#define BLT_CHAN_ALL 41
+
 class BLELoggerTx {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -94,7 +97,7 @@ struct BLETxPacket {
     char advertisementData[63];
     char packetCount[11];
     char packetType[17];
-    uint32_t packet_count;
+    uint32_t packet_count;  // repeat the same packet count times
     PKT_TYPE pduType;
 };
 
@@ -145,6 +148,7 @@ class BLETxView : public View {
     std::filesystem::path packet_save_path{bletx_dir / u"BLETX_????.TXT"};
     uint8_t channel_number = 37;
     bool auto_channel = false;
+    bool all_channels = false;
 
     char randomMac[13] = "010203040506";
 
@@ -156,10 +160,10 @@ class BLETxView : public View {
     int16_t auto_channel_period{6};
 
     bool repeatLoop = false;
-    uint32_t packet_counter{0};
-    uint32_t num_packets{0};
-    uint32_t current_packet{0};
-    uint8_t packetTxCount{0};
+    uint32_t packet_counter{0};  // the counter (decr) of the actual packet as it can be sent multiple times
+    uint32_t num_packets{0};     // how many packets in the file
+    uint32_t current_packet{0};  // the actual packet's num, i'm sending if i have multiple packets
+    uint8_t packetTxCount{0};    // not used
     bool packetDone = false;
     bool random_mac = false;
     bool file_override = false;
@@ -241,10 +245,48 @@ class BLETxView : public View {
     OptionsField options_channel{
         {11 * 8, 6 * 8},
         5,
-        {{"Ch.37 ", 37},
+        {{"Ch.0", 0},
+         {"Ch.1", 1},
+         {"Ch.2", 2},
+         {"Ch.3", 3},
+         {"Ch.4", 4},
+         {"Ch.5", 5},
+         {"Ch.6", 6},
+         {"Ch.7", 7},
+         {"Ch.8", 8},
+         {"Ch.9", 9},
+         {"Ch.10", 10},
+         {"Ch.11", 11},
+         {"Ch.12", 12},
+         {"Ch.13", 13},
+         {"Ch.14", 14},
+         {"Ch.15", 15},
+         {"Ch.16", 16},
+         {"Ch.17", 17},
+         {"Ch.18", 18},
+         {"Ch.19", 19},
+         {"Ch.20", 20},
+         {"Ch.21", 21},
+         {"Ch.22", 22},
+         {"Ch.23", 23},
+         {"Ch.24", 24},
+         {"Ch.25", 25},
+         {"Ch.26", 26},
+         {"Ch.27", 27},
+         {"Ch.28", 28},
+         {"Ch.29", 29},
+         {"Ch.30", 30},
+         {"Ch.31", 31},
+         {"Ch.32", 32},
+         {"Ch.33", 33},
+         {"Ch.34", 34},
+         {"Ch.35", 35},
+         {"Ch.36", 36},
+         {"Ch.37", 37},
          {"Ch.38", 38},
          {"Ch.39", 39},
-         {"Auto", 40}}};
+         {"Auto", BLT_CHAN_AUTO},
+         {"All", BLT_CHAN_ALL}}};
 
     OptionsField options_adv_type{
         {17 * 8, 6 * 8},

@@ -50,6 +50,9 @@ void BoundSetting::parse(std::string_view value) {
         case SettingType::I64:
             parse_int(value, as<int64_t>());
             break;
+        case SettingType::U64:
+            parse_int(value, as<uint64_t>());
+            break;
         case SettingType::I32:
             parse_int(value, as<int32_t>());
             break;
@@ -87,6 +90,9 @@ void BoundSetting::write(File& file) const {
         case SettingType::I64:
             file.write(to_string_dec_int(as<int64_t>(), buffer, length), length);
             break;
+        case SettingType::U64:
+            file.write(to_string_dec_uint(as<uint64_t>(), buffer, length), length);
+            break;
         case SettingType::I32:
             file.write(to_string_dec_int(as<int32_t>(), buffer, length), length);
             break;
@@ -97,9 +103,8 @@ void BoundSetting::write(File& file) const {
             file.write(to_string_dec_uint(as<uint8_t>(), buffer, length), length);
             break;
         case SettingType::String: {
-            const auto& str = as<std::string>();
-            file.write(str.data(), str.length());
-            break;
+            file.write_line(as<std::string>());
+            return;
         }
         case SettingType::Bool:
             file.write(as<bool>() ? "1" : "0", 1);

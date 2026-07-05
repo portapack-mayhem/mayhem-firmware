@@ -1053,7 +1053,7 @@ class SetBatteryView : public View {
         {{UI_POS_X_CENTER(17), UI_POS_Y(8)}, "Battery capacity", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(7), UI_POS_Y(9)}, "mAh", Theme::getInstance()->fg_light->foreground}};
 
-    Labels labels2{{{UI_POS_X(1), UI_POS_Y(11)}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
+    Labels labels2{{{UI_POS_X(1), UI_POS_Y_BOTTOM(7)}, "Reset IC's learned params.", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_battcap{
         {UI_POS_X(1), UI_POS_Y(9)},
@@ -1078,17 +1078,22 @@ class SetBatteryView : public View {
         23,
         "Charge hint"};
 
+    Checkbox checkbox_battery_replaceable{
+        {UI_POS_X(2), UI_POS_Y(11)},
+        23,
+        "Replaceable battery"};
+
     Button button_cancel{
-        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel",
     };
 
     Button button_save{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(3), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Save"};
 
     Button button_reset{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y(13), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(6), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Reset",
     };
 };
