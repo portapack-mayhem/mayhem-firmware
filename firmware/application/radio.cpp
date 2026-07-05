@@ -151,10 +151,6 @@ void init() {
     /* PRALINE uses MAX2831 transceiver */
     second_if = (max283x::MAX283x*)&second_if_max2831;
 #else
-    if (hackrf_r9) {
-        gpio_r9_not_ant_pwr.write(1);
-        gpio_r9_not_ant_pwr.output();
-    }
     second_if = hackrf_r9
                     ? (max283x::MAX283x*)&second_if_max2839
                     : (max283x::MAX283x*)&second_if_max2837;
@@ -398,7 +394,7 @@ void set_antenna_bias(const bool on) {
     rf_path.set_ant_bias(on);
 #else
     if (hackrf_r9) {
-        gpio_r9_not_ant_pwr.write(on ? 0 : 1);
+        rf_path.set_ant_bias(on);
     } else {
         first_if.set_gpo1(on ? 0 : 1);
     }

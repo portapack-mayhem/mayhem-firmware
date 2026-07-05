@@ -294,11 +294,11 @@ void BLESpamView::createWindowsPacket() {
     std::copy(res.begin(), res.end(), advertisementData);
 }
 
-void BLESpamView::createNameSpamPacket() {
-    const char* names[] = {"PortaHack", "PwnBt", "iSpam", "GenericFoodVagon", "SignalSnoop", "ByteBandit", "RadioRogue", "RadioRebel", "ByteBlast"};
-
-    const char* name = names[rand() % 9];  //"PortaHack";
+// Builds a "Complete Local Name" HID advertisement for the given name.
+// Shared by NameSpam (built-in list) and Custom (SD card list) modes.
+void BLESpamView::buildNamePacket(const char* name) {
     uint8_t name_len = strlen(name);
+    if (name_len > 19) name_len = 19;  // clamp so the hex string fits advertisementData[63]
 
     uint8_t size = 12 + name_len;
     uint8_t i = 0;
@@ -325,6 +325,65 @@ void BLESpamView::createNameSpamPacket() {
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
     std::copy(res.begin(), res.end(), advertisementData);
+}
+
+void BLESpamView::createNameSpamPacket() {
+    const char* names[] = {"PortaHack", "PwnBt", "iSpam", "GenericFoodVagon", "SignalSnoop", "ByteBandit", "RadioRogue", "RadioRebel", "ByteBlast"};
+    buildNamePacket(names[rand() % 9]);
+}
+
+// Opens /BLESPAM/NAME.txt once and keeps it open for the session.
+void BLESpamView::open_custom_file() {
+    custom_loaded_ = true;  // attempt only once
+    auto open_error = custom_file_.open(u"/BLESPAM/NAME.txt");
+    custom_file_valid_ = !open_error;  // false -> caller falls back to NameSpam
+}
+
+// Reads the next line into custom_name_ (clamped to 19 chars), advancing the
+// file position. At end of file it seeks back to the start to cycle. Returns
+// false if the file holds no usable name. Only one line is ever held in RAM.
+bool BLESpamView::read_next_custom_name() {
+    if (!custom_file_valid_) return false;
+
+    custom_name_.clear();
+    bool wrapped = false;
+    char c;
+
+    while (true) {
+        auto read_result = custom_file_.read(&c, 1);
+        if (read_result.is_error()) return false;
+
+        if (read_result.value() == 0) {
+            // end of file
+            if (!custom_name_.empty()) break;
+            // use the final line
+            if (wrapped) return false;
+            // no usable name in file
+            if (custom_file_.seek(0).is_error()) return false;
+            // loop back to the first line
+            wrapped = true;
+            continue;
+        }
+
+        if (c == '\n' || c == '\r') {
+            if (!custom_name_.empty()) break;  // got a complete line
+            continue;                          // skip blank lines / CRLF pairs
+        }
+
+        if (custom_name_.size() < 19)  // clamp; keep scanning rest of long line
+            custom_name_.push_back(c);
+    }
+    return true;
+}
+
+void BLESpamView::createCustomPacket() {
+    if (!custom_loaded_) open_custom_file();
+
+    if (!read_next_custom_name()) {  // no file / unreadable / empty -> fall back
+        createNameSpamPacket();
+        return;
+    }
+    buildNamePacket(custom_name_.c_str());
 }
 
 char BLESpamView::randomNameChar() {
@@ -621,6 +680,9 @@ void BLESpamView::createPacket(ATK_TYPE attackType) {
             break;
         case ATK_NAMERANDOM:
             createNameRandomPacket();
+            break;
+        case ATK_CUSTOM:
+            createCustomPacket();
             break;
         case ATK_ALL_SAFE:
             createAnyPacket(true);

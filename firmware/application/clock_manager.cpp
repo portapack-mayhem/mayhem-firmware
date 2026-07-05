@@ -443,11 +443,6 @@ void ClockManager::portapack_tcxo_disable() {
 using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
-    if (hackrf_r9) {
-        gpio_r9_mcu_clk_en.output();
-        gpio_r9_mcu_clk_en.write(1);
-    }
-
     clock_generator.reset();
     clock_generator.set_crystal_internal_load_capacitance(CrystalInternalLoadCapacitance::XTAL_CL_8pF);
     clock_generator.enable_fanout();
@@ -685,7 +680,7 @@ ClockManager::Reference ClockManager::choose_reference() {
     }
 #else
     if (hackrf_r9) {
-        gpio_r9_clkin_en.write(1);
+        gpio_control::r9_clkin_en.setActive();
         volatile uint32_t delay = 240000 + 24000;
         while (delay--);
     }
@@ -700,7 +695,7 @@ ClockManager::Reference ClockManager::choose_reference() {
     }
 
     if (hackrf_r9) {
-        gpio_r9_clkin_en.write(0);
+        gpio_control::r9_clkin_en.setInactive();
     }
 #endif
 
@@ -1187,8 +1182,7 @@ void ClockManager::enable_clock_output(bool enable) {
     }
 #else
     if (hackrf_r9) {
-        gpio_r9_clkout_en.output();
-        gpio_r9_clkout_en.write(enable);
+        gpio_control::r9_clkout_en.setState(enable);
 
         // NOTE: RETURNING HERE IF HACKRF_R9 TO PREVENT CLK2 FROM BEING DISABLED OR FREQ MODIFIED SINCE CLK2 ON R9 IS
         // USED FOR BOTH CLKOUT AND FOR THE MCU_CLOCK (== GP_CLKIN) WHICH OTHER LP43XX CLOCKS CURRENTLY RELY ON.

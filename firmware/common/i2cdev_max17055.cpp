@@ -318,8 +318,8 @@ bool I2cDev_MAX17055::needsInitialization() {
 
 void I2cDev_MAX17055::partialInit() {
     // Only update necessary volatile settings
-    // setHibCFG(0x0000);  // If you always want hibernation disabled. this is a lower resolution mode, when the ic is on, and measuring, but on lower freq. depends un tha current (mA).
-    sleep_config(true);  // shut down the comm
+    setHibCFG(0x0000);    // If you always want hibernation disabled. this is a lower resolution mode, when the ic is on, and measuring, but on lower freq. depends un tha current (mA).
+    sleep_config(false);  // shut down the comm
     // Add any other volatile settings that need updating
 }
 
