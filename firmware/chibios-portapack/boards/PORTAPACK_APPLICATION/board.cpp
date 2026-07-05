@@ -415,7 +415,7 @@ const PALConfig pal_default_config = {
                     | boot_bit(p2_ctrl1, 0)        // PE_4: P2_ctrl1
             ,
             .dir = (1 << 0)                       // PE_0: Output
-                   | boot_bit(max283x_enable, 0)  // PE_1: MAX2831 !SHDN
+                   | boot_bit(max283x_enable, 1)  // PE_1: MAX2831 !SHDN
                    | (1 << 2)                     // PE_2: MAX2831 RXTX
                    | boot_bit(p2_ctrl0, 1)        // PE_3: P2_ctrl0
                    | boot_bit(p2_ctrl1, 1)        // PE_4: P2_ctrl1

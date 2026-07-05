@@ -32,6 +32,9 @@
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
+#include "gpio.hpp"
+using namespace gpio_control;
+
 #include "ch.h"
 #include "hal.h"
 
