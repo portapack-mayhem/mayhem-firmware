@@ -25,10 +25,12 @@
 #include "ch.h"
 #include "hal.h"
 
-#define USB_BULK_BUFFER_SIZE 64
+/* Must be >= the high-speed bulk wMaxPacketSize (512): a bulk OUT transfer
+ * descriptor smaller than one max-size packet cannot receive it. */
+#define USB_BULK_BUFFER_SIZE 512
 
 #ifndef USBSERIAL_BUFFERS_SIZE
-#define USBSERIAL_BUFFERS_SIZE 128
+#define USBSERIAL_BUFFERS_SIZE 512
 #endif
 
 struct SerialUSBDriverVMT {
