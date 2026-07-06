@@ -129,6 +129,8 @@ constexpr image_tag_t image_tag_noaaapt_rx{'P', 'N', 'O', 'A'};
 constexpr image_tag_t image_tag_sstv_rx{'P', 'S', 'R', 'X'};
 constexpr image_tag_t image_tag_morse{'P', 'M', 'R', 'S'};
 constexpr image_tag_t image_tag_morsetx{'P', 'M', 'R', 'T'};
+constexpr image_tag_t image_tag_vor_tx{'P', 'V', 'T', 'X'};
+constexpr image_tag_t image_tag_vor_rx{'P', 'V', 'R', 'X'};
 constexpr image_tag_t image_tag_rttyrx{'P', 'R', 'T', 'R'};
 constexpr image_tag_t image_tag_rttytx{'P', 'R', 'T', 'T'};
 constexpr image_tag_t image_tag_tonedetect{'P', 'T', 'N', 'E'};
@@ -136,6 +138,8 @@ constexpr image_tag_t image_tag_tonedetect{'P', 'T', 'N', 'E'};
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 
 constexpr image_tag_t image_tag_hackrf{'H', 'R', 'F', '1'};
+
+constexpr image_tag_t image_tag_signal_hunter{'H', 'U', 'N', 'T'};
 
 struct chunk_t {
     const image_tag_t tag;

@@ -133,6 +133,14 @@ set(EXTCPPSRC
 	external/noaaapt_rx/main.cpp
 	external/noaaapt_rx/ui_noaaapt_rx.cpp
 
+	#vor_rx
+	external/vor_rx/main.cpp
+	external/vor_rx/ui_vor_rx.cpp
+
+	#vor_tx
+	external/vor_tx/main.cpp
+	external/vor_tx/ui_vor_tx.cpp
+
 	#shoppingcart_lock 272 bytes
 	external/shoppingcart_lock/main.cpp
 	external/shoppingcart_lock/shoppingcart_lock.cpp
@@ -367,6 +375,10 @@ set(EXTCPPSRC
 	external/secplustx/main.cpp
 	external/secplustx/ui_secplustx.cpp
 	external/secplustx/secplustx.cpp
+
+  #signal_hunter
+  external/signal_hunter/main.cpp
+  external/signal_hunter/ui_signal_hunter.cpp
 )
 
 set(EXTAPPLIST
@@ -401,6 +413,8 @@ set(EXTAPPLIST
 	acars_rx
 	wefax_rx
 	noaaapt_rx
+	vor_rx
+	vor_tx
 	shoppingcart_lock
 	ookbrute
 	ook_editor
@@ -457,6 +471,7 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
+  signal_hunter
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

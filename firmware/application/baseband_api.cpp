@@ -361,6 +361,16 @@ void set_noaaapt_config() {
     send_message(&message);
 }
 
+void set_vor_config(bool enabled) {
+    const VorRxConfigureMessage message{enabled};
+    send_message(&message);
+}
+
+void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled, const std::string& ident, bool enabled) {
+    const VorTxConfigureMessage message{radial_deg, ident_enabled, ident.c_str(), enabled};
+    send_message(&message);
+}
+
 void set_flex_config() {
     const FlexConfigureMessage message{};
     send_message(&message);
@@ -443,6 +453,14 @@ void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
     P25TxConfigureMessage msg{};
     msg.frame_length = frame_length;
     send_message(&msg);
+}
+
+void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start) {
+    HunterConfigMessage message{};
+    message.energy_threshold = threshold;
+    message.hangtime_ms = hangtime_ms;
+    message.start = start;
+    send_message(&message);
 }
 
 static bool baseband_image_running = false;

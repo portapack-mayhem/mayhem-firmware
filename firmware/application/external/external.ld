@@ -111,6 +111,9 @@ MEMORY
     ram_external_app_flex_tx               (rwx) : org = 0xAE060000, len = 32k
     ram_external_app_hard_reset            (rwx) : org = 0xAE070000, len = 32k
     ram_external_app_secplustx             (rwx) : org = 0xAE080000, len = 32k
+    ram_external_app_vor_rx                (rwx) : org = 0xAE090000, len = 32k
+    ram_external_app_vor_tx                (rwx) : org = 0xAE0A0000, len = 32k
+    ram_external_app_signal_hunter         (rwx) : org = 0xAE0B0000, len = 32k
 }
 
 SECTIONS
@@ -391,6 +394,18 @@ SECTIONS
         *(*ui*external_app*noaaapt_rx*);
     } > ram_external_app_noaaapt_rx
 
+    .external_app_vor_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_vor_rx.application_information));
+        *(*ui*external_app*vor_rx*);
+    } > ram_external_app_vor_rx
+
+    .external_app_vor_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_vor_tx.application_information));
+        *(*ui*external_app*vor_tx*);
+    } > ram_external_app_vor_tx
+
     .external_app_breakout : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_breakout.application_information));
@@ -642,4 +657,10 @@ SECTIONS
         KEEP(*(.external_app.app_secplustx.application_information));
         *(*ui*external_app*secplustx*);
     } > ram_external_app_secplustx
+
+    .external_app_signal_hunter : ALIGN(4) SUBALIGN(4)
+    {
+      KEEP(*(.external_app.app_signal_hunter.application_information));
+      *(*ui*external_app*signal_hunter*);
+    } > ram_external_app_signal_hunter
 }
