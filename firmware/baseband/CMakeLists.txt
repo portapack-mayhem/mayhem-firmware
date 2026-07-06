@@ -769,6 +769,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTON tones)
 
+### Signal Hunter
+
+set(MODE_CPPSRC
+    proc_signal_hunter.cpp
+)
+DeclareTargets(HUNT signal_hunter)
+
 
 
 ### Time Sink
