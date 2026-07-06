@@ -455,6 +455,14 @@ void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length) {
     send_message(&msg);
 }
 
+void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start) {
+    HunterConfigMessage message{};
+    message.energy_threshold = threshold;
+    message.hangtime_ms = hangtime_ms;
+    message.start = start;
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 bool is_image_running() {
