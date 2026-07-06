@@ -584,7 +584,7 @@ const PALConfig pal_default_config = {
         {map_isp.scu_port, map_isp.scu_pin, scu_config_normal_drive_t{.mode = map_isp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                       // P2_7: ISP: 10K PU, Unused
         {map_dfu_boot_0.scu_port, map_dfu_boot_0.scu_pin, scu_config_normal_drive_t{.mode = map_dfu_boot_0.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_1: 10K PU, BOOT0
         {map_dfu_boot_1.scu_port, map_dfu_boot_1.scu_pin, scu_config_normal_drive_t{.mode = map_dfu_boot_1.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_2: 10K PD, BOOT1
-        {map_dfu_button.scu_port, map_dfu_button.scu_pin, scu_config_normal_drive_t{.mode = map_dfu_button.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}},  // P2_8: 10K PD, BOOT2, DFU button
+        {map_dfu_button.scu_port, map_dfu_button.scu_pin, scu_config_normal_drive_t{.mode = map_dfu_button.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}},  // P2_8: BOOT2, DFU button
         {map_lcd_wrx.scu_port, map_lcd_wrx.scu_pin, scu_config_normal_drive_t{.mode = map_lcd_wrx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},           // P2_9: 10K PD, BOOT3, PortaPack LCD_WRX
 
     }};
