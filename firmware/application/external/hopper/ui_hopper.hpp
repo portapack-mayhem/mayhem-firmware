@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2020 euquiq
- * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
+ * copyleft 2024 zxkmm
  *
  * This file is part of PortaPack.
  *
