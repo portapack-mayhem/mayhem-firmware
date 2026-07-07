@@ -125,6 +125,7 @@ class TetraRxView : public View {
     TetraRxView(NavigationView& nav);
     ~TetraRxView();
     void focus() override;
+    std::string title() const override { return "Tetra RX"; };
 
    private:
     NavigationView& nav_;
