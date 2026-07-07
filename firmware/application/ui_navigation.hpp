@@ -374,7 +374,7 @@ class InformationView : public View {
     Image search_icon{
         {2, 0, 16, 16},
         &bitmap_icon_search,
-        Color::yellow(),
+        Theme::getInstance()->fg_light->foreground,
         Theme::getInstance()->bg_darker->background};
 
     Text version{
