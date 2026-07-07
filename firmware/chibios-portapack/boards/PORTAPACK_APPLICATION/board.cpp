@@ -168,17 +168,18 @@ const PALConfig pal_default_config = {
                     | boot_bit(led_rx, 1)   // P4_2:  LED2 (RX)
                     | boot_bit(led_usb, 1)  // P4_1:  LED1 (USB)
 #else
-                    | boot_bit(tx_amp, 0)          // P5_6:  TX_AMP
-                    | boot_bit(rx_mix_bp, 1)       // P5_3:  RX_MIX_BP
-                    | boot_bit(tx_mix_bp, 0)       // P5_2:  TX_MIX_BP
-                    | boot_bit(lpf, 0)             // P5_1:  LPF
-                    | (0 << 9)                     // P5_0:  Varies by revision
-                    | boot_bit(hpf, 0)             // P4_0:  HPF
-                    | boot_bit(sgpio_9, 1)         // P4_3:  SGPIO9, HOST_CAPTURE
-                    | boot_bit(max283x_enable, 0)  // P4_6:  XCVR_EN, 10K PD
-                    | boot_bit(led_tx, 0)          // P6_12: LED3 (TX)
-                    | boot_bit(led_rx, 0)          // P4_2:  LED2 (RX)
-                    | boot_bit(led_usb, 0)         // P4_1:  LED1 (USB)
+                    | boot_bit(tx_amp, 0)     // P5_6:  TX_AMP
+                    | (1 << 13)               // P5_4:  MIXER_ENX, 10K PU
+                    | boot_bit(rx_mix_bp, 1)  // P5_3:  RX_MIX_BP
+                    | boot_bit(tx_mix_bp, 0)  // P5_2:  TX_MIX_BP
+                    | boot_bit(lpf, 0)        // P5_1:  LPF
+                    | (0 << 9)                // P5_0:  Varies by revision
+                    | boot_bit(hpf, 0)        // P4_0:  HPF
+                    | boot_bit(sgpio_9, 1)    // P4_3:  SGPIO9, HOST_CAPTURE
+                    | (0 << 6)                // P4_6:  XCVR_EN, 10K PD
+                    | boot_bit(led_tx, 0)     // P6_12: LED3 (TX)
+                    | boot_bit(led_rx, 0)     // P4_2:  LED2 (RX)
+                    | boot_bit(led_usb, 0)    // P4_1:  LED1 (USB)
 #endif
 
                     | boot_bit(rffc5072_select, 1)  // P5_4:  !MIXER_ENX
