@@ -15,9 +15,9 @@ int Viterbi::decode_cch(
     const uint8_t next_output[16][2] = {
         {0, 15}, {11, 4}, {6, 9}, {13, 2}, {5, 10}, {14, 1}, {3, 12}, {8, 7}, {15, 0}, {4, 11}, {9, 6}, {2, 13}, {10, 5}, {1, 14}, {12, 3}, {7, 8}};
 
-    const uint8_t INF = 250;  // Since 160 is the max, 250 is sufficiently large
-    uint8_t cost[16];
-    uint8_t new_cost[16];
+    const uint16_t INF = 0x3fff;
+    uint16_t cost[16];
+    uint16_t new_cost[16];
 
     // Initialization
     for (int i = 0; i < 16; i++) cost[i] = INF;
@@ -34,12 +34,12 @@ int Viterbi::decode_cch(
                 const uint8_t pattern = next_output[prev][bit];
                 const uint8_t next = next_state[prev][bit];
 
-                uint8_t d = 0;
+                uint16_t d = 0;
                 for (int b = 0; b < 4; b++) {
                     if (rx[b] != 0xff && rx[b] != ((pattern >> (3 - b)) & 1)) d++;
                 }
 
-                uint8_t total = cost[prev] + d;
+                const uint16_t total = cost[prev] + d;
                 if (total < new_cost[next]) {
                     new_cost[next] = total;
                     trace_buffer[step * 16 + next] = (prev << 1) | bit;

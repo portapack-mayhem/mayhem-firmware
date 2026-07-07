@@ -161,7 +161,7 @@ class TetraRxView : public View {
     void on_data_tetra(const TetraBurstMessage&);
     void on_data_dnb(const TetraDnbMessage&);
 
-    uint8_t rate_limiter{0};  // limiter, to keep the device responsible
+    uint8_t rate_limiter{0};  // limiter, to keep the device responsive
     void on_timer();
 
     MessageHandlerRegistration message_handler_frame_sync{
