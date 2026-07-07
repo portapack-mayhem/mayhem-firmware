@@ -151,7 +151,7 @@ class GlassView : public View {
     uint32_t pixel_index{0};
 
     ImageButton button_play{
-        {UI_POS_X_RIGHT(2), UI_POS_Y(4), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
+        {UI_POS_X_RIGHT(2), UI_POS_Y(3), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
         &bitmap_stop,
         Theme::getInstance()->fg_green->foreground,
         Theme::getInstance()->fg_green->background};
