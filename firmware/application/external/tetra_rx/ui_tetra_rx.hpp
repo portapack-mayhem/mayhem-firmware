@@ -44,6 +44,10 @@ class TetraChannelDecoder {
         uint16_t la{0xffff};
         uint8_t encryption{0xff};
 
+        uint8_t cmce_type{0xff};
+        uint16_t call_id{0xffff};
+        uint32_t calling_ssi{0};
+
         std::array<uint8_t, 34> payload{};
     };
 

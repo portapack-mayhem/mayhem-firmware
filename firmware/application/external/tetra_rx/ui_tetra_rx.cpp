@@ -171,6 +171,56 @@ void TetraChannelDecoder::parse_mac_pdu(Result& result) {
 
     if (result.pdu_type == 0) {  // MAC-RESOURCE
         result.encryption = read_bits(result.payload.data(), 4, 2);
+        uint8_t length_ind = read_bits(result.payload.data(), 7, 6);
+
+        if (result.encryption == 0 && length_ind > 0 && length_ind < 62) {
+            size_t offset = 13;
+            uint8_t addr_type = read_bits(result.payload.data(), offset, 3);
+            offset += 3;
+
+            if (addr_type == 1) {
+                result.calling_ssi = read_bits(result.payload.data(), offset, 24);
+                offset += 24;
+            } else if (addr_type == 2) {
+                offset += 10;
+            } else if (addr_type == 3 || addr_type == 4) {
+                result.calling_ssi = read_bits(result.payload.data(), offset, 24);
+                offset += 24;
+            } else if (addr_type == 5) {
+                offset += 34;
+            } else if (addr_type == 6) {
+                offset += 30;
+            } else if (addr_type == 7) {
+                offset += 34;
+            }
+
+            // skip optional fields
+            if (read_bits(result.payload.data(), offset++, 1)) offset += 4;  // Power control
+            if (read_bits(result.payload.data(), offset++, 1)) offset += 8;  // Slot grant
+
+            uint8_t chan_alloc = read_bits(result.payload.data(), offset++, 1);
+
+            if (chan_alloc == 0) {
+                uint8_t llc_type = read_bits(result.payload.data(), offset, 4);
+                offset += 4;
+
+                // LLC header skipped
+                if (llc_type == 0 || llc_type == 1)
+                    offset += 2;
+                else if (llc_type == 2 || llc_type == 3 || llc_type == 6 || llc_type == 7)
+                    offset += 1;
+
+                uint8_t mle_type = read_bits(result.payload.data(), offset, 3);
+                offset += 3;
+
+                // 1 = CMCE
+                if (mle_type == 1) {
+                    result.cmce_type = read_bits(result.payload.data(), offset, 5);
+                    offset += 5;
+                    result.call_id = read_bits(result.payload.data(), offset, 14);
+                }
+            }
+        }
     } else if (result.pdu_type == 2) {  // SYSINFO/BCAST
         uint8_t bcast_type = read_bits(result.payload.data(), 2, 2);
         if (bcast_type == 0) {
@@ -242,7 +292,53 @@ void TetraRxView::on_data_dnb(const TetraDnbMessage& message) {
         std::string enc_str = (result.encryption != 0) ? "Encrypted" : "Clear";
         text_enc.set("ENC: " + enc_str);
 
-        if (rate_limiter++ < 2) console.writeln("DNB: " + decoder.get_pdu_name(result.pdu_type));
+        // if (rate_limiter++ < 2) console.writeln("DNB: " + decoder.get_pdu_name(result.pdu_type));
+        if (result.cmce_type != 0xff) {
+            std::string msg = "";
+            if (result.cmce_type == 7)
+                msg = "SETUP";
+            else if (result.cmce_type == 1)
+                msg = "CALL PROCEEDING";
+            else if (result.cmce_type == 0)
+                msg = "ALERTING";
+            else if (result.cmce_type == 2)
+                msg = "CONNECT";
+            else if (result.cmce_type == 3)
+                msg = "CONNECT ACK";
+            else if (result.cmce_type == 11)
+                msg = "TX GRANTED";
+            else if (result.cmce_type == 9)
+                msg = "TX CEASED";
+            else if (result.cmce_type == 13)
+                msg = "TX WAIT";
+            else if (result.cmce_type == 10)
+                msg = "TX CONTINUE";
+            else if (result.cmce_type == 12)
+                msg = "TX INTERRUPT";
+            else if (result.cmce_type == 4)
+                msg = "DISCONNECT";
+            else if (result.cmce_type == 6)
+                msg = "RELEASE";
+            else if (result.cmce_type == 5)
+                msg = "INFO";
+            else if (result.cmce_type == 8)
+                msg = "STATUS";
+            else if (result.cmce_type == 14)
+                msg = "SDS DATA";
+            else if (result.cmce_type == 15)
+                msg = "FACILITY";
+            else if (result.cmce_type == 16)
+                msg = "CALL RESTORE";
+            else if (result.cmce_type == 31)
+                msg = "NOT SUPPORTED";
+            else
+                msg = "CMCE:" + to_string_dec_uint(result.cmce_type);
+
+            console.writeln(msg);
+            if (result.call_id != 0xffff) {
+                console.writeln("ID:" + to_string_dec_uint(result.call_id) + " | SSI:" + to_string_dec_uint(result.calling_ssi));
+            }
+        }
     }
 }
 
