@@ -400,8 +400,6 @@ void EventDispatcher::handle_local_queue() {
 void EventDispatcher::handle_rtc_tick() {
     sd_card::poll_inserted();
 
-    portapack::temperature_logger.second_tick();
-
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
     if (backlight_timer.timeout_enabled()) {
         if (portapack::bl_tick_counter == backlight_timer.timeout_seconds())

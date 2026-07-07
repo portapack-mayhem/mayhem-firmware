@@ -102,8 +102,6 @@ AK4951 audio_codec_ak4951{i2c0, 0x12};
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;
 
-TemperatureLogger temperature_logger;
-
 bool antenna_bias{false};
 uint32_t bl_tick_counter{0};
 uint16_t touch_threshold{32};

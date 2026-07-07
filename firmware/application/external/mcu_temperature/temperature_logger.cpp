@@ -25,6 +25,8 @@
 
 #include <algorithm>
 
+namespace ui::external_app::mcu_temperature {
+
 void TemperatureLogger::second_tick() {
     sample_phase++;
     if (sample_phase >= sample_interval) {
@@ -67,3 +69,5 @@ void TemperatureLogger::push_sample(const TemperatureLogger::sample_t sample) {
     samples_count++;
     sample_phase = 0;
 }
+
+}  // namespace ui::external_app::mcu_temperature
