@@ -129,6 +129,8 @@ class GlassView : public View {
     void populate_presets();
     void launch_audio(rf::Frequency center_freq);
 
+    bool paused{false};
+
     rf::Frequency search_span{0};
     rf::Frequency f_center{0};
     rf::Frequency f_center_ini{0};
@@ -147,6 +149,12 @@ class GlassView : public View {
     rf::Frequency looking_glass_step{0};
     uint8_t min_color_power{0};  // Filter cutoff level.
     uint32_t pixel_index{0};
+
+    ImageButton button_play{
+        {UI_POS_X_RIGHT(2), UI_POS_Y(4), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
+        &bitmap_stop,
+        Theme::getInstance()->fg_green->foreground,
+        Theme::getInstance()->fg_green->background};
 
     std::vector<Color> spectrum_row{};
     std::vector<uint8_t> spectrum_data{};
