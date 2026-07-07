@@ -180,7 +180,8 @@ void TetraChannelDecoder::parse_mac_pdu(Result& result) {
     }
 }
 
-TetraRxView::TetraRxView(NavigationView& nav) : nav_{nav} {
+TetraRxView::TetraRxView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi, &channel, &field_rf_amp, &field_lna, &field_vga,
