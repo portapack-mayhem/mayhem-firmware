@@ -137,25 +137,24 @@ class TetraRxView : public View {
     uint32_t h_valid_count{0};
     uint32_t dnb_count{0};
 
-    RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
-    LNAGainField field_lna{{15 * 8, UI_POS_Y(0)}};
-    VGAGainField field_vga{{18 * 8, UI_POS_Y(0)}};
-    RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
-    Channel channel{{UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
-
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
+    RFAmpField field_rf_amp{{UI_POS_X(13), UI_POS_Y(0)}};
+    LNAGainField field_lna{{UI_POS_X(15), UI_POS_Y(0)}};
+    VGAGainField field_vga{{UI_POS_X(18), UI_POS_Y(0)}};
+    RSSI rssi{{UI_POS_X_RIGHT(9), UI_POS_Y(0), UI_POS_WIDTH(9), 4}};
+    Channel channel{{UI_POS_X_RIGHT(9), UI_POS_Y(0) + 5, UI_POS_WIDTH(9), 4}};
 
-    Text text_mcc{{0, 1 * 16, 120, 16}, "MCC: ---"};
-    Text text_mnc{{120, 1 * 16, 120, 16}, "MNC: ---"};
-    Text text_ts{{0, 2 * 16, 120, 16}, "TS:  -"};
-    Text text_fn{{120, 2 * 16, 120, 16}, "FN:  -"};
-    Text text_bcc{{0, 3 * 16, 120, 16}, "BCC: -"};
-    Text text_enc{{120, 3 * 16, 120, 16}, "ENC: -"};
-    Text text_la{{0, 4 * 16, 120, 16}, "LA:  ----"};
-    Text text_pdu{{120, 4 * 16, 120, 16}, "PDU: ----"};
+    Text text_mcc{{UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "MCC: ---"};
+    Text text_mnc{{UI_POS_X(15), UI_POS_Y(1), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "MNC: ---"};
+    Text text_ts{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "TS:  -"};       // time slot
+    Text text_fn{{UI_POS_X(15), UI_POS_Y(2), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "FN:  -"};      // frame number
+    Text text_bcc{{UI_POS_X(0), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "BCC: -"};      // Base Station Color Code
+    Text text_enc{{UI_POS_X(15), UI_POS_Y(3), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "ENC: -"};     // encoded or not
+    Text text_la{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "LA:  ----"};    // Location Area
+    Text text_pdu{{UI_POS_X(15), UI_POS_Y(4), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)}, "PDU: ----"};  // pdu content type
 
-    Text text_debug{{0, 5 * 16, screen_width, 16}, "Syn: 0, V: 0, H: 0, E:0"};
-    Console console{{0, 6 * 16 + 8, screen_width, screen_height - (7 * 16 + 8)}};
+    Text text_debug{{UI_POS_X(0), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "Syn: 0, V: 0, H: 0, E:0"};  // sync, valid, h_valid, errors corrected in top part
+    Console console{{UI_POS_X(0), UI_POS_Y(6) + 8, UI_POS_MAXWIDTH, screen_height - (UI_POS_Y(7) + 8)}};
 
     TetraChannelDecoder decoder{};
 
