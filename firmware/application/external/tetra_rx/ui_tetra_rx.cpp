@@ -242,7 +242,7 @@ void TetraRxView::on_data_dnb(const TetraDnbMessage& message) {
         std::string enc_str = (result.encryption != 0) ? "Encrypted" : "Clear";
         text_enc.set("ENC: " + enc_str);
 
-        if (rate_limiter++ < 4) console.writeln("DNB: " + decoder.get_pdu_name(result.pdu_type));
+        if (rate_limiter++ < 2) console.writeln("DNB: " + decoder.get_pdu_name(result.pdu_type));
     }
 }
 
