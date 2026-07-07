@@ -49,11 +49,12 @@ void TetraProcessor::execute(const buffer_c8_t& buffer) {
             int32_t err_q = (mid_sample.imag() * (prompt_sample.imag() - prev_prompt.imag()));
             int32_t timing_error = err_i + err_q;
 
-            symbol_phase_inc += (timing_error >> 16);
-
+            const int64_t delta = (timing_error >> 16);
+            int64_t inc = static_cast<int64_t>(symbol_phase_inc) + delta;
             // CLAMPING: Prevent the NCO from drifting into the noise!
-            if (symbol_phase_inc < 1600000000) symbol_phase_inc = 1600000000;
-            if (symbol_phase_inc > 1620000000) symbol_phase_inc = 1620000000;
+            if (inc < 1600000000) inc = 1600000000;
+            if (inc > 1620000000) inc = 1620000000;
+            symbol_phase_inc = static_cast<uint32_t>(inc);
 
             process_symbol(prompt_sample);
         }
