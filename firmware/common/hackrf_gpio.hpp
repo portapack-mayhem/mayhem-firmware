@@ -35,13 +35,8 @@ namespace one {
 
 #ifdef PRALINE
 
-constexpr GPIO gpio_max2831_rx_enable = gpio[GPIO7_2];  // MAX2831 RX_ENABLE (PE_2)
-// constexpr GPIO gpio_max2831_rxhp = gpio[GPIO6_29];      // MAX2831 RXHP (PD_15)
 constexpr GPIO gpio_max2831_ld = gpio[GPIO4_11];  // MAX2831 Lock Detect (P9_6)
-// Legacy aliases for code compatibility
-constexpr GPIO gpio_max2837_rxenable = gpio[GPIO7_2];
-constexpr GPIO gpio_max2837_txenable = gpio[GPIO7_2];  // MAX2831 uses single RX/TX control
-constexpr GPIO gpio_max2839_rxtx = gpio[GPIO7_2];
+
 #else
 
 constexpr GPIO gpio_max2837_rxenable = gpio[GPIO2_5];
