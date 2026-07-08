@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
 # Copyright (C) 2024 Mark Thompson
-# copyleft 2025 zxkmm AKA zix aka sommermorgentraum
+# copyleft 2025 zxkmm
 #
 # This file is part of PortaPack.
 #

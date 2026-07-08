@@ -328,8 +328,8 @@ void GlassView::update_min(int32_t v) {
         min_size = search_span;
     if (min_size < 1)
         min_size = 1;
-    if (v > 7200 - min_size) {
-        v = 7200 - min_size;
+    if (v > LOOKING_GLASS_MAX_FREQ_MHZ - min_size) {
+        v = LOOKING_GLASS_MAX_FREQ_MHZ - min_size;
     }
     if (v > (field_frequency_max.value() - min_size))
         field_frequency_max.set_value(v + min_size, false);
@@ -347,6 +347,9 @@ void GlassView::update_max(int32_t v) {
         min_size = 1;
     if (v < min_size) {
         v = min_size;
+    }
+    if (v > LOOKING_GLASS_MAX_FREQ_MHZ) {
+        v = LOOKING_GLASS_MAX_FREQ_MHZ;
     }
     if (v < (field_frequency_min.value() + min_size))
         field_frequency_min.set_value(v - min_size, false);
@@ -630,7 +633,7 @@ void GlassView::load_presets() {
                 parse_int(cols[1], entry.max);
                 entry.label = trimr(cols[2]);
 
-                if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
+                if (entry.max == 0 || entry.min >= entry.max)
                     continue;  // Invalid line.
 
                 presets_db.emplace_back(std::move(entry));

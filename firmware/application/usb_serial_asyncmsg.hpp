@@ -1,5 +1,5 @@
 /*
- * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
+ * copyleft 2024 zxkmm
  * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.

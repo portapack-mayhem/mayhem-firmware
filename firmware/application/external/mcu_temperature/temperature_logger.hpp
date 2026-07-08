@@ -27,6 +27,8 @@
 #include <array>
 #include <vector>
 
+namespace ui::external_app::mcu_temperature {
+
 class TemperatureLogger {
    public:
     using sample_t = int8_t;
@@ -48,5 +50,7 @@ class TemperatureLogger {
     sample_t read_sample();
     void push_sample(const sample_t sample);
 };
+
+}  // namespace ui::external_app::mcu_temperature
 
 #endif /*__TEMPERATURE_LOGGER_H__*/

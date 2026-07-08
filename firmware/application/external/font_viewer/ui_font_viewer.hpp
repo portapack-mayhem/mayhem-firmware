@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2023 Mark Thompson
- * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
+ * copyleft 2024 zxkmm
  *
  * This file is part of PortaPack.
  *

@@ -239,7 +239,6 @@ set(CPPSRC
 	serializer.cpp
 	spectrum_color_lut.cpp
 	string_format.cpp
-	temperature_logger.cpp
 	theme.cpp
 	touch.cpp
 	tone_key.cpp
