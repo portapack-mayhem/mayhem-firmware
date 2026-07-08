@@ -326,6 +326,8 @@ void GlassView::update_min(int32_t v) {
     int32_t min_size = steps;
     if (locked_range)
         min_size = search_span;
+    if (min_size < 1)
+        min_size = 1;
     if (v > LOOKING_GLASS_MAX_FREQ_MHZ - min_size) {
         v = LOOKING_GLASS_MAX_FREQ_MHZ - min_size;
     }
