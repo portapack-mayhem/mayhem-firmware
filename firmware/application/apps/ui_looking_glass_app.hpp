@@ -150,12 +150,6 @@ class GlassView : public View {
     uint8_t min_color_power{0};  // Filter cutoff level.
     uint32_t pixel_index{0};
 
-    ImageButton button_play{
-        {UI_POS_X_RIGHT(2), UI_POS_Y(3), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
-        &bitmap_stop,
-        Theme::getInstance()->fg_green->foreground,
-        Theme::getInstance()->fg_green->background};
-
     std::vector<Color> spectrum_row{};
     std::vector<uint8_t> spectrum_data{};
     ChannelSpectrumFIFO* fifo{};
@@ -228,6 +222,12 @@ class GlassView : public View {
     ButtonWithEncoder button_beep_squelch{
         {UI_POS_X_RIGHT(8), UI_POS_Y(2.25), UI_POS_WIDTH(8), UI_POS_HEIGHT(0.5)},
         ""};
+
+    ImageButton button_play{
+        {UI_POS_X_RIGHT(2), UI_POS_Y(3.25) - 2, UI_POS_WIDTH(2), UI_POS_HEIGHT(0.5)},
+        &bitmap_stop,
+        Theme::getInstance()->fg_green->foreground,
+        Theme::getInstance()->fg_green->background};
 
     TextField field_marker{
         {UI_POS_X(12), UI_POS_Y(3), UI_POS_WIDTH(9), UI_POS_HEIGHT(1)},
