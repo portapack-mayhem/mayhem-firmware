@@ -48,7 +48,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     // True when current 406 frame is a 2nd generation DSSS-OQPSK frame
     bool mode_sgb{false};
     // True when in self-test mode (detected from bit 5 of message.data)
-    bool mode_sgb_selftest{false};
+    bool mode_sgb_selftest{true};
 
     // True when the transmission has to be stopped (e.g. at the end of a frame)
     bool end_of_transmission{};
@@ -114,8 +114,8 @@ class EPIRBTXProcessor : public BasebandProcessor {
 
     static constexpr uint32_t sgb_init_normal_i = 0x1;
     static constexpr uint32_t sgb_init_normal_q = 0x1AC1FC;
-    static constexpr uint32_t sgb_init_selftest_i = 0x52C9E0;
-    static constexpr uint32_t sgb_init_selftest_q = 0x3D2A50;
+    static constexpr uint32_t sgb_init_selftest_i = 0x52C9F0;
+    static constexpr uint32_t sgb_init_selftest_q = 0x3CE928;
 
     struct SGBChannelState {
         uint32_t prn_state = 1;

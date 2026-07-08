@@ -157,7 +157,7 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
             text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_FGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_FGB, BEACON_HEXA_SPLIT_FGB) : "");
             text_frame_sgb_end.set("");
         } else {
-            text_frame.set(beacon.frame.substr(0, BEACON_HEXA_SPLIT_SGB));
+            text_frame.set(" "+beacon.frame.substr(1, BEACON_HEXA_SPLIT_SGB-1));
             text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
             text_frame_sgb_end.set(beacon.frame.size() > 2*BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(2*BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");;
         }
@@ -174,7 +174,8 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         // Update frame content on display
         if (format_sgb) {
             // SGB: 32 bytes across 3 lines (BEACON_HEXA_SPLIT_SGB = 22 hex chars = 11 bytes)
-            text_frame.set(frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_SGB / 2));
+            // Remove first nibble and replace it with a space to match COSPAS hexadecimal representation specification
+            text_frame.set(" "+frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_SGB / 2).substr(1));
             text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB  / 2, BEACON_HEXA_SPLIT_SGB / 2));
             text_frame_sgb_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB, (BEACON_HEXA_SPLIT_SGB / 2)-1));
         } else {

@@ -312,7 +312,7 @@ class EPIRBTXAppView : public View {
          {"PLB", (uint8_t)BeaconType::PLB}}};
     OptionsField options_beacon_protocol{
         {UI_POS_X(9 + 7), UI_POS_Y(1)},
-        30,
+        8,
         {{"User", (uint8_t)BeaconProtocol::USER},
          {"Standard", (uint8_t)BeaconProtocol::STANDARD},
          {"National", (uint8_t)BeaconProtocol::NATIONAL}}};
