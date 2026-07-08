@@ -379,6 +379,11 @@ set(EXTCPPSRC
   #signal_hunter
   external/signal_hunter/main.cpp
   external/signal_hunter/ui_signal_hunter.cpp
+
+  	#rds_rx
+    external/rds_rx/main.cpp
+  	external/rds_rx/ui_rds_rx.cpp
+
 )
 
 set(EXTAPPLIST
@@ -471,7 +476,8 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
-  signal_hunter
+  	signal_hunter
+  	rds_rx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

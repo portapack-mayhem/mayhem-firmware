@@ -776,6 +776,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(HUNT signal_hunter)
 
+### RDSRX
+
+set(MODE_CPPSRC
+    proc_rds_rx.cpp
+)
+DeclareTargets(PRRD rds_rx)
+
 
 
 ### Time Sink

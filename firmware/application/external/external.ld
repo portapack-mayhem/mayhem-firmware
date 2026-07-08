@@ -114,6 +114,7 @@ MEMORY
     ram_external_app_vor_rx                (rwx) : org = 0xAE090000, len = 32k
     ram_external_app_vor_tx                (rwx) : org = 0xAE0A0000, len = 32k
     ram_external_app_signal_hunter         (rwx) : org = 0xAE0B0000, len = 32k
+    ram_external_app_rds_rx                (rwx) : org = 0xAE0C0000, len = 32k
 }
 
 SECTIONS
@@ -663,4 +664,11 @@ SECTIONS
       KEEP(*(.external_app.app_signal_hunter.application_information));
       *(*ui*external_app*signal_hunter*);
     } > ram_external_app_signal_hunter
+
+
+    .external_app_rds_rx : ALIGN(4) SUBALIGN(4)
+    {
+      KEEP(*(.external_app.app_rds_rx.application_information));
+      *(*ui*external_app*rds_rx*);
+    } > ram_external_app_rds_rx
 }
