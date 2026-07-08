@@ -200,7 +200,7 @@ Build options:
   -G, --generator <name>         CMake generator (default: Ninja)
   -j, --jobs <n>                 Build parallelism (default: host CPU count)
   --target <name>                Build a specific target
-    --clean                        Remove build directory, run libopencm3 clean, and exit
+  --clean                        Remove build directory, run libopencm3 clean, and exit
   --cmake-arg <arg>              Extra CMake configure arg (repeatable)
   --build-arg <arg>              Extra cmake --build arg (repeatable)
   -y, --non-interactive          Fail instead of prompting when required input is missing
