@@ -351,17 +351,17 @@ std::string beacon_to_hex_string_range(const uint8_t* frame, int offset_bytes, i
 // ---------------------------------------------------------------------------
 
 // Reference values from T.018 canonical test vector (Appendix B.1)
-#define SGB_TAC_NUMBER     230      // TAC number (16 bits, 0–65535)
-#define SGB_SERIAL_NUMBER  573      // Serial number within TAC (14 bits, 0–16383)
-#define SGB_HOMING_DEVICE  1        // 1 = beacon has 121.5 / 243 MHz homing device
-#define SGB_RLS_FUNCTION   0        // 0 = no Return Link Service function
+#define SGB_TAC_NUMBER 230     // TAC number (16 bits, 0–65535)
+#define SGB_SERIAL_NUMBER 573  // Serial number within TAC (14 bits, 0–16383)
+#define SGB_HOMING_DEVICE 1    // 1 = beacon has 121.5 / 243 MHz homing device
+#define SGB_RLS_FUNCTION 0     // 0 = no Return Link Service function
 
 // BCH(250,202) generator polynomial — lower 48 bits (without leading X^48 term)
 // Full g(x): X^48+X^47+X^46+X^42+X^41+X^40+X^39+X^38+X^37+X^35+X^33+X^32+X^31
 //            +X^26+X^24+X^23+X^22+X^20+X^19+X^18+X^17+X^16+X^13+X^12+X^11+X^10
 //            +X^7+X^4+X^2+X+1
 // Binary MSB-first: 1110001111110101110000101110111110011110010010111 (T.018 App. B.1)
-#define SGB_BCH_G_LOWER    UINT64_C(0xC7EB85DF3C97)
+#define SGB_BCH_G_LOWER UINT64_C(0xC7EB85DF3C97)
 
 /**
  * Encode latitude for SGB GNSS location protocol (T.018 Appendix C)
@@ -433,10 +433,13 @@ static void compute_sgb_bch(uint8_t* frame) {
  */
 static uint8_t sgb_beacon_type_code(BeaconType t) {
     switch (t) {
-        case BeaconType::EPIRB: return 0b001;
-        case BeaconType::PLB:   return 0b010;
+        case BeaconType::EPIRB:
+            return 0b001;
+        case BeaconType::PLB:
+            return 0b010;
         default:
-        case BeaconType::ELT:   return 0b000;
+        case BeaconType::ELT:
+            return 0b000;
     }
 }
 

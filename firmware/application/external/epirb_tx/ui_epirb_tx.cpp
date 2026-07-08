@@ -152,14 +152,15 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         file_mode_ui->text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
         // Udapte frame content on display
         bool is_fgb = beacon.frame.size() <= BEACON_HEXA_SIZE_FGB;
-        if(is_fgb) {
+        if (is_fgb) {
             text_frame.set(beacon.frame.substr(0, BEACON_HEXA_SPLIT_FGB));
             text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_FGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_FGB, BEACON_HEXA_SPLIT_FGB) : "");
             text_frame_sgb_end.set("");
         } else {
-            text_frame.set(" "+beacon.frame.substr(1, BEACON_HEXA_SPLIT_SGB-1));
+            text_frame.set(" " + beacon.frame.substr(1, BEACON_HEXA_SPLIT_SGB - 1));
             text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
-            text_frame_sgb_end.set(beacon.frame.size() > 2*BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(2*BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");;
+            text_frame_sgb_end.set(beacon.frame.size() > 2 * BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(2 * BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
+            ;
         }
         // Prepare tx configuration
         epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size() / 2), BEACON_SIZE_SGB);
@@ -175,9 +176,9 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         if (format_sgb) {
             // SGB: 32 bytes across 3 lines (BEACON_HEXA_SPLIT_SGB = 22 hex chars = 11 bytes)
             // Remove first nibble and replace it with a space to match COSPAS hexadecimal representation specification
-            text_frame.set(" "+frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_SGB / 2).substr(1));
-            text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB  / 2, BEACON_HEXA_SPLIT_SGB / 2));
-            text_frame_sgb_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB, (BEACON_HEXA_SPLIT_SGB / 2)-1));
+            text_frame.set(" " + frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_SGB / 2).substr(1));
+            text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB / 2, BEACON_HEXA_SPLIT_SGB / 2));
+            text_frame_sgb_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB, (BEACON_HEXA_SPLIT_SGB / 2) - 1));
         } else {
             text_frame.set(frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_FGB / 2));
             text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_FGB / 2, BEACON_HEXA_SPLIT_FGB / 2));
@@ -689,12 +690,11 @@ void EPIRBTXAppView::load_beacons() {
             beacon.title = trim(cols[0]);
             beacon.description = trim(cols[1]);
             // 1G uses up to 36 hex chars, 2G uses 64 hex chars (250 bits rounded to 32 bytes).
-            beacon.frame = trim(cols[2]).substr(0, BEACON_HEXA_SIZE_SGB );
+            beacon.frame = trim(cols[2]).substr(0, BEACON_HEXA_SIZE_SGB);
             size_t size = beacon.frame.size();
             if (size <= 0)
                 continue;  // Invalid line.
-            if((size % 2) != 0)
-            {
+            if ((size % 2) != 0) {
                 beacon.frame = "0" + beacon.frame;  // Pad with leading 0 to make it even length
             }
             // Beacon is valid, add it to the list

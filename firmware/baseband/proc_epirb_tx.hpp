@@ -100,7 +100,7 @@ class EPIRBTXProcessor : public BasebandProcessor {
     bool manchester_half = false;  // false = first half
 
     // 2G SGB DSSS-OQPSK parameters
-    static constexpr uint16_t sgb_message_bits = 256; // 250 bits of data + 6 bits padding
+    static constexpr uint16_t sgb_message_bits = 256;  // 250 bits of data + 6 bits padding
     static constexpr uint32_t sgb_chip_rate = 38400;
     static constexpr uint32_t sgb_chips_per_bit = 256;
     static constexpr uint32_t sgb_preamble_bits_per_channel = 25;

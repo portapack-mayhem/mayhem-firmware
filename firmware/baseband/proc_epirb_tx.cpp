@@ -247,7 +247,7 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
                 frame_data_len = message.data_len;
 
                 if (mode_sgb) {
-                    frame_sgb_bits_len = std::min<uint16_t>(((uint16_t)message.data_len)*8, sgb_message_bits); // Total bits in the frame
+                    frame_sgb_bits_len = std::min<uint16_t>(((uint16_t)message.data_len) * 8, sgb_message_bits);  // Total bits in the frame
                     frame_data_len = std::min<uint8_t>(frame_data_len, frame_data_sgb_len);
                     // Detect self-test mode: bit 5 of message.data[0]
                     mode_sgb_selftest = (message.data[0] >> 3) & 0x01;
