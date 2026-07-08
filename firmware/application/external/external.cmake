@@ -169,6 +169,7 @@ set(EXTCPPSRC
 	#mcu_temperature    112
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
+	external/mcu_temperature/temperature_logger.cpp
 
 	#fmradio  640
 	external/fmradio/main.cpp

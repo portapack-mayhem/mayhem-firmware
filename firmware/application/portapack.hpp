@@ -36,7 +36,6 @@
 
 #include "radio.hpp"
 #include "clock_manager.hpp"
-#include "temperature_logger.hpp"
 #include "theme.hpp"
 
 /* TODO: This would be better as a class to add
@@ -68,8 +67,6 @@ extern TransmitterModel transmitter_model;
 
 extern uint32_t bl_tick_counter;
 extern uint16_t touch_threshold;
-
-extern TemperatureLogger temperature_logger;
 
 /* Get or set the antenna_bias flag.
  * NB: Does not actually update the radio state. */

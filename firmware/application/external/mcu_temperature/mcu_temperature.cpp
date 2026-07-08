@@ -8,14 +8,12 @@ using namespace portapack;
 namespace ui::external_app::mcu_temperature {
 
 void McuTemperatureWidget::paint(Painter& painter) {
-    const auto logger = portapack::temperature_logger;
-
     const auto rect = screen_rect();
     const Color color_background{0, 0, 64};
     const Color color_foreground = Theme::getInstance()->fg_green->foreground;
     const Color color_reticle{128, 128, 128};
 
-    const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
+    const auto graph_width = static_cast<int>(temperature_logger.capacity()) * bar_width;
     const Rect graph_rect{
         rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
         graph_width, rect.height()};
@@ -25,7 +23,7 @@ void McuTemperatureWidget::paint(Painter& painter) {
     painter.draw_rectangle(frame_rect, color_reticle);
     painter.fill_rectangle(graph_rect, color_background);
 
-    const auto history = logger.history();
+    const auto history = temperature_logger.history();
     for (size_t i = 0; i < history.size(); i++) {
         const Coord x = graph_rect.right() - (history.size() - i) * bar_width;
         const auto sample = history[i];

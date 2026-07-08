@@ -32,7 +32,7 @@
 #include "portapack.hpp"
 #include "memory_map.hpp"
 #include "irq_controls.hpp"
-
+#include "temperature_logger.hpp"
 #include <functional>
 #include <utility>
 
@@ -43,14 +43,25 @@ class McuTemperatureWidget : public Widget {
     explicit McuTemperatureWidget(
         Rect parent_rect)
         : Widget{parent_rect} {
+        signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+            this->on_tick_second();
+        };
     }
-
+    ~McuTemperatureWidget() {
+        rtc_time::signal_tick_second -= signal_token_tick_second;
+    }
+    void on_tick_second() {
+        temperature_logger.second_tick();
+        set_dirty();
+    }
     void paint(Painter& painter) override;
 
    private:
+    TemperatureLogger temperature_logger{};
+
     using sample_t = uint32_t;
     using temperature_t = int32_t;
-
+    SignalToken signal_token_tick_second{};
     temperature_t temperature(const sample_t sensor_value) const;
     Coord screen_y(const temperature_t temperature, const Rect& screen_rect) const;
 

@@ -5,7 +5,7 @@
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
  * Copyright (C) 2024 u-foka
- * copyleft 2024 zxkmm AKA zix aka sommermorgentraum
+ * copyleft 2024 zxkmm
  *
  * This file is part of PortaPack.
  *
