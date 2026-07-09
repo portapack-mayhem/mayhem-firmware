@@ -28,7 +28,7 @@
 #include <cstring>
 
 uint8_t EPIRBTXProcessor::get_frame_bit(uint16_t bit_pos) const {
-    // Sckip first 6 bits (padding for 250 bits -> 32 bytes)
+    // Skip first 6 bits (padding for 250 bits -> 32 bytes)
     bit_pos += 6;
     if (bit_pos >= frame_sgb_bits_len) {
         return 0;
