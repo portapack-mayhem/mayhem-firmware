@@ -27,30 +27,30 @@ class RdsRxView : public View {
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{"rx_rds", app_settings::Mode::RX};
 
-    RFAmpField field_rf_amp{{13 * 8, UI_POS_Y(0)}};
-    LNAGainField field_lna{{15 * 8, UI_POS_Y(0)}};
-    VGAGainField field_vga{{18 * 8, UI_POS_Y(0)}};
+    RFAmpField field_rf_amp{{UI_POS_X(13), UI_POS_Y(0)}};
+    LNAGainField field_lna{{UI_POS_X(15), UI_POS_Y(0)}};
+    VGAGainField field_vga{{UI_POS_X(18), UI_POS_Y(0)}};
 
     RxFrequencyField field_frequency{{UI_POS_X(0), UI_POS_Y(0)}, nav_};
 
-    RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
+    RSSI rssi{{UI_POS_X(21), UI_POS_Y(0), UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{{UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
-    Text text_pi{{0, 2 * 16, 8 * 12, 16}, "PI: ----"};
-    Text text_tp{{120, 2 * 16, 8 * 10, 16}, "TP: -"};
+    Text text_pi{{UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH(12), UI_POS_HEIGHT(1)}, "PI: ----"};
+    Text text_tp{{UI_POS_X(15), UI_POS_Y(2), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)}, "TP: -"};
 
-    Text text_pty{{0, 3 * 16, 240, 16}, "PTY: --"};
+    Text text_pty{{UI_POS_X(0), UI_POS_Y(3), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "PTY: --"};
 
-    Text text_ps_label{{0, 4 * 16, 8 * 4, 16}, "PS: "};
-    Text text_ps_name{{8 * 4, 4 * 16, 8 * 10, 16}, "        "};
+    Text text_ps_label{{UI_POS_X(0), UI_POS_Y(4), UI_POS_WIDTH(4), UI_POS_HEIGHT(1)}, "PS: "};
+    Text text_ps_name{{UI_POS_X(4), UI_POS_Y(4), UI_POS_WIDTH(10), UI_POS_HEIGHT(1)}, "        "};
 
-    Text text_rt_label{{0, 5 * 16, 240, 16}, "Radio Text:"};
-    // A 64 karakteres RT tördelve (Soronként maximum 30 karakter fér el)
-    Text text_rt_1{{0, 6 * 16, 240, 16}, ""};
-    Text text_rt_2{{0, 7 * 16, 240, 16}, ""};
-    Text text_rt_3{{0, 8 * 16, 240, 16}, ""};
+    Text text_rt_label{{UI_POS_X(0), UI_POS_Y(5), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "Radio Text:"};
 
-    Console console{{0, 9 * 16, screen_width, screen_height - (10 * 16)}};
+    Text text_rt_1{{UI_POS_X(0), UI_POS_Y(6), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+    Text text_rt_2{{UI_POS_X(0), UI_POS_Y(7), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+    Text text_rt_3{{UI_POS_X(0), UI_POS_Y(8), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+
+    Console console{{UI_POS_X(0), UI_POS_Y(9), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(10)}};
 
     char ps_name[9] = "        ";
     char radio_text[65] = {0};
