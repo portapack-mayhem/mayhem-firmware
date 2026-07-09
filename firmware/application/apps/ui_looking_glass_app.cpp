@@ -557,11 +557,13 @@ GlassView::GlassView(
     button_play.on_select = [this](ImageButton&) {
         paused = !paused;
         if (paused) {
-            button_play.set_style(Theme::getInstance()->fg_red);
+            button_play.set_foreground(Theme::getInstance()->fg_red->foreground);
+            button_play.set_background(Theme::getInstance()->fg_red->background);
             baseband::spectrum_streaming_stop();
             button_play.set_bitmap(&bitmap_play);
         } else {
-            button_play.set_style(Theme::getInstance()->fg_green);
+            button_play.set_foreground(Theme::getInstance()->fg_green->foreground);
+            button_play.set_background(Theme::getInstance()->fg_green->background);
             baseband::spectrum_streaming_start();
             button_play.set_bitmap(&bitmap_stop);
         }
