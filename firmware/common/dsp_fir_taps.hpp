@@ -2070,4 +2070,20 @@ static constexpr fir_taps_complex<63> taps_1k5_LSB_channel = {
     }},
 };
 
+// TETRA 25kHz filters
+// IFIR wideband pre-filter: fs=3072000, pass=90000, decim=8, fout=384000
+constexpr fir_taps_real<24> taps_25k0_tetra_decim_0 = {
+    .low_frequency_normalized = -90000.0f / 3072000.0f,
+    .high_frequency_normalized = 90000.0f / 3072000.0f,
+    .transition_normalized = 160000.0f / 3072000.0f,
+    .taps = {{55, 122, 244, 424, 666, 965, 1308, 1669, 2019, 2321, 2544, 2663, 2663, 2544, 2321, 2019, 1669, 1308, 965, 666, 424, 244, 122, 55}},
+};
+// IFIR channel filter: fs=384000, pass=15000, decim=8, fout=48000
+constexpr fir_taps_real<32> taps_25k0_tetra_decim_1 = {
+    .low_frequency_normalized = -15000.0f / 384000.0f,
+    .high_frequency_normalized = 15000.0f / 384000.0f,
+    .transition_normalized = 25000.0f / 384000.0f,
+    .taps = {{2, -18, -60, -124, -198, -259, -267, -177, 53, 448, 1003, 1677, 2398, 3068, 3585, 3868, 3868, 3585, 3068, 2398, 1677, 1003, 448, 53, -177, -267, -259, -198, -124, -60, -18, 2}},
+};
+
 #endif /*__DSP_FIR_TAPS_H__*/

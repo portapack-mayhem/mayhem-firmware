@@ -168,6 +168,8 @@ class Message {
         HunterConfig = 110,
         HunterTrigger = 111,
         HunterStop = 112,
+        TetraBsch = 113,
+        TetraDnb = 114,
         MAX
     };
 
@@ -1134,11 +1136,11 @@ class SigGenToneMessage : public Message {
 
 class EPIRBTXDataMessage : public Message {
    public:
-    static constexpr uint8_t max_len = 18;
+    static constexpr uint8_t max_len = 32;
     constexpr EPIRBTXDataMessage()
         : Message{ID::EPIRBTXData} {
     }
-    bool mode_bpsk = true;
+    bool mode_406 = true;
     uint8_t data[max_len]{0};
     uint8_t data_len = 0;
     uint32_t pre_count = 0;
@@ -2009,4 +2011,46 @@ class HunterStopMessage : public Message {
         : Message{ID::HunterStop} {}
 };
 
+struct TetraBurstMessage : public Message {
+    constexpr TetraBurstMessage(
+        const uint8_t* bits,
+        bool inv,
+        uint8_t err)
+        : Message(Message::ID::TetraBsch),
+          inverted(inv),
+          sync_errors(err),
+          payload{} {
+        for (size_t i = 0; i < 63; i++)
+            payload[i] = bits[i];
+    }
+
+    bool inverted;
+    uint8_t sync_errors;
+
+    // 500 bit
+    std::array<uint8_t, 63> payload;
+};
+
+struct TetraDnbMessage : public Message {
+    constexpr TetraDnbMessage(
+        const uint8_t* bits,
+        bool inv,
+        uint8_t err,
+        bool p_train)
+        : Message(Message::ID::TetraDnb),
+          inverted(inv),
+          train_errors(err),
+          is_p_train(p_train),
+          payload{} {
+        for (size_t i = 0; i < 54; i++)
+            payload[i] = bits[i];
+    }
+
+    bool inverted;
+    uint8_t train_errors;
+    bool is_p_train;
+
+    // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
+    std::array<uint8_t, 54> payload;
+};
 #endif /*__MESSAGE_H__*/

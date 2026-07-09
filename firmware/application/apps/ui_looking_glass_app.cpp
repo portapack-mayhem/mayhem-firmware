@@ -401,7 +401,7 @@ GlassView::GlassView(
                   &button_jump,
                   &button_rst,
                   &button_rssi,
-                  &freq_stats});
+                  &freq_stats, &button_play});
 
     load_presets();  // Load available presets from TXT files (or default).
     preset_index = clip<uint8_t>(preset_index, 0, presets_db.size());
@@ -555,6 +555,21 @@ GlassView::GlassView(
             button.set_style(Theme::getInstance()->bg_darkest);
         }
         reset_live_view();
+    };
+
+    button_play.on_select = [this](ImageButton&) {
+        paused = !paused;
+        if (paused) {
+            button_play.set_foreground(Theme::getInstance()->fg_red->foreground);
+            button_play.set_background(Theme::getInstance()->fg_red->background);
+            baseband::spectrum_streaming_stop();
+            button_play.set_bitmap(&bitmap_play);
+        } else {
+            button_play.set_foreground(Theme::getInstance()->fg_green->foreground);
+            button_play.set_background(Theme::getInstance()->fg_green->background);
+            baseband::spectrum_streaming_start();
+            button_play.set_bitmap(&bitmap_stop);
+        }
     };
 
     display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
