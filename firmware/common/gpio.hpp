@@ -403,7 +403,7 @@ constexpr PinMap map_sct_clk_in{6, 4, 3, 3, 1};
 constexpr PinMap map_max283x_select{13, 14, 6, 28, 4};
 constexpr PinMap map_max283x_enable{14, 1, 7, 1, 4};
 constexpr PinMap map_max2831_rxtx_enable{14, 2, 7, 2, 4};
-constexpr PinMap map_max2831_rxhp{13, 15, 6, 29, 4};  // TODO: Enable when changing LNA/VGA!
+constexpr PinMap map_max2831_rxhp{13, 15, 6, 29, 4};
 
 // constexpr PinMap map_unused_1{2, 7, 0, 7, 0};
 

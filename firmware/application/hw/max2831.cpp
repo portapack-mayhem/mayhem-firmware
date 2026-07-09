@@ -395,45 +395,38 @@ void MAX2831::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {
     }
 }
 
-bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
+bool MAX2831::set_frequency(const rf::Frequency lo_frequency, const uint8_t ref_divider) {
     /*
      * MAX2831 frequency synthesis from GSG reference max2831_set_frequency():
-     *   F_LO = F_REF * (N + F/2^20) / R
+     * F_LO = F_REF * (N + F/2^20) / R
      * Where:
-     *   F_REF = 40 MHz reference
-     *   R = reference divider (1 or 2), we use R=2
-     *   N = integer divider (8 bits)
-     *   F = fractional divider (20 bits)
-     *
-     * Using R=2: F_LO = 40M * (N + F/2^20) / 2 = 20M * (N + F/2^20)
+     * F_REF = 40 MHz reference
+     * R = reference divider (1 or 2)
+     * N = integer divider
+     * F = fractional divider (20 bits)
      */
-
-    /* MAX2831 supports 2.3-2.6 GHz */
-    // if (lo_frequency < MAX2831_MIN_LO_FREQUENCY_HZ || lo_frequency > MAX2831_MAX_LO_FREQUENCY_HZ) {
-    //     return false;
-    // }
 
     bool valid = (lo_frequency >= MAX2831_MIN_LO_FREQUENCY_HZ && lo_frequency <= MAX2831_MAX_LO_FREQUENCY_HZ);
 
-    // TRACK REQUEST IMMEDIATELY
     max2831_info.requested_freq_mhz = lo_frequency / 1000000;
     max2831_info.set_frequency_called = true;
     max2831_info.frequency_valid = valid;
 
-    if (!valid) {
+    if (!valid || ref_divider == 0 || ref_divider > 2) {
         max2831_info.calculated_n = 0;
         max2831_info.calculated_frac = 0;
         return false;
     }
 
-    /* From GSG reference: ASSUME 40MHz PLL. Ratio = F*R/40,000,000.
-     * TODO: fixed to R=2. Check if it's worth exploring R=1. */
+    /* F_step = F_REF / R -> if R=2, then 20 MHz, if R=1, then 40 MHz step interval */
+    uint32_t ref_freq_scaled = 40000000UL / ref_divider;
+
     uint32_t freq = lo_frequency;
-    freq += (20000000 >> 21); /* Round to nearest frequency */
-    uint32_t div_int = freq / 20000000;
-    uint32_t div_rem = freq % 20000000;
+    freq += (ref_freq_scaled >> 21); /* Round to nearest frequency */
+    uint32_t div_int = freq / ref_freq_scaled;
+    uint32_t div_rem = freq % ref_freq_scaled;
     uint32_t div_frac = 0;
-    uint32_t div_cmp = 20000000;
+    uint32_t div_cmp = ref_freq_scaled;
 
     for (int i = 0; i < 20; i++) {
         div_frac <<= 1;
@@ -444,12 +437,12 @@ bool MAX2831::set_frequency(const rf::Frequency lo_frequency) {
         }
     }
 
-    // TRACK CALCULATED VALUES
     max2831_info.calculated_n = div_int;
     max2831_info.calculated_frac = div_frac;
 
-    /* Write order matters - matches GSG reference */
     /* REG 3: SYN_INT (bits 7:0) and SYN_FRAC_LO (bits 13:8) */
+    /* Here, if the R-divider needs to be written to a register as a separate bit (provided the chip supports an R-bit in the register),
+     * we can include that as well, but in most cases, the scalar change in the reference frequency is sufficient for the calculation. */
     uint16_t reg3_val = (div_int & 0xFF) | ((div_frac & 0x3F) << 8);
     _regs[3] = reg3_val;
     mark_dirty(3);
@@ -494,13 +487,11 @@ int8_t MAX2831::temp_sense() {
     set_rssi_mux(3);
     chThdSleepMilliseconds(5);
 
-    // --- ADC HIJACKING (Most már órajel védelemmel!) ---
     uint32_t saved_cr = LPC_ADC1->CR;
     uint32_t cr_temp = saved_cr;
     cr_temp &= ~0xFF;
     cr_temp |= (1 << portapack::adc1_rssi_input);
 
-    // BIZTONSÁGI VÉDELEM: Ha az ADC osztó 0 (pl. boot után), belerakunk egy lassú, 255-ös osztót
     if (((cr_temp >> 8) & 0xFF) == 0) {
         cr_temp |= (0xFF << 8);
     }
@@ -520,7 +511,6 @@ int8_t MAX2831::temp_sense() {
     uint32_t adc_raw = (val >> 6) & 0x3FF;
 
     LPC_ADC1->CR = saved_cr;
-    // --- HIJACKING VÉGE ---
 
     if (not_in_rx) {
         set_mode(_mode);
@@ -530,7 +520,6 @@ int8_t MAX2831::temp_sense() {
 
     float v_adc = (adc_raw / 1023.0f) * 3.3f;
 
-    // A te hardvered valós feszültsége 25°C-on (1.05V helyett 1.185V)
     constexpr float V_25_CELSIUS = 1.185f;
     constexpr float SLOPE = 0.003f;
 
