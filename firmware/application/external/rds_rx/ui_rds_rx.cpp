@@ -14,7 +14,8 @@ static const char* pty_names[32] = {
     "Weather", "Finance", "Children", "Social", "Religion", "Phone In", "Travel", "Leisure",
     "Jazz", "Country", "Nation M", "Oldies", "Folk M", "Document", "Test", "Alarm"};
 
-RdsRxView::RdsRxView(NavigationView& nav) : nav_{nav} {
+RdsRxView::RdsRxView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi, &channel, &field_rf_amp, &field_lna, &field_vga,

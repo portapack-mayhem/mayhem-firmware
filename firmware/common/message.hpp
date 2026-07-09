@@ -2021,7 +2021,8 @@ struct RDSGroupMessage : public Message {
         bool c_prime,
         bool is_debug,
         uint32_t dbg_1,
-        uint32_t dbg_2) : Message{ID::RdsData}, block_a{a}, block_b{b}, block_c{c}, block_d{d}, is_c_prime{c_prime}, is_debug{is_debug}, debug_1{dbg_1}, debug_2{dbg_2} {}
+        uint32_t dbg_2)
+        : Message{ID::RdsData}, block_a{a}, block_b{b}, block_c{c}, block_d{d}, is_c_prime{c_prime}, is_debug{is_debug}, debug_1{dbg_1}, debug_2{dbg_2} {}
 
     uint16_t block_a;
     uint16_t block_b;
