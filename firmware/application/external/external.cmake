@@ -380,6 +380,17 @@ set(EXTCPPSRC
   #signal_hunter
   external/signal_hunter/main.cpp
   external/signal_hunter/ui_signal_hunter.cpp
+
+
+	#tetra rx
+	external/tetra_rx/main.cpp
+	external/tetra_rx/ui_tetra_rx.cpp
+	external/tetra_rx/tetra_crc.cpp
+	external/tetra_rx/tetra_descrambler.cpp
+	external/tetra_rx/tetra_interleave.cpp
+	external/tetra_rx/tetra_rcpc.cpp
+	external/tetra_rx/tetra_viterbi.cpp
+
 )
 
 set(EXTAPPLIST
@@ -473,6 +484,7 @@ set(EXTAPPLIST
 	hard_reset
 	secplustx
   signal_hunter
+	tetra_rx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
