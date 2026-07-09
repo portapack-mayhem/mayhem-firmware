@@ -238,7 +238,7 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
             mode_406 = message.mode_406;
             if (mode_406) {
                 // 406 MHz frame mode:
-                // - FGG if data_len <= 144 bits (i.e. 18 bytes)
+                // - FGB if data_len <= 144 bits (i.e. 18 bytes)
                 // - SGB if data_len > 144 bits (actually 250 bits (i.e. 32 bytes))
                 config_pre_count = message.pre_count;
                 config_post_count = message.post_count;
@@ -249,7 +249,7 @@ void EPIRBTXProcessor::on_message(const Message* const msg) {
                 if (mode_sgb) {
                     frame_sgb_bits_len = std::min<uint16_t>(((uint16_t)message.data_len) * 8, sgb_message_bits);  // Total bits in the frame
                     frame_data_len = std::min<uint8_t>(frame_data_len, frame_data_sgb_len);
-                    // Detect self-test mode: bit 5 of message.data[0]
+                    // Detect self-test mode: bit 5 (1 based index as per specification) of message.data[0]
                     mode_sgb_selftest = (message.data[0] >> 3) & 0x01;
                 } else {
                     frame_data_len = std::min<uint8_t>(frame_data_len, frame_data_fgb_max_len);

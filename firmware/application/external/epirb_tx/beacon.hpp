@@ -457,7 +457,7 @@ static uint8_t sgb_beacon_type_code(BeaconType t) {
 size_t generate_sgb_beacon(uint8_t* frame, const BeaconParams& params, uint32_t elapsed_s) {
     memset(frame, 0, 32);
 
-    // 6 padding bits at start of 32-byte buffer: [0,0,0,0,1,0]  (5th bit = 1 to indicate self-test mode)
+    // 6 padding bits at start of 32-byte buffer: [0,0,0,0,1,0]  (5th bit (1 based index as per specification) = 1 to indicate self-test mode)
     set_bit(frame, 4, 1);
 
     // Message bits start at buffer bit position 6 (= SGB message bit 1)

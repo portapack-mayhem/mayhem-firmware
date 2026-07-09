@@ -160,7 +160,6 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
             text_frame.set(" " + beacon.frame.substr(1, BEACON_HEXA_SPLIT_SGB - 1));
             text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
             text_frame_sgb_end.set(beacon.frame.size() > 2 * BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(2 * BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
-            ;
         }
         // Prepare tx configuration
         epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size() / 2), BEACON_SIZE_SGB);
