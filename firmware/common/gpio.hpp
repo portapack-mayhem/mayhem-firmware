@@ -705,14 +705,14 @@ constexpr GPIO dfu_isp{pin_isp, map_isp.gpio_port, map_isp.gpio_pad, map_isp.gpi
 constexpr Pin pin_rffc5072_clock{map_rffc5072_clock.scu_port, map_rffc5072_clock.scu_pin};                                                   // SCU: P2_6, PRALINE: P9_5
 constexpr GPIO rffc5072_clock{pin_rffc5072_clock, map_rffc5072_clock.gpio_port, map_rffc5072_clock.gpio_pad, map_rffc5072_clock.gpio_mode};  // GPIO[5]6, PRALINE: GPIO[5]18
 
-constexpr Pin pin_rffc5072_sdata{map_rffc5072_sdata.scu_port, map_rffc5072_sdata.scu_pin};                                                   // SCU: P6_4, PRALINE: P9_0
-constexpr GPIO rffc5072_sdata{pin_rffc5072_sdata, map_rffc5072_sdata.gpio_port, map_rffc5072_sdata.gpio_pad, map_rffc5072_sdata.gpio_mode};  // GPIO[3]3, PRALINE: GPIO[4]12
+constexpr Pin pin_rffc5072_sdata{map_rffc5072_sdata.scu_port, map_rffc5072_sdata.scu_pin};                                                   // SCU: P6_4, PRALINE: P9_2
+constexpr GPIO rffc5072_sdata{pin_rffc5072_sdata, map_rffc5072_sdata.gpio_port, map_rffc5072_sdata.gpio_pad, map_rffc5072_sdata.gpio_mode};  // GPIO[3]3, PRALINE: GPIO[4]14
 
 constexpr Pin pin_rffc5072_select{map_rffc5072_select.scu_port, map_rffc5072_select.scu_pin};                                                                          // SCU: P5_4
 constexpr GPIO rffc5072_select{pin_rffc5072_select, map_rffc5072_select.gpio_port, map_rffc5072_select.gpio_pad, map_rffc5072_select.gpio_mode, Polarity::ActiveLow};  // GPIO[2]13
 
-constexpr Pin pin_rffc5072_resetx{map_rffc5072_resetx.scu_port, map_rffc5072_resetx.scu_pin};                                                              // SCU: P5_5
-constexpr GPIO rffc5072_resetx{pin_isp, map_rffc5072_resetx.gpio_port, map_rffc5072_resetx.gpio_pad, map_rffc5072_resetx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]14
+constexpr Pin pin_rffc5072_resetx{map_rffc5072_resetx.scu_port, map_rffc5072_resetx.scu_pin};                                                                          // SCU: P5_5
+constexpr GPIO rffc5072_resetx{pin_rffc5072_resetx, map_rffc5072_resetx.gpio_port, map_rffc5072_resetx.gpio_pad, map_rffc5072_resetx.gpio_mode, Polarity::ActiveLow};  // GPIO[2]14
 
 constexpr Pin pin_max283x_select{map_max283x_select.scu_port, map_max283x_select.scu_pin};                                                                        // SCU: P1_20, PRALINE: PD_14
 constexpr GPIO max283x_select{pin_max283x_select, map_max283x_select.gpio_port, map_max283x_select.gpio_pad, map_max283x_select.gpio_mode, Polarity::ActiveLow};  // GPIO[0]15, PRALINE: GPIO[6]28

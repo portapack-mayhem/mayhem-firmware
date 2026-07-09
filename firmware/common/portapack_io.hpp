@@ -34,7 +34,6 @@
 #include "ui.hpp"
 
 #include "gpio.hpp"
-using namespace gpio_control;
 
 // #include "portapack_persistent_memory.hpp"
 
@@ -291,11 +290,11 @@ class IO {
     }
 
     void lcd_wr_assert() {
-        lcd_wrx.setInactive();
+        gpio_control::lcd_wrx.setInactive();
     }
 
     void lcd_wr_deassert() {
-        lcd_wrx.setActive();
+        gpio_control::lcd_wrx.setActive();
     }
 
     void io_stb_assert() {

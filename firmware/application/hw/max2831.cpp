@@ -192,14 +192,12 @@ void MAX2831::set_mode(const Mode mode) {
         case Mode::Tx_Calibration:
             max2831_rxtx_enable.setActive(); /* RXTX=1 for TX */
             max283x_enable.setActive();      /* ENABLE=1 */
-            max2831_rxtx_enable.setActive(); /* RXTX=1 for TX */
             set_rssi_mux(2);                 // transmit power
             break;
         case Mode::Receive:
         case Mode::Rx_Calibration:
             max2831_rxtx_enable.setInactive(); /* RXTX=0 for RX */
             max283x_enable.setActive();        /* ENABLE=1 */
-            max2831_rxtx_enable.setInactive(); /* RXTX=0 for RX */
             set_rssi_mux(1);                   // RSSI
             break;
     }

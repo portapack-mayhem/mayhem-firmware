@@ -164,7 +164,7 @@ uint32_t IO::io_update(const TouchPinsConfig write_value) {
     }
     gpio_addr.write(addr);
 
-    uint32_t dfu_btn = dfu_button.read();
+    uint32_t dfu_btn = gpio_control::dfu_button.read();
     return (switches_raw & 0x7f) | (dfu_btn << 7);
 }
 
