@@ -130,6 +130,8 @@ class GlassView : public View {
     void populate_presets();
     void launch_audio(rf::Frequency center_freq);
 
+    bool paused{false};
+
     rf::Frequency search_span{0};
     rf::Frequency f_center{0};
     rf::Frequency f_center_ini{0};
@@ -221,6 +223,12 @@ class GlassView : public View {
     ButtonWithEncoder button_beep_squelch{
         {UI_POS_X_RIGHT(8), UI_POS_Y(2.25), UI_POS_WIDTH(8), UI_POS_HEIGHT(0.5)},
         ""};
+
+    ImageButton button_play{
+        {UI_POS_X_RIGHT(2), UI_POS_Y(3.25) - 2, UI_POS_WIDTH(2), UI_POS_HEIGHT(0.5)},
+        &bitmap_stop,
+        Theme::getInstance()->fg_green->foreground,
+        Theme::getInstance()->fg_green->background};
 
     TextField field_marker{
         {UI_POS_X(12), UI_POS_Y(3), UI_POS_WIDTH(9), UI_POS_HEIGHT(1)},
