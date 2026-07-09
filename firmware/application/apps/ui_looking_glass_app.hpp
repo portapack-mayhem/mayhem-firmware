@@ -42,6 +42,7 @@ namespace ui {
 #define LOOKING_GLASS_SLICE_WIDTH_MAX 20000000
 #define LOOKING_GLASS_MAX_SAMPLERATE 20000000
 #define MHZ_DIV 1000000
+#define LOOKING_GLASS_MAX_FREQ_MHZ 7250  // HackRF upper tuning limit (band_high top), in MHz
 
 // blanked DC (16 centered bins ignored ) and top left and right (2 bins ignored on each side )
 #define LOOKING_GLASS_FASTSCAN 0
@@ -129,6 +130,8 @@ class GlassView : public View {
     void populate_presets();
     void launch_audio(rf::Frequency center_freq);
 
+    bool paused{false};
+
     rf::Frequency search_span{0};
     rf::Frequency f_center{0};
     rf::Frequency f_center_ini{0};
@@ -179,14 +182,14 @@ class GlassView : public View {
     NumberField field_frequency_min{
         {UI_POS_X(4), UI_POS_Y(0)},
         4,
-        {0, 7199},
+        {0, LOOKING_GLASS_MAX_FREQ_MHZ - 1},
         1,  // number of steps by encoder delta
         ' '};
 
     NumberField field_frequency_max{
         {UI_POS_X(13), UI_POS_Y(0)},
         4,
-        {1, 7200},
+        {1, LOOKING_GLASS_MAX_FREQ_MHZ},
         1,  // number of steps by encoder delta
         ' '};
 
@@ -220,6 +223,12 @@ class GlassView : public View {
     ButtonWithEncoder button_beep_squelch{
         {UI_POS_X_RIGHT(8), UI_POS_Y(2.25), UI_POS_WIDTH(8), UI_POS_HEIGHT(0.5)},
         ""};
+
+    ImageButton button_play{
+        {UI_POS_X_RIGHT(2), UI_POS_Y(3.25) - 2, UI_POS_WIDTH(2), UI_POS_HEIGHT(0.5)},
+        &bitmap_stop,
+        Theme::getInstance()->fg_green->foreground,
+        Theme::getInstance()->fg_green->background};
 
     TextField field_marker{
         {UI_POS_X(12), UI_POS_Y(3), UI_POS_WIDTH(9), UI_POS_HEIGHT(1)},

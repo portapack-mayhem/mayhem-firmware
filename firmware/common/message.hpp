@@ -168,7 +168,9 @@ class Message {
         HunterConfig = 110,
         HunterTrigger = 111,
         HunterStop = 112,
-        RdsData = 113,
+        TetraBsch = 113,
+        TetraDnb = 114,
+        RdsData = 115,
         MAX
     };
 
@@ -2032,4 +2034,46 @@ struct RDSGroupMessage : public Message {
     uint32_t debug_2;
 };
 
+struct TetraBurstMessage : public Message {
+    constexpr TetraBurstMessage(
+        const uint8_t* bits,
+        bool inv,
+        uint8_t err)
+        : Message(Message::ID::TetraBsch),
+          inverted(inv),
+          sync_errors(err),
+          payload{} {
+        for (size_t i = 0; i < 63; i++)
+            payload[i] = bits[i];
+    }
+
+    bool inverted;
+    uint8_t sync_errors;
+
+    // 500 bit
+    std::array<uint8_t, 63> payload;
+};
+
+struct TetraDnbMessage : public Message {
+    constexpr TetraDnbMessage(
+        const uint8_t* bits,
+        bool inv,
+        uint8_t err,
+        bool p_train)
+        : Message(Message::ID::TetraDnb),
+          inverted(inv),
+          train_errors(err),
+          is_p_train(p_train),
+          payload{} {
+        for (size_t i = 0; i < 54; i++)
+            payload[i] = bits[i];
+    }
+
+    bool inverted;
+    uint8_t train_errors;
+    bool is_p_train;
+
+    // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
+    std::array<uint8_t, 54> payload;
+};
 #endif /*__MESSAGE_H__*/

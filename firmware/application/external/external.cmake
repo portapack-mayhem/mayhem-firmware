@@ -169,6 +169,7 @@ set(EXTCPPSRC
 	#mcu_temperature    112
 	external/mcu_temperature/main.cpp
 	external/mcu_temperature/mcu_temperature.cpp
+	external/mcu_temperature/temperature_logger.cpp
 
 	#fmradio  640
 	external/fmradio/main.cpp
@@ -380,6 +381,17 @@ set(EXTCPPSRC
   external/signal_hunter/main.cpp
   external/signal_hunter/ui_signal_hunter.cpp
 
+
+	#tetra rx
+	external/tetra_rx/main.cpp
+	external/tetra_rx/ui_tetra_rx.cpp
+	external/tetra_rx/tetra_crc.cpp
+	external/tetra_rx/tetra_descrambler.cpp
+	external/tetra_rx/tetra_interleave.cpp
+	external/tetra_rx/tetra_rcpc.cpp
+	external/tetra_rx/tetra_viterbi.cpp
+
+
   	#rds_rx
     external/rds_rx/main.cpp
   	external/rds_rx/ui_rds_rx.cpp
@@ -476,6 +488,8 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
+    signal_hunter
+	tetra_rx
   	signal_hunter
   	rds_rx
 )
