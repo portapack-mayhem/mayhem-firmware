@@ -33,9 +33,12 @@
 #include "message.hpp"
 #include "tonesets.hpp"
 
-#define BEACON_HEXA_SIZE 36
-#define BEACON_HEXA_HALF_SIZE 18
-#define BEACON_SIZE 18
+#define BEACON_SIZE_FGB 18
+#define BEACON_SIZE_SGB 32
+#define BEACON_HEXA_SIZE_FGB BEACON_SIZE_FGB * 2
+#define BEACON_HEXA_SIZE_SGB BEACON_SIZE_SGB * 2
+#define BEACON_HEXA_SPLIT_FGB 18
+#define BEACON_HEXA_SPLIT_SGB 22
 
 #define AM_TEST_FREQUENCY 121375000
 #define AM_REAL_FREQUENCY 121500000
@@ -49,6 +52,7 @@
 #define BPSK_FREQUENCY_K 406052000
 #define BPSK_FREQUENCY_N 406061000
 #define BPSK_FREQUENCY_O 406064000
+#define BPSK_FREQUENCY_SGB 406050000
 
 namespace ui::external_app::epirb_tx {
 
@@ -85,7 +89,8 @@ enum class BpskChannel {
     K = 6,
     N = 7,
     O = 8,
-    MANUAL = 10
+    MANUAL = 10,
+    SGB = 100
 };
 
 struct Location {
@@ -129,7 +134,7 @@ class EPIRBTXAppView : public View {
     void on_timer();
     void load_beacons();
     void set_tx_button_state(bool active);
-    std::string frame_to_hex_string(bool start);
+    std::string frame_to_hex_string_range(int offset_bytes, int count_bytes);
     void generate_frame(BeaconParams params);
     void update_frame(bool updateConfig = true);
     void update_bpsk_frequency();
@@ -214,6 +219,7 @@ class EPIRBTXAppView : public View {
             {"country"sv, &beacon_country},
             {"internal"sv, &beacon_internal},
             {"locator"sv, &locator},
+            {"sgb"sv, &format_sgb},
         }};
 
     // Time of the last sent frame
@@ -224,6 +230,10 @@ class EPIRBTXAppView : public View {
     bool transmitting_bpsk{false};
     // True when currently looping on sending beacons
     bool loop{false};
+    // True when SGB (Second Generation Beacon) format is selected
+    bool format_sgb{false};
+    // System time (ms) when the current SGB transmission session started
+    uint32_t sgb_start_time{0};
 
     // Current EPIRBTXDataMessage for baseband
     EPIRBTXDataMessage epirb_tx_message{};
@@ -302,10 +312,17 @@ class EPIRBTXAppView : public View {
          {"PLB", (uint8_t)BeaconType::PLB}}};
     OptionsField options_beacon_protocol{
         {UI_POS_X(9 + 7), UI_POS_Y(1)},
-        30,
+        8,
         {{"User", (uint8_t)BeaconProtocol::USER},
          {"Standard", (uint8_t)BeaconProtocol::STANDARD},
          {"National", (uint8_t)BeaconProtocol::NATIONAL}}};
+    // Format selector (FGB / SGB) — manual mode only, same row as type/protocol
+    OptionsField options_format{
+        {UI_POS_X_RIGHT(4), UI_POS_Y(1)},
+        4,
+        {{"FGB", 0},
+         {"SGB", 1}}};
+
     OptionsField options_beacon_country{
         {UI_POS_X(9), UI_POS_Y(2)},
         7,
@@ -336,6 +353,9 @@ class EPIRBTXAppView : public View {
         ""};
     Text text_frame_end{
         {UI_POS_X(6), UI_POS_Y(7), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
+        ""};
+    Text text_frame_sgb_end{
+        {UI_POS_X(6), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(6), UI_POS_DEFAULT_HEIGHT},
         ""};
 
     Text text_timeout{
@@ -389,6 +409,7 @@ class EPIRBTXAppView : public View {
          {"406.052 MHz (K)", (uint8_t)BpskChannel::K},
          {"406.061 MHz (N)", (uint8_t)BpskChannel::N},
          {"406.064 MHz (O)", (uint8_t)BpskChannel::O},
+         {"406.050 MHz (SGB)", (uint8_t)BpskChannel::SGB},
          {"Manual", (uint8_t)BpskChannel::MANUAL}}};
 
     // Transmitter view

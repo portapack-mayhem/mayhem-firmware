@@ -67,12 +67,17 @@ static uint8_t hexToByte(char high, char low) {
     return (hexval(high) << 4) | hexval(low);
 }
 
-std::string EPIRBTXAppView::frame_to_hex_string(bool start) {
-    return beacon_to_hex_string(epirb_tx_message.data, start);
+std::string EPIRBTXAppView::frame_to_hex_string_range(int offset_bytes, int count_bytes) {
+    return beacon_to_hex_string_range(epirb_tx_message.data, offset_bytes, count_bytes);
 }
 
 void EPIRBTXAppView::generate_frame(BeaconParams params) {
-    epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data, params);
+    if (format_sgb) {
+        uint32_t elapsed_s = sgb_start_time > 0 ? (chTimeNow() - sgb_start_time) / 1000 : 0;
+        epirb_tx_message.data_len = generate_sgb_beacon(epirb_tx_message.data, params, elapsed_s);
+    } else {
+        epirb_tx_message.data_len = generate_beacon(epirb_tx_message.data, params);
+    }
 }
 
 void EPIRBTXAppView::on_timer() {
@@ -125,7 +130,7 @@ void EPIRBTXAppView::update_am_transmission() {
     if (am_enabled && transmitting && !transmitting_bpsk) {
         // Start am transmission
         // Restore am frequency
-        epirb_tx_message.mode_bpsk = false;
+        epirb_tx_message.mode_406 = false;
         transmitter_model.set_target_frequency(am_frequency);
         // Send config to baseband
         baseband::set_epirb_tx_config(epirb_tx_message);
@@ -146,10 +151,18 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         file_mode_ui->text_description.set(beacon.description.substr(0, max_text_width_ext));
         file_mode_ui->text_description_end.set(beacon.description.size() > max_text_width_ext ? "-" + beacon.description.substr(max_text_width_ext, max_text_width_ext + max_text_width_ext - 1) : "");
         // Udapte frame content on display
-        text_frame.set(beacon.frame.substr(0, 18));
-        text_frame_end.set(beacon.frame.size() > 18 ? beacon.frame.substr(18, 36) : "");
+        bool is_fgb = beacon.frame.size() <= BEACON_HEXA_SIZE_FGB;
+        if (is_fgb) {
+            text_frame.set(beacon.frame.substr(0, BEACON_HEXA_SPLIT_FGB));
+            text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_FGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_FGB, BEACON_HEXA_SPLIT_FGB) : "");
+            text_frame_sgb_end.set("");
+        } else {
+            text_frame.set(" " + beacon.frame.substr(1, BEACON_HEXA_SPLIT_SGB - 1));
+            text_frame_end.set(beacon.frame.size() > BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
+            text_frame_sgb_end.set(beacon.frame.size() > 2 * BEACON_HEXA_SPLIT_SGB ? beacon.frame.substr(2 * BEACON_HEXA_SPLIT_SGB, BEACON_HEXA_SPLIT_SGB) : "");
+        }
         // Prepare tx configuration
-        epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size() / 2), 18);
+        epirb_tx_message.data_len = std::min<size_t>((beacon.frame.size() / 2), BEACON_SIZE_SGB);
         for (uint8_t i = 0; i < epirb_tx_message.data_len; i++) {
             epirb_tx_message.data[i] = hexToByte(
                 beacon.frame[2 * i],
@@ -159,8 +172,17 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
         // In manual mode, generate frame content for current beacon params
         generate_frame(beacon_params);
         // Update frame content on display
-        text_frame.set(frame_to_hex_string(true));
-        text_frame_end.set(frame_to_hex_string(false));
+        if (format_sgb) {
+            // SGB: 32 bytes across 3 lines (BEACON_HEXA_SPLIT_SGB = 22 hex chars = 11 bytes)
+            // Remove first nibble and replace it with a space to match COSPAS hexadecimal representation specification
+            text_frame.set(" " + frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_SGB / 2).substr(1));
+            text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB / 2, BEACON_HEXA_SPLIT_SGB / 2));
+            text_frame_sgb_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_SGB, (BEACON_HEXA_SPLIT_SGB / 2) - 1));
+        } else {
+            text_frame.set(frame_to_hex_string_range(0, BEACON_HEXA_SPLIT_FGB / 2));
+            text_frame_end.set(frame_to_hex_string_range(BEACON_HEXA_SPLIT_FGB / 2, BEACON_HEXA_SPLIT_FGB / 2));
+            text_frame_sgb_end.set("");
+        }
     }
     if (updateConfig && send_on_change && loop) {
         // Need to update config / send new beacon
@@ -176,14 +198,14 @@ void EPIRBTXAppView::update_frame(bool updateConfig) {
 }
 
 void EPIRBTXAppView::update_config() {
-    if (!epirb_tx_message.mode_bpsk) {
+    if (!epirb_tx_message.mode_406) {
         // Previously in AM mode => restore bpsk frequency
         transmitter_model.set_target_frequency(bpsk_frequency);
         // Update displayed frequency
         tx_view.on_show();
     }
     // Set mode to bpsk
-    epirb_tx_message.mode_bpsk = true;
+    epirb_tx_message.mode_406 = true;
     transmitting_bpsk = true;
     // Set pre/post count
     epirb_tx_message.pre_count = (160 * TONES_SAMPLERATE) / 1000;   // 160 ms carrier (COSPAS spec.)
@@ -198,6 +220,13 @@ void EPIRBTXAppView::set_tx_button_state(bool active) {
 }
 
 void EPIRBTXAppView::start_tx() {
+    if (format_sgb && !mode_file) {
+        // Track start time for the SGB rotating field elapsed-time counter
+        if (!transmitting) sgb_start_time = chTimeNow();
+        // update_frame regenerates the SGB frame with current elapsed time and refreshes display
+        update_frame(false);
+        set_dirty();
+    }
     last_frame_time = chTimeNow();
     update_config();
     loop = loop_enabled;
@@ -221,7 +250,7 @@ void EPIRBTXAppView::on_tx_progress(const uint32_t progress, const bool done) {
         transmitting_bpsk = false;
         if (am_enabled) {
             // BPSK frame sent, switch back to 121.5 AM signal
-            epirb_tx_message.mode_bpsk = false;
+            epirb_tx_message.mode_406 = false;
             // Start am transmission
             update_am_transmission();
         } else {
@@ -310,6 +339,7 @@ void EPIRBTXAppView::update_mode() {
     options_beacon_type.hidden(mode_file);
     options_beacon_protocol.hidden(mode_file);
     options_beacon_country.hidden(mode_file);
+    options_format.hidden(mode_file);
     text_field_beacon_locator.hidden(mode_file);
 }
 
@@ -323,6 +353,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_beacon_type,
                   &options_beacon_type,
                   &options_beacon_protocol,
+                  &options_format,
                   &text_beacon_country,
                   &options_beacon_country,
                   &checkbox_beacon_internal,
@@ -335,6 +366,7 @@ EPIRBTXAppView::EPIRBTXAppView(
                   &text_field_beacon_locator,
                   &text_frame,
                   &text_frame_end,
+                  &text_frame_sgb_end,
                   &text_timeout,
                   &checkbox_loop,
                   &field_delay,
@@ -376,6 +408,7 @@ EPIRBTXAppView::EPIRBTXAppView(
     init_from_locator(beacon_params.location);
     update_mode();
     update_location();
+    options_format.set_by_value(format_sgb ? 1 : 0);
 
     options_mode.on_change = [this](size_t, OptionsField::value_t value) {
         mode_file = (((BeaconMode)value) == BeaconMode::FILE);
@@ -401,6 +434,13 @@ EPIRBTXAppView::EPIRBTXAppView(
     options_beacon_country.on_change = [this](size_t, OptionsField::value_t v) {
         beacon_params.country = v;
         beacon_country = v;
+        update_frame();
+        set_dirty();
+    };
+
+    options_format.on_change = [this](size_t, OptionsField::value_t v) {
+        format_sgb = (v == 1);
+        sgb_start_time = 0;  // reset elapsed counter when format changes
         update_frame();
         set_dirty();
     };
@@ -457,6 +497,9 @@ EPIRBTXAppView::EPIRBTXAppView(
                 break;
             case BpskChannel::O:
                 bpsk_frequency = BPSK_FREQUENCY_O;
+                break;
+            case BpskChannel::SGB:
+                bpsk_frequency = BPSK_FREQUENCY_SGB;
                 break;
             default:
                 v = (uint8_t)BpskChannel::HAM;
@@ -590,6 +633,9 @@ EPIRBTXAppView::EPIRBTXAppView(
                 case BPSK_FREQUENCY_O:
                     bpsk_channel = (uint8_t)BpskChannel::O;
                     break;
+                case BPSK_FREQUENCY_SGB:
+                    bpsk_channel = (uint8_t)BpskChannel::SGB;
+                    break;
                 default:
                     bpsk_channel = (uint8_t)BpskChannel::MANUAL;
                     manual_bpsk_frequency = bpsk_frequency;
@@ -642,11 +688,14 @@ void EPIRBTXAppView::load_beacons() {
             Beacon beacon{};
             beacon.title = trim(cols[0]);
             beacon.description = trim(cols[1]);
-            // Make sure frame is not longer tha 18 bytes / 36 hex character
-            beacon.frame = trim(cols[2]).substr(0, 36);
+            // 1G uses up to 36 hex chars, 2G uses 64 hex chars (250 bits rounded to 32 bytes).
+            beacon.frame = trim(cols[2]).substr(0, BEACON_HEXA_SIZE_SGB);
             size_t size = beacon.frame.size();
             if (size <= 0)
                 continue;  // Invalid line.
+            if ((size % 2) != 0) {
+                beacon.frame = "0" + beacon.frame;  // Pad with leading 0 to make it even length
+            }
             // Beacon is valid, add it to the list
             beacons.emplace_back(std::move(beacon));
         }
