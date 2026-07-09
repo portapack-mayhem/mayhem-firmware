@@ -794,6 +794,14 @@ set(MODE_CPPSRC
 DeclareTargets(PTET tetra_rx)
 
 
+### WPAN Rx
+
+set(MODE_CPPSRC
+	proc_wpan.cpp
+)
+DeclareTargets(PWPN wpan_rx)
+
+
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 
