@@ -28,9 +28,14 @@
 
 #include "max2831.hpp"
 
+#include "portapack_adc.hpp"
+
 #include "hackrf_hal.hpp"
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
+
+#include "gpio.hpp"
+using namespace gpio_control;
 
 #include "ch.h"
 #include "hal.h"
@@ -151,7 +156,7 @@ void MAX2831::set_mode(const Mode mode) {
      *   RX:       ENABLE=1, RXTX=0
      *   TX:       ENABLE=1, RXTX=1
      *
-     * Note: gpio_max2831_rx_enable is the RXTX mode select pin.
+     * Note: max2831_rxtx_enable is the RXTX mode select pin.
      * RXTX=0 selects RX, RXTX=1 selects TX.
      */
 
@@ -174,26 +179,26 @@ void MAX2831::set_mode(const Mode mode) {
     switch (mode) {
         default:
         case Mode::Shutdown:
-            gpio_max2831_rx_enable.write(0); /* RXTX=0 */
-            gpio_max283x_enable.write(0);    /* ENABLE=0 */
+            max2831_rxtx_enable.setInactive(); /* RXTX=0 */
+            max283x_enable.setInactive();      /* ENABLE=0 */
             set_rssi_mux(0);
             break;
         case Mode::Standby:
-            gpio_max2831_rx_enable.write(1); /* RXTX=1 */
-            gpio_max283x_enable.write(0);    /* ENABLE=0 */
+            max2831_rxtx_enable.setActive(); /* RXTX=1 */
+            max283x_enable.setInactive();    /* ENABLE=0 */
             set_rssi_mux(0);
             break;
         case Mode::Transmit:
         case Mode::Tx_Calibration:
-            gpio_max2831_rx_enable.write(1); /* RXTX=1 for TX */
-            gpio_max283x_enable.write(1);    /* ENABLE=1 */
+            max2831_rxtx_enable.setActive(); /* RXTX=1 for TX */
+            max283x_enable.setActive();      /* ENABLE=1 */
             set_rssi_mux(2);                 // transmit power
             break;
         case Mode::Receive:
         case Mode::Rx_Calibration:
-            gpio_max2831_rx_enable.write(0); /* RXTX=0 for RX */
-            gpio_max283x_enable.write(1);    /* ENABLE=1 */
-            set_rssi_mux(1);                 // RSSI
+            max2831_rxtx_enable.setInactive(); /* RXTX=0 for RX */
+            max283x_enable.setActive();        /* ENABLE=1 */
+            set_rssi_mux(1);                   // RSSI
             break;
     }
 
@@ -227,8 +232,15 @@ void MAX2831::set_lna_gain(const int_fast8_t db) {
     } else {
         gain_val = REG11_LNA_GAIN_M33;
     }
+
+    max2831_rxhp.setActive();  // Fast DC offset compensation
+
     set_reg_field(11, REG11_LNA_GAIN_MASK, gain_val);
     flush_reg(11);
+
+    chThdSleepMicroseconds(2);
+
+    max2831_rxhp.setInactive();
 }
 
 void MAX2831::set_vga_gain(const int_fast8_t db) {
@@ -237,10 +249,18 @@ void MAX2831::set_vga_gain(const int_fast8_t db) {
     if ((db & 0x1) || db > 62) {
         return; /* Invalid: must be even and <= 62 */
     }
+
     int_fast8_t db_clipped = std::max(0, std::min(62, (int)db));
     uint16_t value = (db_clipped >> 1) & 0x1f;
+
+    max2831_rxhp.setActive();  // Fast DC offset compensation
+
     set_reg_field(11, REG11_RXVGA_GAIN_MASK, value);
     flush_reg(11);
+
+    chThdSleepMicroseconds(2);
+
+    max2831_rxhp.setInactive();
 }
 
 /*
@@ -365,9 +385,9 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
 
 void MAX2831::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {
     _desired_lpf_bw = bandwidth_minimum;
-#ifdef PRALINE
-    gpio_control::aa_en.clear();  // Disable external AA filter for wideband operations
-#endif
+
+    gpio_control::aa_en.setInactive();  // Disable external AA filter for wideband operations
+
     if (_mode == Mode::Transmit || _mode == Mode::Tx_Calibration) {
         set_lpf_bandwidth_internal(bandwidth_minimum);
     }
@@ -461,13 +481,56 @@ void MAX2831::set_rx_buff_vcm(const size_t v) {
 }
 
 int8_t MAX2831::temp_sense() {
-    /* MAX2831 temperature sensor can be read via RSSI MUX.
-     * This would require:
-     * 1. Switch RSSI_MUX to temperature mode
-     * 2. Read the ADC
-     * 3. Switch back to RSSI mode
-     * For now, return a placeholder value. */
-    return 25; /* Room temperature placeholder */
+    bool not_in_rx = (_mode != Mode::Receive && _mode != Mode::Rx_Calibration);
+
+    if (not_in_rx) {
+        max2831_rxtx_enable.setInactive();
+        max283x_enable.setActive();
+        chThdSleepMilliseconds(1);
+    }
+
+    set_rssi_mux(3);
+    chThdSleepMilliseconds(5);
+
+    uint32_t saved_cr = LPC_ADC1->CR;
+    uint32_t cr_temp = saved_cr;
+    cr_temp &= ~0xFF;
+    cr_temp |= (1 << portapack::adc1_rssi_input);
+
+    if (((cr_temp >> 8) & 0xFF) == 0) {
+        cr_temp |= (0xFF << 8);
+    }
+
+    cr_temp &= ~(1 << 16);
+    cr_temp |= (1 << 21);
+    cr_temp &= ~(7 << 24);
+    cr_temp |= (1 << 24);
+
+    LPC_ADC1->CR = cr_temp;
+
+    uint32_t val;
+    while (((val = LPC_ADC1->DR[portapack::adc1_rssi_input]) & (1UL << 31)) == 0) {
+        __asm__("nop");
+    }
+
+    uint32_t adc_raw = (val >> 6) & 0x3FF;
+
+    LPC_ADC1->CR = saved_cr;
+
+    if (not_in_rx) {
+        set_mode(_mode);
+    } else {
+        set_rssi_mux(1);
+    }
+
+    float v_adc = (adc_raw / 1023.0f) * 3.3f;
+
+    constexpr float V_25_CELSIUS = 1.185f;
+    constexpr float SLOPE = 0.003f;
+
+    float temp = 25.0f + ((v_adc - V_25_CELSIUS) / SLOPE);
+
+    return static_cast<int8_t>(std::max(-128.0f, std::min(127.0f, temp)));
 }
 
 reg_t MAX2831::read(const address_t reg_num) {
