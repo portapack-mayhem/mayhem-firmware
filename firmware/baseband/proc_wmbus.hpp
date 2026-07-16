@@ -19,16 +19,21 @@ class WMBusProcessor : public BasebandProcessor {
     // FM és DC Blocker
     int16_t prev_i{0};
     int16_t prev_q{0};
-    int32_t fm_hist[4]{};
+    int32_t fm_hist[8]{};
     uint8_t hist_idx{0};
     int32_t fm_sum{0};
     int32_t dc_acc{0};
 
-    // RTL_WMBUS "Run-Length" Változók
+    // --- AZ RTL_WMBUS "RUN-LENGTH" ALGORITMUS VÁLTOZÓI (PI CONTROLLER) ---
     uint8_t op_mode{0};
-    uint8_t deglitch_reg{0};
+    uint32_t raw_bitstream{0};
     uint8_t current_state{0};
-    uint32_t run_length{0};
+
+    int32_t run_length{0};
+    int32_t bit_length{2560};  // A chip hossza felskálázva 256-tal (PI Célpont)
+    int32_t target_bit_length{2560};
+    int32_t cum_run_length_error{0};
+    // --------------------------------------------------------------------
 
     // MAC réteg
     uint32_t chip_reg{0};

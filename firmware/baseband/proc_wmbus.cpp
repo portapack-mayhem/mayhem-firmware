@@ -48,61 +48,87 @@ uint8_t WMBusProcessor::decode_3out6(uint8_t chips) {
 void WMBusProcessor::execute(const buffer_c8_t& buffer) {
     op_mode = 0;  // static_cast<uint8_t>(shared_memory.squelch_level);
 
+    // Az alap chip-hossz beállítása felskálázva (256x)
+    if (op_mode == 2) {
+        target_bit_length = 3906;  // S-Mode: 1MHz / 65.5kcps * 256 = 3906
+    } else {
+        target_bit_length = 2560;  // T/C-Mode: 1MHz / 100kcps * 256 = 2560
+    }
+
     for (size_t i = 0; i < buffer.count; i++) {
         int16_t samp_i = buffer.p[i].real();
         int16_t samp_q = buffer.p[i].imag();
 
-        // 1. FM Demodulátor (A kódod polar_discriminator_t1_c1_inaccurate függvénye alapján)
+        // 1. FM Demodulátor (A feltöltött kódod polar_discriminator_t1_c1_inaccurate() függvénye!)
         int32_t fm_val = (samp_q * prev_i) - (samp_i * prev_q);
         prev_i = samp_i;
         prev_q = samp_q;
 
-        // 2. Aluláteresztő szűrő (Boxcar 4-tap)
+        // 2. Szűrő (8-as LPF)
         fm_sum += fm_val - fm_hist[hist_idx];
         fm_hist[hist_idx] = fm_val;
-        hist_idx = (hist_idx + 1) & 3;
+        hist_idx = (hist_idx + 1) & 7;
 
-        // 3. IIR DC Blocker (Hasonló a t1_c1_remove_dc_offset_demod-hoz)
+        // 3. DC Blocker
         dc_acc += fm_sum - (dc_acc >> 8);
         int32_t ac_val = fm_sum - (dc_acc >> 8);
 
         int32_t abs_ac = (ac_val < 0) ? -ac_val : ac_val;
         if (abs_ac > peak_fm_val) peak_fm_val = abs_ac;
 
-        // 4. Slicer & Deglitch szűrő (A kódod deglitch_filter_t1_c1 tömbje alapján)
-        // 7 mintás csúszóablak. Ha legalább 4 darab 1-es van benne, akkor az állapot 1.
+        // 4. "Deglitch" Szűrő (Egy az egyben az rtl_wmbus deglitch_filter_t1_c1 logikája)
         uint8_t raw_bit = (ac_val > 0) ? 1 : 0;
-        deglitch_reg = (deglitch_reg << 1) | raw_bit;
-        int ones = __builtin_popcount(deglitch_reg & 0x7F);
+        raw_bitstream = (raw_bitstream << 1) | raw_bit;
+
+        // 7-bites csúszóablak, legalább 4 egyforma bit kell az átbillenéshez a zaj kiszűrésére
+        uint32_t ones = __builtin_popcount(raw_bitstream & 0x7F);
         uint8_t state = (ones >= 4) ? 1 : 0;
 
         // =====================================================================
-        // 5. A SZENT GRÁL: RUN-LENGTH ALGORITMUS (Órajel helyett él-távolság)
+        // 5. A FELTÖLTÖTT "RUN-LENGTH" ALGORITMUS PI CONTROLLERREL
+        // (Tökéletesen leköveti a rádiójel driftelését)
         // =====================================================================
         if (state == current_state) {
             run_length++;
-            if (run_length > 1000) run_length = 1000;  // Túlcsordulás védelem csend esetén
+            if (run_length > 1000) run_length = 1000;
         } else {
-            // Élváltás történt! Kiszámoljuk, hány chipet jelentett az előző futáshossz.
-            if (run_length >= 3) {  // A túl pici glitcheket (zaj) ignoráljuk
-                int num_chips = 0;
+            if (run_length < 5) {
+                // Túl rövid az élváltás (zaj), reset
+                run_length = 1;
+                current_state = state;
+                bit_length = target_bit_length;
+                cum_run_length_error = 0;
+                sync_state = SyncState::UNSYNCED;
+            } else {
+                int32_t scaled_run_length = run_length * 256;
+                int32_t half_bit_length = bit_length / 2;
 
-                if (op_mode == 2) {
-                    // S-Mode: 65.5 kchips/s -> 15.26 minta / chip
-                    num_chips = (run_length * 100 + 763) / 1526;
+                if (scaled_run_length <= half_bit_length) {
+                    run_length = 1;
+                    current_state = state;
+                    bit_length = target_bit_length;
+                    cum_run_length_error = 0;
+                    sync_state = SyncState::UNSYNCED;
                 } else {
-                    // T és C Mode: 100 kchips/s -> 10 minta / chip
-                    num_chips = (run_length + 5) / 10;
-                }
+                    int num_bits_rx = 0;
 
-                // Betoljuk a kinyert chipeket a MAC rétegbe
-                for (int k = 0; k < num_chips; k++) {
-                    consume_chip(current_state);
+                    // Chip(ek) kibontása a távolságból
+                    while (scaled_run_length > half_bit_length) {
+                        scaled_run_length -= bit_length;
+                        consume_chip(current_state);
+                        num_bits_rx++;
+                    }
+
+                    // PI Controller (Sebességhiba kompenzálás a feltöltött kódod alapján)
+                    if (num_bits_rx > 0) {
+                        cum_run_length_error += scaled_run_length;
+                        bit_length += (scaled_run_length + cum_run_length_error / 16) / (32 * num_bits_rx);
+                    }
+
+                    current_state = state;
+                    run_length = 1;
                 }
             }
-            // Átállunk az új állapotra, és újraindítjuk a számlálót
-            current_state = state;
-            run_length = 1;
         }
     }
 
@@ -114,7 +140,7 @@ void WMBusProcessor::execute(const buffer_c8_t& buffer) {
         dbg_msg.length = 0;
         dbg_msg.data[0] = static_cast<uint8_t>(sync_state);
 
-        uint32_t scaled_peak = peak_fm_val / 256;  // Nyers szorzat miatt skálázás
+        uint32_t scaled_peak = peak_fm_val / 256;
         dbg_msg.data[1] = (scaled_peak > 255) ? 255 : static_cast<uint8_t>(scaled_peak);
         dbg_msg.data[2] = static_cast<uint8_t>(stat_syncs & 0xFF);
         dbg_msg.data[3] = static_cast<uint8_t>(stat_errors & 0xFF);
@@ -128,11 +154,11 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
     chip_reg = (chip_reg << 1) | bit;
 
     if (sync_state == SyncState::UNSYNCED) {
-        if (op_mode == 0 || op_mode == 1) {  // T-Mode és C-Mode
+        if (op_mode == 0 || op_mode == 1) {
             uint16_t sync_window = chip_reg & 0xFFFF;
-            // 1 bit hibatűrés a szinkronszónál
+            // Szinkron szó az RTL_WMBUS alapján
             int err_norm = __builtin_popcount(sync_window ^ 0x543D);
-            int err_inv = __builtin_popcount(sync_window ^ 0xABC2);
+            int err_inv = __builtin_popcount(sync_window ^ 0xABC2);  // 0x543D inverze
 
             if (err_norm <= 1 || err_inv <= 1) {
                 inverted_iq = (err_inv <= 1);
@@ -142,7 +168,7 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 byte_half = false;
                 stat_syncs++;
             }
-        } else if (op_mode == 2) {  // S-Mode
+        } else if (op_mode == 2) {
             uint32_t sync_window = chip_reg & 0x3FFFF;
             int err_norm = __builtin_popcount(sync_window ^ 0x00A6A6);
             int err_inv = __builtin_popcount(sync_window ^ (~0x00A6A6 & 0x3FFFF));
@@ -156,8 +182,7 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
             }
         }
     } else {
-        // === T-MODE (3-out-of-6) ===
-        if (op_mode == 0) {
+        if (op_mode == 0) {  // T-MODE
             chip_count++;
             if (chip_count == 6) {
                 chip_count = 0;
@@ -182,9 +207,7 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                     }
                 }
             }
-        }
-        // === C-MODE (NRZ) ===
-        else if (op_mode == 1) {
+        } else if (op_mode == 1) {  // C-MODE
             chip_count++;
             if (chip_count == 8) {
                 chip_count = 0;
@@ -192,9 +215,7 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 if (inverted_iq) byte = ~byte;
                 handle_byte(byte);
             }
-        }
-        // === S-MODE (Manchester) ===
-        else if (op_mode == 2) {
+        } else if (op_mode == 2) {  // S-MODE
             chip_count++;
             if (chip_count == 16) {
                 chip_count = 0;
@@ -228,6 +249,7 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
             return;
         }
 
+        // Fizikai hossz számítása a levegőben terjedő fix CRC bájtok miatt
         physical_length = payload_length + 1 + 2;
         if (payload_length > 9) {
             uint8_t rem = payload_length - 9;
