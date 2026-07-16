@@ -115,7 +115,7 @@ MEMORY
     ram_external_app_vor_tx                (rwx) : org = 0xAE0A0000, len = 32k
     ram_external_app_signal_hunter         (rwx) : org = 0xAE0B0000, len = 32k
     ram_external_app_tetra_rx              (rwx) : org = 0xAE0C0000, len = 32k
-    ram_external_app_wpan_rx               (rwx) : org = 0xAE0D0000, len = 32k
+    ram_external_app_wmbus_rx               (rwx) : org = 0xAE0D0000, len = 32k
 
 
 }
@@ -674,11 +674,11 @@ SECTIONS
         *(*ui*external_app*tetra_rx*);
     } > ram_external_app_tetra_rx
 
-    .external_app_wpan_rx : ALIGN(4) SUBALIGN(4)
+    .external_app_wmbus_rx : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_wpan_rx.application_information));
-        *(*ui*external_app*wpan_rx*);
-    } > ram_external_app_wpan_rx
+        KEEP(*(.external_app.app_wmbus_rx.application_information));
+        *(*ui*external_app*wmbus_rx*);
+    } > ram_external_app_wmbus_rx
 
 
 

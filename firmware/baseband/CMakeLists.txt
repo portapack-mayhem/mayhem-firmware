@@ -794,12 +794,12 @@ set(MODE_CPPSRC
 DeclareTargets(PTET tetra_rx)
 
 
-### WPAN Rx
+### WMBUS Rx
 
 set(MODE_CPPSRC
-	proc_wpan.cpp
+	proc_wmbus.cpp
 )
-DeclareTargets(PWPN wpan_rx)
+DeclareTargets(PWMB wmbus_rx)
 
 
 set(MODE_CPPSRC
