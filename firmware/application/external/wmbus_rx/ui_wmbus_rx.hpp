@@ -39,7 +39,7 @@ class WMBusRxView : public View {
     RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(22), 4}};
     Channel channel{{UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(22), 4}};
 
-    Text text_debug_err{{UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, 16}, "Last Err: None"};
+    Text text_debug_err{{UI_POS_X(0), UI_POS_Y(2), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, "Last Err: None"};
 
     Console console{{UI_POS_X(0), UI_POS_Y(3), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(4)}};
 

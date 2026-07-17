@@ -12,6 +12,7 @@ class WMBusProcessor : public BasebandProcessor {
    public:
     WMBusProcessor();
     void execute(const buffer_c8_t& buffer) override;
+    void on_message(const Message* const message) override;
 
    private:
     static constexpr size_t baseband_fs = 1000000;

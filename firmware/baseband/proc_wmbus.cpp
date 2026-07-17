@@ -46,8 +46,6 @@ uint8_t WMBusProcessor::decode_3out6(uint8_t chips) {
 }
 
 void WMBusProcessor::execute(const buffer_c8_t& buffer) {
-    op_mode = 0;  // static_cast<uint8_t>(shared_memory.squelch_level);
-
     for (size_t i = 0; i < buffer.count; i++) {
         int16_t samp_i = buffer.p[i].real();
         int16_t samp_q = buffer.p[i].imag();
@@ -258,6 +256,12 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
             sync_state = SyncState::UNSYNCED;
             last_err_reason = 0;  // ok!
         }
+    }
+}
+
+void WMBusProcessor::on_message(const Message* const message) {
+    if (message->id == Message::ID::WMBusPacketMessageID) {
+        op_mode = ((WMBusPacketMessage*)message)->length;
     }
 }
 

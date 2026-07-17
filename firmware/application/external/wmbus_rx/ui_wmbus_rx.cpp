@@ -26,13 +26,13 @@ WMBusRxView::WMBusRxView(NavigationView& nav) : nav_{nav} {
 }
 
 void WMBusRxView::on_mode_changed(int32_t mode) {
-    // receiver_model.set_squelch_level(mode); //todo send down the mode
+    baseband::set_wmbus_config((uint8_t)mode);
     if (mode == 2) {
-        receiver_model.set_target_frequency(868300000);
-        // console.writeln("\n-> S-Mode (868.3 MHz)");
+        // receiver_model.set_target_frequency(868300000);
+        console.writeln("-> S-Mode (868.3 MHz)");
     } else {
-        receiver_model.set_target_frequency(868950000);
-        // console.writeln((mode == 0) ? "\n-> T-Mode (868.95 MHz)" : "\n-> C-Mode (868.95 MHz)");
+        // receiver_model.set_target_frequency(868950000);
+        console.writeln((mode == 0) ? "-> T-Mode (868.95 MHz)" : "-> C-Mode (868.95 MHz)");
     }
 }
 
