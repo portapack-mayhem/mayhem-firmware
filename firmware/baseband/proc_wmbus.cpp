@@ -41,98 +41,74 @@ uint8_t WMBusProcessor::decode_3out6(uint8_t chips) {
         case 0x29:
             return 0xF;
         default:
-            return 0xFF;
+            return 0xFF;  // Hibás kód
     }
 }
 
 void WMBusProcessor::execute(const buffer_c8_t& buffer) {
     op_mode = 0;  // static_cast<uint8_t>(shared_memory.squelch_level);
 
-    // Az alap chip-hossz beállítása felskálázva (256x)
-    if (op_mode == 2) {
-        target_bit_length = 3906;  // S-Mode: 1MHz / 65.5kcps * 256 = 3906
-    } else {
-        target_bit_length = 2560;  // T/C-Mode: 1MHz / 100kcps * 256 = 2560
-    }
-
     for (size_t i = 0; i < buffer.count; i++) {
         int16_t samp_i = buffer.p[i].real();
         int16_t samp_q = buffer.p[i].imag();
 
-        // 1. FM Demodulátor (A feltöltött kódod polar_discriminator_t1_c1_inaccurate() függvénye!)
-        int32_t fm_val = (samp_q * prev_i) - (samp_i * prev_q);
-        prev_i = samp_i;
-        prev_q = samp_q;
+        // 1. I/Q DC Blocker
+        i_dc_acc += samp_i - (i_dc_acc >> 10);
+        q_dc_acc += samp_q - (q_dc_acc >> 10);
+        int16_t clean_i = samp_i - (i_dc_acc >> 10);
+        int16_t clean_q = samp_q - (q_dc_acc >> 10);
 
-        // 2. Szűrő (8-as LPF)
-        fm_sum += fm_val - fm_hist[hist_idx];
-        fm_hist[hist_idx] = fm_val;
-        hist_idx = (hist_idx + 1) & 7;
+        // 2. I/Q 4-tap  filter
+        i_sum += clean_i - i_hist[iq_idx];
+        i_hist[iq_idx] = clean_i;
 
-        // 3. DC Blocker
-        dc_acc += fm_sum - (dc_acc >> 8);
-        int32_t ac_val = fm_sum - (dc_acc >> 8);
+        q_sum += clean_q - q_hist[iq_idx];
+        q_hist[iq_idx] = clean_q;
+        iq_idx = (iq_idx + 1) & 3;
 
-        int32_t abs_ac = (ac_val < 0) ? -ac_val : ac_val;
+        int16_t filt_i = i_sum / 4;
+        int16_t filt_q = q_sum / 4;
+
+        // 3. FM Demodulator
+        int32_t fm_val = (filt_q * prev_i) - (filt_i * prev_q);
+        prev_i = filt_i;
+        prev_q = filt_q;
+
+        // 4. FM LPF 4-tap filter
+        fm_sum += fm_val - fm_hist[fm_idx];
+        fm_hist[fm_idx] = fm_val;
+        fm_idx = (fm_idx + 1) & 3;
+        int32_t fm_lpf = fm_sum / 4;
+
+        // 5. fast DC Tracker
+        // A preamble (01010101)
+        fm_dc_avg = (fm_dc_avg * 63 + fm_lpf) / 64;
+        int32_t ac_val = fm_lpf - fm_dc_avg;
+
+        uint32_t abs_ac = (ac_val < 0) ? -ac_val : ac_val;
         if (abs_ac > peak_fm_val) peak_fm_val = abs_ac;
 
-        // 4. "Deglitch" Szűrő (Egy az egyben az rtl_wmbus deglitch_filter_t1_c1 logikája)
-        uint8_t raw_bit = (ac_val > 0) ? 1 : 0;
-        raw_bitstream = (raw_bitstream << 1) | raw_bit;
+        // Slicer
+        bool current_bit = (ac_val > 0);
 
-        // 7-bites csúszóablak, legalább 4 egyforma bit kell az átbillenéshez a zaj kiszűrésére
-        uint32_t ones = __builtin_popcount(raw_bitstream & 0x7F);
-        uint8_t state = (ones >= 4) ? 1 : 0;
+        // 6. PLL
+        if (current_bit != last_bit) {
+            int32_t error = 500 - (int32_t)phase;
+            phase = (phase + error / 4) % 1000;
+            last_bit = current_bit;
+        }
 
-        // =====================================================================
-        // 5. A FELTÖLTÖTT "RUN-LENGTH" ALGORITMUS PI CONTROLLERREL
-        // (Tökéletesen leköveti a rádiójel driftelését)
-        // =====================================================================
-        if (state == current_state) {
-            run_length++;
-            if (run_length > 1000) run_length = 1000;
-        } else {
-            if (run_length < 5) {
-                // Túl rövid az élváltás (zaj), reset
-                run_length = 1;
-                current_state = state;
-                bit_length = target_bit_length;
-                cum_run_length_error = 0;
-                sync_state = SyncState::UNSYNCED;
-            } else {
-                int32_t scaled_run_length = run_length * 256;
-                int32_t half_bit_length = bit_length / 2;
+        // T-Mode 100kcps @ 1MHz -> phase shift  = 100 (1000 a max)
+        // S-Mode 65.536kcps @ 1MHz -> phase shift = 65
+        uint32_t phase_step = (op_mode == 2) ? 65 : 100;
+        phase += phase_step;
 
-                if (scaled_run_length <= half_bit_length) {
-                    run_length = 1;
-                    current_state = state;
-                    bit_length = target_bit_length;
-                    cum_run_length_error = 0;
-                    sync_state = SyncState::UNSYNCED;
-                } else {
-                    int num_bits_rx = 0;
-
-                    // Chip(ek) kibontása a távolságból
-                    while (scaled_run_length > half_bit_length) {
-                        scaled_run_length -= bit_length;
-                        consume_chip(current_state);
-                        num_bits_rx++;
-                    }
-
-                    // PI Controller (Sebességhiba kompenzálás a feltöltött kódod alapján)
-                    if (num_bits_rx > 0) {
-                        cum_run_length_error += scaled_run_length;
-                        bit_length += (scaled_run_length + cum_run_length_error / 16) / (32 * num_bits_rx);
-                    }
-
-                    current_state = state;
-                    run_length = 1;
-                }
-            }
+        if (phase >= 1000) {
+            phase -= 1000;
+            consume_chip(current_bit ? 1 : 0);
         }
     }
 
-    // 6. Telemetria (Másodpercenként 2x)
     telemetry_counter += buffer.count;
     if (telemetry_counter >= baseband_fs / 2) {
         telemetry_counter = 0;
@@ -140,11 +116,14 @@ void WMBusProcessor::execute(const buffer_c8_t& buffer) {
         dbg_msg.length = 0;
         dbg_msg.data[0] = static_cast<uint8_t>(sync_state);
 
-        uint32_t scaled_peak = peak_fm_val / 256;
+        uint32_t scaled_peak = peak_fm_val / 64;
         dbg_msg.data[1] = (scaled_peak > 255) ? 255 : static_cast<uint8_t>(scaled_peak);
         dbg_msg.data[2] = static_cast<uint8_t>(stat_syncs & 0xFF);
         dbg_msg.data[3] = static_cast<uint8_t>(stat_errors & 0xFF);
         dbg_msg.data[4] = op_mode;
+        dbg_msg.data[5] = last_err_reason;
+        dbg_msg.data[6] = last_err_data;
+
         shared_memory.application_queue.push(dbg_msg);
         peak_fm_val = 0;
     }
@@ -156,16 +135,15 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
     if (sync_state == SyncState::UNSYNCED) {
         if (op_mode == 0 || op_mode == 1) {
             uint16_t sync_window = chip_reg & 0xFFFF;
-            // Szinkron szó az RTL_WMBUS alapján
+
             int err_norm = __builtin_popcount(sync_window ^ 0x543D);
-            int err_inv = __builtin_popcount(sync_window ^ 0xABC2);  // 0x543D inverze
+            int err_inv = __builtin_popcount(sync_window ^ 0xABC2);
 
             if (err_norm <= 1 || err_inv <= 1) {
                 inverted_iq = (err_inv <= 1);
                 sync_state = SyncState::READ_LEN_H;
                 chip_count = 0;
                 payload_idx = 0;
-                byte_half = false;
                 stat_syncs++;
             }
         } else if (op_mode == 2) {
@@ -193,6 +171,8 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 if (nibble == 0xFF) {
                     sync_state = SyncState::UNSYNCED;
                     stat_errors++;
+                    last_err_reason = 1;  // 3v6 err
+                    last_err_data = raw;
                     return;
                 }
 
@@ -202,8 +182,8 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 } else {
                     current_byte |= nibble;
                     handle_byte(current_byte);
-                    if (sync_state != SyncState::UNSYNCED) {
-                        sync_state = (sync_state == SyncState::READ_LEN_L) ? SyncState::READ_DATA_H : SyncState::READ_DATA_H;
+                    if (sync_state == SyncState::READ_DATA_L) {
+                        sync_state = SyncState::READ_DATA_H;
                     }
                 }
             }
@@ -226,10 +206,12 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
 
                     if (pair == 0x02)
                         byte |= (1 << (7 - b));
-                    else if (pair == 0x01) { /* 0 marad */
+                    else if (pair == 0x01) { /* 0  */
                     } else {
                         sync_state = SyncState::UNSYNCED;
                         stat_errors++;
+                        last_err_reason = 4;  // Manchester err
+                        last_err_data = pair;
                         return;
                     }
                 }
@@ -246,10 +228,12 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
         if (payload_length < 9 || payload_length > 250) {
             sync_state = SyncState::UNSYNCED;
             stat_errors++;
+            last_err_reason = (payload_length < 9) ? 2 : 3;  // len error
+            last_err_data = payload_length;
             return;
         }
 
-        // Fizikai hossz számítása a levegőben terjedő fix CRC bájtok miatt
+        // CRC bytes
         physical_length = payload_length + 1 + 2;
         if (payload_length > 9) {
             uint8_t rem = payload_length - 9;
@@ -258,6 +242,8 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
 
         payload_buffer[0] = byte;
         payload_idx = 1;
+
+        sync_state = (op_mode == 0) ? SyncState::READ_DATA_H : SyncState::READ_DATA_L;
     } else {
         payload_buffer[payload_idx++] = byte;
 
@@ -268,7 +254,9 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
                 msg.data[i] = payload_buffer[i];
             }
             shared_memory.application_queue.push(msg);
+
             sync_state = SyncState::UNSYNCED;
+            last_err_reason = 0;  // ok!
         }
     }
 }

@@ -18,7 +18,7 @@ class WMBusRxView : public View {
     ~WMBusRxView();
     void focus() override;
 
-    std::string title() const override { return "W-MBus (rtl_433) Scanner"; };
+    std::string title() const override { return "W-MBus"; };
 
    private:
     NavigationView& nav_;
@@ -39,15 +39,15 @@ class WMBusRxView : public View {
     RSSI rssi{{UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(24), 4}};
     Channel channel{{UI_POS_X(21), 5, UI_POS_WIDTH_REMAINING(24), 4}};
 
-    Text text_debug_st{{0, 3 * 16, 240, 16}, "ST:UNSYNCED S:0 E:0"};
-    Text text_debug_fm{{0, 4 * 16, 240, 16}, "FM Peak: 0 | Mod: T"};
+    Text text_debug_err{{0, 3 * 16, 240, 16}, "Last Err: None"};
 
-    Console console{{0, 5 * 16, screen_width, screen_height - (5 * 16)}};
+    Console console{{0, 4 * 16, screen_width, screen_height - (5 * 16)}};
 
     void on_data_wmbus(const WMBusPacketMessage& message);
     std::string decode_manufacturer(uint8_t byte1, uint8_t byte2);
+    std::string decode_device_type(uint8_t type_byte);
     void on_mode_changed(int32_t mode);
-    bool is_crc_byte(int idx);  // Segédfüggvény a CRC kivágásához
+    bool is_crc_byte(int idx);
 
     MessageHandlerRegistration message_handler_wmbus{
         Message::ID::WMBusPacketMessageID,
@@ -58,4 +58,4 @@ class WMBusRxView : public View {
 
 }  // namespace ui::external_app::wmbus_rx
 
-#endif
+#endif  // __UI_WMBUS_RX_H__
