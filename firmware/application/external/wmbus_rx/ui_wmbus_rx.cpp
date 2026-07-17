@@ -146,6 +146,26 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
 
     if (msg.length < 13) return;
 
+    // W-MBus Frame Format A - Block 1 CRC check ( C-mode)
+    uint16_t calc_crc = 0x0000;
+    for (int i = 0; i < 10; i++) {
+        calc_crc ^= (msg.data[i] << 8);
+        for (int j = 0; j < 8; j++) {
+            if (calc_crc & 0x8000) {
+                calc_crc = (calc_crc << 1) ^ 0x3D65;
+            } else {
+                calc_crc = (calc_crc << 1);
+            }
+        }
+    }
+    calc_crc = ~calc_crc;
+    uint16_t pkt_crc = (msg.data[10] << 8) | msg.data[11];
+
+    if (calc_crc != pkt_crc) {
+        text_debug_err.set("Last Err: CRC Fail");
+        return;
+    }
+
     std::string mfr = decode_manufacturer(msg.data[2], msg.data[3]);
     std::string serial = to_string_hex(msg.data[7], 2) + to_string_hex(msg.data[6], 2) +
                          to_string_hex(msg.data[5], 2) + to_string_hex(msg.data[4], 2);
