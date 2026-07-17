@@ -155,7 +155,7 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
     std::string type_str = "0x" + to_string_hex(type_byte, 2) + " (" + decode_device_type(type_byte) + ")";
 
     uint8_t l_field = msg.data[0];
-
+    console.writeln("------------------------");
     console.writeln("Mfr : " + mfr + "  ID: " + serial);
     console.writeln("Ver : " + ver + " Type: " + type_str);
 
@@ -324,8 +324,6 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
     } else {
         console.writeln(hex_dump);
     }
-
-    console.writeln("------------------------");
 }
 
 WMBusRxView::~WMBusRxView() {
