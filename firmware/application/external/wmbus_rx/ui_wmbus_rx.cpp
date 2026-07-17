@@ -14,7 +14,7 @@ WMBusRxView::WMBusRxView(NavigationView& nav) : nav_{nav} {
     add_children({&options_mode, &rssi, &channel, &field_rf_amp, &field_lna, &field_vga,
                   &field_frequency, &text_debug_err, &console});
 
-    field_frequency.set_step(100000);
+    field_frequency.set_step(10000);
 
     receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.set_sampling_rate(1000000);
@@ -26,13 +26,14 @@ WMBusRxView::WMBusRxView(NavigationView& nav) : nav_{nav} {
 }
 
 void WMBusRxView::on_mode_changed(int32_t mode) {
+    text_debug_err.set("Last err: no packet yet");
     baseband::set_wmbus_config((uint8_t)mode);
     if (mode == 2) {
         // receiver_model.set_target_frequency(868300000);
-        console.writeln("-> S-Mode (868.3 MHz)");
+        console.writeln("-> S-Mode (orig: 868.3 MHz)");
     } else {
         // receiver_model.set_target_frequency(868950000);
-        console.writeln((mode == 0) ? "-> T-Mode (868.95 MHz)" : "-> C-Mode (868.95 MHz)");
+        console.writeln((mode == 0) ? "-> T-Mode (orig: 868.95 MHz)" : "-> C-Mode (orig: 868.95 MHz)");
     }
 }
 

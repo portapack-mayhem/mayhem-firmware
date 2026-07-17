@@ -186,12 +186,22 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 }
             }
         } else if (op_mode == 1) {  // C-MODE
-            chip_count++;
-            if (chip_count == 8) {
+            uint32_t sync_window = chip_reg & 0xFFFFFF;
+
+            // Format A: 0x55543D (norm) / 0xAAABC2 (inv)
+            int err_a_norm = __builtin_popcount(sync_window ^ 0x55543D);
+            int err_a_inv = __builtin_popcount(sync_window ^ 0xAAABC2);
+
+            // Format B: 0x5554CB (norm) / 0xAAAB34 (inv)
+            int err_b_norm = __builtin_popcount(sync_window ^ 0x5554CB);
+            int err_b_inv = __builtin_popcount(sync_window ^ 0xAAAB34);
+
+            if (err_a_norm <= 1 || err_a_inv <= 1 || err_b_norm <= 1 || err_b_inv <= 1) {
+                inverted_iq = (err_a_inv <= 1 || err_b_inv <= 1);
+                sync_state = SyncState::READ_LEN_L;
                 chip_count = 0;
-                uint8_t byte = chip_reg & 0xFF;
-                if (inverted_iq) byte = ~byte;
-                handle_byte(byte);
+                payload_idx = 0;
+                stat_syncs++;
             }
         } else if (op_mode == 2) {  // S-MODE
             chip_count++;
@@ -262,6 +272,11 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
 void WMBusProcessor::on_message(const Message* const message) {
     if (message->id == Message::ID::WMBusPacketMessageID) {
         op_mode = ((WMBusPacketMessage*)message)->length;
+        sync_state = SyncState::UNSYNCED;
+        chip_count = 0;
+        payload_idx = 0;
+        last_err_reason = 0;
+        last_err_data = 0;
     }
 }
 
