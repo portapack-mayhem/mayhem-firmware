@@ -23,17 +23,16 @@ WMBusRxView::WMBusRxView(NavigationView& nav) : nav_{nav} {
 
     options_mode.on_change = [this](size_t, int32_t v) { this->on_mode_changed(v); };
     options_mode.set_selected_index(0);
-    on_mode_changed(0);
 }
 
 void WMBusRxView::on_mode_changed(int32_t mode) {
-    receiver_model.set_squelch_level(mode);
+    // receiver_model.set_squelch_level(mode); //todo send down the mode
     if (mode == 2) {
         receiver_model.set_target_frequency(868300000);
-        console.writeln("\n-> S-Mode (868.3 MHz)");
+        // console.writeln("\n-> S-Mode (868.3 MHz)");
     } else {
         receiver_model.set_target_frequency(868950000);
-        console.writeln((mode == 0) ? "\n-> T-Mode (868.95 MHz)" : "\n-> C-Mode (868.95 MHz)");
+        // console.writeln((mode == 0) ? "\n-> T-Mode (868.95 MHz)" : "\n-> C-Mode (868.95 MHz)");
     }
 }
 
@@ -122,15 +121,6 @@ std::string WMBusRxView::decode_device_type(uint8_t type_byte) {
     }
 }
 
-bool WMBusRxView::is_crc_byte(int idx) {
-    if (idx == 10 || idx == 11) return true;
-    if (idx > 11) {
-        int block2_idx = idx - 12;
-        if (block2_idx % 18 == 16 || block2_idx % 18 == 17) return true;
-    }
-    return false;
-}
-
 void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
     if (msg.length == 0) {
         uint8_t err_reason = msg.data[5];
@@ -165,18 +155,167 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
     std::string type_str = "0x" + to_string_hex(type_byte, 2) + " (" + decode_device_type(type_byte) + ")";
 
     uint8_t l_field = msg.data[0];
-    uint8_t c_field = msg.data[1];
-    uint8_t ci_field = msg.data[12];
 
     console.writeln("Mfr : " + mfr + "  ID: " + serial);
     console.writeln("Ver : " + ver + " Type: " + type_str);
-    console.writeln("Ctrl: 0x" + to_string_hex(c_field, 2) + " Len: " + to_string_dec_uint(l_field + 1) + " CI: 0x" + to_string_hex(ci_field, 2));
 
-    std::string hex_dump = "Data: ";
-    for (int i = 0; i < msg.length; i++) {
-        if (!is_crc_byte(i)) {
-            hex_dump += to_string_hex(msg.data[i], 2);
+    auto get_byte = [&msg](int index) -> uint8_t {
+        if (index < 10) return msg.data[index];
+        int block = (index - 10) / 16;
+        int rem = (index - 10) % 16;
+        int phys_idx = 12 + block * 18 + rem;
+        if (phys_idx < msg.length) return msg.data[phys_idx];
+        return 0;
+    };
+
+    uint8_t ci_field = get_byte(10);
+    std::string enc_str = "Enc: Unknown";
+    std::string val_str = "";
+
+    int ptr = 11;
+    bool has_cw = false;
+    uint8_t enc_mode = 0;
+
+    if (ci_field == 0x72 || ci_field == 0x82) {
+        ptr += 10;
+        if (ptr + 1 <= l_field) {
+            enc_mode = get_byte(ptr + 1) & 0x0F;
+            has_cw = true;
         }
+        ptr += 2;  // Data szakasz
+    } else if (ci_field == 0x7A || ci_field == 0x8A) {
+        ptr += 2;  // Access(1)+Status(1)
+        if (ptr + 1 <= l_field) {
+            enc_mode = get_byte(ptr + 1) & 0x0F;
+            has_cw = true;
+        }
+        ptr += 2;  // Data szakasz
+    } else if (ci_field == 0x78 || ci_field == 0x88) {
+        has_cw = false;
+    }
+
+    if (has_cw && enc_mode > 0) {
+        if (enc_mode == 5)
+            enc_str = "Enc: AES-128";
+        else if (enc_mode == 7)
+            enc_str = "Enc: DES";
+        else
+            enc_str = "Enc: Mode " + to_string_dec_uint(enc_mode);
+    } else {
+        enc_str = "Enc: None";
+        int values_found = 0;
+
+        while (ptr <= l_field && values_found < 3) {
+            uint8_t dif0 = get_byte(ptr++);
+            if (dif0 == 0x0F || dif0 == 0x1F || dif0 == 0x2F) break;
+
+            uint8_t data_len = 0;
+            bool is_bcd = false;
+
+            switch (dif0 & 0x0F) {
+                case 0x00:
+                    data_len = 0;
+                    break;
+                case 0x01:
+                    data_len = 1;
+                    break;
+                case 0x02:
+                    data_len = 2;
+                    break;
+                case 0x03:
+                    data_len = 3;
+                    break;
+                case 0x04:
+                    data_len = 4;
+                    break;
+                case 0x05:
+                    data_len = 4;
+                    break;  // 4 byte REAL
+                case 0x06:
+                    data_len = 6;
+                    break;
+                case 0x07:
+                    data_len = 8;
+                    break;
+                case 0x08:
+                    data_len = 0;
+                    break;
+                case 0x09:
+                    data_len = 1;
+                    is_bcd = true;
+                    break;
+                case 0x0A:
+                    data_len = 2;
+                    is_bcd = true;
+                    break;
+                case 0x0B:
+                    data_len = 3;
+                    is_bcd = true;
+                    break;
+                case 0x0C:
+                    data_len = 4;
+                    is_bcd = true;
+                    break;
+                case 0x0D:
+                    data_len = 0;
+                    break;  // Variable
+                case 0x0E:
+                    data_len = 6;
+                    is_bcd = true;
+                    break;
+                case 0x0F:
+                    data_len = 0;
+                    break;
+            }
+
+            uint8_t dif_ext = dif0;
+            while ((dif_ext & 0x80) && ptr <= l_field) {
+                dif_ext = get_byte(ptr++);
+            }
+
+            if ((dif0 & 0x0F) == 0x0D) {
+                if (ptr <= l_field) {
+                    uint8_t lvar = get_byte(ptr++);
+                    data_len = lvar & 0x7F;
+                }
+            }
+
+            if (ptr <= l_field) {
+                uint8_t vif = get_byte(ptr++);
+                while ((vif & 0x80) && ptr <= l_field) {
+                    vif = get_byte(ptr++);
+                }
+            }
+
+            if (data_len > 0) {
+                if (ptr + data_len <= l_field + 1) {
+                    if (data_len <= 4) {
+                        uint32_t val = 0;
+                        for (int i = 0; i < data_len; i++) {
+                            val |= (get_byte(ptr + i) << (i * 8));
+                        }
+                        if (is_bcd)
+                            val_str += " V:" + to_string_hex(val, data_len * 2);
+                        else
+                            val_str += " V:" + to_string_dec_uint(val);
+                        values_found++;
+                    }
+                    ptr += data_len;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    console.writeln("CI: 0x" + to_string_hex(ci_field, 2) + " " + enc_str);
+    if (val_str.length() > 0) {
+        console.writeln(val_str);
+    }
+
+    std::string hex_dump = "Hex: ";
+    for (int i = 0; i <= l_field; i++) {
+        hex_dump += to_string_hex(get_byte(i), 2);
     }
 
     if (hex_dump.length() > 30) {
