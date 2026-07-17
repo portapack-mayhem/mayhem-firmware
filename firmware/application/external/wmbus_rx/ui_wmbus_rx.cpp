@@ -22,10 +22,11 @@ WMBusRxView::WMBusRxView(NavigationView& nav) : nav_{nav} {
     receiver_model.enable();
 
     options_mode.on_change = [this](size_t, int32_t v) { this->on_mode_changed(v); };
-    options_mode.set_selected_index(0);
+    options_mode.set_selected_index(last_mode);
 }
 
 void WMBusRxView::on_mode_changed(int32_t mode) {
+    last_mode = (uint8_t)mode;
     text_debug_err.set("Last err: no packet yet");
     baseband::set_wmbus_config((uint8_t)mode);
     if (mode == 2) {

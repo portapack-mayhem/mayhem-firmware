@@ -23,7 +23,8 @@ class WMBusRxView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{};
-    app_settings::SettingsManager settings_{"rx_wmbus", app_settings::Mode::RX};
+    uint8_t last_mode = 0;
+    app_settings::SettingsManager settings_{"rx_wmbus", app_settings::Mode::RX, {{"last_mode"sv, &last_mode}}};
 
     OptionsField options_mode{
         {UI_POS_X(0), UI_POS_Y(0)},
