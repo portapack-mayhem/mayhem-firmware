@@ -76,8 +76,8 @@ static constexpr uint32_t ssp_scr(
 /* MAX2831 uses 9-bit SPI transfers */
 static constexpr SPIConfig ssp_config_max283x = {
     .end_cb = NULL,
-    .ssport = gpio_max283x_select.port(),
-    .sspad = gpio_max283x_select.pad(),
+    .ssport = map_max283x_select.gpio_port,
+    .sspad = map_max283x_select.gpio_pad,
     .cr0 =
         CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS9BIT,
     .cpsr = ssp1_cpsr,
@@ -95,8 +95,8 @@ void set_rx_buff_vcm(const size_t v) {
 /* MAX2837/MAX2839 use 16-bit SPI transfers */
 static constexpr SPIConfig ssp_config_max283x = {
     .end_cb = NULL,
-    .ssport = gpio_max283x_select.port(),
-    .sspad = gpio_max283x_select.pad(),
+    .ssport = map_max283x_select.gpio_port,
+    .sspad = map_max283x_select.gpio_pad,
     .cr0 =
         CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS16BIT,
     .cpsr = ssp1_cpsr,

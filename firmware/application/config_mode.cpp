@@ -61,7 +61,6 @@ uint32_t blink_patterns[] = {
 
 void config_mode_run() {
     configure_pins_portapack();
-    portapack::gpio_dfu.input();
     portapack::persistent_memory::cache::init();
 
     if (hackrf_r9) {
@@ -80,14 +79,14 @@ void config_mode_run() {
         config_mode_blink_until_dfu();
     }
 
-    auto last_dfu_btn = portapack::gpio_dfu.read();
+    auto last_dfu_btn = dfu_button.read();
 
     int32_t counter = 0;
     int8_t blink_pattern_value = portapack::persistent_memory::config_cpld() +
                                  (portapack::persistent_memory::config_disable_external_tcxo() ? 5 : 0);
 
     while (true) {
-        auto dfu_btn = portapack::gpio_dfu.read();
+        auto dfu_btn = dfu_button.read();
         auto dfu_clicked = last_dfu_btn == true && dfu_btn == false;
         last_dfu_btn = dfu_btn;
 
@@ -137,7 +136,7 @@ void config_mode_blink_until_dfu() {
         led_usb.setInactive();
         chThdSleepMilliseconds(115);
 
-        auto dfu_btn = portapack::gpio_dfu.read();
+        auto dfu_btn = dfu_button.read();
         if (dfu_btn)
             break;
     }
@@ -145,7 +144,7 @@ void config_mode_blink_until_dfu() {
     while (true) {
         chThdSleepMilliseconds(10);
 
-        auto dfu_btn = portapack::gpio_dfu.read();
+        auto dfu_btn = dfu_button.read();
         if (!dfu_btn)
             break;
     }

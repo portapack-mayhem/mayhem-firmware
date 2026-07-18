@@ -26,8 +26,12 @@
 #include "utility.hpp"
 
 #include "hackrf_hal.hpp"
+
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
+
+#include "gpio.hpp"
+using namespace gpio_control;
 
 #include "hal.h"
 
@@ -176,13 +180,11 @@ struct SynthConfig {
 
 void RFFC507x::init() {
 #ifdef PRALINE
-    gpio_control::rf5072_mix_en.setActive();  // RF5072_MIX_EN
+    rf5072_mix_en.setActive();  // RF5072_MIX_EN
 #endif
 
-    gpio_rffc5072_resetx.set();
-#ifndef PRALINE
-    gpio_rffc5072_resetx.output();
-#endif
+    rffc5072_resetx.setInactive();
+
     reset();
 
     _bus.init();
@@ -195,9 +197,9 @@ void RFFC507x::reset() {
     /* TODO: Is RESETB pin ignored if sdi_ctrl.sipin=1? Programming guide
      * description of sdi_ctrl.sipin suggests the pin is not ignored.
      */
-    gpio_rffc5072_resetx.clear();
+    rffc5072_resetx.setActive();
     halPolledDelay(ticks_during_reset);
-    gpio_rffc5072_resetx.set();
+    rffc5072_resetx.setInactive();
     halPolledDelay(ticks_after_reset);
 }
 
