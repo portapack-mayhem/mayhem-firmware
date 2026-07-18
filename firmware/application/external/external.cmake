@@ -392,7 +392,7 @@ set(EXTCPPSRC
 	external/tetra_rx/tetra_viterbi.cpp
 
 
-	#wpan_rx
+	#wmbus
 	external/wmbus_rx/main.cpp
 	external/wmbus_rx/ui_wmbus_rx.cpp
 )
