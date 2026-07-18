@@ -41,7 +41,7 @@ uint8_t WMBusProcessor::decode_3out6(uint8_t chips) {
         case 0x29:
             return 0xF;
         default:
-            return 0xFF;  // Hibás kód
+            return 0xFF;  // error
     }
 }
 
