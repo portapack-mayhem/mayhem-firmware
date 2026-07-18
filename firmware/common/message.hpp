@@ -170,6 +170,7 @@ class Message {
         HunterStop = 112,
         TetraBsch = 113,
         TetraDnb = 114,
+        WMBusPacketMessageID = 115,
         MAX
     };
 
@@ -2052,5 +2053,13 @@ struct TetraDnbMessage : public Message {
 
     // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
     std::array<uint8_t, 54> payload;
+};
+
+struct WMBusPacketMessage : public Message {
+    constexpr WMBusPacketMessage()
+        : Message{ID::WMBusPacketMessageID} {}
+
+    uint8_t length = 0;
+    uint8_t data[255] = {0};
 };
 #endif /*__MESSAGE_H__*/

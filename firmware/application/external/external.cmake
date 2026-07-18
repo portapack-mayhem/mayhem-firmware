@@ -391,6 +391,10 @@ set(EXTCPPSRC
 	external/tetra_rx/tetra_rcpc.cpp
 	external/tetra_rx/tetra_viterbi.cpp
 
+
+	#wpan_rx
+	external/wmbus_rx/main.cpp
+	external/wmbus_rx/ui_wmbus_rx.cpp
 )
 
 set(EXTAPPLIST
@@ -483,8 +487,9 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
-  signal_hunter
+    signal_hunter
 	tetra_rx
+	wmbus_rx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

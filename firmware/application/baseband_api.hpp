@@ -123,6 +123,7 @@ void set_epirb_tx_config(EPIRBTXDataMessage& message);
 void set_epirb_rx_config(EPIRBRXConfig& message);
 void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length);
 void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start);
+void set_wmbus_config(uint8_t mode = 0);
 
 void request_roger_beep();
 void request_rssi_beep();
