@@ -75,7 +75,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     uint8_t firstcolwidth = columns.at(0).second;
     ipc.resize(firstcolwidth, ' ');  // Make sure this is always match the first column's width that is dynamic.
 
-    entry_string += ipc + to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+    entry_string += ipc + to_string_dec_int((int32_t)(entry.pos.altitude / 100), 4);
 
     if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
         // It is generally accepted that for every thousand feet of altitude,
@@ -668,9 +668,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
                         (raw_data[3] & 15);
 
                 // The final altitude is due to the resulting number multiplied by 25, minus 1000.
+                // altitude = 25N - 1000 (ft); minimum is -1000 ft when N=0 (Q=1, M=0 per ICAO Annex 10).
                 altitude = 25 * n - 1000;
-                if (altitude < 0)
-                    altitude = 0;
             }  // else N is an 11 bit Gillham coded altitude
         }
 
