@@ -107,6 +107,7 @@ struct AircraftRecentEntry {
 
     uint8_t sil{0};  // Surveillance integrity level
     uint16_t sqwk{0};
+    bool on_ground{false};
 
     AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {

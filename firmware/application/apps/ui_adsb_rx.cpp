@@ -75,7 +75,10 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     uint8_t firstcolwidth = columns.at(0).second;
     ipc.resize(firstcolwidth, ' ');  // Make sure this is always match the first column's width that is dynamic.
 
-    entry_string += ipc + to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4);
+    if (entry.on_ground)
+        entry_string += ipc + " GND";
+    else
+        entry_string += ipc + to_string_dec_int((int32_t)(entry.pos.altitude / 100), 4);
 
     if (entry.velo.type == SPD_IAS && entry.pos.alt_valid) {  // IAS can be converted to TAS
         // It is generally accepted that for every thousand feet of altitude,
@@ -628,10 +631,19 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
             entry.set_callsign(decode_frame_id(frame));
             log_entry.callsign = entry.callsign;
         }
+        // 5-8: Surface position (aircraft is on ground)
+        else if ((msg_type >= SURFACE_POS_L) && (msg_type <= SURFACE_POS_H)) {
+            entry.on_ground = true;
+            entry.pos.altitude = 0;
+            entry.pos.alt_valid = false;
+            log_entry.pos.altitude = 0;
+            log_entry.pos.alt_valid = false;
+        }
         // 9-18: Airborne position (w/Baro Altitude)
         // 20-22: Airborne position (w/GNSS Height)
         else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) ||
                  ((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
+            entry.on_ground = false;
             entry.set_frame_pos(frame, raw_data[6] & 4);
             log_entry.pos = entry.pos;
 
@@ -668,9 +680,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
                         (raw_data[3] & 15);
 
                 // The final altitude is due to the resulting number multiplied by 25, minus 1000.
+                // Per ICAO Annex 10 Vol IV 3.1.2.6.5.4, altitude can be as low as -1000ft.
                 altitude = 25 * n - 1000;
-                if (altitude < 0)
-                    altitude = 0;
             }  // else N is an 11 bit Gillham coded altitude
         }
 
