@@ -391,6 +391,10 @@ set(EXTCPPSRC
 	external/tetra_rx/tetra_rcpc.cpp
 	external/tetra_rx/tetra_viterbi.cpp
 
+	#sentinel_labkit - safety-hardened siggen (labkit gate before TX enable)
+	external/sentinel_labkit/main.cpp
+	external/sentinel_labkit/ui_sentinel_labkit.cpp
+
 )
 
 set(EXTAPPLIST
@@ -485,6 +489,7 @@ set(EXTAPPLIST
 	secplustx
   signal_hunter
 	tetra_rx
+	sentinel_labkit
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
