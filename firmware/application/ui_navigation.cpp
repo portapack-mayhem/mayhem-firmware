@@ -59,7 +59,6 @@
 #include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
-#include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
@@ -98,7 +97,6 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
-    {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
