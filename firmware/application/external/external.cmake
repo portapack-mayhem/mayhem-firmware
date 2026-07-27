@@ -399,6 +399,10 @@ set(EXTCPPSRC
 	external/ais_rx/main.cpp
 	external/ais_rx/ais_app.cpp
 
+	#aprs rx
+	external/aprs_rx/main.cpp
+	external/aprs_rx/ui_aprs_rx.cpp
+
 )
 
 set(EXTAPPLIST
@@ -495,6 +499,7 @@ set(EXTAPPLIST
 	tetra_rx
 	adsbrx
 	ais_rx
+	aprs_rx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds

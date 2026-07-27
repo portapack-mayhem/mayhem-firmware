@@ -30,7 +30,6 @@
 #include "portapack.hpp"
 
 #include "ui_about_simple.hpp"
-#include "ui_aprs_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_btle_rx.hpp"
 #include "ui_debug.hpp"
@@ -97,7 +96,6 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
-    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
