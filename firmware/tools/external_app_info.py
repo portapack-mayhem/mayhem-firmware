@@ -24,4 +24,4 @@
 # external app address ranges below must match those in linker file "external.ld"
 maximum_application_size = 32*1024
 external_apps_address_start = 0xADB00000
-external_apps_address_end = 0xAE100000
+external_apps_address_end = 0xAE110000
