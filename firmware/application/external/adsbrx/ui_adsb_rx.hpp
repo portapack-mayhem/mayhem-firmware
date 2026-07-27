@@ -39,7 +39,7 @@
 
 using namespace adsb;
 
-namespace ui {
+namespace ui::external_app::adsbrx {
 #define AIRCRAFT_ID_L 1  // aircraft ID message type (lowest type id)
 #define AIRCRAFT_ID_H 4  // aircraft ID message type (highest type id)
 
@@ -491,4 +491,4 @@ class ADSBRxView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::adsbrx

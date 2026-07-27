@@ -391,6 +391,10 @@ set(EXTCPPSRC
 	external/tetra_rx/tetra_rcpc.cpp
 	external/tetra_rx/tetra_viterbi.cpp
 
+	#adsb rx
+	external/adsbrx/main.cpp
+	external/adsbrx/ui_adsb_rx.cpp
+
 )
 
 set(EXTAPPLIST
@@ -485,6 +489,7 @@ set(EXTAPPLIST
 	secplustx
   signal_hunter
 	tetra_rx
+	adsbrx
 )
 
 # sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
@@ -495,4 +500,3 @@ if(NOT BOARD STREQUAL "PRALINE")
        )
        list(APPEND EXTAPPLIST sdusb)
 endif()
-
