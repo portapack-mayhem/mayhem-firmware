@@ -88,6 +88,15 @@ void ReceiverModel::set_target_frequency(rf::Frequency f) {
     update_tuning_frequency();
 }
 
+void ReceiverModel::set_target_frequency_with_hidden_offset(
+    rf::Frequency f,
+    rf::Frequency offset) {
+    persistent_memory::set_target_frequency(f);
+    settings_.frequency_app_override = f;
+    hidden_offset = offset;
+    update_tuning_frequency();
+}
+
 uint32_t ReceiverModel::baseband_bandwidth() const {
     return settings_.baseband_bandwidth;
 }

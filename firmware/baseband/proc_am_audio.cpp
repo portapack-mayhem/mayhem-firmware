@@ -45,10 +45,26 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     }
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+    const auto audio_decim_0_out = audio_decim_0.execute(decim_0_out, dst_buffer);
 
-    channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+    spectrum_samples += decim_0_out.count;
+    if (!spectrum_capture_active &&
+        spectrum_samples >= spectrum_interval_samples) {
+        spectrum_samples -= spectrum_interval_samples;
+        channel_spectrum.start_filtered_capture(spectrum_zoom_x2 ? 4 : 2);
+        spectrum_capture_active = true;
+    }
 
+    if (spectrum_capture_active &&
+        channel_spectrum.feed_filtered(
+            audio_decim_0_out,
+            channel_filter_low_f,
+            channel_filter_high_f,
+            channel_filter_transition)) {
+        spectrum_capture_active = false;
+    }
+
+    const auto decim_1_out = translating_decim_1.execute(audio_decim_0_out, dst_buffer);
     const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
 
@@ -97,6 +113,10 @@ void NarrowbandAMAudio::on_message(const Message* const message) {
             capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
             break;
 
+        case Message::ID::AudioDDCConfig:
+            ddc_config(*reinterpret_cast<const AudioDDCConfigMessage*>(message));
+            break;
+
         default:
             break;
     }
@@ -106,17 +126,19 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     constexpr size_t decim_0_input_fs = baseband_fs;
     constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
-    constexpr size_t decim_1_input_fs = decim_0_output_fs;
-    constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
-
+    constexpr size_t audio_decim_0_output_fs = decim_0_output_fs / 2;
+    constexpr size_t decim_1_output_fs =
+        audio_decim_0_output_fs / translating_decim_1.decimation_factor;
     constexpr size_t decim_2_input_fs = decim_1_output_fs;
     constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
 
     constexpr size_t channel_filter_input_fs = decim_2_output_fs;
     // const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
 
-    decim_0.configure(message.decim_0_filter.taps);
-    decim_1.configure(message.decim_1_filter.taps);
+    decim_0.configure(message.decim_0_filter.taps, 33554432);
+    audio_decim_0.configure(taps_audio_wide_halfband_0.taps);
+    translating_decim_1.configure(
+        message.decim_1_filter.taps, audio_decim_0_output_fs);
     decim_2.configure(message.decim_2_filter.taps, decim_2_decimation_factor);
     channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
     channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
@@ -124,10 +146,18 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
 
     modulation_ssb = (int)message.modulation;  // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
-    channel_spectrum.set_decimation_factor(message.channel_spectrum_decimation_factor);
+    spectrum_zoom_x2 = message.channel_spectrum_decimation_factor == 2;
+    channel_spectrum.set_decimation_factor(1);
+    spectrum_interval_samples =
+        decim_0_output_fs / spectrum_rate_hz;
     audio_output.configure(message.audio_hpf_lpf_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
 
     configured = true;
+}
+
+void NarrowbandAMAudio::ddc_config(const AudioDDCConfigMessage& message) {
+    translating_decim_1.set_frequency(message.frequency);
+    channel_spectrum.set_channel_filter_offset(message.frequency);
 }
 
 void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {

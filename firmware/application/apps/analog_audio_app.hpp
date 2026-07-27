@@ -269,6 +269,10 @@ class AnalogAudioView : public View {
     uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
     uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
     uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
+    static constexpr int32_t sliding_limit_zoom_x1 = 50000;
+    static constexpr int32_t sliding_limit_zoom_x2 = 30000;
+    rf::Frequency sliding_center_frequency{0};
+    bool sliding_enabled{false};
 
     app_settings::SettingsManager settings_{
         "rx_audio",
@@ -354,6 +358,10 @@ class AnalogAudioView : public View {
     void handle_coded_squelch(uint32_t value);
 
     void on_freqchg(int64_t freq);
+    bool on_frequency_changed(rf::Frequency frequency);
+    void set_frequency_absolute(rf::Frequency frequency);
+    int32_t sliding_limit() const;
+    void reset_sliding_frequency(ReceiverModel::Mode modulation);
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,

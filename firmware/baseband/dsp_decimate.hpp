@@ -170,6 +170,24 @@ class FIRC16xR16x16Decim2 {
     int32_t output_scale = 0;
 };
 
+class FIRC16xR16x63HalfbandDecim2 {
+   public:
+    static constexpr size_t taps_count = 63;
+    static constexpr size_t decimation_factor = 2;
+
+    void configure(const std::array<int16_t, taps_count>& taps);
+    void reset();
+
+    buffer_c16_t execute(
+        const buffer_c16_t& src,
+        const buffer_c16_t& dst);
+
+   private:
+    alignas(4) std::array<complex16_t, taps_count * 2> samples_{};
+    alignas(4) std::array<int16_t, taps_count> taps_{};
+    size_t samples_head_{0};
+};
+
 class FIRC16xR16x32Decim8 {
    public:
     static constexpr size_t taps_count = 32;
@@ -210,6 +228,23 @@ class FIRAndDecimateComplex {
         configure(taps.data(), taps.size(), decimation_factor);
     }
 
+    template <size_t N>
+    void configure(
+        const std::array<int16_t, N>& taps,
+        const size_t decimation_factor) {
+        configure_common(N, decimation_factor);
+        for (size_t i = 0; i < N; ++i) {
+            taps_reversed_[i] = {taps[N - 1 - i], 0};
+        }
+    }
+
+    template <size_t N>
+    void set_taps(const std::array<complex16_t, N>& taps) {
+        if (N == taps_count_) {
+            std::reverse_copy(taps.begin(), taps.end(), &taps_reversed_[0]);
+        }
+    }
+
     buffer_c16_t execute(
         const buffer_c16_t& src,
         const buffer_c16_t& dst);
@@ -221,6 +256,7 @@ class FIRAndDecimateComplex {
     std::unique_ptr<taps_t> taps_reversed_{};
     size_t taps_count_{0};
     size_t decimation_factor_{1};
+    size_t samples_head_{0};
 
     template <typename T>
     void configure(

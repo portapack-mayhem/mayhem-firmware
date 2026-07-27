@@ -343,6 +343,11 @@ void set_spectrum(
     send_message(&message);
 }
 
+void set_audio_ddc_frequency(int32_t frequency) {
+    const AudioDDCConfigMessage message{frequency};
+    send_message(&message);
+}
+
 void set_time_sink(
     const size_t sampling_rate,
     const size_t trigger) {

@@ -28,6 +28,7 @@
 
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
+#include "dsp_frequency_xlator.hpp"
 #include "audio_compressor.hpp"
 
 #include "audio_output.hpp"
@@ -44,6 +45,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 3072000;
+    static constexpr auto spectrum_rate_hz = 30.0f;
     static constexpr size_t decim_2_decimation_factor = 4;
     static constexpr size_t channel_filter_decimation_factor = 1;
 
@@ -56,14 +58,19 @@ class NarrowbandAMAudio : public BasebandProcessor {
         audio.data(),
         audio.size()};
 
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+    dsp::decimate::FIRC16xR16x16Decim2 audio_decim_0{};
+    dsp::FrequencyTranslatingDecimator32By8 translating_decim_1{};
     dsp::decimate::FIRAndDecimateComplex decim_2{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
     bool configured{false};
+    size_t spectrum_interval_samples{0};
+    size_t spectrum_samples{0};
+    bool spectrum_capture_active{false};
+    bool spectrum_zoom_x2{false};
 
     // bool modulation_ssb = false;  // Origianlly we only had 2 AM demod types {DSB = 0, SSB = 1} , and we could handle it with bool var , 1 bit.
     int8_t modulation_ssb = 0;  // Now we have 3 AM demod types we will send now index integer  {DSB = 0, SSB = 1, SSB_FM = 2}
@@ -86,6 +93,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
 #endif
 
     void configure(const AMConfigureMessage& message);
+    void ddc_config(const AudioDDCConfigMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
     buffer_f32_t demodulate(const buffer_c16_t& channel);
