@@ -22,7 +22,6 @@
 #include "spectrum_collector.hpp"
 
 #include "dsp_fft.hpp"
-#include "dsp_fir_taps.hpp"
 
 #include "utility.hpp"
 #include "event_m4.hpp"
@@ -80,9 +79,10 @@ bool SpectrumCollector::feed(
     const int32_t filter_high_frequency,
     const int32_t filter_transition) {
     // Called from baseband processing thread.
-    channel_filter_low_frequency = filter_low_frequency;
-    channel_filter_high_frequency = filter_high_frequency;
-    channel_filter_transition = filter_transition;
+    set_filter(
+        filter_low_frequency,
+        filter_high_frequency,
+        filter_transition);
 
     bool block_completed = false;
     channel_spectrum_decimator.feed(
@@ -94,40 +94,13 @@ bool SpectrumCollector::feed(
     return block_completed;
 }
 
-void SpectrumCollector::start_filtered_capture(
-    const size_t decimation_factor) {
-    filtered_capture_decimation_ = decimation_factor;
-    filtered_capture_count_ = 0;
-    filtered_capture_ready_ = false;
-}
-
-bool SpectrumCollector::feed_filtered(
-    const buffer_c16_t& channel,
+void SpectrumCollector::set_filter(
     const int32_t filter_low_frequency,
     const int32_t filter_high_frequency,
     const int32_t filter_transition) {
     channel_filter_low_frequency = filter_low_frequency;
     channel_filter_high_frequency = filter_high_frequency;
     channel_filter_transition = filter_transition;
-
-    const size_t required_samples = 256 * filtered_capture_decimation_;
-    const size_t copy_count = std::min(
-        channel.count, required_samples - filtered_capture_count_);
-    std::copy_n(
-        channel.p,
-        copy_count,
-        filtered_capture_.begin() + filtered_capture_count_);
-    filtered_capture_count_ += copy_count;
-
-    if (filtered_capture_count_ == required_samples) {
-        channel_spectrum_sampling_rate =
-            channel.sampling_rate / filtered_capture_decimation_;
-        filtered_capture_ready_ = true;
-        channel_spectrum_request_update = true;
-        EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
-        return true;
-    }
-    return false;
 }
 
 void SpectrumCollector::post_message(const buffer_c16_t& data) {
@@ -171,31 +144,6 @@ static typename T::value_type spectrum_window_blackman_3(const T& s, const size_
 void SpectrumCollector::update() {
     // Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
     if (streaming && channel_spectrum_request_update) {
-        if (filtered_capture_ready_) {
-            filtered_decim_0_.configure(taps_audio_spectrum_halfband.taps);
-            const buffer_c16_t capture{
-                filtered_capture_.data(),
-                256 * filtered_capture_decimation_,
-                channel_spectrum_sampling_rate * filtered_capture_decimation_};
-            const buffer_c16_t stage_0{
-                filtered_stage_0_.data(),
-                filtered_stage_0_.size()};
-            const auto filtered = filtered_decim_0_.execute(capture, stage_0);
-
-            if (filtered_capture_decimation_ == 4) {
-                filtered_decim_1_.configure(taps_audio_spectrum_halfband.taps);
-                const buffer_c16_t stage_1{
-                    filtered_stage_1_.data(),
-                    filtered_stage_1_.size()};
-                const auto zoom_filtered =
-                    filtered_decim_1_.execute(filtered, stage_1);
-                fft_swap(zoom_filtered, channel_spectrum);
-            } else {
-                fft_swap(filtered, channel_spectrum);
-            }
-            filtered_capture_ready_ = false;
-        }
-
         /* Decimated buffer is full. Compute spectrum. */
         fft_c_preswapped(channel_spectrum, 0, 8);
 

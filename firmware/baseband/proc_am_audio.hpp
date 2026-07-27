@@ -32,7 +32,7 @@
 #include "audio_compressor.hpp"
 
 #include "audio_output.hpp"
-#include "spectrum_collector.hpp"
+#include "filtered_spectrum_collector.hpp"
 
 #include <cstdint>
 
@@ -80,7 +80,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
     FeedForwardCompressor audio_compressor{};
     AudioOutput audio_output{};
 
-    SpectrumCollector channel_spectrum{};
+    FilteredSpectrumCollector channel_spectrum{};
 
     /* NB: Threads should be the last members in the class definition. */
 #ifdef PRALINE

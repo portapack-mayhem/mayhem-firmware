@@ -33,7 +33,7 @@
 #include "dsp_iir.hpp"
 
 #include "audio_output.hpp"
-#include "spectrum_collector.hpp"
+#include "filtered_spectrum_collector.hpp"
 
 #include <cstdint>
 
@@ -87,7 +87,7 @@ class NarrowbandFMAudio : public BasebandProcessor {
 
     AudioOutput audio_output{};
 
-    SpectrumCollector channel_spectrum{};
+    FilteredSpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples{0};
     size_t spectrum_samples{0};
     bool spectrum_capture_active{false};

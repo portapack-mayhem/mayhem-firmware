@@ -29,7 +29,6 @@
 #include "complex.hpp"
 
 #include "block_decimator.hpp"
-#include "dsp_decimate.hpp"
 
 #include <cstdint>
 #include <array>
@@ -51,12 +50,12 @@ class SpectrumCollector {
         const int32_t filter_high_frequency,
         const int32_t filter_transition);
 
-    void start_filtered_capture(const size_t decimation_factor);
-    bool feed_filtered(
-        const buffer_c16_t& channel,
+   protected:
+    void set_filter(
         const int32_t filter_low_frequency,
         const int32_t filter_high_frequency,
         const int32_t filter_transition);
+    void post_message(const buffer_c16_t& data);
 
    private:
     BlockDecimator<complex16_t, 256> channel_spectrum_decimator{1};
@@ -66,21 +65,11 @@ class SpectrumCollector {
     volatile bool channel_spectrum_request_update{false};
     bool streaming{false};
     std::array<std::complex<float>, 256> channel_spectrum{};
-    std::array<complex16_t, 1024> filtered_capture_{};
-    std::array<complex16_t, 512> filtered_stage_0_{};
-    std::array<complex16_t, 256> filtered_stage_1_{};
-    dsp::decimate::FIRC16xR16x63HalfbandDecim2 filtered_decim_0_{};
-    dsp::decimate::FIRC16xR16x63HalfbandDecim2 filtered_decim_1_{};
-    size_t filtered_capture_count_{0};
-    size_t filtered_capture_decimation_{1};
-    bool filtered_capture_ready_{false};
     uint32_t channel_spectrum_sampling_rate{0};
     int32_t channel_filter_low_frequency{0};
     int32_t channel_filter_high_frequency{0};
     int32_t channel_filter_transition{0};
     int32_t channel_filter_offset{0};
-
-    void post_message(const buffer_c16_t& data);
 
     void set_state(const SpectrumStreamingConfigMessage& message);
     void start();

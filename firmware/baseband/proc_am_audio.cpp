@@ -51,12 +51,12 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     if (!spectrum_capture_active &&
         spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.start_filtered_capture(spectrum_zoom_x2 ? 4 : 2);
+        channel_spectrum.start_capture(spectrum_zoom_x2 ? 4 : 2);
         spectrum_capture_active = true;
     }
 
     if (spectrum_capture_active &&
-        channel_spectrum.feed_filtered(
+        channel_spectrum.feed(
             audio_decim_0_out,
             channel_filter_low_f,
             channel_filter_high_f,
