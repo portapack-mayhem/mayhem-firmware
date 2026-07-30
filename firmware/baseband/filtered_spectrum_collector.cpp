@@ -51,6 +51,12 @@ bool FilteredSpectrumCollector::feed(
         sampling_rate_ = channel.sampling_rate / capture_decimation_;
         capture_ready_ = true;
         EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
+        if (is_streaming()) {
+            capture_ready_ = true;
+            EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
+         } else {
+            capture_ready_ = false;
+         }
         return true;
     }
     return false;

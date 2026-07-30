@@ -72,6 +72,8 @@ class AudioSpectrumView : public View {
 
 class FrequencyScale : public Widget {
    public:
+    /* Receives a frequency offset in Hz for key/touch selection. With live
+     * tuning enabled, encoder events instead pass the raw encoder delta. */
     std::function<void(int32_t offset)> on_select{};
 
     void on_show() override;

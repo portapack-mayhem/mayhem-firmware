@@ -51,6 +51,7 @@ class SpectrumCollector {
         const int32_t filter_transition);
 
    protected:
+    bool is_streaming() const { return streaming; }
     void set_filter(
         const int32_t filter_low_frequency,
         const int32_t filter_high_frequency,
