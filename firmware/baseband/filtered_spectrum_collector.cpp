@@ -54,9 +54,9 @@ bool FilteredSpectrumCollector::feed(
         if (is_streaming()) {
             capture_ready_ = true;
             EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
-         } else {
+        } else {
             capture_ready_ = false;
-         }
+        }
         return true;
     }
     return false;

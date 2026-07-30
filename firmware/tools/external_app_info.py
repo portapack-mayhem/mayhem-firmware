@@ -21,7 +21,8 @@
 # Boston, MA 02110-1301, USA.
 #
 
-# external app address ranges below must match those in linker file "external.ld"
+# External app address ranges below must match those in linker file "external.ld".
+# The end address is exclusive.
 maximum_application_size = 32*1024
 external_apps_address_start = 0xADB00000
-external_apps_address_end = 0xAE110000
+external_apps_address_end = 0xAE108000
