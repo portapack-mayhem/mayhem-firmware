@@ -223,10 +223,13 @@ class WaterfallDesignerView : public View {
     void on_remove_level();
     void on_edit_color();
 
-    /* NB: these two own the only File object in their call chain and are kept
-     * noinline on purpose. The M0 process stack is 4kB and a File carries a
-     * 512 byte FIL sector cache, so letting GCC merge these frames into their
-     * callers is what makes the deep UI callback paths overflow. */
+    /* Each of these owns the only File in its call chain. Keeping them as
+     * separate frames matters: a File carries a 512 byte FIL sector cache
+     * (_FS_TINY is 0) and the M0 process stack is 4kB, so if read_profile_file
+     * merged into on_profile_changed its 784 byte frame would stay live across
+     * the copy_file() in on_apply_current_to_wtf() - 3.6kB of 4kB instead of
+     * 2.8kB. GCC does not inline them at -O2 today; noinline just pins that so
+     * a heuristic change can't quietly eat the headroom. */
     __attribute__((noinline)) bool read_profile_file(const std::filesystem::path& path);
     __attribute__((noinline)) bool write_profile_file(const std::filesystem::path& path);
 

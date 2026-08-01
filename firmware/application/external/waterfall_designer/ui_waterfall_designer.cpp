@@ -253,13 +253,18 @@ bool WaterfallDesignerView::write_profile_file(const std::filesystem::path& path
 
     if (profile_file.open(path, false, true)) return false;
 
-    profile_file.seek(0);
-    profile_file.truncate();
+    // FA_OPEN_ALWAYS leaves the position at end-of-file, so rewind before
+    // truncating or the existing contents are kept and appended to.
+    if (profile_file.seek(0).is_error()) return false;
+    if (profile_file.truncate().is_error()) return false;
 
     for (const auto& entry : profile_levels)
-        profile_file.write_line(entry);
+        if (profile_file.write_line(entry)) return false;
 
-    return true;
+    /* ~File() calls f_close(), which flushes, but its result is unreachable.
+     * Sync explicitly so a full or yanked card is reported to the caller
+     * instead of being announced as a successful save. */
+    return !profile_file.sync();
 }
 
 void WaterfallDesignerView::on_profile_changed(const std::filesystem::path& new_profile_path) {
@@ -348,8 +353,10 @@ void WaterfallDesignerView::on_save_profile() {
         return;
     }
 
+    // NB: not just "open err" any more - this now also covers a failed
+    // truncate/write/flush, i.e. the file may be partially written.
     if (!write_profile_file(current_profile_path)) {
-        nav_.display_modal("Err", "open err");
+        nav_.display_modal("Err", "write failed");
         return;
     }
 
