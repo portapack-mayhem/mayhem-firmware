@@ -28,10 +28,46 @@
 #include "ui_fileman.hpp"
 #include "file_reader.hpp"
 #include "ui_textentry.hpp"
+#include "convert.hpp"
+
+#include <algorithm>
 
 using namespace portapack;
 
 namespace ui::external_app::waterfall_designer {
+
+namespace {
+
+/* Parses an "index,R,G,B" profile line.
+ * NB: std::stoi() must not be used here - the firmware is built with
+ * -fno-exceptions, so any malformed field in a hand-edited profile makes it
+ * call std::terminate() instead of throwing. parse_int() is what gradient.cpp
+ * uses to read the very same file format. */
+bool parse_level(std::string_view line, uint8_t& index, uint8_t& r, uint8_t& g, uint8_t& b) {
+    // Comments are skipped by Gradient::load_file() too; parse_int() ignores
+    // trailing junk, so "#0,0,0,0" would otherwise read back as a real level.
+    if (line.empty() || line.front() == '#') return false;
+
+    auto cols = split_string(line, ',');
+    if (cols.size() != 4) return false;
+
+    uint8_t* const out[4] = {&index, &r, &g, &b};
+
+    for (size_t i = 0; i < 4; i++) {
+        int32_t value;
+        if (!parse_int(cols[i], value) || value < 0 || value > 255) return false;
+        *out[i] = static_cast<uint8_t>(value);
+    }
+
+    return true;
+}
+
+bool is_color_level(const std::string& line) {
+    uint8_t index, r, g, b;
+    return parse_level(line, index, r, g, b);
+}
+
+}  // namespace
 
 WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     : nav_{nav} {
@@ -152,7 +188,11 @@ WaterfallDesignerView::WaterfallDesignerView(
 }
 
 WaterfallDesignerView::~WaterfallDesignerView() {
-    if (!if_apply_setting) restore_current_profile();
+    if (!if_apply_setting)
+        restore_current_profile();
+    else if (profile_backed_up_)
+        delete_file(waterfalls_dir / u"wtf_des_bk.bk");  // kept the edit, drop the backup
+
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -176,34 +216,62 @@ void WaterfallDesignerView::on_open_profile() {
     auto open_view = nav_.push<FileLoadView>(".txt");
     open_view->push_dir(waterfalls_dir);
     open_view->on_changed = [this](std::filesystem::path new_file_path) {
-        on_profile_changed(new_file_path);
+        // NB: FileLoadView calls this and then pops, same as text_prompt does.
+        // Defer for the same two reasons - see on_create_new_profile().
+        pending_profile_path = std::move(new_file_path);
+        nav_.set_on_pop([this]() {
+            on_profile_changed(pending_profile_path);
+        });
     };
 }
 
-void WaterfallDesignerView::on_profile_changed(std::filesystem::path new_profile_path) {
-    current_profile_path = new_profile_path;
+bool WaterfallDesignerView::read_profile_file(const std::filesystem::path& path) {
+    File profile_file;
+
+    if (profile_file.open(path)) return false;
+
     profile_levels.clear();
-
-    File playlist_file;
-    auto error = playlist_file.open(new_profile_path.string());
-
-    if (error) return;
-
-    menu_view.clear();
-    auto reader = FileLineReader(playlist_file);
+    auto reader = FileLineReader(profile_file);
 
     for (const auto& line : reader) {
-        // remove empty lines
-        if (line == "\n" || line == "\r\n" || line == "\r") continue;
-        profile_levels.push_back(line);
+        auto entry = line;
+
+        // Strip the whole line terminator; the old code only dropped one char,
+        // so CRLF files kept a stray '\r' in every entry.
+        while (!entry.empty() && (entry.back() == '\n' || entry.back() == '\r'))
+            entry.pop_back();
+
+        if (entry.empty()) continue;
+        profile_levels.push_back(std::move(entry));
     }
 
-    for (auto& line : profile_levels) {
-        // remove line end \n etc
-        if (line.length() > 0 && (line[line.length() - 1] == '\n' || line[line.length() - 1] == '\r')) {
-            line = line.substr(0, line.length() - 1);
-        }
+    return true;
+}
+
+bool WaterfallDesignerView::write_profile_file(const std::filesystem::path& path) {
+    File profile_file;
+
+    if (profile_file.open(path, false, true)) return false;
+
+    profile_file.seek(0);
+    profile_file.truncate();
+
+    for (const auto& entry : profile_levels)
+        profile_file.write_line(entry);
+
+    return true;
+}
+
+void WaterfallDesignerView::on_profile_changed(const std::filesystem::path& new_profile_path) {
+    // read_profile_file() only touches profile_levels once the open succeeded,
+    // so a failure here leaves the previously loaded profile intact.
+    if (!read_profile_file(new_profile_path)) {
+        nav_.display_modal("Err", "open err");
+        return;
     }
+
+    current_profile_path = new_profile_path;
+    highlighted_index_ = 0;
 
     button_save.hidden(false);
     button_add_level.hidden(false);
@@ -219,53 +287,52 @@ void WaterfallDesignerView::refresh_menu_view() {
     menu_view.clear();
 
     for (const auto& line : profile_levels) {
-        if (line.length() == 0 || line[0] == '#') {
+        uint8_t index, r, g, b;
+
+        // index,R,G,B - anything else (comment, header, garbage) is shown greyed.
+        if (parse_level(line, index, r, g, b)) {
+            menu_view.add_item({line,
+                                ui::Color(r, g, b),
+                                &bitmap_icon_cwgen,
+                                [this](KeyEvent) {
+                                    button_remove_level.focus();
+                                }});
+        } else {
             menu_view.add_item({line,
                                 ui::Color::grey(),
                                 &bitmap_icon_notepad,
                                 [this](KeyEvent) {
                                     button_add_level.focus();
                                 }});
-        } else {
-            // index,R,G,B
-            size_t pos = 0;
-            size_t next_pos = 0;
-
-            // pass index
-            next_pos = line.find(',', pos);
-            if (next_pos == std::string::npos) continue;
-            pos = next_pos + 1;
-
-            // r
-            next_pos = line.find(',', pos);
-            if (next_pos == std::string::npos) continue;
-            uint8_t r = static_cast<uint8_t>(std::stoi(line.substr(pos, next_pos - pos)));
-            pos = next_pos + 1;
-
-            // g
-            next_pos = line.find(',', pos);
-            if (next_pos == std::string::npos) continue;
-            uint8_t g = static_cast<uint8_t>(std::stoi(line.substr(pos, next_pos - pos)));
-            pos = next_pos + 1;
-
-            // b
-            uint8_t b = static_cast<uint8_t>(std::stoi(line.substr(pos)));
-
-            ui::Color color = ui::Color(r, g, b);
-            menu_view.add_item({line,
-                                color,
-                                &bitmap_icon_cwgen,
-                                [this](KeyEvent) {
-                                    button_remove_level.focus();
-                                }});
         }
     }
+
+    // menu_view.clear() resets its own highlight to 0 but does not fire
+    // on_highlight, so highlighted_index_ has to be re-synced by hand or the
+    // edit/remove buttons act on a different row than the one the user sees.
+    if (highlighted_index_ >= profile_levels.size())
+        highlighted_index_ = profile_levels.empty() ? 0 : profile_levels.size() - 1;
+
+    if (!profile_levels.empty())
+        menu_view.set_highlighted(highlighted_index_);
+
     set_dirty();
 }
 
 void WaterfallDesignerView::on_apply_current_to_wtf() {
-    std::filesystem::path system_read_path = "waterfall.txt";
-    copy_file(current_profile_path, system_read_path);
+    /* Take the backup lazily, right before the first overwrite of the live
+     * gradient. Doing it in the constructor meant copy_file() (~1.8kB of stack)
+     * ran underneath run_external_app(), which holds a 776 byte frame with a
+     * File of its own - about 3.6kB of the 4kB M0 process stack. It also did SD
+     * I/O even when the user just opened the app and backed straight out. */
+    backup_current_profile();
+
+    /* NB: this used to copy_file(current_profile_path, "waterfall.txt"), which
+     * costs ~1.8kB of stack (two FILs + a 512 byte block buffer) out of the 4kB
+     * M0 process stack, on top of whatever UI callback we are nested under.
+     * profile_levels is the authoritative copy of the profile anyway, so write
+     * it straight out through a single File instead. */
+    if (!write_profile_file(u"waterfall.txt")) return;
 
     waterfall.load_gradient();
 
@@ -281,71 +348,80 @@ void WaterfallDesignerView::on_save_profile() {
         return;
     }
 
-    File profile_file;
-    auto error = profile_file.open(current_profile_path.string(), false, false);
-
-    if (error) {
+    if (!write_profile_file(current_profile_path)) {
         nav_.display_modal("Err", "open err");
         return;
-    }
-
-    // clear file
-    profile_file.seek(0);
-    profile_file.truncate();
-
-    // write new data
-    for (const auto& entry : profile_levels) {
-        profile_file.write_line(entry);
     }
 
     nav_.display_modal("Save", "Saved profile\n" + current_profile_path.string());
 }
 
 void WaterfallDesignerView::on_add_level() {
-    if (highlighted_index_ >= profile_levels.size()) return;
-    if (profile_levels[highlighted_index_].empty()) return;
-    if (profile_levels[highlighted_index_][0] == '#') return;
-    if (profile_levels[highlighted_index_].find(',') == std::string::npos) return;
-    size_t insert_pos = highlighted_index_;
-    std::string new_entry = "0,128,128,128";
-    profile_levels.insert(profile_levels.begin() + insert_pos, new_entry);
+    if (current_profile_path.empty()) return;
+
+    /* A freshly created profile has no rows at all, and the old guard
+     * (highlighted_index_ >= size()) then refused with no feedback - so the
+     * button looked dead on exactly the file you just made. Seed instead. */
+    size_t insert_pos = std::min<size_t>(highlighted_index_, profile_levels.size());
+
+    // Don't push a level above a comment/header row; drop it after instead.
+    if (insert_pos < profile_levels.size() && !is_color_level(profile_levels[insert_pos]))
+        insert_pos++;
+
+    profile_levels.insert(profile_levels.begin() + insert_pos, "0,128,128,128");
+    highlighted_index_ = insert_pos;
+
     refresh_menu_view();
     on_edit_color();
 }
 
 void WaterfallDesignerView::on_remove_level() {
     if (highlighted_index_ >= profile_levels.size()) return;
-    if (profile_levels[highlighted_index_].empty()) return;
-    if (profile_levels[highlighted_index_][0] == '#') return;
-    if (profile_levels[highlighted_index_].find(',') == std::string::npos) return;
+    if (!is_color_level(profile_levels[highlighted_index_])) return;
+
     profile_levels.erase(profile_levels.begin() + highlighted_index_);
     refresh_menu_view();
 }
 
 void WaterfallDesignerView::on_edit_color() {
     if (highlighted_index_ >= profile_levels.size()) return;
-    if (profile_levels[highlighted_index_].empty()) return;
-    if (profile_levels[highlighted_index_][0] == '#') return;
-    if (profile_levels[highlighted_index_].find(',') == std::string::npos) return;
+    if (!is_color_level(profile_levels[highlighted_index_])) return;
 
-    auto color_picker_view = nav_.push<WaterfallDesignerColorPickerView>(profile_levels[highlighted_index_]);
-    color_picker_view->on_save = [this](std::string new_color) {
-        profile_levels[highlighted_index_] = new_color;
+    // Capture the row by value: highlighted_index_ can move (or the list can
+    // shrink) while the picker is up, and the old code wrote to whatever
+    // highlighted_index_ happened to be at save time with no bounds check.
+    const size_t index = highlighted_index_;
+
+    auto color_picker_view = nav_.push<WaterfallDesignerColorPickerView>(profile_levels[index]);
+    color_picker_view->on_save = [this, index](std::string new_color) {
+        if (index >= profile_levels.size()) return;
+
+        profile_levels[index] = std::move(new_color);
         refresh_menu_view();
         on_apply_current_to_wtf();
     };
 }
 
 void WaterfallDesignerView::backup_current_profile() {
-    std::filesystem::path curren_wtf_path = "waterfall.txt";
-    std::filesystem::path backup_path = waterfalls_dir / "wtf_des_bk.bk";
-    copy_file(curren_wtf_path, backup_path);
+    if (backup_attempted_) return;
+    backup_attempted_ = true;
+
+    std::filesystem::path current_wtf_path = u"waterfall.txt";
+    std::filesystem::path backup_path = waterfalls_dir / u"wtf_des_bk.bk";
+
+    if (!file_exists(current_wtf_path)) return;
+
+    profile_backed_up_ = copy_file(current_wtf_path, backup_path).ok();
 }
 
 void WaterfallDesignerView::restore_current_profile() {
-    std::filesystem::path backup_path = waterfalls_dir / "wtf_des_bk.bk";
-    std::filesystem::path put_back_path = "waterfall.txt";
-    copy_file(backup_path, put_back_path);
+    // Only touch waterfall.txt if we actually took a backup on entry; otherwise
+    // this would silently do nothing and leave the edited gradient installed.
+    if (!profile_backed_up_) return;
+
+    std::filesystem::path backup_path = waterfalls_dir / u"wtf_des_bk.bk";
+
+    copy_file(backup_path, u"waterfall.txt");
     delete_file(backup_path);
 }
 
@@ -365,16 +441,35 @@ void WaterfallDesignerView::on_create_new_profile() {
                 buffer += ".txt";
             }
 
-            File new_file;
-            auto error = new_file.create(waterfalls_dir / buffer);
-            if (error) {
-                nav_.display_modal("Err", "create file err");
+            auto new_path = waterfalls_dir / buffer;
+            bool created;
+
+            {
+                // Scoped so the FIL is closed (and its 512 byte sector cache is
+                // off the stack) before anything re-opens the same file - _FS_LOCK
+                // is 0, so FatFs will not stop us from double-opening it.
+                File new_file;
+                created = !new_file.create(new_path);
+            }
+
+            /* NB: everything below has to run *after* the keyboard view is gone.
+             * text_prompt()'s caller invokes this handler and then pops, so:
+             *  - pushing a modal from here would pop the modal, not the keyboard;
+             *  - and running on_profile_changed() inline stacks its File plus the
+             *    gradient write under the alphanum/button/dispatch frames, which
+             *    is what blows the 4kB M0 process stack ("Stack Overflow" guru).
+             * set_on_pop() defers it to just after the pop, at a shallow depth. */
+            if (!created) {
+                nav_.set_on_pop([this]() {
+                    nav_.display_modal("Err", "create file err");
+                });
                 return;
             }
 
-            profile_levels.clear();
-            current_profile_path = waterfalls_dir / buffer;
-            on_profile_changed(current_profile_path);
+            pending_profile_path = new_path;
+            nav_.set_on_pop([this]() {
+                on_profile_changed(pending_profile_path);
+            });
         });
 }
 
@@ -392,32 +487,7 @@ WaterfallDesignerColorPickerView::WaterfallDesignerColorPickerView(NavigationVie
 
     progressbar.set_max(UINT8_MAX);
 
-    size_t pos = 0;
-    size_t next_pos = 0;
-
-    // index
-    next_pos = color_str.find(',', pos);
-    if (next_pos != std::string::npos) {
-        index_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos, next_pos - pos)));
-        pos = next_pos + 1;
-    }
-
-    // r
-    next_pos = color_str.find(',', pos);
-    if (next_pos != std::string::npos) {
-        red_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos, next_pos - pos)));
-        pos = next_pos + 1;
-    }
-
-    // g
-    next_pos = color_str.find(',', pos);
-    if (next_pos != std::string::npos) {
-        green_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos, next_pos - pos)));
-        pos = next_pos + 1;
-    }
-
-    // b
-    blue_ = static_cast<uint8_t>(std::stoi(color_str.substr(pos)));
+    parse_level(color_str_, index_, red_, green_, blue_);
 
     field_red.set_value(red_);
     field_green.set_value(green_);
@@ -466,19 +536,12 @@ void WaterfallDesignerColorPickerView::update_color_index() {
     green_ = static_cast<uint8_t>(field_green.value());
     blue_ = static_cast<uint8_t>(field_blue.value());
 
-    const Rect preview_rect{screen_width - 48, 1 * 16, 40, 40};
-
-    Painter painter_instance_2;
-    painter_instance_2.fill_rectangle(
-        {preview_rect.left(), preview_rect.top(), preview_rect.width(), preview_rect.height()},
-        ui::Color(red_, green_, blue_));
+    // Repaint through the normal dirty pass instead of driving the display from
+    // inside an on_change handler; paint() below already draws the swatch.
+    set_dirty();
 }
 
 void WaterfallDesignerColorPickerView::paint(Painter& painter) {
-    // this is not duplicated code.
-    // because need to display color when enter,
-    // but it is too early to call update_color() in the constructor.
-
     const Rect preview_rect{screen_width - 48, 1 * 16, 40, 40};
 
     painter.fill_rectangle(
@@ -487,14 +550,12 @@ void WaterfallDesignerColorPickerView::paint(Painter& painter) {
 }
 
 std::string WaterfallDesignerColorPickerView::build_color_str() {
-    size_t index_pos = color_str_.find(',');
-    if (index_pos != std::string::npos) {
-        return color_str_.substr(0, index_pos + 1) +
-               to_string_dec_uint(red_) + "," +
-               to_string_dec_uint(green_) + "," +
-               to_string_dec_uint(blue_);
-    }
-    return to_string_dec_uint(index_) + "," + to_string_dec_uint(red_) + "," + to_string_dec_uint(green_) + "," + to_string_dec_uint(blue_);
+    // Always emit index_ - the old version kept the index substring from the
+    // input line, so edits made with field_index were silently discarded.
+    return to_string_dec_uint(index_) + "," +
+           to_string_dec_uint(red_) + "," +
+           to_string_dec_uint(green_) + "," +
+           to_string_dec_uint(blue_);
 }
 
 } /* namespace ui::external_app::waterfall_designer */

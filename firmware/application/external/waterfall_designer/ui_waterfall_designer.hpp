@@ -217,11 +217,18 @@ class WaterfallDesignerView : public View {
     void restore_current_profile();
     void on_create_new_profile();
     void on_open_profile();
-    void on_profile_changed(std::filesystem::path new_profile_path);
+    void on_profile_changed(const std::filesystem::path& new_profile_path);
     void on_save_profile();
     void on_add_level();
     void on_remove_level();
     void on_edit_color();
+
+    /* NB: these two own the only File object in their call chain and are kept
+     * noinline on purpose. The M0 process stack is 4kB and a File carries a
+     * 512 byte FIL sector cache, so letting GCC merge these frames into their
+     * callers is what makes the deep UI callback paths overflow. */
+    __attribute__((noinline)) bool read_profile_file(const std::filesystem::path& path);
+    __attribute__((noinline)) bool write_profile_file(const std::filesystem::path& path);
 
     void refresh_menu_view();
 
@@ -229,6 +236,9 @@ class WaterfallDesignerView : public View {
     void on_apply_setting();         // apply set
 
     bool if_apply_setting{false};
+    bool backup_attempted_{false};
+    bool profile_backed_up_{false};
+    std::filesystem::path pending_profile_path{};  // set by the New dialog, consumed on_pop
     /*NB:
     this works as:
     each time you change color, it apply as file realtime
