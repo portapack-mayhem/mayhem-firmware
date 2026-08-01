@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 #
+# copyleft 2026 zxkmm co author with AI
+#
 # This file is part of PortaPack.
 #
 # This program is free software; you can redistribute it and/or modify
