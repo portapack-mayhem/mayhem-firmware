@@ -126,6 +126,10 @@ rf::Direction get_cached_direction();
 bool get_cached_rf_amp();
 int_fast8_t get_cached_lna_gain();
 int_fast8_t get_cached_vga_gain();
+
+/* FPGA RX quarter-rate shift currently programmed, in gateware encoding:
+ * 0b00 none, 0b11 up, 0b01 down. */
+uint8_t get_cached_quarter_shift();
 #endif
 
 namespace sgpio {

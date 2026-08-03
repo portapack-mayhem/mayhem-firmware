@@ -125,10 +125,11 @@
 // ============================================================================
 // Canonical Default Values - SINGLE SOURCE OF TRUTH
 // ============================================================================
-/* Define the canonical RX defaults in ONE place */
-#define FPGA_RX_DEFAULT_DC_WIDTH 0x04     /* Typical for 40MHz stability */
-#define FPGA_RX_DEFAULT_ADAPT_RATE 0x08   /* Typical for 40MHz stability */
-#define FPGA_RX_DEFAULT_DIGITAL_GAIN 0x00 /* No shift initially */
+/* Define the canonical RX defaults in ONE place.
+ * Matches fpga_init() in hackrf/firmware/common/fpga.c: the gateware only has
+ * rx_decim and rx_pstep on the RX side, both starting at zero. */
+#define FPGA_RX_DEFAULT_DECIM 0x00 /* No decimation initially */
+#define FPGA_RX_DEFAULT_PSTEP 0x00 /* No quarter-rate shift initially */
 
 /* Define TX defaults */
 #define FPGA_TX_DEFAULT_NCO_CTRL 0x00   /* NCO disabled */
@@ -369,22 +370,16 @@ void fpga_rx_enable_dc_block(bool enable) {
 }
 
 /* RX Functions with mode assertion */
-void fpga_rx_set_digital_gain(uint8_t shift) {
+
+/* Quarter-rate shift, register 0x03 bits [7:6]. Equivalent to
+ * fpga_set_rx_quarter_shift_mode() in hackrf/firmware/common/fpga.c.
+ * mode: 0b00 none, 0b11 up, 0b01 down. */
+void fpga_rx_set_quarter_shift_mode(uint8_t mode) {
     if (current_mode != FPGA_MODE_RX) {
         /* Log error or assert - wrong mode! */
         return;
     }
-    fpga_register_write(FPGA_REG_SHARED_3, shift & FPGA_RX_GAIN_SHIFT_MASK);
-}
-
-void fpga_rx_set_dc_block_width(uint8_t width) {
-    if (current_mode != FPGA_MODE_RX) return;
-    fpga_register_write(FPGA_REG_SHARED_4, width & FPGA_RX_DC_WIDTH_MASK);
-}
-
-void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
-    if (current_mode != FPGA_MODE_RX) return;
-    fpga_register_write(FPGA_REG_SHARED_5, rate);
+    fpga_register_write(FPGA_REG_SHARED_3, (uint8_t)((mode & 0x03) << FPGA_RX_QUARTER_SHIFT_SHIFT));
 }
 
 // ============================================================================
@@ -424,17 +419,17 @@ static void fpga_register_init(void) {
     current_mode = FPGA_MODE_RX;
 
     fpga_spi_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);
-    fpga_spi_write(FPGA_REG_DECIM, 0x00);
-    fpga_spi_write(FPGA_REG_SHARED_3, FPGA_RX_DEFAULT_DIGITAL_GAIN);
-    fpga_spi_write(FPGA_REG_SHARED_4, FPGA_RX_DEFAULT_DC_WIDTH);
-    fpga_spi_write(FPGA_REG_SHARED_5, FPGA_RX_DEFAULT_ADAPT_RATE);
+    fpga_spi_write(FPGA_REG_DECIM, FPGA_RX_DEFAULT_DECIM);
+    fpga_spi_write(FPGA_REG_SHARED_3, FPGA_RX_DEFAULT_PSTEP);
+    fpga_spi_write(FPGA_REG_SHARED_4, FPGA_TX_DEFAULT_NCO_CTRL);
+    fpga_spi_write(FPGA_REG_SHARED_5, FPGA_TX_DEFAULT_INTERP);
 
     /* Update cache */
     fpga_reg_cache[1] = FPGA_CTRL_DC_BLOCK_EN;
-    fpga_reg_cache[2] = 0x00;
-    fpga_reg_cache[3] = FPGA_RX_DEFAULT_DIGITAL_GAIN;
-    fpga_reg_cache[4] = FPGA_RX_DEFAULT_DC_WIDTH;
-    fpga_reg_cache[5] = FPGA_RX_DEFAULT_ADAPT_RATE;
+    fpga_reg_cache[2] = FPGA_RX_DEFAULT_DECIM;
+    fpga_reg_cache[3] = FPGA_RX_DEFAULT_PSTEP;
+    fpga_reg_cache[4] = FPGA_TX_DEFAULT_NCO_CTRL;
+    fpga_reg_cache[5] = FPGA_TX_DEFAULT_INTERP;
 }
 
 // ============================================================================

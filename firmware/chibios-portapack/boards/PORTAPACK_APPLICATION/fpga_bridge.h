@@ -16,10 +16,23 @@ extern "C" {
 
 #ifdef PRALINE
 
-/* RX path (legacy PRALINE software map kept for compatibility) */
-#define FPGA_REG_RX_DIGITAL_GAIN 0x03 /* Digital Shift / scaling (RX Mode) */
-#define FPGA_REG_RX_DC_BLOCK_WIDTH 0x04 /* Notch filter cutoff (RX Mode) */
-#define FPGA_REG_RX_DC_ADAPT_RATE 0x05 /* Settle time/Integration (RX Mode) */
+/*
+ * RX path.
+ *
+ * NOTE: the register map below is the one the loaded bitstream actually
+ * implements. Ground truth is hackrf/firmware/fpga/top/standard.py plus
+ * hackrf/firmware/common/fpga_regs.def; Mayhem, hackrf_usb and debug_for_adsb
+ * all load a byte-identical praline_fpga.bin, so that map applies here too.
+ *
+ * An earlier "legacy PRALINE software map" claimed register 0x03 was an RX
+ * digital gain and 0x04/0x05 were DC-block width / adaptation rate. The
+ * gateware has none of those: 0x03 is rx_pstep (whose top two bits are the
+ * quarter-rate shift) and 0x04/0x05 are TX registers. Writing the old "RX DC
+ * width" value of 0x01 to 0x04 actually set tx_ctrl[0] and switched the TX NCO
+ * on, and every write of the fictional digital gain to 0x03 cleared the
+ * quarter shift.
+ */
+#define FPGA_REG_RX_PSTEP 0x03 /* RX phase step; bits [7:6] = quarter shift */
 
 /*
  * TX path must match the currently built PRALINE standard gateware in
@@ -43,70 +56,55 @@ typedef enum {
 
 /*
  * FPGA Register Addresses
- * NOTE:
- * The currently loaded PRALINE standard gateware uses:
- *   0x01 CTRL
- *   0x02 RX_DECIM
- *   0x03 RX_DIGITAL_GAIN (RX) / TX_NCO_CTRL (TX)
- *   0x04 TX_CTRL
- *   0x05 TX_INTRP
- *   0x06 TX_PSTEP
+ *
+ * From hackrf/firmware/fpga/top/standard.py (spi_regs.add_register):
+ *   0x01 ctrl      8 bits
+ *   0x02 rx_decim  3 bits
+ *   0x03 rx_pstep  8 bits
+ *   0x04 tx_ctrl   1 bit
+ *   0x05 tx_intrp  3 bits
+ *   0x06 tx_pstep  8 bits
+ *
+ * There is no RX gain register: rx_decim selects half-band FIR stages
+ * (hbfir1..hbfir5), which are unity-gain, so there is no CIC bit growth to
+ * renormalise.
  */
 #define FPGA_REG_CTRL 0x01     /* Control register */
-#define FPGA_REG_DECIM 0x02    /* RX decimation */
-#define FPGA_REG_SHARED_3 0x03 /* Legacy shared register */
-#define FPGA_REG_SHARED_4 0x04 /* Legacy shared register */
-#define FPGA_REG_SHARED_5 0x05 /* Legacy shared register */
-#define FPGA_REG_SHARED_6 0x06 /* TX phase step */
+#define FPGA_REG_DECIM 0x02    /* RX decimation (log2, bits [2:0]) */
+#define FPGA_REG_SHARED_3 0x03 /* rx_pstep */
+#define FPGA_REG_SHARED_4 0x04 /* tx_ctrl */
+#define FPGA_REG_SHARED_5 0x05 /* tx_intrp */
+#define FPGA_REG_SHARED_6 0x06 /* tx_pstep */
 
 /*
  * Register 1 (CTRL) Bit Definitions
+ * standard.py: ctrl[0] -> dc_block.enable, ctrl[6] -> prbs, ctrl[7] -> trigger_en.
+ * Nothing else in this register is decoded.
  */
-#define FPGA_CTRL_DC_BLOCK_EN (1 << 0)      /* DC block enable */
-#define FPGA_CTRL_QUARTER_SHIFT_EN (1 << 1) /* Quarter-rate shift enable */
-#define FPGA_CTRL_QUARTER_SHIFT_UP (1 << 2) /* Shift direction: 1=up, 0=down */
-#define FPGA_CTRL_TX_MODE (1 << 5)          /* TX mode indicator (if applicable) */
-#define FPGA_CTRL_PRBS_EN (1 << 6)          /* PRBS test mode */
-#define FPGA_CTRL_TRIGGER_EN (1 << 7)       /* External trigger enable */
+#define FPGA_CTRL_DC_BLOCK_EN (1 << 0) /* DC block enable */
+#define FPGA_CTRL_PRBS_EN (1 << 6)     /* PRBS test mode */
+#define FPGA_CTRL_TRIGGER_EN (1 << 7)  /* External trigger enable */
 
 /*
- * Register 3 Dual-Purpose Definitions
+ * Register 3 (RX_PSTEP) Bit Definitions
+ * standard.py: rx_pstep[6] -> quarter_shift.enable, rx_pstep[7] -> quarter_shift.up.
+ * Same encoding as fpga_quarter_shift_mode_t << 6 in hackrf/firmware/common/fpga.c.
  */
-/* RX Mode: Digital gain/shift */
-#define FPGA_REG3_RX_DIGITAL_GAIN 0x03
-#define FPGA_RX_GAIN_SHIFT_MASK 0x0F /* Bits [3:0] - shift amount */
-
-/* TX Mode: NCO control */
-#define FPGA_REG3_TX_NCO_CTRL 0x03
-#define FPGA_TX_NCO_EN (1 << 0)     /* NCO enable */
-#define FPGA_TX_NCO_INVERT (1 << 1) /* Invert spectrum */
+#define FPGA_RX_QUARTER_SHIFT_SHIFT 6
+#define FPGA_RX_QUARTER_SHIFT_MASK 0xC0
+#define FPGA_RX_QUARTER_SHIFT_NONE 0x00 /* mode 0b00 */
+#define FPGA_RX_QUARTER_SHIFT_UP 0xC0   /* mode 0b11 */
+#define FPGA_RX_QUARTER_SHIFT_DOWN 0x40 /* mode 0b01 */
 
 /*
- * Register 4 Dual-Purpose Definitions
+ * Register 4 (TX_CTRL) / 5 (TX_INTRP) / 6 (TX_PSTEP) Bit Definitions
  */
-/* RX Mode: DC block notch width */
-#define FPGA_REG4_RX_DC_WIDTH 0x04
-#define FPGA_RX_DC_WIDTH_MASK 0x07 /* Bits [2:0] */
-
-/* TX Mode: Interpolation ratio */
+#define FPGA_REG3_TX_NCO_CTRL 0x04 /* tx_ctrl holds the NCO enable */
+#define FPGA_TX_NCO_EN (1 << 0)    /* NCO enable */
 #define FPGA_REG4_TX_INTERP 0x05
 #define FPGA_TX_INTERP_MASK 0x07 /* Bits [2:0] */
-
-/*
- * Register 5 Dual-Purpose Definitions
- */
-/* RX Mode: DC block adaptation rate */
-#define FPGA_REG5_RX_DC_RATE 0x05
-#define FPGA_RX_DC_RATE_MASK 0xFF /* Bits [7:0] */
-
-/* TX Mode: NCO phase step (frequency) */
 #define FPGA_REG5_TX_PHASE_STEP 0x06
 #define FPGA_TX_PHASE_STEP_MASK 0xFF /* Bits [7:0] */
-
-/* Export default values so other methods can use them */
-#define FPGA_RX_DEFAULT_DIGITAL_GAIN 0x00
-#define FPGA_RX_DEFAULT_DC_WIDTH 0x04
-#define FPGA_RX_DEFAULT_ADAPT_RATE 0x08
 
 /*
  * Core Functions
@@ -133,9 +131,8 @@ void fpga_register_write(uint8_t reg, uint8_t value);
  * RX Mode Functions (only valid when mode == FPGA_MODE_RX)
  */
 void fpga_rx_set_decimation(uint8_t ratio);
-void fpga_rx_set_digital_gain(uint8_t shift);
-void fpga_rx_set_dc_block_width(uint8_t width);
-void fpga_rx_set_dc_adapt_rate(uint8_t rate);
+/* mode is the gateware encoding: 0b00 none, 0b11 up, 0b01 down. */
+void fpga_rx_set_quarter_shift_mode(uint8_t mode);
 void fpga_rx_enable_dc_block(bool enable);
 
 /*
@@ -154,12 +151,13 @@ void fpga_tx_set_phase_step(uint8_t step);
  * reg: Register number (1-5)
  * Returns: Register value, or 0xFF if invalid register
  *
- * FPGA Register Map:
- *   Reg 1 (CTRL):     DC_BLOCK(b0), QUARTER_SHIFT_EN(b1), QUARTER_SHIFT_UP(b2), PRBS(b6), TRIGGER_EN(b7)
- *   Reg 2 (RX_DECIM): Decimation ratio [2:0]
- *   Reg 3 (RX/TX):    RX Digital Shift OR TX NCO Control
- *   Reg 4 (RX_DC_BLOCK_WIDTH/TX_INTERP) [2:0]
- *   Reg 5 (RX_DC_ADAPT_RATE/TX_PSTEP)  [7:0]
+ * FPGA Register Map (hackrf/firmware/fpga/top/standard.py):
+ *   Reg 1 (CTRL):     DC_BLOCK(b0), PRBS(b6), TRIGGER_EN(b7)
+ *   Reg 2 (RX_DECIM): Decimation ratio, log2 [2:0]
+ *   Reg 3 (RX_PSTEP): QUARTER_SHIFT_EN(b6), QUARTER_SHIFT_UP(b7)
+ *   Reg 4 (TX_CTRL):  NCO_EN(b0)
+ *   Reg 5 (TX_INTRP): Interpolation ratio, log2 [2:0]
+ *   Reg 6 (TX_PSTEP): NCO phase step [7:0]
  */
 uint8_t fpga_debug_register_read(uint8_t reg);
 
