@@ -73,6 +73,7 @@ struct PralineTuneConfig {
 };
 
 /* tuning table optimized for RX */
+// clang-format off
 constexpr PralineTuneConfig praline_tune_config_rx[] = {
     {    0,  2360,   true, 0b00},
     {   50,  2320,   true, 0b11},
@@ -225,8 +226,10 @@ constexpr PralineTuneConfig praline_tune_config_rx[] = {
     { 7251,  2580,  false, 0b01},
     {    0,     0,  false, 0b00},
 };
+// clang-format on
 
 /* tuning table optimized for TX */
+// clang-format off
 constexpr PralineTuneConfig praline_tune_config_tx[] = {
     { 2100,  2375,   true, 0b00},
     { 2105,  2375,  false, 0b00},
@@ -280,6 +283,7 @@ constexpr PralineTuneConfig praline_tune_config_tx[] = {
     { 7251,  2575,  false, 0b00},
     {    0,     0,  false, 0b00},
 };
+// clang-format on
 
 /* radio.c select_tune_config(): first entry whose range end is above the
  * requested frequency. The list is terminated by an all-zero entry, which is
