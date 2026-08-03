@@ -344,7 +344,9 @@ bool MenuView::on_key(const KeyEvent key) {
             }
             [[fallthrough]];
         case KeyEvent::Select:
-            if (menu_items[highlighted_item].on_select) {
+            // NB: a MenuView can legitimately be empty (e.g. after clear()) while
+            // still holding focus; indexing menu_items unchecked faults there.
+            if (highlighted_item < menu_items.size() && menu_items[highlighted_item].on_select) {
                 menu_items[highlighted_item].on_select(key);
             }
             return true;
@@ -364,7 +366,7 @@ bool MenuView::on_keyboard(const KeyboardEvent key) {
     if (key == '-') return set_highlighted(highlighted_item - 1);
     if (key == '+') return set_highlighted(highlighted_item + 1);
     if (key == 10) {
-        if (menu_items[highlighted_item].on_select) {
+        if (highlighted_item < menu_items.size() && menu_items[highlighted_item].on_select) {
             menu_items[highlighted_item].on_select(KeyEvent::Right);
         }
         return true;
