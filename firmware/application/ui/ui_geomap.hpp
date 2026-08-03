@@ -239,12 +239,21 @@ class GeoPos : public View {
         {25 * 8, UI_POS_Y(0), 5 * 8, 16},
         ""};
 
-    NumberField field_lat_degrees{
+    // Sign is held by the hemisphere field, not by the degrees field: an
+    // int32_t degrees field has no negative zero, so a coordinate in
+    // (-1, 0) could not otherwise be represented (see issue #3234).
+    OptionsField field_lat_hemisphere{
         {5 * 8, 1 * 16},
-        4,
-        {-90, 90},
         1,
-        ' '};
+        {{"N", 0},
+         {"S", 1}}};
+    NumberField field_lat_degrees{
+        {6 * 8, 1 * 16},
+        3,
+        {0, 90},
+        1,
+        ' ',
+        false};
     NumberField field_lat_minutes{
         {10 * 8, 1 * 16},
         2,
@@ -263,12 +272,18 @@ class GeoPos : public View {
         {17 * 8, 1 * 16, 13 * 8, 1 * 16},
         ""};
 
-    NumberField field_lon_degrees{
+    OptionsField field_lon_hemisphere{
         {5 * 8, 2 * 16},
-        4,
-        {-180, 180},
         1,
-        ' '};
+        {{"E", 0},
+         {"W", 1}}};
+    NumberField field_lon_degrees{
+        {6 * 8, 2 * 16},
+        3,
+        {0, 180},
+        1,
+        ' ',
+        false};
     NumberField field_lon_minutes{
         {10 * 8, 2 * 16},
         2,
