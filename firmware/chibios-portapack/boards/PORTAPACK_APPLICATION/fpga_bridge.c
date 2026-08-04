@@ -222,12 +222,13 @@ static bool fpga_cdone_read(void) {
 // These functions allow reading/writing FPGA internal registers via SPI.
 // The FPGA bitstream implements a simple SPI register interface.
 //
-// FPGA Register Map:
-//   Reg 1 (CTRL):    DC_BLOCK(b0), QUARTER_SHIFT_EN(b1), QUARTER_SHIFT_UP(b2), PRBS(b6), TRIGGER_EN(b7)
-//   Reg 2 (RX_DECIM): Decimation ratio [2:0]
-//   Reg 3 (RX/TX):    RX Digital Shift OR TX NCO Control
-//   Reg 4 (RX_DC_BLOCK_WIDTH/TX_INTERP) [2:0]
-//   Reg 5 (RX_DC_ADAPT_RATE/TX_PSTEP)  [7:0]
+// FPGA Register Map (hackrf/firmware/fpga/top/standard.py):
+//   Reg 1 (CTRL):     DC_BLOCK(b0), PRBS(b6), TRIGGER_EN(b7)
+//   Reg 2 (RX_DECIM): Decimation ratio, log2 [2:0]
+//   Reg 3 (RX_PSTEP): QUARTER_SHIFT_EN(b6), QUARTER_SHIFT_UP(b7)
+//   Reg 4 (TX_CTRL):  NCO enable (b0)
+//   Reg 5 (TX_INTRP): Interpolation ratio [2:0]
+//   Reg 6 (TX_PSTEP): NCO phase step [7:0]
 //
 // SPI Protocol:
 //   Read:  Send [reg & 0x7F, 0x00, 0x00] -> value in byte 3
@@ -379,7 +380,7 @@ void fpga_rx_set_quarter_shift_mode(uint8_t mode) {
         /* Log error or assert - wrong mode! */
         return;
     }
-    fpga_register_write(FPGA_REG_SHARED_3, (uint8_t)((mode & 0x03) << FPGA_RX_QUARTER_SHIFT_SHIFT));
+    fpga_register_write(FPGA_REG_RX_PSTEP, (uint8_t)((mode & 0x03) << FPGA_RX_QUARTER_SHIFT_SHIFT));
 }
 
 // ============================================================================
@@ -389,12 +390,12 @@ void fpga_rx_set_quarter_shift_mode(uint8_t mode) {
 /* TX Functions with mode assertion */
 void fpga_tx_set_nco_enable(bool enable) {
     if (current_mode != FPGA_MODE_TX) return;
-    uint8_t val = fpga_register_read(FPGA_REG3_TX_NCO_CTRL);
+    uint8_t val = fpga_register_read(FPGA_REG_TX_CONTROL);
     if (enable)
         val |= FPGA_TX_NCO_EN;
     else
         val &= ~FPGA_TX_NCO_EN;
-    fpga_register_write(FPGA_REG3_TX_NCO_CTRL, val);
+    fpga_register_write(FPGA_REG_TX_CONTROL, val);
 }
 
 void fpga_tx_set_interpolation(uint8_t ratio) {
@@ -420,9 +421,9 @@ static void fpga_register_init(void) {
 
     fpga_spi_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);
     fpga_spi_write(FPGA_REG_DECIM, FPGA_RX_DEFAULT_DECIM);
-    fpga_spi_write(FPGA_REG_SHARED_3, FPGA_RX_DEFAULT_PSTEP);
-    fpga_spi_write(FPGA_REG_SHARED_4, FPGA_TX_DEFAULT_NCO_CTRL);
-    fpga_spi_write(FPGA_REG_SHARED_5, FPGA_TX_DEFAULT_INTERP);
+    fpga_spi_write(FPGA_REG_RX_PSTEP, FPGA_RX_DEFAULT_PSTEP);
+    fpga_spi_write(FPGA_REG_TX_CONTROL, FPGA_TX_DEFAULT_NCO_CTRL);
+    fpga_spi_write(FPGA_REG_TX_INTERP, FPGA_TX_DEFAULT_INTERP);
 
     /* Update cache */
     fpga_reg_cache[1] = FPGA_CTRL_DC_BLOCK_EN;

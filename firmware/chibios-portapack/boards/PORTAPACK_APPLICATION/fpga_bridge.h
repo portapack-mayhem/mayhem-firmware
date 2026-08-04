@@ -69,12 +69,10 @@ typedef enum {
  * (hbfir1..hbfir5), which are unity-gain, so there is no CIC bit growth to
  * renormalise.
  */
-#define FPGA_REG_CTRL 0x01     /* Control register */
-#define FPGA_REG_DECIM 0x02    /* RX decimation (log2, bits [2:0]) */
-#define FPGA_REG_SHARED_3 0x03 /* rx_pstep */
-#define FPGA_REG_SHARED_4 0x04 /* tx_ctrl */
-#define FPGA_REG_SHARED_5 0x05 /* tx_intrp */
-#define FPGA_REG_SHARED_6 0x06 /* tx_pstep */
+#define FPGA_REG_CTRL 0x01  /* Control register */
+#define FPGA_REG_DECIM 0x02 /* RX decimation (log2, bits [2:0]) */
+/* 0x03..0x06 are FPGA_REG_RX_PSTEP / FPGA_REG_TX_CONTROL /
+ * FPGA_REG_TX_INTERP / FPGA_REG_TX_PHASE_STEP, defined above. */
 
 /*
  * Register 1 (CTRL) Bit Definitions
@@ -90,21 +88,23 @@ typedef enum {
  * standard.py: rx_pstep[6] -> quarter_shift.enable, rx_pstep[7] -> quarter_shift.up.
  * Same encoding as fpga_quarter_shift_mode_t << 6 in hackrf/firmware/common/fpga.c.
  */
+/* Position of that 2-bit field inside rx_pstep, for direct register writes. */
 #define FPGA_RX_QUARTER_SHIFT_SHIFT 6
 #define FPGA_RX_QUARTER_SHIFT_MASK 0xC0
-#define FPGA_RX_QUARTER_SHIFT_NONE 0x00 /* mode 0b00 */
-#define FPGA_RX_QUARTER_SHIFT_UP 0xC0   /* mode 0b11 */
-#define FPGA_RX_QUARTER_SHIFT_DOWN 0x40 /* mode 0b01 */
+
+/* Mode values, matching fpga_quarter_shift_mode_t in
+ * hackrf/firmware/common/fpga.h. Pass these to
+ * fpga_rx_set_quarter_shift_mode(), which shifts them into place. */
+#define FPGA_QUARTER_SHIFT_MODE_NONE 0b00
+#define FPGA_QUARTER_SHIFT_MODE_UP 0b11
+#define FPGA_QUARTER_SHIFT_MODE_DOWN 0b01
 
 /*
  * Register 4 (TX_CTRL) / 5 (TX_INTRP) / 6 (TX_PSTEP) Bit Definitions
  */
-#define FPGA_REG3_TX_NCO_CTRL 0x04 /* tx_ctrl holds the NCO enable */
-#define FPGA_TX_NCO_EN (1 << 0)    /* NCO enable */
-#define FPGA_REG4_TX_INTERP 0x05
-#define FPGA_TX_INTERP_MASK 0x07 /* Bits [2:0] */
-#define FPGA_REG5_TX_PHASE_STEP 0x06
-#define FPGA_TX_PHASE_STEP_MASK 0xFF /* Bits [7:0] */
+#define FPGA_TX_NCO_EN (1 << 0)      /* tx_ctrl[0]: NCO enable */
+#define FPGA_TX_INTERP_MASK 0x07     /* tx_intrp bits [2:0] */
+#define FPGA_TX_PHASE_STEP_MASK 0xFF /* tx_pstep bits [7:0] */
 
 /*
  * Core Functions

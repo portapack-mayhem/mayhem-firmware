@@ -72,8 +72,11 @@ struct PralineTuneConfig {
     uint8_t shift; /* 0b00 none, 0b11 up, 0b01 down */
 };
 
-/* tuning table optimized for RX */
+/* The tables below are kept column-aligned to match the reference source, so
+ * they are exempt from reformatting. */
 // clang-format off
+
+/* tuning table optimized for RX */
 constexpr PralineTuneConfig praline_tune_config_rx[] = {
     {    0,  2360,   true, 0b00},
     {   50,  2320,   true, 0b11},
@@ -226,10 +229,8 @@ constexpr PralineTuneConfig praline_tune_config_rx[] = {
     { 7251,  2580,  false, 0b01},
     {    0,     0,  false, 0b00},
 };
-// clang-format on
 
 /* tuning table optimized for TX */
-// clang-format off
 constexpr PralineTuneConfig praline_tune_config_tx[] = {
     { 2100,  2375,   true, 0b00},
     { 2105,  2375,  false, 0b00},
@@ -283,6 +284,7 @@ constexpr PralineTuneConfig praline_tune_config_tx[] = {
     { 7251,  2575,  false, 0b00},
     {    0,     0,  false, 0b00},
 };
+
 // clang-format on
 
 /* radio.c select_tune_config(): first entry whose range end is above the
@@ -331,7 +333,10 @@ Config low_band(const rf::Frequency target_frequency, const uint32_t afe_rate, c
     if ((entry->rf_range_end_mhz == 0) && (entry->if_mhz == 0))
         return {};
 
-    const uint8_t shift = entry->shift;
+    /* afe_rate == 0 means the caller doesn't know the ADC rate, so no LO offset
+     * is applied. The FPGA rotation has to be dropped with it: rotating without
+     * the matching offset moves the wanted signal off DC by afe_rate / 4. */
+    const uint8_t shift = (afe_rate == 0) ? 0 : entry->shift;
     const rf::Frequency analog_rf = analog_from_digital_rf(target_frequency, shift, afe_rate);
 
     /* if_mhz == 0 means the mixer is bypassed and the transceiver tunes the RF
@@ -369,27 +374,25 @@ Config low_band(const rf::Frequency target_frequency, const uint32_t afe_rate, c
 #endif
 }
 
-// Mid band 2170-2740 Mhz (HackRF One) or 2320-2580 MHz (PRALINE):
+// Mid band 2170-2740 Mhz (HackRF One) or 2320-2740 MHz (PRALINE):
 Config mid_band(const rf::Frequency target_frequency, const uint32_t afe_rate, const bool transmit) {
 #ifdef PRALINE
-    // For Praline with MAX2831 (2.3-2.6 GHz range)
-    // Frequencies 2170-2300 MHz need upconversion since they're below MAX2831 minimum
-    if (target_frequency < 2300'000'000) {
-        // Treat as low band - need mixer
-        return low_band(target_frequency, afe_rate, transmit);
+    /* radio.c select_img_reject() / tuning.c: on PRALINE the MAX2831 tunes
+     * direct (mixer bypassed) from 2320 to 2580 MHz. band_mid starts at
+     * TRANSITION = 2320 MHz, so everything below that already went to
+     * low_band(). */
+    if (target_frequency <= 2580'000'000) {
+        const PralineTuneConfig* entry = select_tune_config(target_frequency, transmit);
+        const uint8_t shift = (afe_rate == 0) ? 0 : entry->shift;
+        const rf::Frequency analog_rf = analog_from_digital_rf(target_frequency, shift, afe_rate);
+
+        /* Mixer bypassed: no first LO, the MAX2831 tunes the (offset)
+         * analogue RF directly and the FPGA rotates it back. */
+        return {0, analog_rf, rf::path::Band::Mid, false, shift};
     }
-    // Frequencies 2300-2600 MHz can go direct (no RFFC5072)
-    else if (target_frequency <= 2600'000'000) {
-        const rf::Frequency second_lo_frequency = target_frequency;
-        const rf::Frequency first_lo_frequency = 0;
-        const bool mixer_invert = false;
-        return {first_lo_frequency, second_lo_frequency, rf::path::Band::Mid, mixer_invert, 0};
-    }
-    // Frequencies 2600-2740 MHz need downconversion since they're above MAX2831 maximum
-    else {
-        // Treat as high band
-        return high_band(target_frequency);
-    }
+
+    /* 2580-2740 MHz: above the bypass window, downconvert. */
+    return high_band(target_frequency);
 #else
     (void)afe_rate;
     (void)transmit;

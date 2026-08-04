@@ -244,10 +244,24 @@ void ReceiverModel::enable() {
     radio::set_direction(rf::Direction::Receive);
 
 #ifdef PRALINE
-    /* Anchor the Common Mode Voltage (VCM) to 1.2V.
-     * This stabilizes the electrical floor of the I/Q signals.
-     */
-    radio::set_rx_buff_vcm(1);
+    /* MAX2831 RX IQ common-mode voltage (register 15).
+     *
+     * 0 = 1.1 V, 1 = 1.2 V, 2 = 1.3 V, 3 = 1.45 V.
+     *
+     * The reference firmware leaves this alone: max2831.c's default register
+     * table has reg 15 = 0x0145 (1.1 V) and the line that would raise it is
+     * commented out ("maximum rx output common-mode voltage"). Mayhem used to
+     * force 1.2 V here on the theory that it "stabilises the electrical floor
+     * of the I/Q signals" -- plausible, but never measured, and it was the
+     * last remaining RF-path setting where this branch disagreed with the
+     * configuration that is proven to receive ADS-B on this board.
+     *
+     * Set to 0 to match the reference (writing 1.1 V is a no-op against the
+     * power-on default), or back to 1 to restore the old Mayhem behaviour.
+     * If reception measurably worsens, put it back to 1 and say so -- neither
+     * value has been verified on hardware. */
+#define PRALINE_RX_IQ_VCM 0
+    radio::set_rx_buff_vcm(PRALINE_RX_IQ_VCM);
 #endif
 
     update_tuning_frequency();
