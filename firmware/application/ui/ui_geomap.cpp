@@ -83,19 +83,35 @@ GeoPos::GeoPos(
     field_lon_seconds.on_change = changed_fn;
 
     const auto wrapped_lat_seconds = [this](int32_t v) {
+        const auto old_minutes = field_lat_minutes.value();
         field_lat_minutes.on_encoder(v);
+        if (field_lat_minutes.value() == old_minutes) {
+            field_lat_seconds.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     const auto wrapped_lat_minutes = [this](int32_t v) {
-        field_lat_degrees.on_encoder((field_lat_degrees.value() >= 0) ? v : -v);
+        const auto old_degrees = field_lat_degrees.value();
+        field_lat_degrees.on_encoder((old_degrees >= 0) ? v : -v);
+        if (field_lat_degrees.value() == old_degrees) {
+            field_lat_minutes.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     const auto wrapped_lon_seconds = [this](int32_t v) {
+        const auto old_minutes = field_lon_minutes.value();
         field_lon_minutes.on_encoder(v);
+        if (field_lon_minutes.value() == old_minutes) {
+            field_lon_seconds.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     const auto wrapped_lon_minutes = [this](int32_t v) {
-        field_lon_degrees.on_encoder((field_lon_degrees.value() >= 0) ? v : -v);
+        const auto old_degrees = field_lon_degrees.value();
+        field_lon_degrees.on_encoder((old_degrees >= 0) ? v : -v);
+        if (field_lon_degrees.value() == old_degrees) {
+            field_lon_minutes.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     field_lat_seconds.on_wrap = wrapped_lat_seconds;
