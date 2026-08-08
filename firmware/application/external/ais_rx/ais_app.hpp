@@ -50,6 +50,8 @@ using namespace lpc43xx;
 
 #include "recent_entries.hpp"
 
+namespace ui::external_app::ais_rx {
+
 struct AISPosition {
     rtc::RTC timestamp{};
     ais::Latitude latitude{};
@@ -108,8 +110,6 @@ class AISLogger {
    private:
     LogFile log_file{};
 };
-
-namespace ui {
 
 using AISRecentEntriesView = RecentEntriesView<AISRecentEntries>;
 
@@ -239,6 +239,6 @@ class AISAppView : public View {
     void on_tick_second();
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::ais_rx
 
 #endif /*__AIS_APP_H__*/

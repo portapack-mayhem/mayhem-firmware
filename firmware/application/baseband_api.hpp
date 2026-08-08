@@ -100,6 +100,7 @@ void set_rds_data(const uint16_t message_length);
 void set_spectrum(
     const size_t sampling_rate,
     const size_t trigger);
+void set_audio_ddc_frequency(int32_t frequency);
 void set_time_sink(
     const size_t sampling_rate,
     const size_t trigger);

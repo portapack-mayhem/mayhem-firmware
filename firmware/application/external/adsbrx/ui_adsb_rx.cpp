@@ -38,7 +38,7 @@ using namespace portapack;
 
 namespace pmem = portapack::persistent_memory;
 
-namespace ui {
+namespace ui::external_app::adsbrx {
 
 static const char speed_type_msg[][6] = {" Spd:", " IAS:", " TAS:"};
 
@@ -46,13 +46,19 @@ static std::string get_map_tag(const AircraftRecentEntry& entry) {
     return trimr(entry.callsign.empty() ? entry.icao_str : entry.callsign);
 }
 
+}  // namespace ui::external_app::adsbrx
+
+namespace ui {
+
 template <>
-void RecentEntriesTable<AircraftRecentEntries>::draw(
+void RecentEntriesTable<external_app::adsbrx::AircraftRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
     const Style& style,
     RecentEntriesColumns& columns) {
+    using namespace external_app::adsbrx;
+
     Color target_color;
     std::string entry_string;
 
@@ -106,6 +112,10 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         painter.draw_bitmap(target_rect.location() + Point(firstcolwidth * 8 - 8, 0),
                             bitmap_target, target_color, style.background);
 }
+
+}  // namespace ui
+
+namespace ui::external_app::adsbrx {
 
 /* ADSBLogger ********************************************/
 
@@ -828,4 +838,4 @@ void ADSBRxView::remove_expired_entries() {
     recent.erase(it.base(), recent.end());
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::adsbrx

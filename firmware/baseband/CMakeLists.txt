@@ -124,6 +124,7 @@ set(CPPSRC
 	dsp_goertzel.cpp
 	matched_filter.cpp
 	spectrum_collector.cpp
+	filtered_spectrum_collector.cpp
 	tv_collector.cpp
 	stream_input.cpp
 	stream_output.cpp

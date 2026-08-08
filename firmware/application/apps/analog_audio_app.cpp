@@ -280,6 +280,12 @@ AnalogAudioView::AnalogAudioView(
     field_frequency.on_show_options = [this]() {
         this->on_show_options_frequency();
     };
+    field_frequency.changing = [this](rf::Frequency frequency) {
+        return this->on_frequency_changed(frequency);
+    };
+    field_frequency.entered = [this](rf::Frequency frequency) {
+        this->set_frequency_absolute(frequency);
+    };
 
     field_lna.on_show_options = [this]() {
         this->on_show_options_rf_gain();
@@ -308,8 +314,10 @@ AnalogAudioView::AnalogAudioView(
     };
 
     waterfall.on_select = [this](int32_t offset) {
-        field_frequency.set_value(receiver_model.target_frequency() + offset);
+        field_frequency.set_value(
+            field_frequency.value() + offset * receiver_model.frequency_step());
     };
+    waterfall.set_live_tuning(true);
 
 #ifdef PRALINE
     button_pro.on_select = [this](Button&) { this->on_show_options_praline(); };
@@ -319,6 +327,7 @@ AnalogAudioView::AnalogAudioView(
 
     // This call starts the correct baseband image to run
     // and sets the radio up as necessary for the given modulation.
+    sliding_center_frequency = receiver_model.target_frequency();
     on_modulation_changed(modulation);
 }
 
@@ -328,7 +337,7 @@ AnalogAudioView::AnalogAudioView(
     : AnalogAudioView(nav) {
     // Settings to override when launched from another app (versus from AppSettings .ini file)
     // TODO: Which other settings make sense to override?
-    field_frequency.set_value(override.frequency_app_override);
+    set_frequency_absolute(override.frequency_app_override);
     on_frequency_step_changed(override.frequency_step);
     options_modulation.set_by_value(toUType(override.mode));
 }
@@ -573,9 +582,13 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
     receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
 
-    receiver_model.set_hidden_offset(modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);  // wefax needs to be shifted, see wefax rx app.
+    reset_sliding_frequency(modulation);
 
     receiver_model.enable();
+
+    if (sliding_enabled) {
+        baseband::set_audio_ddc_frequency(0);
+    }
 
     // TODO: This doesn't belong here! There's a better way.
     size_t sampling_rate = 0;
@@ -610,7 +623,64 @@ void AnalogAudioView::handle_coded_squelch(uint32_t value) {
 }
 
 void AnalogAudioView::on_freqchg(int64_t freq) {
-    field_frequency.set_value(freq);
+    set_frequency_absolute(freq);
+}
+
+void AnalogAudioView::set_frequency_absolute(rf::Frequency frequency) {
+    if (!sliding_enabled) {
+        field_frequency.set_value(frequency);
+        return;
+    }
+
+    sliding_center_frequency = frequency;
+
+    /* set_value() does not call on_change when the displayed frequency is
+     * already equal, so reset the hardware and DDC explicitly in that case. */
+    if (field_frequency.value() == frequency) {
+        receiver_model.set_target_frequency_with_hidden_offset(frequency, 0);
+        baseband::set_audio_ddc_frequency(0);
+    } else {
+        field_frequency.set_value(frequency);
+    }
+}
+
+int32_t AnalogAudioView::sliding_limit() const {
+    const bool zoom_x2 =
+        receiver_model.modulation() == ReceiverModel::Mode::AMAudio &&
+        previous_zoom != 0;
+    return zoom_x2 ? sliding_limit_zoom_x2 : sliding_limit_zoom_x1;
+}
+
+void AnalogAudioView::reset_sliding_frequency(ReceiverModel::Mode modulation) {
+    sliding_enabled =
+        modulation == ReceiverModel::Mode::AMAudio ||
+        modulation == ReceiverModel::Mode::NarrowbandFMAudio;
+    sliding_center_frequency = receiver_model.target_frequency();
+
+    /* AMFM keeps its existing Wefax offset; sliding applies to AM and NFM. */
+    receiver_model.set_hidden_offset(
+        modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);
+}
+
+bool AnalogAudioView::on_frequency_changed(rf::Frequency frequency) {
+    if (!sliding_enabled)
+        return false;
+
+    const auto limit = sliding_limit();
+    int64_t offset = frequency - sliding_center_frequency;
+    if (offset > limit) {
+        sliding_center_frequency = frequency - limit;
+        offset = limit;
+    } else if (offset < -limit) {
+        sliding_center_frequency = frequency + limit;
+        offset = -limit;
+    }
+
+    /* Store the displayed frequency and retune the hardware centre atomically. */
+    receiver_model.set_target_frequency_with_hidden_offset(
+        frequency, sliding_center_frequency - frequency);
+    baseband::set_audio_ddc_frequency(static_cast<int32_t>(offset));
+    return true;
 }
 
 #ifdef PRALINE

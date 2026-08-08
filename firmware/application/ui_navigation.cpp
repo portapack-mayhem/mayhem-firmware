@@ -30,9 +30,6 @@
 #include "portapack.hpp"
 
 #include "ui_about_simple.hpp"
-#include "ui_adsb_rx.hpp"
-#include "ui_aprs_rx.hpp"
-#include "ui_aprs_tx.hpp"
 #include "ui_btle_rx.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
@@ -60,7 +57,6 @@
 #include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
-#include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
@@ -99,9 +95,6 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Games", HOME, Color::cyan(), &bitmap_icon_games, new ViewFactory<GamesMenuView>()},
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
-    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
-    {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
-    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
@@ -110,7 +103,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     /* TX ********************************************************************/
-    {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
