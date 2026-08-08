@@ -126,553 +126,553 @@ SECTIONS
     .external_app_afsk_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_afsk_rx.application_information));
-        *(*ui*external_app*afsk_rx*);
+        */external/afsk_rx/*(*ui*external_app*afsk_rx*);
     } > ram_external_app_afsk_rx
 
     .external_app_calculator : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_calculator.application_information));
-        *(*ui*external_app*calculator*);
+        */external/calculator/*(*ui*external_app*calculator*);
     } > ram_external_app_calculator
 
     .external_app_font_viewer : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_font_viewer.application_information));
-        *(*ui*external_app*font_viewer*);
+        */external/font_viewer/*(*ui*external_app*font_viewer*);
     } > ram_external_app_font_viewer
 
     .external_app_blespam : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_blespam.application_information));
-        *(*ui*external_app*blespam*);
+        */external/blespam/*(*ui*external_app*blespam*);
     } > ram_external_app_blespam
 
     .external_app_analogtv : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_analogtv.application_information));
-        *(*ui*external_app*analogtv*);
+        */external/analogtv/*(*ui*external_app*analogtv*);
     } > ram_external_app_analogtv
 
     .external_app_nrf_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_nrf_rx.application_information));
-        *(*ui*external_app*nrf_rx*);
+        */external/nrf_rx/*(*ui*external_app*nrf_rx*);
     } > ram_external_app_nrf_rx
 
     .external_app_coasterp : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_coasterp.application_information));
-        *(*ui*external_app*coasterp*);
+        */external/coasterp/*(*ui*external_app*coasterp*);
     } > ram_external_app_coasterp
 
     .external_app_lge : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_lge.application_information));
-        *(*ui*external_app*lge*);
+        */external/lge/*(*ui*external_app*lge*);
     } > ram_external_app_lge
 
     .external_app_lcr : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_lcr.application_information));
-        *(*ui*external_app*lcr*);
+        */external/lcr/*(*ui*external_app*lcr*);
     } > ram_external_app_lcr
 
     .external_app_jammer : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_jammer.application_information));
-        *(*ui*external_app*jammer*);
+        */external/jammer/*(*ui*external_app*jammer*);
     } > ram_external_app_jammer
 
     .external_app_gpssim : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_gpssim.application_information));
-        *(*ui*external_app*gpssim*);
+        */external/gpssim/*(*ui*external_app*gpssim*);
     } > ram_external_app_gpssim
 
     .external_app_spainter : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_spainter.application_information));
-        *(*ui*external_app*spainter*);
+        */external/spainter/*(*ui*external_app*spainter*);
     } > ram_external_app_spainter
 
     .external_app_keyfob : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_keyfob.application_information));
-        *(*ui*external_app*keyfob*);
+        */external/keyfob/*(*ui*external_app*keyfob*);
     } > ram_external_app_keyfob
 
     .external_app_tetris : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_tetris.application_information));
-        *(*ui*external_app*tetris*);
+        */external/tetris/*(*ui*external_app*tetris*);
     } > ram_external_app_tetris
 
     .external_app_extsensors : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_extsensors.application_information));
-        *(*ui*external_app*extsensors*);
+        */external/extsensors/*(*ui*external_app*extsensors*);
     } > ram_external_app_extsensors
 
     .external_app_foxhunt_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_foxhunt_rx.application_information));
-        *(*ui*external_app*foxhunt_rx*);
+        */external/foxhunt/*(*ui*external_app*foxhunt_rx*);
     } > ram_external_app_foxhunt_rx
 
     .external_app_audio_test : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_audio_test.application_information));
-        *(*ui*external_app*audio_test*);
+        */external/audio_test/*(*ui*external_app*audio_test*);
     } > ram_external_app_audio_test
 
     .external_app_wardrivemap : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_wardrivemap.application_information));
-        *(*ui*external_app*wardrivemap*);
+        */external/wardrivemap/*(*ui*external_app*wardrivemap*);
     } > ram_external_app_wardrivemap
 
     .external_app_tpmsrx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_tpmsrx.application_information));
-        *(*ui*external_app*tpmsrx*);
+        */external/tpmsrx/*(*ui*external_app*tpmsrx*);
     } > ram_external_app_tpmsrx
 
     .external_app_tpmstx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_tpmstx.application_information));
-        *(*ui*external_app*tpmstx*);
+        */external/tpmstx/*(*ui*external_app*tpmstx*);
     } > ram_external_app_tpmstx
 
     .external_app_protoview : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_protoview.application_information));
-        *(*ui*external_app*protoview*);
+        */external/protoview/*(*ui*external_app*protoview*);
     } > ram_external_app_protoview
 
     .external_app_adsbtx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_adsbtx.application_information));
-        *(*ui*external_app*adsbtx*);
+        */external/adsbtx/*(*ui*external_app*adsbtx*);
     } > ram_external_app_adsbtx
 
     .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_morse_tx.application_information));
-        *(*ui*external_app*morse_tx*);
+        */external/morse_tx/*(*ui*external_app*morse_tx*);
     } > ram_external_app_morse_tx
 
     .external_app_sstvtx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_sstvtx.application_information));
-        *(*ui*external_app*sstvtx*);
+        */external/sstvtx/*(*ui*external_app*sstvtx*);
     } > ram_external_app_sstvtx
 
     .external_app_random_password : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_random_password.application_information));
-        *(*ui*external_app*random_password*);
+        */external/random_password/*(*ui*external_app*random_password*);
     } > ram_external_app_random_password
 
     .external_app_acars_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_acars_rx.application_information));
-        *(*ui*external_app*acars_rx*);
+        */external/acars_rx/*(*ui*external_app*acars_rx*);
     } > ram_external_app_acars_rx
 
     .external_app_shoppingcart_lock : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_shoppingcart_lock.application_information));
-        *(*ui*external_app*shoppingcart_lock*);
+        */external/shoppingcart_lock/*(*ui*external_app*shoppingcart_lock*);
     } > ram_external_app_shoppingcart_lock
 
     .external_app_cvs_spam : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_cvs_spam.application_information));
-        *(*ui*external_app*cvs_spam*);
+        */external/cvs_spam/*(*ui*external_app*cvs_spam*);
     } > ram_external_app_cvs_spam
 
     .external_app_ookbrute : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_ookbrute.application_information));
-        *(*ui*external_app*ookbrute*);
+        */external/ookbrute/*(*ui*external_app*ookbrute*);
     } > ram_external_app_ookbrute
 
     .external_app_ook_editor : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_ook_editor.application_information));
-        *(*ui*external_app*ook_editor*);
+        */external/ook_editor/*(*ui*external_app*ook_editor*);
     } > ram_external_app_ook_editor
 
     .external_app_flippertx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_flippertx.application_information));
-        *(*ui*external_app*flippertx*);
+        */external/flippertx/*(*ui*external_app*flippertx*);
     } > ram_external_app_flippertx
 
     .external_app_remote : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_remote.application_information));
-        *(*ui*external_app*remote*);
+        */external/remote/*(*ui*external_app*remote*);
     } > ram_external_app_remote
 
     .external_app_mcu_temperature : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_mcu_temperature.application_information));
-        *(*ui*external_app*mcu_temperature*);
+        */external/mcu_temperature/*(*ui*external_app*mcu_temperature*);
     } > ram_external_app_mcu_temperature
 
     .external_app_fmradio : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_fmradio.application_information));
-        *(*ui*external_app*fmradio*);
+        */external/fmradio/*(*ui*external_app*fmradio*);
     } > ram_external_app_fmradio
 
     .external_app_tuner : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_tuner.application_information));
-        *(*ui*external_app*tuner*);
+        */external/tuner/*(*ui*external_app*tuner*);
     } > ram_external_app_tuner
 
     .external_app_metronome : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_metronome.application_information));
-        *(*ui*external_app*metronome*);
+        */external/metronome/*(*ui*external_app*metronome*);
     } > ram_external_app_metronome
 
     .external_app_app_manager : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_app_manager.application_information));
-        *(*ui*external_app*app_manager*);
+        */external/app_manager/*(*ui*external_app*app_manager*);
     } > ram_external_app_app_manager
 
     .external_app_hopper : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_hopper.application_information));
-        *(*ui*external_app*hopper*);
+        */external/hopper/*(*ui*external_app*hopper*);
     } > ram_external_app_hopper
 
     .external_app_antenna_length : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_antenna_length.application_information));
-        *(*ui*external_app*antenna_length*);
+        */external/antenna_length/*(*ui*external_app*antenna_length*);
     } > ram_external_app_antenna_length
 
     .external_app_view_wav : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_view_wav.application_information));
-        *(*ui*external_app*view_wav*);
+        */external/wav_view/*(*ui*external_app*view_wav*);
     } > ram_external_app_view_wav
 
     .external_app_sd_wipe : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_sd_wipe.application_information));
-        *(*ui*external_app*sd_wipe*);
+        */external/sd_wipe/*(*ui*external_app*sd_wipe*);
     } > ram_external_app_sd_wipe
 
     .external_app_playlist_editor : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_playlist_editor.application_information));
-        *(*ui*external_app*playlist_editor*);
+        */external/playlist_editor/*(*ui*external_app*playlist_editor*);
     } > ram_external_app_playlist_editor
 
     .external_app_snake : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_snake.application_information));
-        *(*ui*external_app*snake*);
+        */external/snake/*(*ui*external_app*snake*);
     } > ram_external_app_snake
 
     .external_app_stopwatch : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_stopwatch.application_information));
-        *(*ui*external_app*stopwatch*);
+        */external/stopwatch/*(*ui*external_app*stopwatch*);
     } > ram_external_app_stopwatch
 
     .external_app_wefax_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_wefax_rx.application_information));
-        *(*ui*external_app*wefax_rx*);
+        */external/wefax_rx/*(*ui*external_app*wefax_rx*);
     } > ram_external_app_wefax_rx
 
     .external_app_noaaapt_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_noaaapt_rx.application_information));
-        *(*ui*external_app*noaaapt_rx*);
+        */external/noaaapt_rx/*(*ui*external_app*noaaapt_rx*);
     } > ram_external_app_noaaapt_rx
 
     .external_app_vor_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_vor_rx.application_information));
-        *(*ui*external_app*vor_rx*);
+        */external/vor_rx/*(*ui*external_app*vor_rx*);
     } > ram_external_app_vor_rx
 
     .external_app_vor_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_vor_tx.application_information));
-        *(*ui*external_app*vor_tx*);
+        */external/vor_tx/*(*ui*external_app*vor_tx*);
     } > ram_external_app_vor_tx
 
     .external_app_breakout : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_breakout.application_information));
-        *(*ui*external_app*breakout*);
+        */external/breakout/*(*ui*external_app*breakout*);
     } > ram_external_app_breakout
 
     .external_app_doom : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_doom.application_information));
-        *(*ui*external_app*doom*);
+        */external/doom/*(*ui*external_app*doom*);
     } > ram_external_app_doom
 
     .external_app_debug_pmem : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_debug_pmem.application_information));
-        *(*ui*external_app*debug_pmem*);
+        */external/debug_pmem/*(*ui*external_app*debug_pmem*);
     } > ram_external_app_debug_pmem
 
     .external_app_scanner : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_scanner.application_information));
-        *(*ui*external_app*scanner*);
+        */external/scanner/*(*ui*external_app*scanner*);
     } > ram_external_app_scanner
 
     .external_app_level : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_level.application_information));
-        *(*ui*external_app*level*);
+        */external/level/*(*ui*external_app*level*);
     } > ram_external_app_level
 
     .external_app_gfxeq : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_gfxeq.application_information));
-        *(*ui*external_app*gfxeq*);
+        */external/gfxeq/*(*ui*external_app*gfxeq*);
     } > ram_external_app_gfxeq
 
     .external_app_waterfall_designer : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_waterfall_designer.application_information));
-        *(*ui*external_app*waterfall_designer*);
+        */external/waterfall_designer/*(*ui*external_app*waterfall_designer*);
     } > ram_external_app_waterfall_designer
 
     .external_app_detector_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_detector_rx.application_information));
-        *(*ui*external_app*detector_rx*);
+        */external/detector_rx/*(*ui*external_app*detector_rx*);
     } > ram_external_app_detector_rx
 
     .external_app_dinogame : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_dinogame.application_information));
-        *(*ui*external_app*dinogame*);
+        */external/dinogame/*(*ui*external_app*dinogame*);
     } > ram_external_app_dinogame
 
     .external_app_spaceinv : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_spaceinv.application_information));
-        *(*ui*external_app*spaceinv*);
+        */external/spaceinv/*(*ui*external_app*spaceinv*);
     } > ram_external_app_spaceinv
 
     .external_app_blackjack : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_blackjack.application_information));
-        *(*ui*external_app*blackjack*);
+        */external/blackjack/*(*ui*external_app*blackjack*);
     } > ram_external_app_blackjack
 
     .external_app_battleship : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_battleship.application_information));
-        *(*ui*external_app*battleship*);
+        */external/battleship/*(*ui*external_app*battleship*);
     } > ram_external_app_battleship
 
     .external_app_ert : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_ert.application_information));
-        *(*ui*external_app*ert*);
+        */external/ert/*(*ui*external_app*ert*);
     } > ram_external_app_ert
 
     .external_app_epirb_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_epirb_rx.application_information));
-        *(*ui*external_app*epirb_rx*);
+        */external/epirb_rx/*(*ui*external_app*epirb_rx*);
     } > ram_external_app_epirb_rx
 
     .external_app_soundboard : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_soundboard.application_information));
-        *(*ui*external_app*soundboard*);
+        */external/soundboard/*(*ui*external_app*soundboard*);
     } > ram_external_app_soundboard
 
     .external_app_game2048 : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_game2048.application_information));
-        *(*ui*external_app*game2048*);
+        */external/game2048/*(*ui*external_app*game2048*);
     } > ram_external_app_game2048
 
     .external_app_bht_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_bht_tx.application_information));
-        *(*ui*external_app*bht_tx*);
+        */external/bht_tx/*(*ui*external_app*bht_tx*);
     } > ram_external_app_bht_tx
 
     .external_app_morse_practice : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_morse_practice.application_information));
-        *(*ui*external_app*morse_practice*);
+        */external/morse_practice/*(*ui*external_app*morse_practice*);
     } > ram_external_app_morse_practice
 
     .external_app_adult_toys_controller : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_adult_toys_controller.application_information));
-        *(*ui*external_app*adult_toys_controller*);
+        */external/adult_toys_controller/*(*ui*external_app*adult_toys_controller*);
     } > ram_external_app_adult_toys_controller
 
     .external_app_flex_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_flex_rx.application_information));
-        *(*ui*external_app*flex_rx*);
+        */external/flex_rx/*(*ui*external_app*flex_rx*);
     } > ram_external_app_flex_rx
 
     .external_app_sstvrx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_sstvrx.application_information));
-        *(*ui*external_app*sstvrx*);
+        */external/sstvrx/*(*ui*external_app*sstvrx*);
     } > ram_external_app_sstvrx
 
     .external_app_subcarrx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_subcarrx.application_information));
-        *(*ui*external_app*subcarrx*);
+        */external/subcarrx/*(*ui*external_app*subcarrx*);
     } > ram_external_app_subcarrx
 
     .external_app_siggen : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_siggen.application_information));
-        *(*ui*external_app*siggen*);
+        */external/siggen/*(*ui*external_app*siggen*);
     } > ram_external_app_siggen
 
     .external_app_sdusb : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_sdusb.application_information));
-        *(*ui*external_app*sdusb*);
+        */external/sdusb/*(*ui*external_app*sdusb*);
     } > ram_external_app_sdusb
 
     .external_app_morse_radio : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_morse_radio.application_information));
-        *(*ui*external_app*morse_radio*);
+        */external/morse_radio/*(*ui*external_app*morse_radio*);
     } > ram_external_app_morse_radio
 
     .external_app_morseradiotx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_morseradiotx.application_information));
-        *(*ui*external_app*morseradiotx*);
+        */external/morseradiotx/*(*ui*external_app*morseradiotx*);
     } > ram_external_app_morseradiotx
 
     .external_app_keeloqtx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_keeloqtx.application_information));
-        *(*ui*external_app*keeloqtx*);
+        */external/keeloqtx/*(*ui*external_app*keeloqtx*);
     } > ram_external_app_keeloqtx
 
     .external_app_rtty_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_rtty_rx.application_information));
-        *(*ui*external_app*rtty_rx*);
+        */external/rtty_rx/*(*ui*external_app*rtty_rx*);
     } > ram_external_app_rtty_rx
 
     .external_app_rtty_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_rtty_tx.application_information));
-        *(*ui*external_app*rtty_tx*);
+        */external/rtty_tx/*(*ui*external_app*rtty_tx*);
     } > ram_external_app_rtty_tx
 
     .external_app_pocsag_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_pocsag_tx.application_information));
-        *(*ui*external_app*pocsag_tx*);
+        */external/pocsag_tx/*(*ui*external_app*pocsag_tx*);
     } > ram_external_app_pocsag_tx
 
     .external_app_time_sink : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_time_sink.application_information));
-        *(*ui*external_app*time_sink*);
+        */external/time_sink/*(*ui*external_app*time_sink*);
     } > ram_external_app_time_sink
 
     .external_app_same_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_same_tx.application_information));
-        *(*ui*external_app*same_tx*);
+        */external/same_tx/*(*ui*external_app*same_tx*);
     } > ram_external_app_same_tx
 
     .external_app_kiss_tnc : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_kiss_tnc.application_information));
-        *(*ui*external_app*kiss_tnc*);
+        */external/kiss_tnc/*(*ui*external_app*kiss_tnc*);
     } > ram_external_app_kiss_tnc
 
     .external_app_mdc_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_mdc_tx.application_information));
-        *(*ui*external_app*mdc_tx*);
+        */external/mdc_tx/*(*ui*external_app*mdc_tx*);
     } > ram_external_app_mdc_tx
 
     .external_app_epirb_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_epirb_tx.application_information));
-        *(*ui*external_app*epirb_tx*);
+        */external/epirb_tx/*(*ui*external_app*epirb_tx*);
     } > ram_external_app_epirb_tx
 
     .external_app_fpv_detect : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_fpv_detect.application_information));
-        *(*ui*external_app*fpv_detect*);
+        */external/fpv_detect/*(*ui*external_app*fpv_detect*);
     } > ram_external_app_fpv_detect
 
     .external_app_p25_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_p25_tx.application_information));
-        *(*ui*external_app*p25_tx*);
+        */external/p25_tx/*(*ui*external_app*p25_tx*);
     } > ram_external_app_p25_tx
 
     .external_app_two_tone_pager : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_two_tone_pager.application_information));
-        *(*ui*external_app*two_tone_pager*);
+        */external/two_tone_pager/*(*ui*external_app*two_tone_pager*);
     } > ram_external_app_two_tone_pager
 
     .external_app_two_tone_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_two_tone_rx.application_information));
-        *(*ui*external_app*two_tone_rx*);
+        */external/two_tone_rx/*(*ui*external_app*two_tone_rx*);
     } > ram_external_app_two_tone_rx
 
     .external_app_flex_tx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_flex_tx.application_information));
-        *(*ui*external_app*flex_tx*);
+        */external/flex_tx/*(*ui*external_app*flex_tx*);
     } > ram_external_app_flex_tx
 
     .external_app_hard_reset : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_hard_reset.application_information));
-        *(*ui*external_app*hard_reset*);
+        */external/hard_reset/*(*ui*external_app*hard_reset*);
     } > ram_external_app_hard_reset
 
     .external_app_secplustx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_secplustx.application_information));
-        *(*ui*external_app*secplustx*);
+        */external/secplustx/*(*ui*external_app*secplustx*);
     } > ram_external_app_secplustx
 
     .external_app_signal_hunter : ALIGN(4) SUBALIGN(4)
     {
       KEEP(*(.external_app.app_signal_hunter.application_information));
-      *(*ui*external_app*signal_hunter*);
+      */external/signal_hunter/*(*ui*external_app*signal_hunter*);
     } > ram_external_app_signal_hunter
 
     .external_app_tetra_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_tetra_rx.application_information));
-        *(*ui*external_app*tetra_rx*);
+        */external/tetra_rx/*(*ui*external_app*tetra_rx*);
     } > ram_external_app_tetra_rx
 
     .external_app_adsbrx : ALIGN(4) SUBALIGN(4)
