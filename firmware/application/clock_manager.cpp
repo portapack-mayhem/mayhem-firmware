@@ -907,12 +907,24 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
         // Set FPGA RX decimation register
         fpga_debug_register_write(FPGA_REG_DECIM, n);
 
-        /* RX Mode: Register 3 is FPGA_REG_RX_DIGITAL_GAIN.
-         * We shift up by (3 * n) to compensate for CIC bit-growth.
+        /* No RX digital-gain register is written here.
+         *
+         * Register 0x03 used to be programmed with (3 * n + 2) as a "CIC
+         * bit-growth" renormalisation. The gateware has no such register: the
+         * RX decimator is a chain of unity-gain half-band FIRs selected by
+         * rx_decim (fpga/top/standard.py), and 0x03 is rx_pstep, whose top two
+         * bits are the quarter-rate shift. Writing a gain here silently
+         * cancelled the shift that set_tuning_frequency() had programmed, which
+         * left the analogue passband offset with no matching rotation.
+         *
+         * The shift depends on the AFE rate we just chose, so re-apply it after
+         * the rate change. ReceiverModel::update_sampling_rate() calls
+         * update_tuning_frequency() straight after this, which does exactly
+         * that; the write below only keeps the register consistent in between.
          */
-        uint8_t ds = (3 * n);
-        ds += 2;
-        fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, ds);
+        fpga_debug_register_write(
+            FPGA_REG_RX_PSTEP,
+            (radio::debug::get_cached_quarter_shift() & 0b11) << FPGA_RX_QUARTER_SHIFT_SHIFT);
 
         // Re-enable FPGA processing with clean state ===
         fpga_debug_register_write(1, 0x01);

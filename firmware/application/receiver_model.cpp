@@ -244,10 +244,24 @@ void ReceiverModel::enable() {
     radio::set_direction(rf::Direction::Receive);
 
 #ifdef PRALINE
-    /* Anchor the Common Mode Voltage (VCM) to 1.2V.
-     * This stabilizes the electrical floor of the I/Q signals.
-     */
-    radio::set_rx_buff_vcm(1);
+    /* MAX2831 RX IQ common-mode voltage (register 15).
+     *
+     * 0 = 1.1 V, 1 = 1.2 V, 2 = 1.3 V, 3 = 1.45 V.
+     *
+     * The reference firmware leaves this alone: max2831.c's default register
+     * table has reg 15 = 0x0145 (1.1 V) and the line that would raise it is
+     * commented out ("maximum rx output common-mode voltage"). Mayhem used to
+     * force 1.2 V here on the theory that it "stabilises the electrical floor
+     * of the I/Q signals" -- plausible, but never measured, and it was the
+     * last remaining RF-path setting where this branch disagreed with the
+     * configuration that is proven to receive ADS-B on this board.
+     *
+     * Set to 0 to match the reference (writing 1.1 V is a no-op against the
+     * power-on default), or back to 1 to restore the old Mayhem behaviour.
+     * If reception measurably worsens, put it back to 1 and say so -- neither
+     * value has been verified on hardware. */
+#define PRALINE_RX_IQ_VCM 0
+    radio::set_rx_buff_vcm(PRALINE_RX_IQ_VCM);
 #endif
 
     update_tuning_frequency();
@@ -326,45 +340,37 @@ void ReceiverModel::update_baseband_bandwidth() {
     if (enabled_) {
 #ifdef PRALINE
         /*
-         * PRALINE LPF bandwidth calculation from GSG hackrf_usb radio.c
+         * PRALINE LPF bandwidth, ported from auto_bandwidth() in
+         * hackrf/firmware/common/radio.c:
          *
-         * The LPF should be set to capture the desired signal bandwidth
-         * while the FPGA decimation filter handles anti-aliasing.
+         *   bb_bandwidth  = sample_rate * 3 / 4
+         *   lpf_bandwidth = bb_bandwidth + offset_hz * 2
          *
-         * For most modes: LPF = (output_sample_rate * 3) / 8
-         * For quarter-shift: add offset for shifted spectrum
+         * where offset_hz is the quarter-rate shift, i.e. afe_rate / 4 when a
+         * shift is in use. The doubling is because the wanted signal sits
+         * offset from the analogue centre, so the analogue filter has to stay
+         * open out to that offset on the far side too.
          *
-         * Note: MAX2831 minimum LPF is 11.6 MHz, so for narrow sample rates
-         * the hardware limit applies and FPGA filter does the real work.
+         * The previous version used /8 in both places and read the shift from
+         * bits 2-3 of FPGA register 1, which do not exist in the gateware, so
+         * it always took the no-shift branch. At the ADS-B rate that asked for
+         * 750 kHz, which is below the MAX2831's 1.75 MHz floor and therefore
+         * also switched in the external narrowband AA filter
+         * (MAX2831::set_lpf_rf_bandwidth_rx), squeezing the RX path shut. The
+         * reference asks for 17.5 MHz at the same rate and the AA filter stays
+         * out of circuit.
          */
 
         uint32_t sample_rate = sampling_rate();
         uint8_t resampling_n = portapack::clock_manager.get_resampling_n();
         uint32_t afe_rate = sample_rate << resampling_n;
 
-        // Base LPF: enough to capture desired bandwidth
-        uint32_t lpf_bandwidth = (sample_rate * 3) / 8;
+        uint32_t lpf_bandwidth = (sample_rate * 3) / 4;
 
-        // Check if quarter-shift is enabled (FPGA register 1, bits 2-3)
-        uint32_t fpga_ctrl = radio::debug::fpga::register_read(1);
-        uint8_t quarter_shift = (fpga_ctrl >> 2) & 0x03;
-
+        const uint8_t quarter_shift = radio::debug::get_cached_quarter_shift();
         if (quarter_shift != 0) {
-            // Quarter-shift moves spectrum by AFE_rate/4, need wider LPF
-            uint32_t offset = afe_rate / 8;
+            const uint32_t offset = afe_rate / 4;
             lpf_bandwidth += offset * 2;
-        }
-
-        // For best anti-alias performance, also consider AFE Nyquist
-        // If our calculated LPF is below MAX2831 minimum, it doesn't matter
-        // But if we can set LPF to just below AFE Nyquist, that's optimal
-        uint32_t afe_nyquist = afe_rate / 2;
-
-        // Use the larger of: signal bandwidth requirement OR Nyquist protection
-        // (but MAX2831 driver will clamp to its available settings anyway)
-        if (lpf_bandwidth < afe_nyquist) {
-            // Set LPF close to Nyquist for maximum alias rejection
-            lpf_bandwidth = (afe_nyquist * 9) / 10;  // 90% of Nyquist
         }
 
         radio::set_baseband_filter_bandwidth_rx(lpf_bandwidth);
