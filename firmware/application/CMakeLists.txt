@@ -489,7 +489,10 @@ add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
 )
-set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
+# NB: LPC43xx_M0.ld does INCLUDE external.ld, so that one has to be listed too -
+# otherwise editing the external app section rules silently does not relink.
+set_target_properties(${PROJECT_NAME}.elf PROPERTIES
+    LINK_DEPENDS "${LDSCRIPT};${CMAKE_CURRENT_SOURCE_DIR}/external/external.ld")
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
