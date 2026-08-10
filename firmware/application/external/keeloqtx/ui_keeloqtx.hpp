@@ -106,6 +106,7 @@ class KeeloqTXView : public View {
     std::string encoded_data{};
 
     void encode_data();
+    void encode_data_gw60(uint32_t hop_enc);
 
     uint32_t repeat = 4;
     uint32_t pause_duration = 0;
