@@ -220,10 +220,12 @@ w25q80bv_driver_t spi_flash = {
  * rf_path.c. Their gpio_* fields are populated at runtime in pin_setup(). */
 
 jtag_gpio_t jtag_gpio_cpld = {
-    .gpio_tms = &gpio_cpld_tms,
     .gpio_tck = &gpio_cpld_tck,
+#ifdef IS_NOT_PRALINE
+    .gpio_tms = &gpio_cpld_tms,
     .gpio_tdi = &gpio_cpld_tdi,
     .gpio_tdo = &gpio_cpld_tdo,
+#endif
 #ifdef HACKRF_ONE
     .gpio_pp_tms = &gpio_cpld_pp_tms,
     .gpio_pp_tdo = &gpio_cpld_pp_tdo,
@@ -833,7 +835,9 @@ void pin_setup(void) {
     /* sgpio_config / rf_path are defined in common/sgpio.c and rf_path.c
      * with minimal initializers. Populate the gpio_* fields here. */
     sgpio_config.gpio_q_invert = &gpio_q_invert;
+#ifdef IS_NOT_PRALINE
     sgpio_config.gpio_trigger_enable = &gpio_hw_sync_enable;
+#endif
     sgpio_config.slice_mode_multislice = true;
 
 #ifdef HACKRF_ONE
@@ -1053,7 +1057,9 @@ void set_leds(const uint8_t state) {
 }
 
 void trigger_enable(bool hw_sync_mode) {
+#ifdef IS_NOT_PRALINE
     gpio_write(sgpio_config.gpio_trigger_enable, hw_sync_mode == 1);
+#endif
 }
 
 void halt_and_flash(const uint32_t duration) {

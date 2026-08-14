@@ -748,13 +748,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PRTT rtty_tx)
 
-### SD over USB
-
-set(MODE_INCDIR
-	${HACKRF_PATH}/firmware
-	${HACKRF_PATH}/firmware/common
-	${HACKRF_PATH}/firmware/libopencm3/include
-)
 
 ### Morse TX
 
@@ -794,6 +787,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTET tetra_rx)
 
+### SD over USB
+
+set(MODE_INCDIR
+	${HACKRF_PATH}/firmware
+	${HACKRF_PATH}/firmware/common
+	${HACKRF_PATH}/firmware/libopencm3/include
+)
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
@@ -836,10 +836,7 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
-# sd_over_usb has type conflicts with PRALINE (HackRF Pro) - disable for now
-if(NOT BOARD STREQUAL "PRALINE")
 DeclareTargets(PUSB sd_over_usb)
-endif()
 
 
 ### HackRF "factory" firmware
