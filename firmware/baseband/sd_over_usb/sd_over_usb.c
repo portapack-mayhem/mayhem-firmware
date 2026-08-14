@@ -38,8 +38,14 @@
 extern usb_configuration_t* usb_configurations[];
 
 static const usb_device_t usb_device_sd_over_usb = {
-    .descriptor = usb_descriptor_device,
-    .descriptor_strings = usb_descriptor_strings,
+#ifdef IS_NOT_PRALINE
+.descriptor = usb_descriptor_device_hackrf,
+.descriptor_strings = usb_descriptor_strings_hackrf_one,
+#endif
+#ifdef IS_PRALINE
+.descriptor = usb_descriptor_device_hackrf,
+.descriptor_strings = usb_descriptor_strings_praline,
+#endif
     .qualifier_descriptor = usb_descriptor_device_qualifier,
     .configurations = &usb_configurations,
     .configuration = 0,
@@ -145,9 +151,9 @@ void start_usb(void) {
 	delay_ms(10);
 	pins_setup();
 	cpld_jtag_pin_setup();
-	mixer_bus_setup(&mixer);
-	sgpio_configure_pin_functions(&sgpio_config);
-	rf_path_pin_setup(&rf_path);
+	// mixer_bus_setup(&mixer);
+	// sgpio_configure_pin_functions(&sgpio_config);
+	// rf_path_pin_setup(&rf_path);
 // #ifdef IS_PRALINE
 // 	if (IS_PRALINE) {
 // 		enable_3v3aux_power();
@@ -244,8 +250,8 @@ void start_usb(void) {
 #ifdef IS_HACKRF_ONE
 	if (IS_HACKRF_ONE) {
 		memcpy(&usb_device,
-		       &usb_device_hackrf_one,
-		       sizeof(usb_device_hackrf_one));
+		       &usb_device_sd_over_usb,
+		       sizeof(usb_device_sd_over_usb));
 	}
 #endif
 #ifdef IS_JAWBREAKER
@@ -262,7 +268,7 @@ void start_usb(void) {
 #endif
 #ifdef IS_PRALINE
 	if (IS_PRALINE) {
-		memcpy(&usb_device, &usb_device_praline, sizeof(usb_device_praline));
+		memcpy(&usb_device, &usb_device_sd_over_usb, sizeof(usb_device_sd_over_usb));
 	}
 #endif
 	usb_device_init(0, &usb_device);

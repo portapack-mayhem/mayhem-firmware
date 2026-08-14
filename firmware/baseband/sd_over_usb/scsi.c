@@ -31,8 +31,6 @@
 
 volatile bool usb_bulk_block_done = false;
 
-void delay(uint32_t duration);
-
 void usb_bulk_block_cb(void* user_data, unsigned int bytes_transferred) {
     usb_bulk_block_done = true;
 
@@ -294,7 +292,7 @@ void scsi_command(msd_cbw_t* msd_cbw_data) {
             gpio_output(&dfu);
             gpio_clear(&dfu);
 
-            delay_ms(50 * 40800);
+            delay_ms(50);
 
             RESET_CTRL0 = (1 << 0);
             break;
