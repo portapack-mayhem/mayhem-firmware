@@ -130,17 +130,9 @@ void usb_set_descriptor_by_serial_number(void)
 }
 
 void start_usb(void) {
-	// Copy M0 image from ROM before SPIFI is disabled
-	// m0_rom_to_ram();
-
-	// This will be cleared if any self-test check fails.
-	// selftest.report.pass = true;
-
 	// Detect hardware platform before we do anything else.
 	detect_hardware_platform();
 	board_id_t board_id = detected_platform();
-
-	// i2c_bus_start(&i2c0, &i2c_config_fast_clock);
 
 	pins_shutdown();
 	sgpio_pin_shutdown(&sgpio_config);
@@ -151,94 +143,8 @@ void start_usb(void) {
 	delay_ms(10);
 	pins_setup();
 	cpld_jtag_pin_setup();
-	// mixer_bus_setup(&mixer);
-	// sgpio_configure_pin_functions(&sgpio_config);
-	// rf_path_pin_setup(&rf_path);
-// #ifdef IS_PRALINE
-// 	if (IS_PRALINE) {
-// 		enable_3v3aux_power();
-// 	#if !defined(DFU_MODE) && !defined(RAM_MODE)
-// 		enable_1v2_power();
-// 		enable_rf_power();
-// 		/*
-// 		 * On Praline, the clock generator power supply comes from 3V3FPGA
-// 		 * which is enabled when 1V2FPGA is turned on.
-// 		 */
-// 		clock_gen_init();
-// 	#endif
-// 	}
-// #endif
-// #ifdef IS_NOT_PRALINE
-// 	if (IS_NOT_PRALINE) {
-// 		enable_1v8_power();
-// 	#ifdef IS_NOT_RAD1O
-// 		if (IS_NOT_RAD1O) {
-// 			/*
-// 			 * On rad1o, the clock generator power supply comes from the RF supply
-// 			 * which is enabled later. On H1 and Jawbreaker, the clock generator is
-// 			 * on the main 3V3 supply.
-// 			 */
-// 			clock_gen_init();
-// 		}
-// 	#endif
-// 	}
-// #endif
-// 	tuning_setup();
-// #ifdef IS_HACKRF_ONE
-// 	if (IS_HACKRF_ONE) {
-// 		// Set up mixer before enabling RF power, because its
-// 		// GPO is used to control the antenna bias tee.
-// 		mixer_setup(&mixer, RFFC5071_VARIANT);
-// 	}
-// #endif
-// #ifdef IS_H1_OR_RAD1O
-// 	if (IS_H1_OR_RAD1O) {
-// 		enable_rf_power();
-// 	}
-// #endif
-// #ifdef IS_RAD1O
-// 	if (IS_RAD1O) {
-// 		clock_gen_init();
-// 	}
-// #endif
+
 	cpu_clock_init();
-
-	/* Clock speed has changed, adjust I2C clock */
-	// i2c_bus_start(&i2c0, &i2c_config_fast_clock);
-
-// 	/* Wake the M0 */
-// 	ipc_halt_m0();
-// 	ipc_start_m0((uint32_t) &__ram_m0_start__);
-
-// #ifdef IS_NOT_PRALINE
-// 	if (IS_NOT_PRALINE) {
-// 		if (!cpld_jtag_sram_load(&jtag_cpld)) {
-// 			halt_and_flash(1000);
-// 		}
-// 	}
-// #endif
-// #ifdef IS_PRALINE
-// 	if (IS_PRALINE) {
-// 	#if defined(DFU_MODE) || defined(RAM_MODE)
-// 		selftest.fpga_image_load = SKIPPED;
-// 		selftest.report.pass = false;
-// 	#else
-// 		fpga_image_load(&fpga_loader, 0);
-// 	#endif
-// 		delay_us(100);
-// 		fpga_spi_selftest();
-// 		fpga_sgpio_selftest();
-// 	}
-// #endif
-
-	// radio.update_cb = radio_changed;
-	// radio_init(&radio);
-
-// #ifdef IS_EXPANSION_COMPATIBLE
-// 	if (IS_EXPANSION_COMPATIBLE) {
-// 		portapack_init();
-// 	}
-// #endif
 
 #ifndef DFU_MODE
 	usb_set_descriptor_by_serial_number();
@@ -282,8 +188,6 @@ void start_usb(void) {
 	usb_endpoint_init(&usb_endpoint_control_in, true);
 
 	nvic_set_priority(NVIC_USB0_IRQ, 255);
-
-	// hackrf_ui()->init();
 
 	usb_run(&usb_device);
 }
