@@ -209,12 +209,24 @@ static data_request_t decode_data_request(const uint8_t* cmd) {
     return req;
 }
 
+#define MAX_BLOCKS_PER_TRANSFER 32
+
 uint8_t data_read10(msd_cbw_t* msd_cbw_data) {
     data_request_t req = decode_data_request(msd_cbw_data->cmd_data);
 
-    for (size_t block_index = 0; block_index < req.blk_cnt; block_index++) {
-        read_block(req.first_lba + block_index, &usb_bulk_buffer[0], 1 /* n blocks */);
-        usb_send_bulk(&usb_bulk_buffer[0], 512);
+    uint32_t lba = req.first_lba;
+    uint32_t remaining = req.blk_cnt;
+
+    while (remaining > 0) {
+        uint32_t n = (remaining > MAX_BLOCKS_PER_TRANSFER) ? MAX_BLOCKS_PER_TRANSFER : remaining;
+
+        if (read_block(lba, &usb_bulk_buffer[0], n))
+            return 1;
+
+        usb_send_bulk(&usb_bulk_buffer[0], n * 512);
+
+        lba += n;
+        remaining -= n;
     }
 
     return 0;
@@ -223,9 +235,19 @@ uint8_t data_read10(msd_cbw_t* msd_cbw_data) {
 uint8_t data_write10(msd_cbw_t* msd_cbw_data) {
     data_request_t req = decode_data_request(msd_cbw_data->cmd_data);
 
-    for (size_t block_index = 0; block_index < req.blk_cnt; block_index++) {
-        usb_receive_bulk(&usb_bulk_buffer[0], 512);
-        write_block(req.first_lba + block_index, &usb_bulk_buffer[0], 1 /* n blocks */);
+    uint32_t lba = req.first_lba;
+    uint32_t remaining = req.blk_cnt;
+
+    while (remaining > 0) {
+        uint32_t n = (remaining > MAX_BLOCKS_PER_TRANSFER) ? MAX_BLOCKS_PER_TRANSFER : remaining;
+
+        usb_receive_bulk(&usb_bulk_buffer[0], n * 512);
+
+        if (write_block(lba, &usb_bulk_buffer[0], n))
+            return 1;
+
+        lba += n;
+        remaining -= n;
     }
 
     return 0;
