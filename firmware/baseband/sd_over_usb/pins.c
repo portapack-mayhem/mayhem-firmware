@@ -98,12 +98,12 @@ void pins_shutdown(void)
 
 #ifdef IS_PRALINE
 	if (IS_PRALINE) {
-		disable_1v2_power();
-		disable_3v3aux_power();
-		gpio_output(gpio->gpio_1v2_enable);
-		gpio_output(gpio->gpio_3v3aux_enable_n);
-		scu_pinmux(scu->PINMUX_EN1V2, SCU_GPIO_FAST | SCU_CONF_FUNCTION0);
-		scu_pinmux(scu->PINMUX_EN3V3_AUX_N, SCU_GPIO_FAST | SCU_CONF_FUNCTION4);
+		// disable_1v2_power();
+		// disable_3v3aux_power();
+		// gpio_output(gpio->gpio_1v2_enable);
+		// gpio_output(gpio->gpio_3v3aux_enable_n);
+		// scu_pinmux(scu->PINMUX_EN1V2, SCU_GPIO_FAST | SCU_CONF_FUNCTION0);
+		// scu_pinmux(scu->PINMUX_EN3V3_AUX_N, SCU_GPIO_FAST | SCU_CONF_FUNCTION4);
 	}
 #endif
 
