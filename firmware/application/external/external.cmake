@@ -407,6 +407,10 @@ set(EXTCPPSRC
 	external/aprs_tx/main.cpp
 	external/aprs_tx/ui_aprs_tx.cpp
 
+	#sd over usb
+	external/sdusb/main.cpp
+	external/sdusb/ui_sd_over_usb.cpp
+
 )
 
 set(EXTAPPLIST
@@ -505,13 +509,5 @@ set(EXTAPPLIST
 	ais_rx
 	aprs_rx
 	aprs_tx
+	sdusb
 )
-
-# sdusb has type conflicts with PRALINE (HackRF Pro) - add only for non-PRALINE builds
-if(NOT BOARD STREQUAL "PRALINE")
-       list(APPEND EXTCPPSRC
-               external/sdusb/main.cpp
-               external/sdusb/ui_sd_over_usb.cpp
-       )
-       list(APPEND EXTAPPLIST sdusb)
-endif()
