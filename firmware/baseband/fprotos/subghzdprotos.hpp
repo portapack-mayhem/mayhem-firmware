@@ -29,6 +29,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-ido.hpp"
 #include "s-intertechnov3.hpp"
 #include "s-keeloq.hpp"
+#include "s-superrollo.hpp"
 #include "s-kinggates_stylo_4k.hpp"
 #include "s-linear.hpp"
 #include "s-linear_delta3.hpp"
@@ -85,6 +86,7 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_IDO] = new FProtoSubGhzDIdo();
         protos[FPS_INTERTECHNOV3] = new FProtoSubGhzDIntertechnoV3();
         protos[FPS_KEELOQ] = new FProtoSubGhzDKeeLoq();
+        protos[FPS_SUPERROLLO] = new FProtoSubGhzDSuperrollo();
         protos[FPS_KINGGATESSTYLO4K] = new FProtoSubGhzDKinggatesStylo4K();
         protos[FPS_LINEAR] = new FProtoSubGhzDLinear();
         protos[FPS_LINEARDELTA3] = new FProtoSubGhzDLinearDelta3();
