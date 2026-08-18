@@ -564,6 +564,14 @@ void LiveDateTime::set_seconds_enabled(bool new_value) {
 
 /* BigFrequency **********************************************************/
 
+BigFrequency::BigFrequency(Rect parent_rect, rf::Frequency frequency)
+    : Widget{parent_rect}, _frequency{frequency} {}
+
+void BigFrequency::set(const rf::Frequency frequency) {
+    _frequency = frequency;
+    set_dirty();
+}
+
 void BigFrequency::paint(Painter& painter) {
     uint32_t i, digit_def;
     std::array<char, 7> digits;
