@@ -568,8 +568,10 @@ BigFrequency::BigFrequency(Rect parent_rect, rf::Frequency frequency)
     : Widget{parent_rect}, _frequency{frequency} {}
 
 void BigFrequency::set(const rf::Frequency frequency) {
-    _frequency = frequency;
-    set_dirty();
+    if (_frequency != frequency) {
+        _frequency = frequency;
+        set_dirty();
+    }
 }
 
 void BigFrequency::paint(Painter& painter) {
