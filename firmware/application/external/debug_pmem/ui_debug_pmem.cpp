@@ -89,7 +89,6 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("encoder_dial_direction: " + to_string_dec_uint(encoder_dial_direction()));  // 0 = normal, 1 = reverse
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(config_mode_storage_direct(), 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)config_dst().v, 8));
-    pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(fake_brightness_level()));
     pmem_dump_file.write_line("menu_color: 0x" + to_string_hex(menu_color().v, 4));
     pmem_dump_file.write_line("touchscreen_threshold: " + to_string_dec_uint(touchscreen_threshold()));
 
@@ -105,7 +104,6 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(hide_clock()));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(clock_with_date()));
     pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(clkout_enabled()));
-    pmem_dump_file.write_line("ui_config apply_fake_brightness: " + to_string_dec_uint(apply_fake_brightness()));
     pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(stealth_mode()));
     pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(config_login()));
     pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(config_splash()));
@@ -120,7 +118,6 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(ui_hide_clock()));
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(ui_hide_sd_card()));
     pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(ui_hide_mute()));
-    pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(ui_hide_fake_brightness()));
     pmem_dump_file.write_line("ui_config2 hide_battery_icon: " + to_string_dec_uint(ui_hide_battery_icon()));
     pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(ui_hide_numeric_battery()));
     pmem_dump_file.write_line("ui_config2 theme_id: " + to_string_dec_uint(ui_theme_id()));
