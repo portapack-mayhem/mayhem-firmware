@@ -109,7 +109,7 @@ struct ui_config_t {
     bool hide_clock : 1;
     bool clock_show_date : 1;
     bool clkout_enabled : 1;
-    bool apply_fake_brightness : 1;  // Fake brightness level, which eventually could be something along the lines of apply_pwm_brightness
+    bool UNUSED_8 : 1;  // Deprecated: was apply_fake_brightness
     bool stealth_mode : 1;
     bool config_login : 1;
     bool config_splash : 1;
@@ -130,7 +130,7 @@ struct ui_config2_t {
     bool hide_sd_card : 1;
 
     bool hide_mute : 1;
-    bool hide_fake_brightness : 1;
+    bool UNUSED_9 : 1;  // Deprecated: was hide_fake_brightness
     bool hide_numeric_battery : 1;
     bool hide_battery_icon : 1;
     bool override_batt_calc : 1;
@@ -225,8 +225,7 @@ struct data_t {
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
     uint16_t encoder_dial_sensitivity : 4;
 
-    // fake brightness level (not switch, switch is in another place)
-    uint16_t fake_brightness_level : 4;
+    uint16_t UNUSED_5 : 4;  // Deprecated: was fake_brightness_level
 
     // Encoder rotation rate multiplier for larger increments when rotated rapidly
     uint16_t encoder_rate_multiplier : 4;
@@ -299,7 +298,7 @@ struct data_t {
           frequency_tx_correction(0),
 
           encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
-          fake_brightness_level(BRIGHTNESS_50),
+          UNUSED_5(0),
           encoder_rate_multiplier(1),
           UNUSED(0),
 
@@ -476,7 +475,6 @@ void init() {
     set_config_mode_storage_direct(config_mode_backup);
 
     // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
-    if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
     if (menu_color().v == 0) set_menu_color(Color::grey());
 }
 
@@ -671,10 +669,6 @@ bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
 
-bool apply_fake_brightness() {
-    return data->ui_config.apply_fake_brightness;
-}
-
 bool config_login() {
     return data->ui_config.config_login;
 }
@@ -792,10 +786,6 @@ void set_config_cpld(uint8_t i) {
 void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.backlight_timeout = static_cast<uint8_t>(new_value.timeout_enum());
     data->ui_config.enable_backlight_timeout = static_cast<uint8_t>(new_value.timeout_enabled());
-}
-
-void set_apply_fake_brightness(const bool v) {
-    data->ui_config.apply_fake_brightness = v;
 }
 
 uint32_t pocsag_last_address() {
@@ -987,9 +977,6 @@ bool ui_hide_clock() {
 bool ui_hide_sd_card() {
     return data->ui_config2.hide_sd_card;
 }
-bool ui_hide_fake_brightness() {
-    return data->ui_config2.hide_fake_brightness;
-}
 bool ui_hide_numeric_battery() {
     return data->ui_config2.hide_numeric_battery;
 }
@@ -1043,9 +1030,6 @@ void set_ui_hide_clock(bool v) {
 }
 void set_ui_hide_sd_card(bool v) {
     data->ui_config2.hide_sd_card = v;
-}
-void set_ui_hide_fake_brightness(bool v) {
-    data->ui_config2.hide_fake_brightness = v;
 }
 void set_ui_hide_numeric_battery(bool v) {
     data->ui_config2.hide_numeric_battery = v;
@@ -1181,25 +1165,6 @@ dst_config_t config_dst() {
 void set_config_dst(dst_config_t v) {
     data->dst_config = v;
     rtc_time::dst_init();
-}
-
-// Fake brightness level (switch is in another place)
-uint8_t fake_brightness_level() {
-    return data->fake_brightness_level;
-}
-void set_fake_brightness_level(uint8_t v) {
-    data->fake_brightness_level = v;
-}
-
-// Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
-void toggle_fake_brightness_level() {
-    bool fbe = apply_fake_brightness();
-    if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
-        set_apply_fake_brightness(!fbe);
-        data->fake_brightness_level = BRIGHTNESS_50;
-    } else {
-        data->fake_brightness_level++;
-    }
 }
 
 // Menu Color Scheme

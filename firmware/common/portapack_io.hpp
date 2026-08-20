@@ -37,21 +37,6 @@
 
 // #include "portapack_persistent_memory.hpp"
 
-// Darkened pixel bit mask for each possible shift value.
-static const uint16_t darken_mask[4] = {
-    0b1111111111111111,  // RrrrrGgggggBbbbb
-    0b0111101111101111,  // 0Rrrr0Ggggg0Bbbb
-    0b0011100111100111,  // 00Rrr00Gggg00Bbb
-    0b0001100011100011   // 000Rr000Ggg000Bb
-};
-
-// To darken, dividing each color level R/G/B by 2^shift.
-#define DARKENED_PIXEL(pixel, shift) ((pixel >> shift) & darken_mask[shift])
-
-// To un-darken, multiply each color level by 2^shift (might still be darker that before since some bits may have been lost above).
-// This function will only be called when the pixel has previously been darkened, so no masking is needed.
-#define UNDARKENED_PIXEL(pixel, shift) (pixel << shift)
-
 namespace portapack {
 
 enum DeviceType {
@@ -197,9 +182,6 @@ class IO {
     }
 
     void lcd_write_pixel(ui::Color pixel) {
-        if (dark_cover_enabled) {
-            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
-        }
         lcd_write_data(pixel.v);
     }
 
@@ -208,18 +190,12 @@ class IO {
     }
 
     void lcd_write_pixels(ui::Color pixel, size_t n) {
-        if (dark_cover_enabled) {
-            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
-        }
         while (n--) {
             lcd_write_data(pixel.v);
         }
     }
 
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
-        if (dark_cover_enabled) {
-            pixel.v = DARKENED_PIXEL(pixel.v, brightness);
-        }
         auto v = pixel.v;
         n >>= 3;
         while (n--) {
@@ -254,13 +230,6 @@ class IO {
 
         return switches_raw;
     }
-    bool lcd_normally_black = false;
-    bool dark_cover_enabled = false;
-    uint8_t brightness = 0;
-    bool get_is_normally_black();
-    bool get_dark_cover();
-    uint8_t get_brightness();
-    void update_cached_values();
 
     uint32_t io_update(const TouchPinsConfig write_value);
 
@@ -432,14 +401,6 @@ class IO {
             halPolledDelay(71);  // 90ns
             const auto value_low = data_read();
             uint32_t original_value = (value_high << 8) | value_low;
-
-            if (lcd_normally_black) return original_value;
-
-            if (dark_cover_enabled) {
-                // this is read data, so if the fake brightness is enabled AKA get_dark_cover() == true,
-                // then shift to back side AKA UNDARKENED_PIXEL, to prevent read shifted darkern info
-                original_value = UNDARKENED_PIXEL(original_value, brightness);
-            }
             return original_value;
         }
         const auto value_high = data_read();
