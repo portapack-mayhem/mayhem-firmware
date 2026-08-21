@@ -1012,10 +1012,17 @@ void SetTouchscreenThresholdView::focus() {
 
 void SetTouchscreenThresholdView::on_frame_sync() {
     if (!in_auto_detect) return;
+
     uint32_t time_now = chTimeNow();
     int32_t time_diff = time_now - time_start_auto_detect;
-    text_wait_timer.set("ETA " + to_string_dec_uint((10 - time_diff / 1000) <= 0 ? 0 : 10 - time_diff / 1000) + "s");
-    if (time_diff >= 10001 && !auto_detect_succeed_consumed) {  // 10s
+
+    // Calculate elapsed seconds using CH_FREQUENCY
+    uint32_t elapsed_seconds = time_diff / CH_FREQUENCY;
+    int32_t remaining_seconds = 10 - (int32_t)elapsed_seconds;
+    if (remaining_seconds < 0) remaining_seconds = 0;
+
+    text_wait_timer.set("ETA " + to_string_dec_uint(remaining_seconds) + "s");
+    if (elapsed_seconds >= 10 && !auto_detect_succeed_consumed) {  // 10s
         in_auto_detect = false;
         text_wait_timer.hidden(true);
         text_hint.set("OK, press save and reboot");

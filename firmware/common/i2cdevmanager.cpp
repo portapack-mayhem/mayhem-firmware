@@ -332,8 +332,8 @@ msg_t I2CDevManager::timer_fn(void* arg) {
         // Update connected devices based on their own intervals
         for (size_t i = 0; i < devlist.size(); i++) {
             if (devlist[i].addr != 0 && devlist[i].dev && devlist[i].dev->query_interval != 0) {
-                if ((curr_timer % devlist[i].dev->query_interval) == 0) {  // only if it is device's interval
-                    devlist[i].dev->update();                              // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
+                if ((curr_timer % devlist[i].dev->query_interval) == 0) {
+                    devlist[i].dev->update();
                 }
             }
         }
@@ -343,8 +343,8 @@ msg_t I2CDevManager::timer_fn(void* arg) {
         size_t cnt = devlist.size();
         devlist.erase(std::remove_if(devlist.begin(), devlist.end(), [](const I2DevListElement& x) {
                           if (x.addr == 0) return true;
-                          if (x.dev && x.dev->need_del == true) return true;  // self destruct on too many errors
-                          return false;                                       // won't remove the unidentified ones, so we can list them, and not trying all the time with them
+                          if (x.dev && x.dev->need_del == true) return true;
+                          return false;
                       }),
                       devlist.end());
         chMtxUnlock();
@@ -357,17 +357,21 @@ msg_t I2CDevManager::timer_fn(void* arg) {
 
         systime_t end_time = chTimeNow();
 
-        // Calculate elapsed ticks. Unsigned subtraction safely handles system tick overflow.
+        // 1. Calculate elapsed ticks safely handling overflow
         uint32_t delta_ticks = end_time - start_time;
 
-        // Convert elapsed system ticks to actual milliseconds
-        uint32_t delta_ms = (uint32_t)(((uint64_t)delta_ticks * 1000) / CH_FREQUENCY);
+        // 2. Keep EVERYTHING in ticks (No MS conversion!) to prevent truncation drift
+        if (delta_ticks < CH_FREQUENCY) {
+            // Calculate exactly how many ticks are missing to complete 1 full second
+            uint32_t sleep_ticks = CH_FREQUENCY - delta_ticks;
 
-        // Ensure minimum 50 milli sleep even if scanning took longer than 1 second
-        if (delta_ms > 950) delta_ms = 950;
+            // Sleep using native ticks instead of milliseconds
+            chThdSleep(sleep_ticks);
+        } else {
+            // Safety fallback: if processing took longer than 1 second, sleep 50ms to yield CPU
+            chThdSleepMilliseconds(50);
+        }
 
-        // 3. Sleep for the remainder of the 1-second interval
-        chThdSleepMilliseconds(1000 - delta_ms);  // 1sec timer
         ++curr_timer;
     }
     return 0;
