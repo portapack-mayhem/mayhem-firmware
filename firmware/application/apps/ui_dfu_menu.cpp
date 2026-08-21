@@ -59,7 +59,7 @@ void DfuMenu::paint(Painter& painter) {
     text_info_line_7.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
     text_info_line_8.set(to_string_dec_uint(shared_memory.m4_performance_counter, 6));
     text_info_line_9.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
-    text_info_line_10.set(to_string_dec_uint(chTimeNow() / 1000, 6));
+    text_info_line_10.set(to_string_dec_uint(chTimeNow() / CH_FREQUENCY, 6));
 
     constexpr auto margin = 5;
 

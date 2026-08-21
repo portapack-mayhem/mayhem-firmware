@@ -1180,7 +1180,7 @@ static void cmd_sysinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
         "M4 stack: " + to_string_dec_uint(shared_memory.m4_stack_usage) + "\r\n" +
         "M0 cpu%: " + to_string_dec_uint(shared_memory.m4_performance_counter) + "\r\n" +
         "M4 miss: " + to_string_dec_uint(shared_memory.m4_buffer_missed) + "\r\n" +
-        "uptime: " + to_string_dec_uint(chTimeNow() / 1000) + "\r\n";
+        "uptime: " + to_string_dec_uint(chTimeNow() / CH_FREQUENCY) + "\r\n";
 
     fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)info.c_str(), info.length());
     return;
