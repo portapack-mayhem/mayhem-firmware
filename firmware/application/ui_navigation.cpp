@@ -1130,13 +1130,18 @@ void SystemView::toggle_overlay() {
 }
 
 void SystemView::paint_overlay() {
-    static bool last_paint_state = false;
+    // Static variable to store the timestamp of the last update
+    static systime_t last_update_time = 0;
+
     if (overlay_active) {
-        // paint background only every other second
-        if ((((chTimeNow() >> 10) & 0x01) == 0x01) == last_paint_state)
+        // Update exactly once per second (CH_FREQUENCY equals 1 second of ticks)
+        // This replaces the old hardcoded bit-shift logic for better portability
+        if ((chTimeNow() - last_update_time) < CH_FREQUENCY)
             return;
 
-        last_paint_state = !last_paint_state;
+        // One second has passed, save the new timestamp
+        last_update_time = chTimeNow();
+
         if (overlay_active == 1 && overlay)
             overlay->set_dirty();
         else if (overlay_active == 2 && overlay2)

@@ -318,23 +318,27 @@ void I2CDevManager::create_thread() {
 msg_t I2CDevManager::timer_fn(void* arg) {
     (void)arg;
     uint16_t curr_timer = 0;  // seconds since thread start
+
     while (1) {
         systime_t start_time = chTimeNow();
         bool changed = false;
-        // check if i2c scan needed
+
+        // Check if i2c scan is needed
         if (force_scan || (scan_interval != 0 && curr_timer % scan_interval == 0)) {
             changed = changed | scan();
             force_scan = false;
         }
+
+        // Update connected devices based on their own intervals
         for (size_t i = 0; i < devlist.size(); i++) {
             if (devlist[i].addr != 0 && devlist[i].dev && devlist[i].dev->query_interval != 0) {
                 if ((curr_timer % devlist[i].dev->query_interval) == 0) {  // only if it is device's interval
-                    devlist[i].dev->update();                              // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
+                    devlist[i].dev->update();                              // updates its data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
                 }
             }
         }
 
-        // remove all unneeded items
+        // Remove all unneeded items (dead devices or devices throwing too many errors)
         chMtxLock(&mutex_list);
         size_t cnt = devlist.size();
         devlist.erase(std::remove_if(devlist.begin(), devlist.end(), [](const I2DevListElement& x) {
@@ -350,11 +354,20 @@ msg_t I2CDevManager::timer_fn(void* arg) {
             I2CDevListChangedMessage msg{};
             EventDispatcher::send_message(msg);
         }
-        systime_t end_time = chTimeNow();
-        systime_t delta = (end_time > start_time) ? end_time - start_time : 100;  // wont calculate overflow, just guess.
-        if (delta > 950) delta = 950;                                             // ensure minimum 50 milli sleep
 
-        chThdSleepMilliseconds(1000 - delta);  // 1sec timer
+        systime_t end_time = chTimeNow();
+
+        // Calculate elapsed ticks. Unsigned subtraction safely handles system tick overflow.
+        uint32_t delta_ticks = end_time - start_time;
+
+        // Convert elapsed system ticks to actual milliseconds
+        uint32_t delta_ms = (uint32_t)(((uint64_t)delta_ticks * 1000) / CH_FREQUENCY);
+
+        // Ensure minimum 50 milli sleep even if scanning took longer than 1 second
+        if (delta_ms > 950) delta_ms = 950;
+
+        // 3. Sleep for the remainder of the 1-second interval
+        chThdSleepMilliseconds(1000 - delta_ms);  // 1sec timer
         ++curr_timer;
     }
     return 0;

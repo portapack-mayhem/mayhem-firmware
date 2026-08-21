@@ -125,15 +125,18 @@ void update_performance_counters() {
     if (performance_counter_active == 0x00)
         return;
 
-    static bool last_paint_state = false;
-    if ((((chTimeNow() >> 10) & 0x01) == 0x01) == last_paint_state)
+    static systime_t last_update_time = 0;
+
+    // The MS2ST(1000) guarantees that this is exactly 1 second, regardless of the system clock setting.
+    if ((chTimeNow() - last_update_time) < MS2ST(1000))
         return;
 
     // Idle thread state is sometimes unuseable
     if (chThdGetTicks(chSysGetIdleThread()) > 0x10000000)
         return;
 
-    last_paint_state = !last_paint_state;
+    // Update the last update time
+    last_update_time = chTimeNow();
 
     if (performance_counter_active == 0x01) {
         auto utilisation = get_cpu_utilisation_in_percent();
