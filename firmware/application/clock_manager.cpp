@@ -426,8 +426,10 @@ void ClockManager::portapack_tcxo_enable() {
 #endif
     portapack::io.reference_oscillator(true);
 
-    /* Delay for reference oscillator to start. */
-    chThdSleepMilliseconds(50);
+    /* Delay >10ms at 96MHz clock speed for reference oscillator to start. */
+    /* Delay an additional 1ms (arbitrary) for the clock generator to detect a signal. */
+    volatile uint32_t delay = 240000 + 24000;
+    while (delay--);
 }
 
 void ClockManager::portapack_tcxo_disable() {
