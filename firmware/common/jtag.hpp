@@ -59,8 +59,10 @@ class JTAG {
 
     void runtest_ms(const size_t count) {
         auto starttime = chTimeNow();
+        // We convert the count in milliseconds to system ticks:
+        auto duration_ticks = MS2ST(count) + 1;
 
-        while ((chTimeNow() - starttime) < (count + 1))
+        while ((chTimeNow() - starttime) < duration_ticks)
             target.clock(0, 0);
     }
 
