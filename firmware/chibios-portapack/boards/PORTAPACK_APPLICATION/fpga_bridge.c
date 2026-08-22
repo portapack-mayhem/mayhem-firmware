@@ -125,10 +125,11 @@
 // ============================================================================
 // Canonical Default Values - SINGLE SOURCE OF TRUTH
 // ============================================================================
-/* Define the canonical RX defaults in ONE place */
-#define FPGA_RX_DEFAULT_DC_WIDTH 0x04     /* Typical for 40MHz stability */
-#define FPGA_RX_DEFAULT_ADAPT_RATE 0x08   /* Typical for 40MHz stability */
-#define FPGA_RX_DEFAULT_DIGITAL_GAIN 0x00 /* No shift initially */
+/* Define the canonical RX defaults in ONE place.
+ * Matches fpga_init() in hackrf/firmware/common/fpga.c: the gateware only has
+ * rx_decim and rx_pstep on the RX side, both starting at zero. */
+#define FPGA_RX_DEFAULT_DECIM 0x00 /* No decimation initially */
+#define FPGA_RX_DEFAULT_PSTEP 0x00 /* No quarter-rate shift initially */
 
 /* Define TX defaults */
 #define FPGA_TX_DEFAULT_NCO_CTRL 0x00   /* NCO disabled */
@@ -221,12 +222,13 @@ static bool fpga_cdone_read(void) {
 // These functions allow reading/writing FPGA internal registers via SPI.
 // The FPGA bitstream implements a simple SPI register interface.
 //
-// FPGA Register Map:
-//   Reg 1 (CTRL):    DC_BLOCK(b0), QUARTER_SHIFT_EN(b1), QUARTER_SHIFT_UP(b2), PRBS(b6), TRIGGER_EN(b7)
-//   Reg 2 (RX_DECIM): Decimation ratio [2:0]
-//   Reg 3 (RX/TX):    RX Digital Shift OR TX NCO Control
-//   Reg 4 (RX_DC_BLOCK_WIDTH/TX_INTERP) [2:0]
-//   Reg 5 (RX_DC_ADAPT_RATE/TX_PSTEP)  [7:0]
+// FPGA Register Map (hackrf/firmware/fpga/top/standard.py):
+//   Reg 1 (CTRL):     DC_BLOCK(b0), PRBS(b6), TRIGGER_EN(b7)
+//   Reg 2 (RX_DECIM): Decimation ratio, log2 [2:0]
+//   Reg 3 (RX_PSTEP): QUARTER_SHIFT_EN(b6), QUARTER_SHIFT_UP(b7)
+//   Reg 4 (TX_CTRL):  NCO enable (b0)
+//   Reg 5 (TX_INTRP): Interpolation ratio [2:0]
+//   Reg 6 (TX_PSTEP): NCO phase step [7:0]
 //
 // SPI Protocol:
 //   Read:  Send [reg & 0x7F, 0x00, 0x00] -> value in byte 3
@@ -369,22 +371,16 @@ void fpga_rx_enable_dc_block(bool enable) {
 }
 
 /* RX Functions with mode assertion */
-void fpga_rx_set_digital_gain(uint8_t shift) {
+
+/* Quarter-rate shift, register 0x03 bits [7:6]. Equivalent to
+ * fpga_set_rx_quarter_shift_mode() in hackrf/firmware/common/fpga.c.
+ * mode: 0b00 none, 0b11 up, 0b01 down. */
+void fpga_rx_set_quarter_shift_mode(uint8_t mode) {
     if (current_mode != FPGA_MODE_RX) {
         /* Log error or assert - wrong mode! */
         return;
     }
-    fpga_register_write(FPGA_REG_SHARED_3, shift & FPGA_RX_GAIN_SHIFT_MASK);
-}
-
-void fpga_rx_set_dc_block_width(uint8_t width) {
-    if (current_mode != FPGA_MODE_RX) return;
-    fpga_register_write(FPGA_REG_SHARED_4, width & FPGA_RX_DC_WIDTH_MASK);
-}
-
-void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
-    if (current_mode != FPGA_MODE_RX) return;
-    fpga_register_write(FPGA_REG_SHARED_5, rate);
+    fpga_register_write(FPGA_REG_RX_PSTEP, (uint8_t)((mode & 0x03) << FPGA_RX_QUARTER_SHIFT_SHIFT));
 }
 
 // ============================================================================
@@ -394,12 +390,12 @@ void fpga_rx_set_dc_adapt_rate(uint8_t rate) {
 /* TX Functions with mode assertion */
 void fpga_tx_set_nco_enable(bool enable) {
     if (current_mode != FPGA_MODE_TX) return;
-    uint8_t val = fpga_register_read(FPGA_REG3_TX_NCO_CTRL);
+    uint8_t val = fpga_register_read(FPGA_REG_TX_CONTROL);
     if (enable)
         val |= FPGA_TX_NCO_EN;
     else
         val &= ~FPGA_TX_NCO_EN;
-    fpga_register_write(FPGA_REG3_TX_NCO_CTRL, val);
+    fpga_register_write(FPGA_REG_TX_CONTROL, val);
 }
 
 void fpga_tx_set_interpolation(uint8_t ratio) {
@@ -424,17 +420,17 @@ static void fpga_register_init(void) {
     current_mode = FPGA_MODE_RX;
 
     fpga_spi_write(FPGA_REG_CTRL, FPGA_CTRL_DC_BLOCK_EN);
-    fpga_spi_write(FPGA_REG_DECIM, 0x00);
-    fpga_spi_write(FPGA_REG_SHARED_3, FPGA_RX_DEFAULT_DIGITAL_GAIN);
-    fpga_spi_write(FPGA_REG_SHARED_4, FPGA_RX_DEFAULT_DC_WIDTH);
-    fpga_spi_write(FPGA_REG_SHARED_5, FPGA_RX_DEFAULT_ADAPT_RATE);
+    fpga_spi_write(FPGA_REG_DECIM, FPGA_RX_DEFAULT_DECIM);
+    fpga_spi_write(FPGA_REG_RX_PSTEP, FPGA_RX_DEFAULT_PSTEP);
+    fpga_spi_write(FPGA_REG_TX_CONTROL, FPGA_TX_DEFAULT_NCO_CTRL);
+    fpga_spi_write(FPGA_REG_TX_INTERP, FPGA_TX_DEFAULT_INTERP);
 
     /* Update cache */
     fpga_reg_cache[1] = FPGA_CTRL_DC_BLOCK_EN;
-    fpga_reg_cache[2] = 0x00;
-    fpga_reg_cache[3] = FPGA_RX_DEFAULT_DIGITAL_GAIN;
-    fpga_reg_cache[4] = FPGA_RX_DEFAULT_DC_WIDTH;
-    fpga_reg_cache[5] = FPGA_RX_DEFAULT_ADAPT_RATE;
+    fpga_reg_cache[2] = FPGA_RX_DEFAULT_DECIM;
+    fpga_reg_cache[3] = FPGA_RX_DEFAULT_PSTEP;
+    fpga_reg_cache[4] = FPGA_TX_DEFAULT_NCO_CTRL;
+    fpga_reg_cache[5] = FPGA_TX_DEFAULT_INTERP;
 }
 
 // ============================================================================

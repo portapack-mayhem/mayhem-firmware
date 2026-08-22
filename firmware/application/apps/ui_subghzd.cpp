@@ -74,7 +74,7 @@ void SubGhzDRecentEntryDetailView::update_data() {
             console.writeln("Action: 0x" + to_string_hex(func_code));
     }
 
-    if (entry_.sensorType == FPS_KEELOQ) {
+    if (entry_.sensorType == FPS_KEELOQ || entry_.sensorType == FPS_SUPERROLLO) {
         console.writeln("Fix: " + to_string_hex(fix));
         console.writeln("Encrypted: " + to_string_hex(encrypted));
         console.writeln("Manufacturer: " + mf_name);
@@ -243,6 +243,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Ido 11x";
         case FPS_INTERTECHNOV3:
             return "InterTehcno v3";
+        case FPS_SUPERROLLO:
+            return "Superrollo";
         case FPS_KEELOQ:
             return "KeeLoq";
         case FPS_KINGGATESSTYLO4K:
@@ -671,7 +673,7 @@ void SubGhzDRecentEntryDetailView::parseProtocol() {
         return;
     }
 
-    if (entry_.sensorType == FPS_KEELOQ) {
+    if (entry_.sensorType == FPS_KEELOQ || entry_.sensorType == FPS_SUPERROLLO) {
         uint64_t data_rev = FProtoGeneral::subghz_protocol_blocks_reverse_key(entry_.data, 64);
 
         btn = data_rev >> 60;

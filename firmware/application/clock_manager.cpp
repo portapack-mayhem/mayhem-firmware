@@ -428,7 +428,7 @@ void ClockManager::portapack_tcxo_enable() {
 
     /* Delay >10ms at 96MHz clock speed for reference oscillator to start. */
     /* Delay an additional 1ms (arbitrary) for the clock generator to detect a signal. */
-    volatile uint32_t delay = 240000 + 24000;
+    volatile uint32_t delay = 2400000 + 24000;
     while (delay--);
 }
 
@@ -668,37 +668,37 @@ ClockManager::ReferenceSource ClockManager::detect_reference_source() {
 }
 
 ClockManager::Reference ClockManager::choose_reference() {
-#ifdef PRALINE
-    const auto detected_reference = detect_reference_source();
-
-    if ((detected_reference == ReferenceSource::External) ||
-        (detected_reference == ReferenceSource::PortaPack)) {
-        const auto frequency = measure_gp_clkin_frequency();
-        if ((frequency >= 9850000) && (frequency <= 10150000)) {
-            return {detected_reference, 10000000};
-        }
-    }
-#else
+#ifndef PRALINE
     if (hackrf_r9) {
         gpio_control::r9_clkin_en.setActive();
-        volatile uint32_t delay = 240000 + 24000;
+        // Allow extra time for slower TCXOs on clone boards to stabilize before measurement
+        volatile uint32_t delay = 240000 + 240000;
         while (delay--);
     }
+#endif
+
+    // Determine reference source (respects user config and Si5351 loss-of-signal)
     const auto detected_reference = detect_reference_source();
 
+    // If an external or PortaPack source is detected, verify its actual frequency
     if ((detected_reference == ReferenceSource::External) ||
         (detected_reference == ReferenceSource::PortaPack)) {
         const auto frequency = measure_gp_clkin_frequency();
+
+        // Check if the measured frequency is within the valid 10 MHz range
         if ((frequency >= 9850000) && (frequency <= 10150000)) {
             return {detected_reference, 10000000};
         }
     }
 
+#ifndef PRALINE
     if (hackrf_r9) {
+        // Disable r9 clock input if the 10 MHz validation failed
         gpio_control::r9_clkin_en.setInactive();
     }
 #endif
 
+    // Fallback: Disable PortaPack TCXO and default to the HackRF 25 MHz crystal
     portapack_tcxo_disable();
     return {ReferenceSource::Xtal, 25000000};
 }
@@ -907,12 +907,24 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
         // Set FPGA RX decimation register
         fpga_debug_register_write(FPGA_REG_DECIM, n);
 
-        /* RX Mode: Register 3 is FPGA_REG_RX_DIGITAL_GAIN.
-         * We shift up by (3 * n) to compensate for CIC bit-growth.
+        /* No RX digital-gain register is written here.
+         *
+         * Register 0x03 used to be programmed with (3 * n + 2) as a "CIC
+         * bit-growth" renormalisation. The gateware has no such register: the
+         * RX decimator is a chain of unity-gain half-band FIRs selected by
+         * rx_decim (fpga/top/standard.py), and 0x03 is rx_pstep, whose top two
+         * bits are the quarter-rate shift. Writing a gain here silently
+         * cancelled the shift that set_tuning_frequency() had programmed, which
+         * left the analogue passband offset with no matching rotation.
+         *
+         * The shift depends on the AFE rate we just chose, so re-apply it after
+         * the rate change. ReceiverModel::update_sampling_rate() calls
+         * update_tuning_frequency() straight after this, which does exactly
+         * that; the write below only keeps the register consistent in between.
          */
-        uint8_t ds = (3 * n);
-        ds += 2;
-        fpga_debug_register_write(FPGA_REG_RX_DIGITAL_GAIN, ds);
+        fpga_debug_register_write(
+            FPGA_REG_RX_PSTEP,
+            (radio::debug::get_cached_quarter_shift() & 0b11) << FPGA_RX_QUARTER_SHIFT_SHIFT);
 
         // Re-enable FPGA processing with clean state ===
         fpga_debug_register_write(1, 0x01);

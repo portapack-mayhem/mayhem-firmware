@@ -88,16 +88,29 @@ void FrequencyScale::set_spectrum_sampling_rate(const int new_sampling_rate) {
 }
 
 void FrequencyScale::set_channel_filter(
+    const int offset,
     const int low_frequency,
     const int high_frequency,
     const int transition) {
-    if ((channel_filter_low_frequency != low_frequency) ||
+    const bool shape_changed =
+        (channel_filter_low_frequency != low_frequency) ||
         (channel_filter_high_frequency != high_frequency) ||
-        (channel_filter_transition != transition)) {
+        (channel_filter_transition != transition);
+    const bool offset_changed = channel_filter_offset != offset;
+
+    if (shape_changed) {
+        channel_filter_offset = offset;
         channel_filter_low_frequency = low_frequency;
         channel_filter_high_frequency = high_frequency;
         channel_filter_transition = transition;
         set_dirty();
+    } else if (offset_changed) {
+        const auto old_offset = channel_filter_offset;
+        channel_filter_offset = offset;
+        if (live_tuning && spectrum_sampling_rate && drawn())
+            redraw_filter_cursor(old_offset);
+        else
+            set_dirty();
     }
 }
 
@@ -123,12 +136,14 @@ void FrequencyScale::paint(Painter& painter) {
     draw_filter_ranges(painter, r);
     draw_frequency_ticks(painter, r);
 
-    const Rect r_cursor{
-        (screen_width / 2 - 2) + cursor_position, r.bottom() - filter_band_height,
-        5, filter_band_height};
-    painter.fill_rectangle(
-        r_cursor,
-        Color::red());
+    if (!live_tuning) {
+        const Rect r_cursor{
+            (screen_width / 2 - 2) + cursor_position, r.bottom() - filter_band_height,
+            5, filter_band_height};
+        painter.fill_rectangle(
+            r_cursor,
+            Color::red());
+    }
 }
 
 void FrequencyScale::clear() {
@@ -184,9 +199,79 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
     }
 }
 
+void FrequencyScale::redraw_filter_cursor(const int old_offset) {
+    const auto r = screen_rect();
+    const auto x_center = r.width() / 2;
+    const auto trans =
+        channel_filter_transition * spectrum_bins / spectrum_sampling_rate;
+
+    const auto cursor_left = [&](const int offset) {
+        return r.left() + x_center +
+               (offset + channel_filter_low_frequency) *
+                   spectrum_bins / spectrum_sampling_rate -
+               trans;
+    };
+    const auto cursor_right = [&](const int offset) {
+        return r.left() + x_center +
+               (offset + channel_filter_high_frequency) *
+                   spectrum_bins / spectrum_sampling_rate +
+               trans;
+    };
+
+    const auto dirty_left =
+        std::min(cursor_left(old_offset), cursor_left(channel_filter_offset)) - 1;
+    const auto dirty_right =
+        std::max(cursor_right(old_offset), cursor_right(channel_filter_offset)) + 1;
+    const Rect dirty{
+        dirty_left,
+        r.bottom() - filter_band_height,
+        dirty_right - dirty_left,
+        filter_band_height};
+
+    Painter painter;
+    painter.fill_rectangle(dirty, Theme::getInstance()->bg_darkest->background);
+    draw_filter_ranges(painter, r);
+    restore_tick_lines(painter, r, dirty);
+}
+
+void FrequencyScale::restore_tick_lines(
+    Painter& painter,
+    const Rect r,
+    const Rect dirty) {
+    const auto draw_if_dirty = [&](const Coord x) {
+        if (x >= dirty.left() && x < dirty.right()) {
+            painter.fill_rectangle(
+                {x, dirty.top(), 1, dirty.height()},
+                Theme::getInstance()->bg_darkest->foreground);
+        }
+    };
+
+    const auto x_center = r.left() + r.width() / 2;
+    draw_if_dirty(x_center);
+
+    constexpr int tick_count_max = 4;
+    float rough_tick_interval = float(spectrum_sampling_rate) / tick_count_max;
+    int magnitude = 1;
+    while (rough_tick_interval >= 10.0f) {
+        rough_tick_interval /= 10;
+        magnitude *= 10;
+    }
+
+    const int tick_interval = std::ceil(rough_tick_interval);
+    auto tick_offset = tick_interval;
+    while ((tick_offset * magnitude) < spectrum_sampling_rate / 2) {
+        const Dim pixel_offset =
+            tick_offset * magnitude * spectrum_bins / spectrum_sampling_rate;
+        draw_if_dirty(x_center - pixel_offset);
+        draw_if_dirty(x_center + pixel_offset);
+        tick_offset += tick_interval;
+    }
+}
+
 void FrequencyScale::draw_filter_ranges(Painter& painter, const Rect r) {
     if (channel_filter_low_frequency != channel_filter_high_frequency) {
-        const auto x_center = r.width() / 2;
+        const auto x_center = r.width() / 2 +
+                              channel_filter_offset * spectrum_bins / spectrum_sampling_rate;
 
         const auto x_low = x_center + channel_filter_low_frequency * spectrum_bins / spectrum_sampling_rate;
         const auto x_high = x_center + channel_filter_high_frequency * spectrum_bins / spectrum_sampling_rate;
@@ -220,6 +305,11 @@ void FrequencyScale::on_blur() {
 }
 
 bool FrequencyScale::on_encoder(const EncoderEvent delta) {
+    if (live_tuning) {
+        if (on_select) on_select(delta);
+        return true;
+    }
+
     cursor_position += delta;
 
     cursor_position = std::min<int32_t>(cursor_position, screen_width / 2 - 1);
@@ -326,9 +416,11 @@ WaterfallView::WaterfallView(const bool cursor) {
         frequency_scale.focus();  // focus on frequency scale to show cursor
 
         if (sampling_rate) {
-            // screen x to frequency scale x, NB we need two widgets align
-            int32_t cursor_position = x - (screen_width / 2);
-            frequency_scale.set_cursor_position(cursor_position);
+            const int32_t cursor_position = x - (screen_width / 2);
+            if (!frequency_scale.is_live_tuning()) {
+                // screen x to frequency scale x, NB we need two widgets align
+                frequency_scale.set_cursor_position(cursor_position);
+            }
         }
     };
 
@@ -405,6 +497,7 @@ void WaterfallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     sampling_rate = spectrum.sampling_rate;
     frequency_scale.set_spectrum_sampling_rate(sampling_rate);
     frequency_scale.set_channel_filter(
+        spectrum.channel_filter_offset,
         spectrum.channel_filter_low_frequency,
         spectrum.channel_filter_high_frequency,
         spectrum.channel_filter_transition);

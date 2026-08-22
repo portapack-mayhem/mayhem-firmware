@@ -391,6 +391,26 @@ set(EXTCPPSRC
 	external/tetra_rx/tetra_rcpc.cpp
 	external/tetra_rx/tetra_viterbi.cpp
 
+	#adsb rx
+	external/adsbrx/main.cpp
+	external/adsbrx/ui_adsb_rx.cpp
+
+	#ais rx
+	external/ais_rx/main.cpp
+	external/ais_rx/ais_app.cpp
+
+	#aprs rx
+	external/aprs_rx/main.cpp
+	external/aprs_rx/ui_aprs_rx.cpp
+
+	#aprs tx
+	external/aprs_tx/main.cpp
+	external/aprs_tx/ui_aprs_tx.cpp
+
+	#sd over usb
+	external/sdusb/main.cpp
+	external/sdusb/ui_sd_over_usb.cpp
+
 
   	#rds_rx
     external/rds_rx/main.cpp
@@ -490,7 +510,11 @@ set(EXTAPPLIST
 	secplustx
     signal_hunter
 	tetra_rx
-  	signal_hunter
+	adsbrx
+	ais_rx
+	aprs_rx
+	aprs_tx
+	sdusb
   	rds_rx
 )
 

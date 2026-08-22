@@ -82,11 +82,9 @@ void IO::init() {
 
     gpio_dir.output();
     gpio_lcd_rdx.output();
-    gpio_lcd_wrx.output();
     gpio_io_stbx.output();
     gpio_addr.output();
     gpio_rot_a.input();
-    gpio_rot_b.input();
 }
 
 void IO::lcd_backlight(const bool value) {
@@ -111,24 +109,6 @@ void IO::reference_oscillator(const bool enable) {
     const uint8_t mask = 1 << 6;
     io_reg = (io_reg & ~mask) | (enable ? mask : 0);
     io_write(1, io_reg);
-}
-
-bool IO::get_dark_cover() {
-    return portapack::persistent_memory::apply_fake_brightness();
-}
-
-bool IO::get_is_normally_black() {
-    return portapack::persistent_memory::config_lcd_normally_black();
-}
-
-uint8_t IO::get_brightness() {
-    return portapack::persistent_memory::fake_brightness_level();
-}
-
-void IO::update_cached_values() {
-    lcd_normally_black = get_is_normally_black();
-    dark_cover_enabled = get_dark_cover();
-    brightness = get_brightness();
 }
 
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
@@ -166,7 +146,7 @@ uint32_t IO::io_update(const TouchPinsConfig write_value) {
     }
     gpio_addr.write(addr);
 
-    auto dfu_btn = portapack::io.dfu_read() & 0x01;
+    uint32_t dfu_btn = gpio_control::dfu_button.read();
     return (switches_raw & 0x7f) | (dfu_btn << 7);
 }
 

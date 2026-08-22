@@ -35,7 +35,8 @@ using namespace portapack;
 
 namespace pmem = portapack::persistent_memory;
 
-namespace ais {
+namespace ui::external_app::ais_rx {
+
 namespace format {
 
 static std::string latlon_abs_normalized(const int32_t normalized, const char suffixes[2]) {
@@ -47,7 +48,7 @@ static std::string latlon_abs_normalized(const int32_t normalized, const char su
     return to_string_dec_uint(degrees) + "." + to_string_dec_uint(fraction, 6, '0') + suffix;
 }
 
-static std::string latlon(const Latitude latitude, const Longitude longitude) {
+static std::string latlon(const ais::Latitude latitude, const ais::Longitude longitude) {
     if (latitude.is_valid() && longitude.is_valid()) {
         return latlon_abs_normalized(latitude.normalized(), "SN") + " " + latlon_abs_normalized(longitude.normalized(), "WE");
     } else if (latitude.is_not_available() && longitude.is_not_available()) {
@@ -128,7 +129,7 @@ static std::string navigational_status(const unsigned int value) {
     }
 }
 
-static std::string rate_of_turn(const RateOfTurn value) {
+static std::string rate_of_turn(const ais::RateOfTurn value) {
     switch (value) {
         case -128:
             return "not available";
@@ -149,7 +150,7 @@ static std::string rate_of_turn(const RateOfTurn value) {
     }
 }
 
-static std::string speed_over_ground(const SpeedOverGround value) {
+static std::string speed_over_ground(const ais::SpeedOverGround value) {
     if (value == 1023) {
         return "not available";
     } else if (value == 1022) {
@@ -159,7 +160,7 @@ static std::string speed_over_ground(const SpeedOverGround value) {
     }
 }
 
-static std::string course_over_ground(const CourseOverGround value) {
+static std::string course_over_ground(const ais::CourseOverGround value) {
     if (value > 3600) {
         return "invalid";
     } else if (value == 3600) {
@@ -169,7 +170,7 @@ static std::string course_over_ground(const CourseOverGround value) {
     }
 }
 
-static std::string true_heading(const TrueHeading value) {
+static std::string true_heading(const ais::TrueHeading value) {
     if (value == 511) {
         return "not available";
     } else if (value > 359) {
@@ -180,7 +181,6 @@ static std::string true_heading(const TrueHeading value) {
 }
 
 } /* namespace format */
-} /* namespace ais */
 
 void AISLogger::on_packet(const ais::Packet& packet) {
     // TODO: Unstuff here, not in baseband!
@@ -265,24 +265,32 @@ void AISRecentEntry::update(const ais::Packet& packet) {
     }
 }
 
+}  // namespace ui::external_app::ais_rx
+
 namespace ui {
 
 template <>
-void RecentEntriesTable<AISRecentEntries>::draw(
+void RecentEntriesTable<external_app::ais_rx::AISRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
     const Style& style,
     RecentEntriesColumns&) {
-    std::string line = ais::format::mmsi(entry.mmsi) + " ";
+    using namespace external_app::ais_rx;
+
+    std::string line = format::mmsi(entry.mmsi) + " ";
     if (!entry.name.empty()) {
-        line += ais::format::text(entry.name);
+        line += format::text(entry.name);
     } else {
-        line += ais::format::text(entry.call_sign);
+        line += format::text(entry.call_sign);
     }
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
 }
+
+}  // namespace ui
+
+namespace ui::external_app::ais_rx {
 
 AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
     add_children({
@@ -298,12 +306,12 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
 
     button_see_map.on_select = [this, &nav](Button&) {
         geomap_view = nav.push<GeoMapView>(
-            ais::format::text(entry_.name),
+            format::text(entry_.name),
             0,
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::KNOTS,
-            ais::format::latlon_float(entry_.last_position.latitude.normalized()),
-            ais::format::latlon_float(entry_.last_position.longitude.normalized()),
+            format::latlon_float(entry_.last_position.latitude.normalized()),
+            format::latlon_float(entry_.last_position.longitude.normalized()),
             entry_.last_position.true_heading,
             [this]() {
                 send_updates = false;
@@ -324,14 +332,14 @@ AISRecentEntryDetailView& AISRecentEntryDetailView::operator=(const AISRecentEnt
 
 void AISRecentEntryDetailView::update_position() {
     if (send_updates)
-        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground / 10);
+        geomap_view->update_position(format::latlon_float(entry_.last_position.latitude.normalized()), format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground / 10);
 }
 
 bool AISRecentEntryDetailView::add_map_marker(const AISRecentEntry& entry) {
     if (geomap_view && send_updates) {
         GeoMarker marker{};
-        marker.lon = ais::format::latlon_float(entry.last_position.longitude.normalized());
-        marker.lat = ais::format::latlon_float(entry.last_position.latitude.normalized());
+        marker.lon = format::latlon_float(entry.last_position.longitude.normalized());
+        marker.lat = format::latlon_float(entry.last_position.latitude.normalized());
         marker.angle = entry.last_position.true_heading;
         marker.tag = entry.call_sign.empty() ? to_string_dec_uint(entry.mmsi) : entry.call_sign;
         auto markerStored = geomap_view->store_marker(marker);
@@ -377,18 +385,18 @@ void AISRecentEntryDetailView::paint(Painter& painter) {
 
     auto field_rect = Rect{rect.left(), rect.top() + 16, rect.width(), 16};
 
-    field_rect = draw_field(painter, field_rect, s, "MMSI", ais::format::mmsi(entry_.mmsi));
-    field_rect = draw_field(painter, field_rect, s, "Ctry", ais::format::mid(entry_.mmsi));
-    field_rect = draw_field(painter, field_rect, s, "Name", ais::format::text(entry_.name));
-    field_rect = draw_field(painter, field_rect, s, "Call", ais::format::text(entry_.call_sign));
-    field_rect = draw_field(painter, field_rect, s, "Dest", ais::format::text(entry_.destination));
+    field_rect = draw_field(painter, field_rect, s, "MMSI", format::mmsi(entry_.mmsi));
+    field_rect = draw_field(painter, field_rect, s, "Ctry", format::mid(entry_.mmsi));
+    field_rect = draw_field(painter, field_rect, s, "Name", format::text(entry_.name));
+    field_rect = draw_field(painter, field_rect, s, "Call", format::text(entry_.call_sign));
+    field_rect = draw_field(painter, field_rect, s, "Dest", format::text(entry_.destination));
     field_rect = draw_field(painter, field_rect, s, "Last", to_string_datetime(entry_.last_position.timestamp));
-    field_rect = draw_field(painter, field_rect, s, "Pos ", ais::format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
-    field_rect = draw_field(painter, field_rect, s, "Stat", ais::format::navigational_status(entry_.navigational_status));
-    field_rect = draw_field(painter, field_rect, s, "RoT ", ais::format::rate_of_turn(entry_.last_position.rate_of_turn));
-    field_rect = draw_field(painter, field_rect, s, "SoG ", ais::format::speed_over_ground(entry_.last_position.speed_over_ground));
-    field_rect = draw_field(painter, field_rect, s, "CoG ", ais::format::course_over_ground(entry_.last_position.course_over_ground));
-    field_rect = draw_field(painter, field_rect, s, "Head", ais::format::true_heading(entry_.last_position.true_heading));
+    field_rect = draw_field(painter, field_rect, s, "Pos ", format::latlon(entry_.last_position.latitude, entry_.last_position.longitude));
+    field_rect = draw_field(painter, field_rect, s, "Stat", format::navigational_status(entry_.navigational_status));
+    field_rect = draw_field(painter, field_rect, s, "RoT ", format::rate_of_turn(entry_.last_position.rate_of_turn));
+    field_rect = draw_field(painter, field_rect, s, "SoG ", format::speed_over_ground(entry_.last_position.speed_over_ground));
+    field_rect = draw_field(painter, field_rect, s, "CoG ", format::course_over_ground(entry_.last_position.course_over_ground));
+    field_rect = draw_field(painter, field_rect, s, "Head", format::true_heading(entry_.last_position.true_heading));
     field_rect = draw_field(painter, field_rect, s, "Rx #", to_string_dec_uint(entry_.received_count));
 }
 
@@ -504,4 +512,4 @@ void AISAppView::on_show_detail(const AISRecentEntry& entry) {
     recent_entry_detail_view.update_map_markers(recent);
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::ais_rx

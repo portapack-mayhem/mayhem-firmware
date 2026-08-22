@@ -38,6 +38,8 @@
 #include "utility.hpp"
 #include "file_path.hpp"
 
+namespace ui::external_app::aprs_rx {
+
 class APRSLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -49,8 +51,6 @@ class APRSLogger {
    private:
     LogFile log_file{};
 };
-
-namespace ui {
 
 struct APRSRecentEntry {
     using Key = uint64_t;
@@ -290,6 +290,6 @@ class APRSRXView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::aprs_rx
 
 #endif /*__UI_APRS_RX_H__*/

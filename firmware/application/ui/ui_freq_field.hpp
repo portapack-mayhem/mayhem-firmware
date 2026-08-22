@@ -39,6 +39,8 @@ class BoundFrequencyField : public FrequencyField {
 
    public:
     decltype(FrequencyField::on_change) updated{};
+    std::function<bool(rf::Frequency)> changing{};
+    std::function<void(rf::Frequency)> entered{};
 
     BoundFrequencyField(Point parent_pos, NavigationView& nav)
         : FrequencyField(parent_pos) {
@@ -47,7 +49,8 @@ class BoundFrequencyField : public FrequencyField {
         set_value(model->target_frequency());
 
         on_change = [this](rf::Frequency f) {
-            model->set_target_frequency(f);
+            if (!changing || !changing(f))
+                model->set_target_frequency(f);
             if (updated)
                 updated(f);
         };
@@ -57,7 +60,10 @@ class BoundFrequencyField : public FrequencyField {
                 on_edit_shown();
             auto freq_view = nav.push<FrequencyKeypadView>(model->target_frequency());
             freq_view->on_changed = [this](rf::Frequency f) {
-                set_value(f);
+                if (entered)
+                    entered(f);
+                else
+                    set_value(f);
             };
             nav.set_on_pop([this]() {
                 if (on_edit_hidden)

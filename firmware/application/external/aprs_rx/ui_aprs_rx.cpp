@@ -31,19 +31,25 @@
 
 using namespace portapack;
 
+namespace ui::external_app::aprs_rx {
+
 void APRSLogger::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
 }
 
+}  // namespace ui::external_app::aprs_rx
+
 namespace ui {
 
 template <>
-void RecentEntriesTable<APRSRecentEntries>::draw(
+void RecentEntriesTable<external_app::aprs_rx::APRSRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
     const Style& style,
     RecentEntriesColumns& columns) {
+    using namespace external_app::aprs_rx;
+
     Color target_color;
     // auto entry_age = entry.age;
 
@@ -67,6 +73,10 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
         painter.draw_bitmap(target_rect.location() + Point(12 * 8, 0), bitmap_target, target_color, style.background);
     }
 }
+
+}  // namespace ui
+
+namespace ui::external_app::aprs_rx {
 
 void APRSRxView::focus() {
     options_region.focus();
@@ -402,4 +412,4 @@ void APRSRXView::focus() {
 
 APRSRXView::~APRSRXView() {
 }
-} /* namespace ui */
+}  // namespace ui::external_app::aprs_rx

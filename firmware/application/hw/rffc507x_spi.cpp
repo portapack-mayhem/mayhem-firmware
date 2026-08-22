@@ -23,50 +23,44 @@
 
 #include "utility.hpp"
 
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
+#include "gpio.hpp"
+using namespace gpio_control;
 
 namespace rffc507x {
 namespace spi {
 
 void SPI::init() {
-    gpio_rffc5072_select.set();
-    gpio_rffc5072_clock.clear();
-
-#ifndef PRALINE
-    gpio_rffc5072_select.output();
-    gpio_rffc5072_clock.output();
-#endif
-    gpio_rffc5072_data.input();
-
-    gpio_rffc5072_data.clear();
+    rffc5072_select.setInactive();
+    rffc5072_clock.setInactive();
+    rffc5072_sdata.input();
+    rffc5072_sdata.setInactive();
 }
 
 inline void SPI::select(const bool active) {
-    gpio_rffc5072_select.write(!active);
+    rffc5072_select.setState(active);
 }
 
 inline void SPI::direction_out() {
-    gpio_rffc5072_data.output();
+    rffc5072_sdata.output();
 }
 
 inline void SPI::direction_in() {
-    gpio_rffc5072_data.input();
+    rffc5072_sdata.input();
 }
 
 inline void SPI::write_bit(const bit_t value) {
-    gpio_rffc5072_data.write(value);
+    rffc5072_sdata.write(value);
 }
 
 inline bit_t SPI::read_bit() {
-    return gpio_rffc5072_data.read() & 1;
+    return rffc5072_sdata.read() & 1;
 }
 
 inline bit_t SPI::transfer_bit(const bit_t bit_out) {
-    gpio_rffc5072_clock.clear();
+    rffc5072_clock.setInactive();
     write_bit(bit_out);
     const bit_t bit_in = read_bit();
-    gpio_rffc5072_clock.set();
+    rffc5072_clock.setActive();
     return bit_in;
 }
 

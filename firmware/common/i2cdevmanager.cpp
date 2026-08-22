@@ -318,29 +318,33 @@ void I2CDevManager::create_thread() {
 msg_t I2CDevManager::timer_fn(void* arg) {
     (void)arg;
     uint16_t curr_timer = 0;  // seconds since thread start
+
     while (1) {
         systime_t start_time = chTimeNow();
         bool changed = false;
-        // check if i2c scan needed
+
+        // Check if i2c scan is needed
         if (force_scan || (scan_interval != 0 && curr_timer % scan_interval == 0)) {
             changed = changed | scan();
             force_scan = false;
         }
+
+        // Update connected devices based on their own intervals
         for (size_t i = 0; i < devlist.size(); i++) {
             if (devlist[i].addr != 0 && devlist[i].dev && devlist[i].dev->query_interval != 0) {
-                if ((curr_timer % devlist[i].dev->query_interval) == 0) {  // only if it is device's interval
-                    devlist[i].dev->update();                              // updates it's data, and broadcasts it. if there is any error it will handle in it, and later we can remove it
+                if ((curr_timer % devlist[i].dev->query_interval) == 0) {
+                    devlist[i].dev->update();
                 }
             }
         }
 
-        // remove all unneeded items
+        // Remove all unneeded items (dead devices or devices throwing too many errors)
         chMtxLock(&mutex_list);
         size_t cnt = devlist.size();
         devlist.erase(std::remove_if(devlist.begin(), devlist.end(), [](const I2DevListElement& x) {
                           if (x.addr == 0) return true;
-                          if (x.dev && x.dev->need_del == true) return true;  // self destruct on too many errors
-                          return false;                                       // won't remove the unidentified ones, so we can list them, and not trying all the time with them
+                          if (x.dev && x.dev->need_del == true) return true;
+                          return false;
                       }),
                       devlist.end());
         chMtxUnlock();
@@ -350,11 +354,24 @@ msg_t I2CDevManager::timer_fn(void* arg) {
             I2CDevListChangedMessage msg{};
             EventDispatcher::send_message(msg);
         }
-        systime_t end_time = chTimeNow();
-        systime_t delta = (end_time > start_time) ? end_time - start_time : 100;  // wont calculate overflow, just guess.
-        if (delta > 950) delta = 950;                                             // ensure minimum 50 milli sleep
 
-        chThdSleepMilliseconds(1000 - delta);  // 1sec timer
+        systime_t end_time = chTimeNow();
+
+        // 1. Calculate elapsed ticks safely handling overflow
+        uint32_t delta_ticks = end_time - start_time;
+
+        // 2. Keep EVERYTHING in ticks (No MS conversion!) to prevent truncation drift
+        if (delta_ticks < CH_FREQUENCY) {
+            // Calculate exactly how many ticks are missing to complete 1 full second
+            uint32_t sleep_ticks = CH_FREQUENCY - delta_ticks;
+
+            // Sleep using native ticks instead of milliseconds
+            chThdSleep(sleep_ticks);
+        } else {
+            // Safety fallback: if processing took longer than 1 second, sleep 50ms to yield CPU
+            chThdSleepMilliseconds(50);
+        }
+
         ++curr_timer;
     }
     return 0;

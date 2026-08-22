@@ -73,21 +73,34 @@ void SpectrumCollector::set_decimation_factor(
  * perform the deferred task on the buffer of data we prepared.
  */
 
-void SpectrumCollector::feed(
+bool SpectrumCollector::feed(
     const buffer_c16_t& channel,
     const int32_t filter_low_frequency,
     const int32_t filter_high_frequency,
     const int32_t filter_transition) {
     // Called from baseband processing thread.
+    set_filter(
+        filter_low_frequency,
+        filter_high_frequency,
+        filter_transition);
+
+    bool block_completed = false;
+    channel_spectrum_decimator.feed(
+        channel,
+        [this, &block_completed](const buffer_c16_t& data) {
+            this->post_message(data);
+            block_completed = true;
+        });
+    return block_completed;
+}
+
+void SpectrumCollector::set_filter(
+    const int32_t filter_low_frequency,
+    const int32_t filter_high_frequency,
+    const int32_t filter_transition) {
     channel_filter_low_frequency = filter_low_frequency;
     channel_filter_high_frequency = filter_high_frequency;
     channel_filter_transition = filter_transition;
-
-    channel_spectrum_decimator.feed(
-        channel,
-        [this](const buffer_c16_t& data) {
-            this->post_message(data);
-        });
 }
 
 void SpectrumCollector::post_message(const buffer_c16_t& data) {
@@ -136,6 +149,7 @@ void SpectrumCollector::update() {
 
         ChannelSpectrum spectrum;
         spectrum.sampling_rate = channel_spectrum_sampling_rate;
+        spectrum.channel_filter_offset = channel_filter_offset;
         spectrum.channel_filter_low_frequency = channel_filter_low_frequency;
         spectrum.channel_filter_high_frequency = channel_filter_high_frequency;
         spectrum.channel_filter_transition = channel_filter_transition;
