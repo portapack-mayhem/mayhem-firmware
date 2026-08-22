@@ -170,7 +170,8 @@ class Message {
         HunterStop = 112,
         TetraBsch = 113,
         TetraDnb = 114,
-        WMBusPacketMessageID = 115,
+        AudioDDCConfig = 115,
+        WMBusPacketMessageID = 116,
         MAX
     };
 
@@ -311,6 +312,16 @@ class SpectrumStreamingConfigMessage : public Message {
     Mode mode{Mode::Stopped};
 };
 
+class AudioDDCConfigMessage : public Message {
+   public:
+    constexpr AudioDDCConfigMessage(int32_t frequency)
+        : Message{ID::AudioDDCConfig},
+          frequency{frequency} {
+    }
+
+    int32_t frequency{0};
+};
+
 class WidebandSpectrumConfigMessage : public Message {
    public:
     constexpr WidebandSpectrumConfigMessage(
@@ -358,6 +369,7 @@ class AudioSpectrumMessage : public Message {
 struct ChannelSpectrum {
     std::array<uint8_t, 256> db{{0}};
     uint32_t sampling_rate{0};
+    int32_t channel_filter_offset{0};
     int32_t channel_filter_low_frequency{0};
     int32_t channel_filter_high_frequency{0};
     int32_t channel_filter_transition{0};

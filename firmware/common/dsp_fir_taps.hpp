@@ -44,6 +44,111 @@ struct fir_taps_complex {
     std::array<complex16_t, N> taps;
 };
 
+/*
+ * 768kHz -> 384kHz half-band prefilter. The broad 80...304kHz
+ * transition makes this stage inexpensive while protecting the useful band.
+ */
+constexpr fir_taps_real<16> taps_audio_wide_halfband_0{
+    .low_frequency_normalized = -80000.0f / 768000.0f,
+    .high_frequency_normalized = 80000.0f / 768000.0f,
+    .transition_normalized = 224000.0f / 768000.0f,
+    .taps = {{
+        -171,
+        0,
+        1144,
+        0,
+        -4481,
+        0,
+        19892,
+        32767,
+        19892,
+        0,
+        -4481,
+        0,
+        1144,
+        0,
+        -171,
+        0,
+    }},
+};
+
+/*
+ * Spectrum capture anti-alias half-band filter. It is run only while a
+ * contiguous 256-sample FFT frame is being collected:
+ *   384kHz -> 192kHz (Zoom x1)
+ *   192kHz ->  96kHz (additional stage for Zoom x2)
+ */
+constexpr fir_taps_real<63> taps_audio_spectrum_halfband{
+    .low_frequency_normalized = -0.23f,
+    .high_frequency_normalized = 0.23f,
+    .transition_normalized = 0.04f,
+    .taps = {{
+        -15,
+        0,
+        37,
+        0,
+        -70,
+        0,
+        117,
+        0,
+        -184,
+        0,
+        274,
+        0,
+        -393,
+        0,
+        548,
+        0,
+        -751,
+        0,
+        1018,
+        0,
+        -1374,
+        0,
+        1872,
+        0,
+        -2622,
+        0,
+        3910,
+        0,
+        -6794,
+        0,
+        20812,
+        32767,
+        20812,
+        0,
+        -6794,
+        0,
+        3910,
+        0,
+        -2622,
+        0,
+        1872,
+        0,
+        -1374,
+        0,
+        1018,
+        0,
+        -751,
+        0,
+        548,
+        0,
+        -393,
+        0,
+        274,
+        0,
+        -184,
+        0,
+        117,
+        0,
+        -70,
+        0,
+        37,
+        0,
+        -16,
+    }},
+};
+
 // NBFM 16K0F3E emission type /////////////////////////////////////////////
 
 // IFIR image-reject filter: fs=3072000, pass=8000, stop=344000, decim=8, fout=384000

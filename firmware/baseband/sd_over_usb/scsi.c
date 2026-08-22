@@ -23,14 +23,35 @@
 #include "scsi.h"
 #include "diskio.h"
 #include "gpio_lpc.h"
+#include "delay.h"
 #include <libopencm3/lpc43xx/scu.h>
 #include <libopencm3/lpc43xx/rgu.h>
 #include <libopencm3/lpc43xx/wwdt.h>
 #include "string.h"
 
+/* Maximum number of 512-byte blocks transferred per SD command / USB bulk
+ * transfer. The data region of usb_bulk_buffer is 16 KiB (0x0000..0x3FFF),
+ * so this must be <= 32. It is split into two equal halves for double
+ * buffering. */
+#define MAX_BLOCKS_PER_TRANSFER 32
+#define HALF_BLOCKS (MAX_BLOCKS_PER_TRANSFER / 2)
+
 volatile bool usb_bulk_block_done = false;
 
-void delay(uint32_t duration);
+/* Per-buffer-half completion flags for the asynchronous (double-buffered)
+ * bulk transfers. Index 0 = usb_bulk_buffer[0], index 1 = second half. */
+volatile bool usb_bulk_block_done_async[2] = {false, false};
+
+static uint32_t usb_bulk_buffer_index(const void* const data) {
+    return (data == &usb_bulk_buffer[HALF_BLOCKS * 512]) ? 1 : 0;
+}
+
+void usb_bulk_block_cb_async(void* user_data, unsigned int bytes_transferred) {
+    const uint32_t idx = (uint32_t)(uintptr_t)user_data;
+    usb_bulk_block_done_async[idx] = true;
+
+    (void)bytes_transferred;
+}
 
 void usb_bulk_block_cb(void* user_data, unsigned int bytes_transferred) {
     usb_bulk_block_done = true;
@@ -63,6 +84,49 @@ void usb_receive_bulk(void* const data, const uint32_t maximum_length) {
         NULL);
 
     while (!usb_bulk_block_done);
+}
+
+/* Schedule a bulk IN transfer without waiting for it to complete. The caller
+ * must later call usb_send_bulk_wait_finish() with the same buffer before
+ * reusing it. */
+void usb_send_bulk_start(void* const data, const uint32_t maximum_length) {
+    const uint32_t idx = usb_bulk_buffer_index(data);
+    usb_bulk_block_done_async[idx] = false;
+
+    usb_transfer_schedule_block(
+        &usb_endpoint_bulk_in,
+        data,
+        maximum_length,
+        usb_bulk_block_cb_async,
+        (void*)(uintptr_t)idx);
+}
+
+/* Wait for a bulk IN transfer scheduled by usb_send_bulk_start() to finish. */
+void usb_send_bulk_wait_finish(void* const data) {
+    const uint32_t idx = usb_bulk_buffer_index(data);
+    while (!usb_bulk_block_done_async[idx]);
+}
+
+/* Schedule a bulk OUT transfer without waiting for it to complete. The caller
+ * must later call usb_receive_bulk_finish() with the same buffer before
+ * reading from it. */
+void usb_receive_bulk_start(void* const data, const uint32_t maximum_length) {
+    const uint32_t idx = usb_bulk_buffer_index(data);
+    usb_bulk_block_done_async[idx] = false;
+
+    usb_transfer_schedule_block(
+        &usb_endpoint_bulk_out,
+        data,
+        maximum_length,
+        usb_bulk_block_cb_async,
+        (void*)(uintptr_t)idx);
+}
+
+/* Wait for a bulk OUT transfer scheduled by usb_receive_bulk_start() to
+ * finish. */
+void usb_receive_bulk_finish(void* const data) {
+    const uint32_t idx = usb_bulk_buffer_index(data);
+    while (!usb_bulk_block_done_async[idx]);
 }
 
 void usb_send_csw(msd_cbw_t* msd_cbw_data, uint8_t status) {
@@ -213,21 +277,94 @@ static data_request_t decode_data_request(const uint8_t* cmd) {
 uint8_t data_read10(msd_cbw_t* msd_cbw_data) {
     data_request_t req = decode_data_request(msd_cbw_data->cmd_data);
 
-    for (size_t block_index = 0; block_index < req.blk_cnt; block_index++) {
-        read_block(req.first_lba + block_index, &usb_bulk_buffer[0], 1 /* n blocks */);
-        usb_send_bulk(&usb_bulk_buffer[0], 512);
+    uint32_t lba = req.first_lba;
+    uint32_t remaining = req.blk_cnt;
+    uint8_t* buf[2] = {&usb_bulk_buffer[0], &usb_bulk_buffer[HALF_BLOCKS * 512]};
+    uint32_t buf_idx = 0;
+    uint8_t* in_flight = NULL;
+
+    if (remaining == 0)
+        return 0;
+
+    /* Read the first chunk and start sending it. */
+    uint32_t n = (remaining > HALF_BLOCKS) ? HALF_BLOCKS : remaining;
+    if (read_block(lba, buf[0], n))
+        return 1;
+    usb_send_bulk_start(buf[0], n * 512);
+    in_flight = buf[0];
+    lba += n;
+    remaining -= n;
+
+    /* While USB sends the previous chunk, read the next one into the other
+     * half of the buffer. */
+    while (remaining > 0) {
+        buf_idx ^= 1;
+        n = (remaining > HALF_BLOCKS) ? HALF_BLOCKS : remaining;
+
+        if (read_block(lba, buf[buf_idx], n)) {
+            usb_send_bulk_wait_finish(in_flight);
+            return 1;
+        }
+
+        usb_send_bulk_wait_finish(in_flight);
+        usb_send_bulk_start(buf[buf_idx], n * 512);
+        in_flight = buf[buf_idx];
+
+        lba += n;
+        remaining -= n;
     }
 
+    usb_send_bulk_wait_finish(in_flight);
     return 0;
 }
 
 uint8_t data_write10(msd_cbw_t* msd_cbw_data) {
     data_request_t req = decode_data_request(msd_cbw_data->cmd_data);
 
-    for (size_t block_index = 0; block_index < req.blk_cnt; block_index++) {
-        usb_receive_bulk(&usb_bulk_buffer[0], 512);
-        write_block(req.first_lba + block_index, &usb_bulk_buffer[0], 1 /* n blocks */);
+    uint32_t lba = req.first_lba;
+    uint32_t remaining = req.blk_cnt;
+    uint8_t* buf[2] = {&usb_bulk_buffer[0], &usb_bulk_buffer[HALF_BLOCKS * 512]};
+    uint32_t buf_idx = 0;
+    uint8_t* pending_buf = NULL;
+    uint32_t pending_lba = 0;
+    uint32_t pending_n = 0;
+
+    if (remaining == 0)
+        return 0;
+
+    /* Start receiving the first chunk. */
+    uint32_t n = (remaining > HALF_BLOCKS) ? HALF_BLOCKS : remaining;
+    usb_receive_bulk_start(buf[0], n * 512);
+    pending_buf = buf[0];
+    pending_lba = lba;
+    pending_n = n;
+    lba += n;
+    remaining -= n;
+
+    /* While USB receives the next chunk, write the previous one to the SD
+     * card. */
+    while (remaining > 0) {
+        buf_idx ^= 1;
+        n = (remaining > HALF_BLOCKS) ? HALF_BLOCKS : remaining;
+
+        usb_receive_bulk_start(buf[buf_idx], n * 512);
+
+        usb_receive_bulk_finish(pending_buf);
+        if (write_block(pending_lba, pending_buf, pending_n)) {
+            usb_receive_bulk_finish(buf[buf_idx]);
+            return 1;
+        }
+
+        pending_buf = buf[buf_idx];
+        pending_lba = lba;
+        pending_n = n;
+        lba += n;
+        remaining -= n;
     }
+
+    usb_receive_bulk_finish(pending_buf);
+    if (write_block(pending_lba, pending_buf, pending_n))
+        return 1;
 
     return 0;
 }
@@ -293,7 +430,7 @@ void scsi_command(msd_cbw_t* msd_cbw_data) {
             gpio_output(&dfu);
             gpio_clear(&dfu);
 
-            delay(50 * 40800);
+            delay_ms(50);
 
             RESET_CTRL0 = (1 << 0);
             break;

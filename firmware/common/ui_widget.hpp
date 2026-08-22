@@ -297,7 +297,6 @@ class BigFrequency : public Widget {
 
    private:
     rf::Frequency _frequency;
-    rf::Frequency _previous_frequency{~0LL};
 
     static constexpr Dim digit_width = 32;
 

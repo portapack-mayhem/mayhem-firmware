@@ -46,10 +46,12 @@ GeoPos::GeoPos(
                   &field_speed,
                   &text_alt_unit,
                   &text_speed_unit,
+                  &field_lat_hemisphere,
                   &field_lat_degrees,
                   &field_lat_minutes,
                   &field_lat_seconds,
                   &text_lat_decimal,
+                  &field_lon_hemisphere,
                   &field_lon_degrees,
                   &field_lon_minutes,
                   &field_lon_seconds,
@@ -73,8 +75,14 @@ GeoPos::GeoPos(
             on_change(altitude(), lat_value, lon_value, speed());
     };
 
+    const auto changed_hemisphere_fn = [changed_fn](size_t, OptionsField::value_t) {
+        changed_fn(0);
+    };
+
     field_altitude.on_change = changed_fn;
     field_speed.on_change = changed_fn;
+    field_lat_hemisphere.on_change = changed_hemisphere_fn;
+    field_lon_hemisphere.on_change = changed_hemisphere_fn;
     field_lat_degrees.on_change = changed_fn;
     field_lat_minutes.on_change = changed_fn;
     field_lat_seconds.on_change = changed_fn;
@@ -83,19 +91,37 @@ GeoPos::GeoPos(
     field_lon_seconds.on_change = changed_fn;
 
     const auto wrapped_lat_seconds = [this](int32_t v) {
+        const auto old_minutes = field_lat_minutes.value();
         field_lat_minutes.on_encoder(v);
+        if (field_lat_minutes.value() == old_minutes) {
+            field_lat_seconds.set_value((v > 0) ? 59 : 0);
+        }
     };
 
+    // Degrees now holds a magnitude, so a minutes wrap always carries in the
+    // same direction regardless of hemisphere.
     const auto wrapped_lat_minutes = [this](int32_t v) {
-        field_lat_degrees.on_encoder((field_lat_degrees.value() >= 0) ? v : -v);
+        const auto old_degrees = field_lat_degrees.value();
+        field_lat_degrees.on_encoder(v);
+        if (field_lat_degrees.value() == old_degrees) {
+            field_lat_minutes.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     const auto wrapped_lon_seconds = [this](int32_t v) {
+        const auto old_minutes = field_lon_minutes.value();
         field_lon_minutes.on_encoder(v);
+        if (field_lon_minutes.value() == old_minutes) {
+            field_lon_seconds.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     const auto wrapped_lon_minutes = [this](int32_t v) {
-        field_lon_degrees.on_encoder((field_lon_degrees.value() >= 0) ? v : -v);
+        const auto old_degrees = field_lon_degrees.value();
+        field_lon_degrees.on_encoder(v);
+        if (field_lon_degrees.value() == old_degrees) {
+            field_lon_minutes.set_value((v > 0) ? 59 : 0);
+        }
     };
 
     field_lat_seconds.on_wrap = wrapped_lat_seconds;
@@ -146,31 +172,31 @@ void GeoPos::set_speed(int32_t speed) {
 }
 
 void GeoPos::set_lat(float lat) {
-    field_lat_degrees.set_value(lat);
-    field_lat_minutes.set_value((uint32_t)abs(lat / (1.0 / 60)) % 60);
-    field_lat_seconds.set_value((uint32_t)abs(lat / (1.0 / 3600)) % 60);
+    bool south = lat < 0;
+    float magnitude = south ? -lat : lat;
+    field_lat_hemisphere.set_by_value(south ? 1 : 0);
+    field_lat_degrees.set_value((int32_t)magnitude);
+    field_lat_minutes.set_value((uint32_t)(magnitude * 60) % 60);
+    field_lat_seconds.set_value((uint32_t)(magnitude * 3600) % 60);
 }
 
 void GeoPos::set_lon(float lon) {
-    field_lon_degrees.set_value(lon);
-    field_lon_minutes.set_value((uint32_t)abs(lon / (1.0 / 60)) % 60);
-    field_lon_seconds.set_value((uint32_t)abs(lon / (1.0 / 3600)) % 60);
+    bool west = lon < 0;
+    float magnitude = west ? -lon : lon;
+    field_lon_hemisphere.set_by_value(west ? 1 : 0);
+    field_lon_degrees.set_value((int32_t)magnitude);
+    field_lon_minutes.set_value((uint32_t)(magnitude * 60) % 60);
+    field_lon_seconds.set_value((uint32_t)(magnitude * 3600) % 60);
 }
 
 float GeoPos::lat() {
-    if (field_lat_degrees.value() < 0) {
-        return -1 * (-1 * field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0));
-    } else {
-        return field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
-    }
+    float magnitude = field_lat_degrees.value() + (field_lat_minutes.value() / 60.0) + (field_lat_seconds.value() / 3600.0);
+    return (field_lat_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
 };
 
 float GeoPos::lon() {
-    if (field_lon_degrees.value() < 0) {
-        return -1 * (-1 * field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0));
-    } else {
-        return field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
-    }
+    float magnitude = field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
+    return (field_lon_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
 };
 
 int32_t GeoPos::altitude() {

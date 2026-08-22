@@ -34,7 +34,7 @@ void KeeloqTXView::update_hop() {
 
         hop = data.btn << 28 | (apri_serial & 0xFFF) << 16 | data.counter;
     } else if (
-        data.mf_name == "DTM_Neo" || data.mf_name == "FAAC_RC,XT" || data.mf_name == "Mutanco_Mutancode" || data.mf_name == "Came_Space" || data.mf_name == "Genius_Bravo" || data.mf_name == "GSN" || data.mf_name == "Rosh" || data.mf_name == "Rossi" || data.mf_name == "Peccinin" || data.mf_name == "Steelmate" || data.mf_name == "Cardin_S449") {
+        data.mf_name == "DTM_Neo" || data.mf_name == "FAAC_RC,XT" || data.mf_name == "Mutanco_Mutancode" || data.mf_name == "Came_Space" || data.mf_name == "Genius_Bravo" || data.mf_name == "GSN" || data.mf_name == "Rosh" || data.mf_name == "Rossi" || data.mf_name == "Peccinin" || data.mf_name == "Steelmate" || data.mf_name == "Cardin_S449" || data.mf_name == "Superrollo") {
         hop = data.btn << 28 | (data.serial & 0xFFF) << 16 | data.counter;
     } else if (
         data.mf_name == "NICE_Smilo" || data.mf_name == "NICE_MHOUSE" || data.mf_name == "JCM_Tech") {
@@ -75,12 +75,46 @@ void KeeloqTXView::update_payload() {
         }
     }
 
+    if (data.mf_name == "Superrollo") {
+        text_payload.set(to_string_hex((uint64_t)(uint32_t)encrypt));
+        encode_data_gw60((uint32_t)encrypt);
+        return;
+    }
+
     payload = (uint64_t)fix << 32 | encrypt;
 
     uint64_t preview_payload = FProtoGeneral::subghz_protocol_blocks_reverse_key(payload, 64);
 
     text_payload.set(to_string_hex(preview_payload));
     encode_data();
+}
+
+// Superrollo GW60 (HCS361) 67-bit OOK frame at Te=450us.
+void KeeloqTXView::encode_data_gw60(uint32_t hop_enc) {
+    int bits[67];
+    for (uint32_t i = 0; i < 32; i++) bits[i] = (hop_enc >> i) & 1;
+    for (uint32_t i = 0; i < 28; i++) bits[32 + i] = (data.serial >> i) & 1;
+    for (uint32_t i = 0; i < 4; i++) bits[60 + i] = (data.btn >> i) & 1;
+    bits[64] = 1;
+
+    int crc0 = 0, crc1 = 0;
+    for (uint32_t i = 0; i < 65; i++) {
+        int new_crc1 = crc0 ^ bits[i];
+        int new_crc0 = new_crc1 ^ crc1;
+        crc0 = new_crc0 & 1;
+        crc1 = new_crc1 & 1;
+    }
+    bits[65] = crc0;
+    bits[66] = crc1;
+
+    std::string s{};
+    for (int i = 0; i < 9; i++) s += "100";
+    s += "11111111110000000000";
+    for (int i = 0; i < 67; i++) s += keeloq_fragments[bits[i]];
+    for (int i = 0; i < 18; i++) s += "0";
+
+    encoded_data = s;
+    pause_duration = 0;
 }
 
 void KeeloqTXView::encode_data() {
@@ -206,9 +240,11 @@ void KeeloqTXView::start_tx() {
 
     transmitter_model.enable();
 
+    const double te_us = (data.mf_name == "Superrollo") ? 450.0 : 400.0;
+
     baseband::set_ook_data(
         bitstream_length,
-        OOK_SAMPLERATE * (400.0 / 1000000.0),
+        OOK_SAMPLERATE * (te_us / 1000000.0),
         repeat,
         pause_duration);
 }

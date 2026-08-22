@@ -362,7 +362,6 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &toggle_bias_tee,
                   &toggle_clock,
                   &toggle_mute,
-                  &toggle_fake_brightness,
                   &toggle_sd_card,
                   &button_save,
                   &button_cancel});
@@ -399,7 +398,6 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_clock.set_value(!pmem::ui_hide_clock());
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
-    toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
     toggle_battery_icon.set_value(!pmem::ui_hide_battery_icon());
     toggle_battery_text.set_value(!pmem::ui_hide_numeric_battery());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
@@ -427,7 +425,6 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_clock(!toggle_clock.value());
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
         pmem::set_ui_hide_mute(!toggle_mute.value());
-        pmem::set_ui_hide_fake_brightness(!toggle_fake_brightness.value());
         pmem::set_ui_hide_battery_icon(!toggle_battery_icon.value());
         pmem::set_ui_hide_numeric_battery(!toggle_battery_text.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
@@ -921,35 +918,21 @@ void SetConfigModeView::focus() {
 
 SetDisplayView::SetDisplayView(NavigationView& nav) {
     add_children({&labels,
-                  &field_fake_brightness,
                   &button_save,
-                  &button_cancel,
-                  &checkbox_brightness_switch});
+                  &button_cancel});
 
     if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
         add_child(&checkbox_ips_screen_switch);
     }
 
-    field_fake_brightness.set_by_value(pmem::fake_brightness_level());
-    checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
     checkbox_ips_screen_switch.set_value(pmem::config_lcd_normally_black());
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
-        pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
         if (checkbox_ips_screen_switch.value() != pmem::config_lcd_normally_black()) {
             pmem::set_lcd_normally_black(checkbox_ips_screen_switch.value());
         }
         send_system_refresh();
         nav.pop();
-    };
-
-    // only enable invert OR fake brightness
-    checkbox_ips_screen_switch.on_select = [this](Checkbox&, bool v) {
-        if (v) checkbox_brightness_switch.set_value(false);
-    };
-    checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        if (v) checkbox_ips_screen_switch.set_value(false);
     };
 
     button_cancel.on_select = [&nav, this](Button&) {
@@ -1029,10 +1012,17 @@ void SetTouchscreenThresholdView::focus() {
 
 void SetTouchscreenThresholdView::on_frame_sync() {
     if (!in_auto_detect) return;
+
     uint32_t time_now = chTimeNow();
     int32_t time_diff = time_now - time_start_auto_detect;
-    text_wait_timer.set("ETA " + to_string_dec_uint((10 - time_diff / 1000) <= 0 ? 0 : 10 - time_diff / 1000) + "s");
-    if (time_diff >= 10001 && !auto_detect_succeed_consumed) {  // 10s
+
+    // Calculate elapsed seconds using CH_FREQUENCY
+    uint32_t elapsed_seconds = time_diff / CH_FREQUENCY;
+    int32_t remaining_seconds = 10 - (int32_t)elapsed_seconds;
+    if (remaining_seconds < 0) remaining_seconds = 0;
+
+    text_wait_timer.set("ETA " + to_string_dec_uint(remaining_seconds) + "s");
+    if (elapsed_seconds >= 10 && !auto_detect_succeed_consumed) {  // 10s
         in_auto_detect = false;
         text_wait_timer.hidden(true);
         text_hint.set("OK, press save and reboot");

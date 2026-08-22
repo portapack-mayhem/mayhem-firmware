@@ -32,10 +32,6 @@
 
 #include "core_control.hpp"
 
-/* Set true to enable additional checks to ensure
- * M4 and M0 are synchronized before passing messages. */
-static constexpr bool enforce_core_sync = true;
-
 /* Set true to enable check for baseband messages getting stuck.
  * This implies the baseband thread is not dequeuing and has probably stalled.
  * NB: This check adds a small amout of overhead to the message sending code
@@ -343,6 +339,11 @@ void set_spectrum(
     send_message(&message);
 }
 
+void set_audio_ddc_frequency(int32_t frequency) {
+    const AudioDDCConfigMessage message{frequency};
+    send_message(&message);
+}
+
 void set_time_sink(
     const size_t sampling_rate,
     const size_t trigger) {
@@ -475,7 +476,7 @@ bool is_image_running() {
     return baseband_image_running;
 }
 
-void run_image(const spi_flash::image_tag_t image_tag) {
+void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     if (baseband_image_running) {
         chDbgPanic("BBRunning");
     }
@@ -488,7 +489,7 @@ void run_image(const spi_flash::image_tag_t image_tag) {
 
     creg::m4txevent::enable();
 
-    if constexpr (enforce_core_sync) {
+    if (enforce_core_sync) {
         // Wait up to 3 seconds for baseband to start handling events.
         auto count = 3'000u;
         while (!shared_memory.baseband_ready && --count)
@@ -499,7 +500,7 @@ void run_image(const spi_flash::image_tag_t image_tag) {
     }
 }
 
-void run_prepared_image(const uint32_t m4_code) {
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync) {
     if (baseband_image_running) {
         chDbgPanic("BBRunning");
     }
@@ -512,7 +513,7 @@ void run_prepared_image(const uint32_t m4_code) {
 
     creg::m4txevent::enable();
 
-    if constexpr (enforce_core_sync) {
+    if (enforce_core_sync) {
         // Wait up to 3 seconds for baseband to start handling events.
         auto count = 3'000u;
         while (!shared_memory.baseband_ready && --count)

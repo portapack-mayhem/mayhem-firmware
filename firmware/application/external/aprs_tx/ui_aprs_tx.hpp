@@ -33,7 +33,7 @@
 #include "radio_state.hpp"
 #include "portapack.hpp"
 
-namespace ui {
+namespace ui::external_app::aprs_tx {
 
 class APRSTXView : public View {
    public:
@@ -161,4 +161,4 @@ class APRSTXView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::aprs_tx

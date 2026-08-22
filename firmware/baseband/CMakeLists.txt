@@ -124,6 +124,7 @@ set(CPPSRC
 	dsp_goertzel.cpp
 	matched_filter.cpp
 	spectrum_collector.cpp
+	filtered_spectrum_collector.cpp
 	tv_collector.cpp
 	stream_input.cpp
 	stream_output.cpp
@@ -747,13 +748,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PRTT rtty_tx)
 
-### SD over USB
-
-set(MODE_INCDIR
-	${HACKRF_PATH}/firmware
-	${HACKRF_PATH}/firmware/common
-	${HACKRF_PATH}/firmware/libopencm3/include
-)
 
 ### Morse TX
 
@@ -793,6 +787,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTET tetra_rx)
 
+### SD over USB
+
+set(MODE_INCDIR
+	${HACKRF_PATH}/firmware
+	${HACKRF_PATH}/firmware/common
+	${HACKRF_PATH}/firmware/libopencm3/include
+	${HACKRF_PATH}/firmware/hackrf_usb
+	sd_over_usb/
+)
 
 ### WMBUS Rx
 
@@ -809,7 +812,9 @@ set(MODE_CPPSRC
 	sd_over_usb/diskio.c
 	sd_over_usb/sd_over_usb.c
 	sd_over_usb/usb_descriptor.c
-	sd_over_usb/hackrf_core.c
+	sd_over_usb/usb_api_transceiver.c
+	sd_over_usb/cpu_clock.c
+	sd_over_usb/pins.c
 
 	${HACKRF_PATH}/firmware/common/adc.c
 	${HACKRF_PATH}/firmware/common/selftest.c
@@ -836,6 +841,15 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/common/rffc5071_spi.c
 	${HACKRF_PATH}/firmware/common/rffc5071.c
 	${HACKRF_PATH}/firmware/common/gpdma.c
+	${HACKRF_PATH}/firmware/common/clock_gen.c
+	${HACKRF_PATH}/firmware/common/cpld_jtag.c
+	${HACKRF_PATH}/firmware/common/leds.c
+	${HACKRF_PATH}/firmware/common/power.c
+	${HACKRF_PATH}/firmware/common/clock_io.c
+	${HACKRF_PATH}/firmware/common/rom_iap.c
+	${HACKRF_PATH}/firmware/common/w25q80bv.c
+	${HACKRF_PATH}/firmware/common/w25q80bv_target.c
+	
 
 	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/nvic.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/cm3/sync.c
@@ -843,10 +857,7 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/timer.c
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
-# sd_over_usb has type conflicts with PRALINE (HackRF Pro) - disable for now
-if(NOT BOARD STREQUAL "PRALINE")
 DeclareTargets(PUSB sd_over_usb)
-endif()
 
 
 ### HackRF "factory" firmware

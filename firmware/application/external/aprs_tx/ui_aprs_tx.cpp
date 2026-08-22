@@ -37,7 +37,7 @@
 using namespace aprs;
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::aprs_tx {
 
 void APRSTXView::focus() {
     tx_view.focus();
@@ -242,4 +242,4 @@ APRSTXView::APRSTXView(NavigationView& nav) {
     // process_coordinates(last_lat, last_lon); //don't load last, so won't confuse users
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::aprs_tx

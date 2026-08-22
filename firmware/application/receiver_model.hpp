@@ -66,6 +66,7 @@ class ReceiverModel {
     /* The frequency to receive (no offset). */
     rf::Frequency target_frequency() const;
     void set_target_frequency(rf::Frequency f);
+    void set_target_frequency_with_hidden_offset(rf::Frequency f, rf::Frequency offset);
 
     uint32_t baseband_bandwidth() const;
     void set_baseband_bandwidth(uint32_t v);

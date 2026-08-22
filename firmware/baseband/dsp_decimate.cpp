@@ -337,6 +337,66 @@ buffer_c16_t FIRC16xR16x16Decim2::execute(
         src.sampling_rate / decimation_factor};
 }
 
+// FIRC16xR16x63HalfbandDecim2 ////////////////////////////////////////////
+
+void FIRC16xR16x63HalfbandDecim2::configure(
+    const std::array<int16_t, taps_count>& taps) {
+    std::copy(taps.cbegin(), taps.cend(), taps_.begin());
+    reset();
+}
+
+void FIRC16xR16x63HalfbandDecim2::reset() {
+    samples_.fill({});
+    samples_head_ = 0;
+}
+
+buffer_c16_t FIRC16xR16x63HalfbandDecim2::execute(
+    const buffer_c16_t& src,
+    const buffer_c16_t& dst) {
+    auto* dst_p = reinterpret_cast<uint32_t*>(dst.p);
+
+    for (size_t output = 0; output < src.count / decimation_factor; ++output) {
+        for (size_t i = 0; i < decimation_factor; ++i) {
+            const auto sample = src.p[output * decimation_factor + i];
+            samples_[samples_head_] = sample;
+            samples_[samples_head_ + taps_count] = sample;
+            if (++samples_head_ == taps_count)
+                samples_head_ = 0;
+        }
+
+        int64_t real = 0;
+        int64_t imag = 0;
+        for (size_t tap = 0; tap < taps_count; tap += 4) {
+            const auto sample_0 =
+                *reinterpret_cast<const uint32_t*>(&samples_[samples_head_ + tap]);
+            const auto sample_1 =
+                *reinterpret_cast<const uint32_t*>(&samples_[samples_head_ + tap + 2]);
+            const auto real_pair = __PKHBT(sample_0, sample_1, 16);
+            const auto imag_pair = __PKHTB(sample_1, sample_0, 16);
+            const auto taps_pair = uint32_t(uint16_t(taps_[tap])) |
+                                   (uint32_t(uint16_t(taps_[tap + 2])) << 16);
+            real = __SMLALD(real_pair, taps_pair, real);
+            imag = __SMLALD(imag_pair, taps_pair, imag);
+        }
+
+        const auto center =
+            *reinterpret_cast<const uint32_t*>(&samples_[samples_head_ + taps_count / 2]);
+        real += int16_t(center) * taps_[taps_count / 2];
+        imag += int16_t(center >> 16) * taps_[taps_count / 2];
+
+        const auto real_s16 =
+            __SSAT((real + (real >= 0 ? 32768 : -32768)) / 65536, 16);
+        const auto imag_s16 =
+            __SSAT((imag + (imag >= 0 ? 32768 : -32768)) / 65536, 16);
+        *(dst_p++) = __PKHBT(real_s16, imag_s16, 16);
+    }
+
+    return {
+        dst.p,
+        src.count / decimation_factor,
+        src.sampling_rate / decimation_factor};
+}
+
 // FIRC16xR16x32Decim8 ////////////////////////////////////////////////////
 
 void FIRC16xR16x32Decim8::configure(
@@ -625,10 +685,13 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
 void FIRAndDecimateComplex::configure_common(
     const size_t taps_count,
     const size_t decimation_factor) {
-    samples_ = std::make_unique<samples_t>(taps_count);
+    /* Mirror the delay line so a convolution always sees one contiguous
+     * taps_count window, even when the logical head wraps. */
+    samples_ = std::make_unique<samples_t>(taps_count * 2);
     taps_reversed_ = std::make_unique<taps_t>(taps_count);
     taps_count_ = taps_count;
     decimation_factor_ = decimation_factor;
+    samples_head_ = 0;
 }
 
 buffer_c16_t FIRAndDecimateComplex::execute(
@@ -647,15 +710,18 @@ buffer_c16_t FIRAndDecimateComplex::execute(
     const void* src_p = src.p;
     size_t outer_count = output_samples;
     while (outer_count > 0) {
-        /* Put new samples into delay buffer */
-        void* z_new_p = &samples_[taps_count_ - decimation_factor_];
+        /* Put new samples into both halves of the mirrored ring. */
         for (size_t i = 0; i < decimation_factor_; i++) {
-            *__SIMD32(z_new_p)++ = *__SIMD32(src_p)++;
+            const uint32_t sample = *__SIMD32(src_p)++;
+            *reinterpret_cast<uint32_t*>(&samples_[samples_head_]) = sample;
+            *reinterpret_cast<uint32_t*>(&samples_[samples_head_ + taps_count_]) = sample;
+            if (++samples_head_ == taps_count_)
+                samples_head_ = 0;
         }
 
         size_t loop_count = taps_count_ / 8;
         void* t_p = &taps_reversed_[0];
-        void* z_p = &samples_[0];
+        void* z_p = &samples_[samples_head_];
 
         int64_t t_real = 0;
         int64_t t_imag = 0;
@@ -711,27 +777,6 @@ buffer_c16_t FIRAndDecimateComplex::execute(
             r_sat,
             i_sat,
             16);
-
-        /* Shift sample buffer left/down by decimation factor. */
-        const size_t unroll_factor = 4;
-        size_t shift_count = (taps_count_ - decimation_factor_) / unroll_factor;
-
-        void* t = &samples_[0];
-        const void* s = &samples_[decimation_factor_];
-
-        while (shift_count > 0) {
-            *__SIMD32(t)++ = *__SIMD32(s)++;
-            *__SIMD32(t)++ = *__SIMD32(s)++;
-            *__SIMD32(t)++ = *__SIMD32(s)++;
-            *__SIMD32(t)++ = *__SIMD32(s)++;
-            shift_count--;
-        }
-
-        shift_count = (taps_count_ - decimation_factor_) % unroll_factor;
-        while (shift_count > 0) {
-            *__SIMD32(t)++ = *__SIMD32(s)++;
-            shift_count--;
-        }
 
         outer_count--;
     }
