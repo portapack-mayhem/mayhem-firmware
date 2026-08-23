@@ -251,36 +251,36 @@ struct GPIO {
 
     // Physical Level Operations
 
-    void set() const {
+    __attribute__((always_inline)) void set() const {
         palSetPad(_gpio_port, _gpio_pad);
     }
 
-    void clear() const {
+    __attribute__((always_inline)) void clear() const {
         palClearPad(_gpio_port, _gpio_pad);
     }
 
-    void toggle() const {
+    __attribute__((always_inline)) void toggle() const {
         palTogglePad(_gpio_port, _gpio_pad);
     }
 
-    void output() const {
+    __attribute__((always_inline)) void output() const {
         palSetPadMode(_gpio_port, _gpio_pad, PAL_MODE_OUTPUT_PUSHPULL);
     }
 
-    void input() const {
+    __attribute__((always_inline)) void input() const {
         palSetPadMode(_gpio_port, _gpio_pad, PAL_MODE_INPUT);
     }
 
-    void write(const bool value) const {
+    __attribute__((always_inline)) void write(const bool value) const {
         palWritePad(_gpio_port, _gpio_pad, value);
     }
 
-    bool read() const {
+    __attribute__((always_inline)) bool read() const {
         return palReadPad(_gpio_port, _gpio_pad);
     }
 
     // Turns the feature ON based on its polarity
-    void setActive() const {
+    __attribute__((always_inline)) void setActive() const {
         if (_polarity == Polarity::ActiveHigh) {
             set();
         } else {
@@ -289,7 +289,7 @@ struct GPIO {
     }
 
     // Turns the feature OFF based on its polarity
-    void setInactive() const {
+    __attribute__((always_inline)) void setInactive() const {
         if (_polarity == Polarity::ActiveHigh) {
             clear();
         } else {
@@ -298,7 +298,7 @@ struct GPIO {
     }
 
     // Sets the logical state of the feature
-    void setState(const bool active) const {
+    __attribute__((always_inline)) void setState(const bool active) const {
         if (active) {
             setActive();
         } else {
@@ -307,12 +307,12 @@ struct GPIO {
     }
 
     // Returns true if the feature is logically active/enabled
-    bool isEnabled() const {
+    __attribute__((always_inline)) bool isEnabled() const {
         const bool physical_state = read();
         return (_polarity == Polarity::ActiveHigh) ? physical_state : !physical_state;
     }
 
-    bool operator!=(const GPIO& other) const {
+    __attribute__((always_inline)) bool operator!=(const GPIO& other) const {
         return (port() != other.port()) || (pad() != other.pad());
     }
 
