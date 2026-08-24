@@ -66,6 +66,7 @@
 #if FLASH_TIER >= 1
 #include "external/adsbrx/ui_adsb_rx.hpp"
 #include "external/aprs_rx/ui_aprs_rx.hpp"
+#include "external/ais_rx/ais_app.hpp"
 #endif
 
 #if FLASH_TIER >= 2
@@ -109,6 +110,7 @@ const NavigationView::AppList NavigationView::appList = {
 #if FLASH_TIER >= 1
     {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ui::external_app::adsbrx::ADSBRxView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<ui::external_app::aprs_rx::APRSRXView>()},
+    {"aprsrx", "AIS", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<ui::external_app::ais_rx::AISAppView>()},
 #endif
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
