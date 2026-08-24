@@ -33,7 +33,7 @@ MEMORY
     ram_external_app_lcr                   (rwx) : org = 0xADB90000, len = 32k
     ram_external_app_jammer                (rwx) : org = 0xADBA0000, len = 32k
     ram_external_app_gpssim                (rwx) : org = 0xADBB0000, len = 32k
-    ram_external_app_spainter              (rwx) : org = 0xADBC0000, len = 32k
+
     ram_external_app_keyfob                (rwx) : org = 0xADBD0000, len = 32k
     ram_external_app_tetris                (rwx) : org = 0xADBE0000, len = 32k
     ram_external_app_extsensors            (rwx) : org = 0xADBF0000, len = 32k
@@ -41,16 +41,14 @@ MEMORY
     ram_external_app_audio_test            (rwx) : org = 0xADC10000, len = 32k
     ram_external_app_wardrivemap           (rwx) : org = 0xADC20000, len = 32k
     ram_external_app_tpmsrx                (rwx) : org = 0xADC30000, len = 32k
-    ram_external_app_protoview             (rwx) : org = 0xADC40000, len = 32k
+ 
     ram_external_app_adsbtx                (rwx) : org = 0xADC50000, len = 32k
-    ram_external_app_morse_tx              (rwx) : org = 0xADC60000, len = 32k
     ram_external_app_sstvtx                (rwx) : org = 0xADC70000, len = 32k
     ram_external_app_random_password       (rwx) : org = 0xADC80000, len = 32k
     ram_external_app_acars_rx              (rwx) : org = 0xADC90000, len = 32k
     ram_external_app_shoppingcart_lock     (rwx) : org = 0xADCA0000, len = 32k
     ram_external_app_cvs_spam              (rwx) : org = 0xADCB0000, len = 32k
     ram_external_app_ookbrute              (rwx) : org = 0xADCC0000, len = 32k
-    ram_external_app_flippertx             (rwx) : org = 0xADCD0000, len = 32k
     ram_external_app_ook_editor            (rwx) : org = 0xADCE0000, len = 32k
     ram_external_app_remote                (rwx) : org = 0xADCF0000, len = 32k
     ram_external_app_mcu_temperature       (rwx) : org = 0xADD00000, len = 32k
@@ -180,12 +178,6 @@ SECTIONS
         */external/gpssim/*(*ui*external_app*gpssim*);
     } > ram_external_app_gpssim
 
-    .external_app_spainter : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_spainter.application_information));
-        */external/spainter/*(*ui*external_app*spainter*);
-    } > ram_external_app_spainter
-
     .external_app_keyfob : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_keyfob.application_information));
@@ -234,23 +226,11 @@ SECTIONS
         */external/tpmstx/*(*ui*external_app*tpmstx*);
     } > ram_external_app_tpmstx
 
-    .external_app_protoview : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_protoview.application_information));
-        */external/protoview/*(*ui*external_app*protoview*);
-    } > ram_external_app_protoview
-
     .external_app_adsbtx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_adsbtx.application_information));
         */external/adsbtx/*(*ui*external_app*adsbtx*);
     } > ram_external_app_adsbtx
-
-    .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_morse_tx.application_information));
-        */external/morse_tx/*(*ui*external_app*morse_tx*);
-    } > ram_external_app_morse_tx
 
     .external_app_sstvtx : ALIGN(4) SUBALIGN(4)
     {
@@ -293,12 +273,6 @@ SECTIONS
         KEEP(*(.external_app.app_ook_editor.application_information));
         */external/ook_editor/*(*ui*external_app*ook_editor*);
     } > ram_external_app_ook_editor
-
-    .external_app_flippertx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_flippertx.application_information));
-        */external/flippertx/*(*ui*external_app*flippertx*);
-    } > ram_external_app_flippertx
 
     .external_app_remote : ALIGN(4) SUBALIGN(4)
     {

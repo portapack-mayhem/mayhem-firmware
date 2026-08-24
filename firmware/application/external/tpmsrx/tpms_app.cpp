@@ -122,8 +122,8 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
 
 TPMSAppView::TPMSAppView(NavigationView& nav)
     : nav_{nav} {
-    // baseband::run_image(portapack::spi_flash::image_tag_tpms);
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_tpms);
+    // baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
                   &field_volume,

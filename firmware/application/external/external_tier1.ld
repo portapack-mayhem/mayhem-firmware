@@ -44,14 +44,12 @@ MEMORY
     ram_external_app_tpmsrx                (rwx) : org = 0xADC30000, len = 32k
     ram_external_app_protoview             (rwx) : org = 0xADC40000, len = 32k
     ram_external_app_adsbtx                (rwx) : org = 0xADC50000, len = 32k
-    ram_external_app_morse_tx              (rwx) : org = 0xADC60000, len = 32k
     ram_external_app_sstvtx                (rwx) : org = 0xADC70000, len = 32k
     ram_external_app_random_password       (rwx) : org = 0xADC80000, len = 32k
     ram_external_app_acars_rx              (rwx) : org = 0xADC90000, len = 32k
     ram_external_app_shoppingcart_lock     (rwx) : org = 0xADCA0000, len = 32k
     ram_external_app_cvs_spam              (rwx) : org = 0xADCB0000, len = 32k
     ram_external_app_ookbrute              (rwx) : org = 0xADCC0000, len = 32k
-    ram_external_app_flippertx             (rwx) : org = 0xADCD0000, len = 32k
     ram_external_app_ook_editor            (rwx) : org = 0xADCE0000, len = 32k
     ram_external_app_remote                (rwx) : org = 0xADCF0000, len = 32k
     ram_external_app_mcu_temperature       (rwx) : org = 0xADD00000, len = 32k
@@ -252,12 +250,6 @@ SECTIONS
         */external/adsbtx/*(*ui*external_app*adsbtx*);
     } > ram_external_app_adsbtx
 
-    .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_morse_tx.application_information));
-        */external/morse_tx/*(*ui*external_app*morse_tx*);
-    } > ram_external_app_morse_tx
-
     .external_app_sstvtx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_sstvtx.application_information));
@@ -299,12 +291,6 @@ SECTIONS
         KEEP(*(.external_app.app_ook_editor.application_information));
         */external/ook_editor/*(*ui*external_app*ook_editor*);
     } > ram_external_app_ook_editor
-
-    .external_app_flippertx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_flippertx.application_information));
-        */external/flippertx/*(*ui*external_app*flippertx*);
-    } > ram_external_app_flippertx
 
     .external_app_remote : ALIGN(4) SUBALIGN(4)
     {

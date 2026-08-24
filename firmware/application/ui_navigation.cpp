@@ -64,13 +64,18 @@
 #include "pocsag_app.hpp"
 
 #if FLASH_TIER >= 1
+// These are for portarf
 #include "external/adsbrx/ui_adsb_rx.hpp"
 #include "external/aprs_rx/ui_aprs_rx.hpp"
 #include "external/ais_rx/ais_app.hpp"
+#include "external/flippertx/ui_flippertx.hpp"
 #endif
 
 #if FLASH_TIER >= 2
+// For hackrf PRO
 #include "external/analogtv/analog_tv_app.hpp"
+#include "external/spainter/ui_spectrum_painter.hpp"
+#include "external/protoview/ui_protoview.hpp"
 #endif
 
 #include "core_control.hpp"
@@ -114,6 +119,7 @@ const NavigationView::AppList NavigationView::appList = {
 #endif
 #if FLASH_TIER >= 2
     {"analogtv", "Analog TV", RX, Color::yellow(), &bitmap_icon_sstv, new ViewFactory<ui::external_app::analogtv::AnalogTvView>()},
+    {"protoview", "ProtoView", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::protoview::ProtoView>()},
 #endif
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
@@ -126,6 +132,12 @@ const NavigationView::AppList NavigationView::appList = {
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
     {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
+#if FLASH_TIER >= 1
+    {"flippertx", "FlipperTx", TX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::flippertx::FlipperTxView>()},
+#endif
+#if FLASH_TIER >= 2
+    {"spainter", "SPainter", TX, Color::yellow(), &bitmap_icon_paint, new ViewFactory<ui::external_app::spainter::SpectrumPainterView>()},
+#endif
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
     /* UTILITIES *************************************************************/
