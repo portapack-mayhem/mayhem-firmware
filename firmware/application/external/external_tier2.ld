@@ -27,7 +27,6 @@ MEMORY
     ram_external_app_calculator            (rwx) : org = 0xADB20000, len = 32k
     ram_external_app_font_viewer           (rwx) : org = 0xADB30000, len = 32k
     ram_external_app_blespam               (rwx) : org = 0xADB40000, len = 32k
-    ram_external_app_analogtv              (rwx) : org = 0xADB50000, len = 32k
     ram_external_app_nrf_rx                (rwx) : org = 0xADB60000, len = 32k
     ram_external_app_coasterp              (rwx) : org = 0xADB70000, len = 32k
     ram_external_app_lge                   (rwx) : org = 0xADB80000, len = 32k
@@ -144,11 +143,6 @@ SECTIONS
         */external/blespam/*(*ui*external_app*blespam*);
     } > ram_external_app_blespam
 
-    .external_app_analogtv : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_analogtv.application_information));
-        */external/analogtv/*(*ui*external_app*analogtv*);
-    } > ram_external_app_analogtv
 
     .external_app_nrf_rx : ALIGN(4) SUBALIGN(4)
     {

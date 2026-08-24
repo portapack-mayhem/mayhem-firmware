@@ -509,35 +509,38 @@ if(FLASH_TIER EQUAL 0)
 endif()
 
 
-
 ### ADS-B TX - t0 external
-
 set(MODE_CPPSRC
 	proc_adsbtx.cpp
 )
 DeclareTargets(PADT adsbtx)
 
 ### APRS RX - t0 external
-
 set(MODE_CPPSRC
 	proc_aprsrx.cpp
 )
 DeclareTargets(PAPR aprsrx)
 
-
 ### AIS - t 0 external
-
 set(MODE_CPPSRC
 	proc_ais.cpp
 )
 DeclareTargets(PAIS ais)
 
 
-
-###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 1, but will be internal on T2
+###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 0, 1, but will be internal on T2
 if(FLASH_TIER EQUAL 1)
 	set(add_to_firmware FALSE)
 endif()
+
+
+
+### AM TV
+set(MODE_CPPSRC
+	proc_am_tv.cpp
+)
+DeclareTargets(PAMT am_tv)
+
 
 
 
@@ -620,12 +623,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PJAM jammer)
 
-### AM TV
-
-set(MODE_CPPSRC
-	proc_am_tv.cpp
-)
-DeclareTargets(PAMT am_tv)
 
 ### GPS Simulator
 

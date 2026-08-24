@@ -32,7 +32,7 @@
 using namespace lpc43xx;
 using namespace portapack;
 
-void m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, const bool full_reset) {
+bool m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, const bool full_reset) {
     const spi_flash::chunk_t* chunk = reinterpret_cast<const spi_flash::chunk_t*>(spi_flash::images.base());
     while (chunk->tag) {
         if (chunk->tag == image_tag) {
@@ -51,13 +51,11 @@ void m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, 
             LPC_RGU->RESET_CTRL[0] = (full_reset) ? (1 << 1)    // PERIPH_RST
                                                   : (1 << 13);  // M4_RST
 
-            return;
+            return true;
         }
         chunk = chunk->next();
     }
-
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // not found, fall back to ext app base address.
-    // chDbgPanic("NoImg");
+    return false;
 }
 
 void m4_init_prepared(const uint32_t m4_code, const bool full_reset) {
