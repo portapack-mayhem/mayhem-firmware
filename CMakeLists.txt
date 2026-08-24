@@ -58,6 +58,32 @@ else()
     math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 endif()
 
+
+if(FLASH_MB_LIMIT_SIZE LESS_EQUAL 1)
+    set(FLASH_TIER 0) # <= 1MB: All external
+	set(EXT_LD_FILE "firmware/application/external/external_tier0.ld")
+	message("Tier 0 ext apps used")
+elseif(FLASH_MB_LIMIT_SIZE LESS_EQUAL 2)
+    set(FLASH_TIER 1) # <= 2MB: Some internal
+	set(EXT_LD_FILE "firmware/application/external/external_tier1.ld")
+	message("Tier 1 ext apps used")
+else()
+    set(FLASH_TIER 2) # > 2MB: Most internal
+	set(EXT_LD_FILE "firmware/application/external/external_tier2.ld")
+	message("Tier 2 ext apps used")
+endif()
+
+# Pass FLASH_TIER to the C++ preprocessor
+add_compile_definitions(FLASH_TIER=${FLASH_TIER})
+
+# Copy the selected file to the build directory as the generic "external.ld"
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${EXT_LD_FILE}
+    ${CMAKE_CURRENT_BINARY_DIR}/firmware/application/external/external.ld
+    COPYONLY
+)
+
+
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
 project(portapack-h1)

@@ -49,7 +49,7 @@ import sys
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_ELF = os.path.join(REPO, "build", "firmware", "application", "application.elf")
-DEFAULT_LD = os.path.join(REPO, "firmware", "application", "external", "external.ld")
+DEFAULT_LD = os.path.join(REPO, "build", "firmware", "application", "external", "external.ld")
 
 
 def find_toolchain():

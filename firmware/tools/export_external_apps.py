@@ -100,6 +100,9 @@ for external_image_prefix in sys.argv[4:]:
 	himg = "{}/external_app_{}.himg".format(binary_dir, external_image_prefix)
 	print("Creating external application image for {}".format(external_image_prefix))
 	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)])
+	if not os.path.exists(himg) or os.path.getsize(himg) == 0:
+		print("Skipping {}: ext may became internal.".format(external_image_prefix))
+		continue
 
 	external_application_image = read_image(himg)
 

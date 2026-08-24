@@ -56,7 +56,8 @@ void m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, 
         chunk = chunk->next();
     }
 
-    chDbgPanic("NoImg");
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // not found, fall back to ext app base address.
+    // chDbgPanic("NoImg");
 }
 
 void m4_init_prepared(const uint32_t m4_code, const bool full_reset) {

@@ -63,6 +63,15 @@
 #include "capture_app.hpp"
 #include "pocsag_app.hpp"
 
+#if FLASH_TIER >= 1
+#include "external/adsbrx/ui_adsb_rx.hpp"
+#include "external/aprs_rx/ui_aprs_rx.hpp"
+#endif
+
+#if FLASH_TIER >= 2
+
+#endif
+
 #include "core_control.hpp"
 #include "file.hpp"
 #include "file_reader.hpp"
@@ -77,6 +86,7 @@
 
 using portapack::receiver_model;
 using portapack::transmitter_model;
+
 namespace pmem = portapack::persistent_memory;
 
 namespace ui {
@@ -96,6 +106,10 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
+#if FLASH_TIER >= 1
+    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ui::external_app::adsbrx::ADSBRxView>()},
+    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<ui::external_app::aprs_rx::APRSRXView>()},
+#endif
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},

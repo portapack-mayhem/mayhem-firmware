@@ -55,6 +55,7 @@ def write_image(data, path):
     f.close()
 
 ########external app linker script address check########
+build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
 
 def parse_memory_regions(ld_file_path):
     regions = []
@@ -190,7 +191,7 @@ print("\n")
 
 ########external app linker script address check worker########
 
-ld_file_path = Path("..") / ".." / "firmware" / "application" / "external" / "external.ld"
+ld_file_path = Path(build_dir) / "firmware" / "application" / "external" / "external.ld"
 
 try:
     regions = parse_memory_regions(ld_file_path)
@@ -268,7 +269,6 @@ print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "
 #^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
 
 # copy the fast flash script
-build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
 flash_py_path = os.path.join(build_dir, 'flash.py')
 
 if not os.path.exists(flash_py_path):

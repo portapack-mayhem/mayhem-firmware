@@ -485,6 +485,7 @@ add_custom_command(
 	DEPENDS ${HACKRF_CPLD_TOOL} ${HACKRF_CPLD_XSVF_PATH}
 )
 
+
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     "LINKER:--defsym,LD_FLASH_SIZE=${FLASH_BYTES_LIMIT_SIZE}"
@@ -492,11 +493,12 @@ target_link_options(${PROJECT_NAME}.elf PRIVATE
 # NB: LPC43xx_M0.ld does INCLUDE external.ld, so that one has to be listed too -
 # otherwise editing the external app section rules silently does not relink.
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES
-    LINK_DEPENDS "${LDSCRIPT};${CMAKE_CURRENT_SOURCE_DIR}/external/external.ld")
+    LINK_DEPENDS "${LDSCRIPT};${CMAKE_BINARY_DIR}/firmware/application/external/external.ld")
+target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_BINARY_DIR}" "-L${CMAKE_CURRENT_BINARY_DIR}/external" "-L${CMAKE_CURRENT_LIST_DIR}/external")
+
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
-target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_LIST_DIR}/external")
 target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
 
