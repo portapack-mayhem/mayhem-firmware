@@ -41,9 +41,10 @@ struct AMConfig {
     const fir_taps_complex<64> channel;
     const AMConfigureMessage::Modulation modulation;
     const iir_biquad_config_t audio_12k_iir_filter_config;  // added to handle two var IIR filter types : 300 hpf(as before) , 1500Hz lpf for Wefax.
-    const size_t spectrum_decimation_factor;                // used to handle LCD AM waterfall zoom x1 / zoom x2.
+    const size_t spectrum_decimation_factor;
 
     void apply() const;
+    void apply(AMConfigureMessage::Zoom_waterfall spectrum_zoom) const;
 };
 
 struct NBFMConfig {

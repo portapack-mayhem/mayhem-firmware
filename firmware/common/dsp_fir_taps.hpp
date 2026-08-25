@@ -77,6 +77,8 @@ constexpr fir_taps_real<16> taps_audio_wide_halfband_0{
  * contiguous 256-sample FFT frame is being collected:
  *   384kHz -> 192kHz (Zoom x1)
  *   192kHz ->  96kHz (additional stage for Zoom x2)
+ *    96kHz ->  48kHz (additional stage for Zoom x3)
+ *    48kHz ->  24kHz (additional stage for Zoom x4)
  */
 constexpr fir_taps_real<63> taps_audio_spectrum_halfband{
     .low_frequency_normalized = -0.23f,

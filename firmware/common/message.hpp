@@ -728,6 +728,8 @@ class AMConfigureMessage : public Message {
     enum class Zoom_waterfall : size_t {
         ZOOM_x_1 = 1,
         ZOOM_x_2 = 2,
+        ZOOM_x_3 = 4,
+        ZOOM_x_4 = 8,
     };
 
     constexpr AMConfigureMessage(

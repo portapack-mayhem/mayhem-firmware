@@ -51,8 +51,8 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     if (!spectrum_capture_active &&
         spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.start_capture(spectrum_zoom_x2 ? 4 : 2);
-        spectrum_capture_active = true;
+        spectrum_capture_active =
+            channel_spectrum.start_capture(spectrum_decimation_factor);
     }
 
     if (spectrum_capture_active &&
@@ -146,7 +146,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
 
     modulation_ssb = (int)message.modulation;  // now sending by message , 3 types of AM demod :   enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
-    spectrum_zoom_x2 = message.channel_spectrum_decimation_factor == 2;
+    spectrum_decimation_factor = 2 * message.channel_spectrum_decimation_factor;
     channel_spectrum.set_decimation_factor(1);
     spectrum_interval_samples =
         decim_0_output_fs / spectrum_rate_hz;

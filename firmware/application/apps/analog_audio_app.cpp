@@ -37,6 +37,28 @@ using namespace tonekey;
 
 namespace ui {
 
+namespace {
+
+constexpr uint8_t zoom_filter_offset(const OptionsField::value_t zoom_option) {
+    return zoom_option == (int)AMSpectrumZoomOption::X1 ? 0 : 6;
+}
+
+constexpr AMConfigureMessage::Zoom_waterfall zoom_spectrum_factor(
+    const OptionsField::value_t zoom_option) {
+    switch ((AMSpectrumZoomOption)zoom_option) {
+        case AMSpectrumZoomOption::X2:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_2;
+        case AMSpectrumZoomOption::X3:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_3;
+        case AMSpectrumZoomOption::X4:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_4;
+        default:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_1;
+    }
+}
+
+}  // namespace
+
 /* AMOptionsView *********************************************************/
 
 AMOptionsView::AMOptionsView(
@@ -52,8 +74,10 @@ AMOptionsView::AMOptionsView(
         &zoom_config,
     });
 
-    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {            // n , has two option values. when GUI =zoom+1 => (0), when GUI=zoom+2 (6)
-        receiver_model.set_am_configuration(view->get_previous_AM_mode_option() + n);  // n (0 or 6)
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(
+            view->get_previous_AM_mode_option() + zoom_filter_offset(n),
+            zoom_spectrum_factor(n));
         view->set_zoom_factor(AM_MODULATION, n);
         view->set_previous_zoom_option(n);
     };
@@ -62,10 +86,12 @@ AMOptionsView::AMOptionsView(
     zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
 
     freqman_set_bandwidth_option(AM_MODULATION, options_config);                                        // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
-    options_config.set_by_value(receiver_model.am_configuration() - view->get_previous_zoom_option());  // restore AM GUI option mode ,   AM FIR index filters (0..11) values ,  <baseband::AMConfig, 12> am_configs has 12 fir  index elements.
+    options_config.set_by_value(receiver_model.am_configuration() - zoom_filter_offset(view->get_previous_zoom_option()));
     options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
-        receiver_model.set_am_configuration(n + view->get_previous_zoom_option());  // we select proper FIR AM filter (0..11), = 0..4 GUI AM modes + offset +6 (if zoom+2)
-        view->set_previous_AM_mode_option(n);                                       // (0..4) allowing 5 AM modes (DSB9K, DSB6K, USB,LSB, CW)
+        receiver_model.set_am_configuration(
+            n + zoom_filter_offset(view->get_previous_zoom_option()),
+            zoom_spectrum_factor(view->get_previous_zoom_option()));
+        view->set_previous_AM_mode_option(n);
     };
 }
 
@@ -154,7 +180,9 @@ AMFMAptOptionsView::AMFMAptOptionsView(
     options_config.set_by_value(receiver_model.amfm_configuration());
 
     zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
-        receiver_model.set_amfm_configuration(5 + n);
+        receiver_model.set_amfm_configuration(
+            5 + zoom_filter_offset(n),
+            zoom_spectrum_factor(n));
         view->set_zoom_factor(AMFM_MODULATION, n);
     };
 
@@ -645,10 +673,19 @@ void AnalogAudioView::set_frequency_absolute(rf::Frequency frequency) {
 }
 
 int32_t AnalogAudioView::sliding_limit() const {
-    const bool zoom_x2 =
-        receiver_model.modulation() == ReceiverModel::Mode::AMAudio &&
-        previous_zoom != 0;
-    return zoom_x2 ? sliding_limit_zoom_x2 : sliding_limit_zoom_x1;
+    if (receiver_model.modulation() != ReceiverModel::Mode::AMAudio)
+        return sliding_limit_zoom_x1;
+
+    switch (previous_zoom) {
+        case (int)AMSpectrumZoomOption::X2:
+            return sliding_limit_zoom_x2;
+        case (int)AMSpectrumZoomOption::X3:
+            return sliding_limit_zoom_x3;
+        case (int)AMSpectrumZoomOption::X4:
+            return sliding_limit_zoom_x4;
+        default:
+            return sliding_limit_zoom_x1;
+    }
 }
 
 void AnalogAudioView::reset_sliding_frequency(ReceiverModel::Mode modulation) {

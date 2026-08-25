@@ -71,6 +71,10 @@ static void send_message(const Message* const message) {
 }
 
 void AMConfig::apply() const {
+    apply((AMConfigureMessage::Zoom_waterfall)spectrum_decimation_factor);
+}
+
+void AMConfig::apply(const AMConfigureMessage::Zoom_waterfall spectrum_zoom) const {
     const AMConfigureMessage message{
         taps_6k0_decim_0,             // common FIR filter taps pre-decim_0 to all 6 x AM mod types.(AM-9K, AM-6K, USB, LSB, CW, AMFM-WFAX)
         decim_1,                      // var decim_1 FIR taps filter , variable values , to handle two spectrum decim factor 1 and 2 (zoom) and more APT LPF filtered .
@@ -78,7 +82,7 @@ void AMConfig::apply() const {
         channel,                      // var channel FIR taps filter , variable values, depending selected  AM mode, each one different  (DSB-9K, DSB-6K, USB-3K, LSB-3K,CW,AMFM-WFAX)
         modulation,                   // var parameter . enum class Modulation : int32_t {DSB = 0, SSB = 1, SSB_FM = 2}
         audio_12k_iir_filter_config,  // var parameter , 300 Hz hpf all except Wefax (1.500Hz lpf)
-        spectrum_decimation_factor};  // var parameter , waterfall no zoom : 1 ,for zoom x 2 : 2
+        (size_t)spectrum_zoom};
     send_message(&message);
     audio::set_rate(audio::Rate::Hz_12000);
 }

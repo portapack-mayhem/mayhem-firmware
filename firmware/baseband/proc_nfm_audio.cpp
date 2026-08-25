@@ -57,8 +57,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
     if (!spectrum_capture_active &&
         spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.start_capture(2);
-        spectrum_capture_active = true;
+        spectrum_capture_active = channel_spectrum.start_capture(2);
     }
 
     if (spectrum_capture_active &&
