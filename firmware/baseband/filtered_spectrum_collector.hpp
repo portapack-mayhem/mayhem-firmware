@@ -55,15 +55,23 @@ class AMFilteredSpectrumCollector : public SpectrumCollector {
         const int32_t filter_transition);
 
    private:
+    enum class CaptureState : uint8_t {
+        Idle,
+        Capturing,
+        Pending,
+        Processing,
+    };
+
     static constexpr size_t fft_samples = 256;
     static constexpr size_t maximum_decimation = 16;
 
     std::array<complex16_t, fft_samples * maximum_decimation> capture_{};
+    dsp::decimate::FIRC16xR16x32Decim4 decimator_4_{};
     dsp::decimate::FIRC16xR16x63HalfbandDecim2 decimator_{};
     size_t capture_count_{0};
     size_t capture_decimation_{1};
     uint32_t sampling_rate_{0};
-    bool capture_ready_{false};
+    CaptureState capture_state_{CaptureState::Idle};
 
     void update();
 };

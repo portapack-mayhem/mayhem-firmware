@@ -78,7 +78,7 @@ constexpr fir_taps_real<16> taps_audio_wide_halfband_0{
  *   384kHz -> 192kHz (Zoom x1)
  *   192kHz ->  96kHz (additional stage for Zoom x2)
  *    96kHz ->  48kHz (additional stage for Zoom x3)
- *    48kHz ->  24kHz (additional stage for Zoom x4)
+ *    96kHz ->  48kHz -> 24kHz (after the direct /4 stage for Zoom x4)
  */
 constexpr fir_taps_real<63> taps_audio_spectrum_halfband{
     .low_frequency_normalized = -0.23f,
@@ -148,6 +148,49 @@ constexpr fir_taps_real<63> taps_audio_spectrum_halfband{
         37,
         0,
         -16,
+    }},
+};
+
+/* Direct 384kHz -> 96kHz spectrum decimator for AM Zoom x4.
+ * Equiripple low-pass: passband edge 25.92kHz, stopband edge 70.08kHz.
+ */
+constexpr fir_taps_real<32> taps_audio_spectrum_decim_4{
+    .low_frequency_normalized = -25920.0f / 384000.0f,
+    .high_frequency_normalized = 25920.0f / 384000.0f,
+    .transition_normalized = 44160.0f / 384000.0f,
+    .taps = {{
+        -26,
+        -62,
+        -79,
+        -24,
+        126,
+        312,
+        377,
+        154,
+        -389,
+        -1020,
+        -1263,
+        -616,
+        1137,
+        3685,
+        6234,
+        7829,
+        7829,
+        6234,
+        3685,
+        1137,
+        -616,
+        -1263,
+        -1020,
+        -389,
+        154,
+        377,
+        312,
+        126,
+        -24,
+        -79,
+        -62,
+        -26,
     }},
 };
 

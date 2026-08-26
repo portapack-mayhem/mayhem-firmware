@@ -12,6 +12,8 @@
 #include "dsp_fir_taps.hpp"
 #include "event_m4.hpp"
 
+#include "ch.h"
+
 #include <algorithm>
 
 namespace {
@@ -117,13 +119,19 @@ void AMFilteredSpectrumCollector::on_message(const Message* const message) {
 bool AMFilteredSpectrumCollector::start_capture(
     const size_t decimation_factor) {
     if (!valid_decimation(decimation_factor, maximum_decimation)) {
-        capture_ready_ = false;
+        return false;
+    }
+
+    chSysLock();
+    if (capture_state_ != CaptureState::Idle) {
+        chSysUnlock();
         return false;
     }
 
     capture_decimation_ = decimation_factor;
     capture_count_ = 0;
-    capture_ready_ = false;
+    capture_state_ = CaptureState::Capturing;
+    chSysUnlock();
     return true;
 }
 
@@ -132,6 +140,13 @@ bool AMFilteredSpectrumCollector::feed(
     const int32_t filter_low_frequency,
     const int32_t filter_high_frequency,
     const int32_t filter_transition) {
+    chSysLock();
+    if (capture_state_ != CaptureState::Capturing) {
+        chSysUnlock();
+        return false;
+    }
+    chSysUnlock();
+
     set_filter(
         filter_low_frequency,
         filter_high_frequency,
@@ -148,13 +163,18 @@ bool AMFilteredSpectrumCollector::feed(
 
     if (capture_count_ == required_samples) {
         sampling_rate_ = channel.sampling_rate / capture_decimation_;
-        capture_ready_ = true;
-        EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
-        if (is_streaming()) {
-            capture_ready_ = true;
-            EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
+        const bool streaming = is_streaming();
+
+        chSysLock();
+        if (streaming) {
+            capture_state_ = CaptureState::Pending;
         } else {
-            capture_ready_ = false;
+            capture_state_ = CaptureState::Idle;
+        }
+        chSysUnlock();
+
+        if (streaming) {
+            EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
         }
         return true;
     }
@@ -162,14 +182,36 @@ bool AMFilteredSpectrumCollector::feed(
 }
 
 void AMFilteredSpectrumCollector::update() {
-    if (!capture_ready_) {
+    chSysLock();
+    if (capture_state_ != CaptureState::Pending) {
+        chSysUnlock();
         return;
     }
+    capture_state_ = CaptureState::Processing;
+    const size_t capture_decimation = capture_decimation_;
+    const uint32_t sampling_rate = sampling_rate_;
+    chSysUnlock();
 
-    size_t filtered_count = fft_samples * capture_decimation_;
-    uint32_t filtered_sampling_rate = sampling_rate_ * capture_decimation_;
+    size_t filtered_count = fft_samples * capture_decimation;
+    uint32_t filtered_sampling_rate = sampling_rate * capture_decimation;
+    size_t remaining_decimation = capture_decimation;
 
-    for (size_t decimation = capture_decimation_; decimation > 1; decimation /= 2) {
+    if (remaining_decimation == maximum_decimation) {
+        decimator_4_.configure(taps_audio_spectrum_decim_4.taps);
+        const buffer_c16_t input{
+            capture_.data(),
+            filtered_count,
+            filtered_sampling_rate};
+        const buffer_c16_t output{
+            capture_.data(),
+            filtered_count / decimator_4_.decimation_factor};
+        const auto filtered = decimator_4_.execute(input, output);
+        filtered_count = filtered.count;
+        filtered_sampling_rate = filtered.sampling_rate;
+        remaining_decimation /= decimator_4_.decimation_factor;
+    }
+
+    for (; remaining_decimation > 1; remaining_decimation /= 2) {
         decimator_.configure(taps_audio_spectrum_halfband.taps);
         const buffer_c16_t input{
             capture_.data(),
@@ -184,5 +226,7 @@ void AMFilteredSpectrumCollector::update() {
     }
 
     post_message({capture_.data(), filtered_count, filtered_sampling_rate});
-    capture_ready_ = false;
+    chSysLock();
+    capture_state_ = CaptureState::Idle;
+    chSysUnlock();
 }
