@@ -99,8 +99,7 @@ class AMOptionsView : public View {
         {{"ZOOM x1", (int)AMSpectrumZoomOption::X1},
          {"ZOOM x2", (int)AMSpectrumZoomOption::X2},
          {"ZOOM x3", (int)AMSpectrumZoomOption::X3},
-         {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}
-    };
+         {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}};
 };
 
 class AMFMAptOptionsView : public View {
@@ -126,8 +125,7 @@ class AMFMAptOptionsView : public View {
         {{"ZOOM x1", (int)AMSpectrumZoomOption::X1},
          {"ZOOM x2", (int)AMSpectrumZoomOption::X2},
          {"ZOOM x3", (int)AMSpectrumZoomOption::X3},
-         {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}
-    };
+         {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}};
 };
 
 class NBFMOptionsView : public View {
