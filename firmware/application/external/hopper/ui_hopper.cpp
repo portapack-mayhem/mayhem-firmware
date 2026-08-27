@@ -29,6 +29,7 @@
 #include "file_path.hpp"
 #include "file_reader.hpp"
 #include "convert.hpp"
+#include "external/ui_fast_hop_warning.hpp"
 
 #include "baseband_api.hpp"
 #include "string_format.hpp"
@@ -330,21 +331,10 @@ HopperView::HopperView(
         if (jamming || cooling) {
             stop_tx();
         } else {
-            // if hop speed is 0, alert the user that this will cause a freeze on UI
-            if (options_hop.selected_index_value() == 0) {
-                nav_.display_modal(
-                    "Warning", "Hopping set to 0ms (fastest).\n\nTHIS WILL FREEZE THE HACKRF,\npress RESET button to stop\n\nAre you sure?", YESNO, [this](bool choice) {
-                        if (choice) {
-                            // Wait for UI update before the freeze
-                            chThdSleepMilliseconds(50);
-                            start_tx();
-                        }
-                    },
-                    TRUE);
-            } else {
-                // if hop speed is not 0, just start the transmission
-                start_tx();
-            }
+            start_with_fast_hop_warning(
+                nav_,
+                options_hop.selected_index_value(),
+                [this] { start_tx(); });
         }
     };
 

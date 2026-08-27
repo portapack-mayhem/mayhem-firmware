@@ -22,6 +22,7 @@
  */
 
 #include "ui_jammer.hpp"
+#include "external/ui_fast_hop_warning.hpp"
 #include "ui_receiver.hpp"
 #include "ui_freqman.hpp"
 
@@ -408,7 +409,10 @@ JammerView::JammerView(NavigationView& nav)
         if (jamming || cooling)
             stop_tx();
         else
-            start_tx();
+            start_with_fast_hop_warning(
+                nav_,
+                options_hop.selected_index_value() * 10,
+                [this] { start_tx(); });
     };
 }
 
