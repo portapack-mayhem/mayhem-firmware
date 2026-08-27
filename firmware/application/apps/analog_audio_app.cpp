@@ -85,7 +85,7 @@ AMOptionsView::AMOptionsView(
     // restore zoom selection
     zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
 
-    freqman_set_bandwidth_option(AM_MODULATION, options_config);                                        // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
+    freqman_set_bandwidth_option(AM_MODULATION, options_config);  // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
     options_config.set_by_value(receiver_model.am_configuration() - zoom_filter_offset(view->get_previous_zoom_option()));
     options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
         receiver_model.set_am_configuration(
