@@ -22,7 +22,6 @@
  */
 
 #include "ui_jammer.hpp"
-#include "external/ui_fast_hop_warning.hpp"
 #include "ui_receiver.hpp"
 #include "ui_freqman.hpp"
 
@@ -408,11 +407,26 @@ JammerView::JammerView(NavigationView& nav)
     button_transmit.on_select = [this](Button&) {
         if (jamming || cooling)
             stop_tx();
-        else
-            start_with_fast_hop_warning(
-                nav_,
-                options_hop.selected_index_value() * 10,
-                [this] { start_tx(); });
+        else {
+            if (options_hop.selected_index_value() * 10 < 50) {
+                nav_.display_modal(
+                    "Warning",
+                    "Hopping interval is\nbelow 50ms.\n\n"
+                    "THIS WILL FREEZE\nTHE HACKRF.\n"
+                    "Press RESET button\nto stop.\n\n"
+                    "Are you sure?",
+                    YESNO,
+                    [this](bool choice) {
+                        if (choice) {
+                            chThdSleepMilliseconds(50);
+                            start_tx();
+                        }
+                    },
+                    TRUE);
+            } else {
+                start_tx();
+            }
+        }
     };
 }
 
