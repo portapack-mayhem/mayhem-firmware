@@ -70,7 +70,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
     size_t spectrum_interval_samples{0};
     size_t spectrum_samples{0};
     bool spectrum_capture_active{false};
-    bool spectrum_zoom_x2{false};
+    size_t spectrum_decimation_factor{2};
 
     // bool modulation_ssb = false;  // Origianlly we only had 2 AM demod types {DSB = 0, SSB = 1} , and we could handle it with bool var , 1 bit.
     int8_t modulation_ssb = 0;  // Now we have 3 AM demod types we will send now index integer  {DSB = 0, SSB = 1, SSB_FM = 2}
@@ -80,7 +80,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
     FeedForwardCompressor audio_compressor{};
     AudioOutput audio_output{};
 
-    FilteredSpectrumCollector channel_spectrum{};
+    AMFilteredSpectrumCollector channel_spectrum{};
 
     /* NB: Threads should be the last members in the class definition. */
 #ifdef PRALINE

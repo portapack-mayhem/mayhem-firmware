@@ -57,6 +57,12 @@ static constexpr std::array<baseband::AMConfig, 12> am_configs{{
     {taps_6k0_narrow_decim_1, taps_6k0_decim_2, taps_2k6_usb_wefax_channel, AMConfigureMessage::Modulation::SSB_FM, apt_audio_12k_lpf_1500hz_config, (int)AMConfigureMessage::Zoom_waterfall::ZOOM_x_2},  // SSB USB+FM  to demod. Subcarrier FM Audio Tones to get APT Weather Fax with waterfall zoom x 2 (we need taps_6k0_narrow_decim_1 to minimize aliasing)
 }};
 
+AMConfigureMessage::Zoom_waterfall spectrum_zoom_for_am_config(const size_t index) {
+    return index < am_configs.size()
+               ? (AMConfigureMessage::Zoom_waterfall)am_configs[index].spectrum_decimation_factor
+               : AMConfigureMessage::Zoom_waterfall::ZOOM_x_1;
+}
+
 static constexpr std::array<baseband::NBFMConfig, 4> nbfm_configs{{
     {taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500},
     {taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500},
@@ -166,6 +172,17 @@ uint8_t ReceiverModel::am_configuration() const {
 void ReceiverModel::set_am_configuration(uint8_t n) {
     if (n < am_configs.size()) {
         settings_.am_config_index = n;
+        am_spectrum_zoom_ = spectrum_zoom_for_am_config(n);
+        update_modulation();
+    }
+}
+
+void ReceiverModel::set_am_configuration(
+    uint8_t n,
+    AMConfigureMessage::Zoom_waterfall spectrum_zoom) {
+    if (n < am_configs.size()) {
+        settings_.am_config_index = n;
+        am_spectrum_zoom_ = spectrum_zoom;
         update_modulation();
     }
 }
@@ -177,6 +194,17 @@ uint8_t ReceiverModel::amfm_configuration() const {
 void ReceiverModel::set_amfm_configuration(uint8_t n) {
     if (n < am_configs.size()) {
         settings_.amfm_config_index = n;
+        am_spectrum_zoom_ = spectrum_zoom_for_am_config(n);
+        update_modulation();
+    }
+}
+
+void ReceiverModel::set_amfm_configuration(
+    uint8_t n,
+    AMConfigureMessage::Zoom_waterfall spectrum_zoom) {
+    if (n < am_configs.size()) {
+        settings_.amfm_config_index = n;
+        am_spectrum_zoom_ = spectrum_zoom;
         update_modulation();
     }
 }
@@ -288,6 +316,7 @@ void ReceiverModel::enable() {
 
 void ReceiverModel::disable() {
     enabled_ = false;
+    am_spectrum_zoom_ = spectrum_zoom_for_am_config(settings_.am_config_index);
 
     // TODO: Responsibility for enabling/disabling the radio is muddy.
     // Some happens in ReceiverModel, some inside radio namespace.
@@ -296,6 +325,7 @@ void ReceiverModel::disable() {
 
 void ReceiverModel::initialize() {
     settings_ = settings_t{};
+    am_spectrum_zoom_ = spectrum_zoom_for_am_config(settings_.am_config_index);
 }
 
 void ReceiverModel::set_configuration_without_update(
@@ -309,6 +339,7 @@ void ReceiverModel::set_configuration_without_update(
     settings_.mode = new_mode;
     settings_.frequency_step = new_frequency_step;
     settings_.am_config_index = new_am_config_index;
+    am_spectrum_zoom_ = spectrum_zoom_for_am_config(new_am_config_index);
     settings_.nbfm_config_index = new_nbfm_config_index;
     settings_.wfm_config_index = new_wfm_config_index;
     settings_.wfmam_config_index = new_wfmam_config_index;
@@ -455,11 +486,11 @@ void ReceiverModel::update_modulation() {
 }
 
 void ReceiverModel::update_am_configuration() {
-    am_configs[am_configuration()].apply();
+    am_configs[am_configuration()].apply(am_spectrum_zoom_);
 }
 
 void ReceiverModel::update_amfm_configuration() {
-    am_configs[amfm_configuration()].apply();  // update with different index for Wefax.
+    am_configs[amfm_configuration()].apply(am_spectrum_zoom_);  // update with different index for Wefax.
 }
 
 void ReceiverModel::update_nbfm_configuration() {

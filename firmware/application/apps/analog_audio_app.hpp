@@ -69,6 +69,13 @@ class PralineOptionsView : public View {
 };
 #endif
 
+enum class AMSpectrumZoomOption : int32_t {
+    X1 = 0,
+    X2 = 6,
+    X3 = 12,
+    X4 = 18,
+};
+
 class AMOptionsView : public View {
    public:
     AMOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
@@ -89,9 +96,10 @@ class AMOptionsView : public View {
     OptionsField zoom_config{
         {UI_POS_X_RIGHT(7), UI_POS_Y(0)},
         7,
-        {{"ZOOM x1", 0},
-         {"ZOOM x2", 6}}  // offset index AM modes array FIR filters.
-    };
+        {{"ZOOM x1", (int)AMSpectrumZoomOption::X1},
+         {"ZOOM x2", (int)AMSpectrumZoomOption::X2},
+         {"ZOOM x3", (int)AMSpectrumZoomOption::X3},
+         {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}};
 };
 
 class AMFMAptOptionsView : public View {
@@ -114,9 +122,10 @@ class AMFMAptOptionsView : public View {
     OptionsField zoom_config{
         {UI_POS_X_RIGHT(7), UI_POS_Y(0)},
         7,
-        {{"ZOOM x1", 0},
-         {"ZOOM x2", 6}}  // offset index array filters.
-    };
+        {{"ZOOM x1", (int)AMSpectrumZoomOption::X1},
+         {"ZOOM x2", (int)AMSpectrumZoomOption::X2},
+         {"ZOOM x3", (int)AMSpectrumZoomOption::X3},
+         {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}};
 };
 
 class NBFMOptionsView : public View {
@@ -265,12 +274,14 @@ class AnalogAudioView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{};
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
-    uint8_t zoom_factor_am{0};               // initial zoom factor in AM mode
-    uint8_t zoom_factor_amfm{0};             // initial zoom factor in AMFM mode
-    uint8_t previous_AM_mode_option{0};      // GUI 5 AM modes :  (0..4 ) (DSB9K, DSB6K, USB,LSB, CW). Used to select proper FIR filter (0..11) AM mode  + offset 0 (zoom+1) or +6 (if zoom+2)
-    uint8_t previous_zoom{0};                // GUI ZOOM+1, ZOOM+2 , equivalent to two values offset 0 (zoom+1) or +6 (if zoom+2)
+    uint8_t zoom_factor_am{0};
+    uint8_t zoom_factor_amfm{0};
+    uint8_t previous_AM_mode_option{0};
+    uint8_t previous_zoom{0};
     static constexpr int32_t sliding_limit_zoom_x1 = 50000;
     static constexpr int32_t sliding_limit_zoom_x2 = 30000;
+    static constexpr int32_t sliding_limit_zoom_x3 = 15000;
+    static constexpr int32_t sliding_limit_zoom_x4 = 6250;
     rf::Frequency sliding_center_frequency{0};
     bool sliding_enabled{false};
 

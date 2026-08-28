@@ -91,9 +91,11 @@ class ReceiverModel {
 
     uint8_t am_configuration() const;
     void set_am_configuration(uint8_t n);
+    void set_am_configuration(uint8_t n, AMConfigureMessage::Zoom_waterfall spectrum_zoom);
 
     uint8_t amfm_configuration() const;
     void set_amfm_configuration(uint8_t n);
+    void set_amfm_configuration(uint8_t n, AMConfigureMessage::Zoom_waterfall spectrum_zoom);
 
     uint8_t nbfm_configuration() const;
     void set_nbfm_configuration(uint8_t n);
@@ -140,6 +142,7 @@ class ReceiverModel {
     settings_t& settings() { return settings_; }
 
    private:
+    AMConfigureMessage::Zoom_waterfall am_spectrum_zoom_{AMConfigureMessage::Zoom_waterfall::ZOOM_x_1};
     settings_t settings_{};
     bool enabled_ = false;
     rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.

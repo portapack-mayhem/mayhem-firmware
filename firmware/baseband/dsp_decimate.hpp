@@ -170,6 +170,28 @@ class FIRC16xR16x16Decim2 {
     int32_t output_scale = 0;
 };
 
+class FIRC16xR16x32Decim4 {
+   public:
+    static constexpr size_t taps_count = 32;
+    static constexpr size_t decimation_factor = 4;
+
+    using sample_t = complex16_t;
+    using tap_t = int16_t;
+
+    void configure(
+        const std::array<tap_t, taps_count>& taps,
+        const int32_t scale = c16_to_c32_sat_scalar);
+
+    buffer_c16_t execute(
+        const buffer_c16_t& src,
+        const buffer_c16_t& dst);
+
+   private:
+    std::array<vec2_s16, taps_count - decimation_factor> z_{};
+    std::array<tap_t, taps_count> taps_{};
+    int32_t output_scale = 0;
+};
+
 class FIRC16xR16x63HalfbandDecim2 {
    public:
     static constexpr size_t taps_count = 63;
