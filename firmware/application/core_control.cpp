@@ -97,22 +97,24 @@ static msg_t m4_load_from_sd_thread(void* arg) {
     // and off operator new, because that panics with "Out of Memory" instead of
     // returning null, and a baseband that will not load is meant to be a NoImg, not a
     // dead device. Same reasoning as the image buffer below.
-    // Freed by the guard below rather than at each exit: this function returns from
-    // seven places, and one of them forgotten later is a leak nobody would notice.
-    struct FileDeleter {
-        void operator()(File* p) const {
-            if (!p) return;
-            p->~File();
-            chHeapFree(p);
-        }
-    };
+    // Released by hand at each exit rather than by a unique_ptr with a deleter. The
+    // reviewer suggested the deleter and it is the better shape, but the build carrying
+    // it took the device into a hard fault when Looking Glass loaded its image, and the
+    // build without it does not. I cannot explain the difference yet, and an unexplained
+    // fault in the path that every externalised baseband goes through is not something
+    // to ship. This form is the one that has been run on hardware.
     void* const fmem = chHeapAlloc(0x0, sizeof(File));
     if (!fmem) return 0;
-    std::unique_ptr<File, FileDeleter> f{new (fmem) File()};
+    File* const f = new (fmem) File();
+    auto give_back = [&](msg_t rv) {
+        f->~File();
+        chHeapFree(fmem);
+        return rv;
+    };
 
-    if (f->open(std::filesystem::path{path})) return 0;  // Optional<Error> truthy = failed
+    if (f->open(std::filesystem::path{path})) return give_back(0);  // Optional<Error> truthy = failed
     const uint64_t fsize = f->size();
-    if (fsize < 13 || fsize > 48u * 1024u) return 0;  // header(12)+data; M4 region is 32 KiB
+    if (fsize < 13 || fsize > 48u * 1024u) return give_back(0);  // header(12)+data; M4 region is 32 KiB
 
     // chHeapAlloc rather than new: this firmware's operator new panics with "Out of
     // Memory" when the heap is short, and a baseband that will not fit is meant to be
@@ -123,11 +125,11 @@ static msg_t m4_load_from_sd_thread(void* arg) {
     //
     // chHeapAlloc is 8-byte aligned, so the uint32 chunk fields stay word-aligned.
     uint8_t* const raw = static_cast<uint8_t*>(chHeapAlloc(0x0, static_cast<size_t>(fsize)));
-    if (!raw) return 0;
+    if (!raw) return give_back(0);
     const auto rd = f->read(raw, fsize);
     if (!rd || rd.value() != fsize) {
         chHeapFree(raw);
-        return 0;
+        return give_back(0);
     }
 
     // The header has to agree with the file before any of it is believed. The tag alone
@@ -141,17 +143,17 @@ static msg_t m4_load_from_sd_thread(void* arg) {
     constexpr size_t header_size = sizeof(spi_flash::image_tag_t) + sizeof(uint32_t) * 2;
     if (static_cast<size_t>(fsize) < header_size) {
         chHeapFree(raw);
-        return 0;
+        return give_back(0);
     }
     const size_t body = static_cast<size_t>(fsize) - header_size;
     if (head->length != body || head->compressed_data_size > body) {
         chHeapFree(raw);
-        return 0;
+        return give_back(0);
     }
 
     req->raw = raw;
     req->size = static_cast<size_t>(fsize);
-    return 1;
+    return give_back(1);
 }
 
 static bool m4_init_from_sd(const spi_flash::image_tag_t image_tag,
