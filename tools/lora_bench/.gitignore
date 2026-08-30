@@ -1,0 +1,21 @@
+captures/
+__pycache__/
+*.cs8
+*.iq16
+*.png
+fw_tx_host_bin
+txlen
+*.cs8
+heltec_rx_monitor/build/
+*.ppma
+*.img
+
+# compiled host tests (see Makefile)
+test_lora_framing
+test_lora_ref
+test_lora_rssi
+test_mesh_regions
+test_mesh_crypto
+test_mesh_router
+test_mesh_telemetry
+test_mesh_partial
