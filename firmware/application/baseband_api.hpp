@@ -88,6 +88,10 @@ void set_aprs(const uint32_t baudrate);
 void set_btlerx(uint8_t channel_number);
 void set_btletx(uint8_t channel_number, char* macAddress, char* advertisementData, uint8_t pduType);
 
+// LoRa / Meshtastic
+void set_lora_config(uint8_t spreading_factor, uint32_t bandwidth_hz, uint8_t coding_rate, uint32_t local_node_id = 0);
+void send_lora_packet(const uint8_t* data, size_t len);
+
 void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word);
 
 void set_ook_data(const uint32_t stream_length, const uint32_t samples_per_bit, const uint8_t repeat, const uint32_t pause_symbols, const uint8_t de_bruijn_length = 0);

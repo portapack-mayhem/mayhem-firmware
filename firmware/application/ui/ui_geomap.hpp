@@ -86,11 +86,14 @@ class BMPFileCache {
 
     ~BMPFileCache() {
         clear();
+        release();
     }
 
     BMPFile* get(const int32_t z, const int32_t x, const int32_t y) {
+        if (!ensure_slots()) return nullptr;
+
         // Cache hit.
-        for (auto& slot : slots_) {
+        for (auto& slot : *slots_) {
             if (slot.used && slot.x == x && slot.y == y && slot.z == z) {
                 slot.last_used = next_stamp();
                 return &slot.bmp;
@@ -100,7 +103,7 @@ class BMPFileCache {
         // Select free slot first, otherwise LRU slot.
         Slot* target = nullptr;
         uint16_t oldest = 0xFFFFu;
-        for (auto& slot : slots_) {
+        for (auto& slot : *slots_) {
             if (!slot.used) {
                 target = &slot;
                 break;
@@ -138,7 +141,8 @@ class BMPFileCache {
     }
 
     void clear() {
-        for (auto& slot : slots_) {
+        if (!slots_) return;
+        for (auto& slot : *slots_) {
             if (slot.used) {
                 slot.bmp.close();
                 slot.used = false;
@@ -156,10 +160,19 @@ class BMPFileCache {
         bool used{false};
     };
 
+    // Nine slots, each holding an open BMPFile with its own 512-byte FatFs sector
+    // buffer: about 5.7 kB, and it used to sit inside every GeoMapView whether or not
+    // there were any OSM tiles to put in it. On a device with 43 kB of heap that is a
+    // lot to spend on a feature the card may not carry - a map with no /OSM directory
+    // never called get() at all. Allocated on the first tile request instead, and
+    // released with the view.
+    bool ensure_slots();
+    void release();
+
     uint16_t next_stamp() {
         if (++stamp_ == 0) {
             uint16_t v = 1;
-            for (auto& slot : slots_) {
+            for (auto& slot : *slots_) {
                 if (slot.used) {
                     slot.last_used = v++;
                 }
@@ -168,7 +181,7 @@ class BMPFileCache {
         }
         return stamp_;
     }
-    std::array<Slot, SlotsCount> slots_{};
+    std::array<Slot, SlotsCount>* slots_{nullptr};
     uint16_t stamp_{0};
 };
 
@@ -354,6 +367,20 @@ class GeoMap : public Widget {
 
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
+    // Draw a line from this point to every stored marker. A mesh is easier to read as a
+    // star than as a scatter of dots. The origin is given rather than taken from the
+    // first marker: the caller knows which node the map belongs to, and marker order is
+    // not something it should have to arrange.
+    void set_marker_links(float lat, float lon) {
+        link_lat_ = lat;
+        link_lon_ = lon;
+        marker_links_ = true;
+        set_dirty();
+    }
+    void clear_marker_links() {
+        marker_links_ = false;
+        set_dirty();
+    }
 
    private:
     void draw_scale(Painter& painter);
@@ -386,6 +413,9 @@ class GeoMap : public Widget {
     double viewport_top_left_py = 0;
 
     bool manual_panning_{false};
+    bool marker_links_{false};
+    float link_lat_{0}, link_lon_{0};  // where those lines start
+    void draw_marker_links(Painter& painter);
     bool hide_center_marker_{false};
     GeoMapMode mode_{};
     File map_file{};
@@ -458,6 +488,8 @@ class GeoMapView : public View {
 
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
+    void set_marker_links(float lat, float lon) { geomap.set_marker_links(lat, lon); }
+    void clear_marker_links() { geomap.clear_marker_links(); }
 
     void update_tag(const std::string tag);
 

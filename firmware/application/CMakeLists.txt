@@ -283,6 +283,12 @@ set(CPPSRC
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
+	apps/ui_meshtastic.cpp
+	apps/mesh/mesh_protocol.cpp
+	apps/mesh/mesh_crypto.cpp
+	apps/mesh/mesh_nodedb.cpp
+	apps/mesh/mesh_router.cpp
+	apps/mesh/mesh_pki.cpp
 	apps/pocsag_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_battinfo.cpp

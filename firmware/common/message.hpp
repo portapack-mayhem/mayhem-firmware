@@ -171,6 +171,12 @@ class Message {
         TetraBsch = 113,
         TetraDnb = 114,
         AudioDDCConfig = 115,
+        // Ours moved up from 107..109: next claimed those while this branch was away,
+        // and a message id is a wire contract between the two cores - two meanings for
+        // one number is a fault that only shows as garbled messages at runtime.
+        LoRaConfigure = 116,
+        LoRaPacket = 117,
+        LoRaRxStatus = 118,
         MAX
     };
 
@@ -1999,6 +2005,58 @@ class FlexTosendMessage : public Message {
     uint8_t type = 0;
     uint8_t msglen = 0;
     uint8_t msg[240] = {0};
+};
+
+// LoRa configure message (M0 → M4)
+class LoRaConfigureMessage : public Message {
+   public:
+    constexpr LoRaConfigureMessage(
+        uint8_t spreading_factor = 7,
+        uint32_t bandwidth = 125000,
+        uint8_t coding_rate = 5,
+        uint32_t local_node_id = 0)
+        : Message{ID::LoRaConfigure},
+          spreading_factor{spreading_factor},
+          bandwidth{bandwidth},
+          coding_rate{coding_rate},
+          local_node_id{local_node_id} {}
+
+    uint8_t spreading_factor;
+    uint32_t bandwidth;
+    uint8_t coding_rate;
+    // Our Meshtastic node id: the demodulator validates a candidate header by its
+    // destination field, and must accept unicast frames addressed to us (direct
+    // messages, ACKs) besides broadcasts. 0 = broadcast only.
+    uint32_t local_node_id;
+};
+
+// LoRa decoded packet message (M4 → M0)
+class LoRaPacketMessage : public Message {
+   public:
+    static constexpr size_t MAX_DATA{255};
+
+    LoRaPacketMessage()
+        : Message{ID::LoRaPacket} {}
+
+    uint8_t length{0};
+    int8_t rssi{0};  // approximate dBm from the CSS peak power (0 = unknown)
+    // Signal to noise in tenths of a dB, from how much of the dechirped spectrum sits
+    // in the winning bin. The app used to pass a hardcoded zero, so every node in the
+    // list reported 0.0 dB whatever the link was really like.
+    int16_t snr_tenths{0};
+    uint8_t data[MAX_DATA]{};
+};
+
+// LoRa reception status (M4 → M0): true once a packet's header is locked and its
+// payload is streaming, false when that packet ends (delivered or abandoned).
+// The application uses it to listen before talking: switching to the TX baseband
+// unloads the demodulator, so transmitting mid-packet destroys the reception.
+class LoRaRxStatusMessage : public Message {
+   public:
+    constexpr LoRaRxStatusMessage(bool receiving = false)
+        : Message{ID::LoRaRxStatus}, receiving{receiving} {}
+
+    bool receiving;
 };
 
 class HunterConfigMessage : public Message {

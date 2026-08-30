@@ -20,6 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <algorithm>
 #include "ui_qrcode.hpp"
 #include "qrcodegen.hpp"
 #include "portapack.hpp"
@@ -66,12 +67,33 @@ void QRCodeImage::paint(Painter& painter) {
 
     qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
-    display.fill_rectangle(Rect(r.left(), r.top(), 126, 127), Color::white());  // 57,63
+    // Module size follows the widget: a wider rect draws a bigger code (a phone reads a
+    // full-screen one from across a room). Two pixels stays the floor, so every widget
+    // sized as before renders exactly as before.
+    // The drawn square is scale * (modules + 4): the quiet zone either side is two
+    // modules wide and scales with them. Fit that to the shorter of the two dimensions,
+    // not to the width alone - fill_rectangle() draws straight to the display with no
+    // clipping, so a square wider than the widget is painted over its neighbours.
+    const int span = qrcode.size + 4;
+    int scale = std::min(r.width(), r.height()) / span;
+    if (scale < 2) scale = 2;
+    const int quiet = scale * 2;
+    const int side = qrcode.size * scale + quiet * 2;
+
+    // Centre the code in the space it was given: the modules only come in whole pixels,
+    // so the drawn square is rarely the exact width of the widget and used to sit hard
+    // against the left edge.
+    const int ox = (r.width() > side) ? (r.width() - side) / 2 : 0;
+    const int oy = (r.height() > side) ? (r.height() - side) / 2 : 0;
+    display.fill_rectangle(Rect(r.left() + ox, r.top() + oy, side, side), Color::white());
 
     for (uint8_t y = 0; y < qrcode.size; y++) {
         for (uint8_t x = 0; x < qrcode.size; x++) {
             if (qrcode_getModule(&qrcode, x, y)) {
-                display.fill_rectangle(Rect((r.left() + 6) + (x * 2), (r.top() + 8) + (y * 2), 2, 2), Color::black());
+                display.fill_rectangle(Rect(r.left() + ox + quiet + x * scale,
+                                            r.top() + oy + quiet + y * scale,
+                                            scale, scale),
+                                       Color::black());
             }
         }
     }

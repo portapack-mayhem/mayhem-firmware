@@ -21,6 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <new>
+#include "ch.h"
 #include "ui_geomap.hpp"
 #include "portapack.hpp"
 #include <cstring>
@@ -326,6 +328,43 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
                 }
             }
             current_file_offset += read_size;
+        }
+    }
+}
+
+// A line from the first marker to each of the others, drawn before the markers so the
+// symbols stay on top of it. Bresenham with a bounds test per pixel rather than proper
+// clipping: an endpoint is off-screen as soon as the map is panned or zoomed in, and
+// testing each point costs less code than clipping the segment would.
+void GeoMap::draw_marker_links(Painter& painter) {
+    if (markerListLen < 1) return;
+    const auto r = screen_rect();
+    GeoMarker origin{link_lat_, link_lon_, INVALID_ANGLE, ""};
+    const ui::Point hub = item_rect_pixel(origin);
+    for (int i = 0; i < markerListLen; ++i) {
+        const ui::Point to = item_rect_pixel(markerList[i]);
+        int x = hub.x(), y = hub.y();
+        const int x1 = to.x(), y1 = to.y();
+        const int dx = (x1 > x) ? (x1 - x) : (x - x1);
+        const int dy = (y1 > y) ? (y - y1) : (y1 - y);  // negative, as Bresenham wants
+        const int sx = (x < x1) ? 1 : -1;
+        const int sy = (y < y1) ? 1 : -1;
+        int err = dx + dy;
+        // Bounded: a marker far outside the view gives a very long run, and this is on
+        // the repaint path.
+        for (int guard = 0; guard < 2048; guard++) {
+            if (x >= 0 && x < r.width() && y > 10 && y < r.height())
+                painter.draw_hline({x + r.left(), y + r.top()}, 1, markerList[i].color);
+            if (x == x1 && y == y1) break;
+            const int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y += sy;
+            }
         }
     }
 }
@@ -650,6 +689,7 @@ void GeoMap::paint(Painter& painter) {
         }
 
         // Draw the other markers
+        if (marker_links_) draw_marker_links(painter);
         draw_markers(painter);
         if (!use_osm) draw_scale(painter);
         draw_mypos(painter);
@@ -735,6 +775,30 @@ void GeoMap::move(const float lon, const float lat) {
             }
         }
     }
+}
+
+// The tile cache is built the first time a tile is actually asked for, and only if
+// the memory is there to spare. Refusing costs the OSM overlay; taking memory that is
+// not there costs the whole device, because operator new panics rather than returning
+// null in this firmware.
+bool BMPFileCache::ensure_slots() {
+    if (slots_) return true;
+    // Not operator new: this firmware's new panics with "Out of Memory" rather than
+    // returning null, and the whole point of allocating the tile cache on demand is
+    // that a map which cannot be shown gives up quietly. chCoreStatus() is no defence
+    // either - it reports unallocated core, not what the heap's free list can hand out
+    // in one piece, so it reads healthy while a contiguous request still fails.
+    void* const p = chHeapAlloc(0x0, sizeof(std::array<Slot, SlotsCount>));
+    if (!p) return false;
+    slots_ = new (p) std::array<Slot, SlotsCount>{};
+    return true;
+}
+
+void BMPFileCache::release() {
+    if (!slots_) return;
+    slots_->~array();
+    chHeapFree(slots_);
+    slots_ = nullptr;
 }
 
 bool GeoMap::init() {

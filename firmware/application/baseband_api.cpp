@@ -21,6 +21,7 @@
  */
 
 #include "baseband_api.hpp"
+#include <algorithm>
 #include <cstring>
 
 #include "audio.hpp"
@@ -594,6 +595,18 @@ void request_beep_stop() {
 
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms) {
     AudioBeepMessage message{freq, sample_rate, duration_ms};
+    send_message(&message);
+}
+
+void set_lora_config(uint8_t spreading_factor, uint32_t bandwidth_hz, uint8_t coding_rate, uint32_t local_node_id) {
+    LoRaConfigureMessage message{spreading_factor, bandwidth_hz, coding_rate, local_node_id};
+    send_message(&message);
+}
+
+void send_lora_packet(const uint8_t* data, size_t len) {
+    LoRaPacketMessage message{};
+    message.length = static_cast<uint8_t>(std::min(len, LoRaPacketMessage::MAX_DATA));
+    std::memcpy(message.data, data, message.length);
     send_message(&message);
 }
 
