@@ -184,6 +184,10 @@ class SettingsManager {
 
     AppSettings& raw() { return settings_; }
 
+    /* Persist the bound settings now, without waiting for the destructor. Lets an
+     * app save on config change so nothing is lost if it later crashes / powers off. */
+    void save();
+
    private:
     std::string_view app_name_;
     AppSettings settings_;

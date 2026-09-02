@@ -60,6 +60,7 @@
 #include "analog_audio_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
+#include "apps/ui_meshtastic.hpp"
 #include "capture_app.hpp"
 #include "pocsag_app.hpp"
 
@@ -97,6 +98,7 @@ const NavigationView::AppList NavigationView::appList = {
     /* RX ********************************************************************/
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
+    {"meshtastic", "Mesh", TRX, Color::green(), &bitmap_icon_meshtastic, new ViewFactory<MeshtasticView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},

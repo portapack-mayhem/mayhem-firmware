@@ -314,4 +314,11 @@ SettingsManager::~SettingsManager() {
     save_settings(app_name_, bindings_);
 }
 
+void SettingsManager::save() {
+    // Persist immediately (mirrors the destructor) so config survives a crash or
+    // power-off, not only a clean app exit.
+    copy_from_radio_model(settings_);
+    save_settings(app_name_, bindings_);
+}
+
 }  // namespace app_settings

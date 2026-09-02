@@ -327,14 +327,27 @@ macro(DeclareTargets chunk_tag name)
 
 	else()
 
+		# Also emit the flash-format chunk. A baseband kept out of the ROM image is
+		# not gone: m4_init_from_sd() reads /BASEBAND/<TAG>.img from the SD card, and
+		# that file has to be the same lz4 chunk the flash would have held. Without
+		# this the app for an externalised baseband has nothing to load.
+		# The copy under its tag is what actually ships. m4_init_from_sd() looks the
+		# image up by the four characters in its header, so the file on the card has
+		# to be named for the tag rather than for the build target, and the release
+		# package copies this directory wholesale into /BASEBAND.
 		add_custom_command(
-			OUTPUT ${chunk_tag}.bin
+			OUTPUT ${chunk_tag}.bin ${PROJECT_NAME}.img sd_baseband/${chunk_tag}.img
 			COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${chunk_tag}.bin
-			DEPENDS ${PROJECT_NAME}.elf
+			COMMAND ${LZ4} -f -9 ${chunk_tag}.bin ${PROJECT_NAME}.lz4
+			COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.lz4 ${chunk_tag} ${PROJECT_NAME}.img
+			COMMAND ${CMAKE_COMMAND} -E make_directory sd_baseband
+			COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_NAME}.img sd_baseband/${chunk_tag}.img
+			DEPENDS ${PROJECT_NAME}.elf ${MAKE_IMAGE_CHUNK}
 			VERBATIM
 		)
 
-		set(BASEBAND_EXTERNAL_IMAGES ${BASEBAND_EXTERNAL_IMAGES} ${chunk_tag}.bin)
+		set(BASEBAND_EXTERNAL_IMAGES ${BASEBAND_EXTERNAL_IMAGES}
+			${chunk_tag}.bin ${PROJECT_NAME}.img sd_baseband/${chunk_tag}.img)
 
 	endif()
 
@@ -355,18 +368,26 @@ DeclareTargets(PADR adsbrx)
 
 
 ### AFSK TX
-
 set(MODE_CPPSRC
 	proc_afsk.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PAFT afsktx)
+set(add_to_firmware TRUE)
 
 ### APRS RX
 
 set(MODE_CPPSRC
 	proc_aprsrx.cpp
 )
+# Moved off the SPI flash to make room; loaded from /BASEBAND/PAPR.img on the SD card.
+# APRS TX (PAFT afsktx) already lives there, so the pair is consistent.
+set(add_to_firmware FALSE)
 DeclareTargets(PAPR aprsrx)
+set(add_to_firmware TRUE)
 
 
 ### BTLE RX
@@ -381,14 +402,42 @@ DeclareTargets(PBTR btlerx)
 set(MODE_CPPSRC
 	proc_ble_tx.cpp
 )
+# Off the SPI flash to make room: loaded from the SD card as /BASEBAND/PBTT.img.
+set(add_to_firmware FALSE)
 DeclareTargets(PBTT btletx)
+set(add_to_firmware TRUE)
+
+### LoRa RX (Meshtastic)
+
+
+set(MODE_FLAGS "-Os")
+set(MODE_CPPSRC
+	proc_lora.cpp
+)
+# These two stay in the SPI flash on purpose. lora_rx is the largest baseband in the
+# firmware (~28 KB), and loading a baseband from the SD card means holding the whole
+# compressed image in the M0 heap - which is 43 KB in total and already mostly spoken
+# for by the app itself. Small basebands load from the card fine; this one cannot.
+DeclareTargets(PLOR lora_rx)
+set(MODE_FLAGS "-O3")
+
+### LoRa TX (Meshtastic)
+set(MODE_FLAGS "-Os")
+set(MODE_CPPSRC
+	proc_lora_tx.cpp
+)
+DeclareTargets(PLOT lora_tx)
+set(MODE_FLAGS "-O3")
 
 ### AIS
 
 set(MODE_CPPSRC
 	proc_ais.cpp
 )
+# Off the SPI flash to make room: loaded from the SD card as /BASEBAND/PAIS.img.
+set(add_to_firmware FALSE)
 DeclareTargets(PAIS ais)
+set(add_to_firmware TRUE)
 
 ### AM Audio
 
@@ -410,7 +459,12 @@ DeclareTargets(PCAP capture)
 set(MODE_CPPSRC
 	proc_sonde.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PSON sonde)
+set(add_to_firmware TRUE)
 
 ### FSK RX
 
@@ -426,12 +480,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSK fsktx)
 
-### Microphone transmit
-
 set(MODE_CPPSRC
 	proc_mictx.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PMTX mic_tx)
+set(add_to_firmware TRUE)
 
 ### NFM Audio
 
@@ -456,27 +513,37 @@ set(MODE_CPPSRC
 DeclareTargets(PPO2 pocsag2)
 
 ### RDS
-
 set(MODE_CPPSRC
 	proc_rds.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PRDS rds)
+set(add_to_firmware TRUE)
 
 ### Replay
-
 set(MODE_CPPSRC
 	proc_replay.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PREP replay)
-
-
+set(add_to_firmware TRUE)
 
 ### Wideband Spectrum
-
 set(MODE_CPPSRC
 	proc_wideband_spectrum.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PSPE wideband_spectrum)
+set(add_to_firmware TRUE)
 
 
 ### WFM Audio
@@ -491,14 +558,24 @@ DeclareTargets(PWFM wfm_audio)
 set(MODE_CPPSRC
 	proc_subghzd.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PSGD subghzd)
+set(add_to_firmware TRUE)
 
 
 ### Weather Stations
 set(MODE_CPPSRC
 	proc_weather.cpp
 )
+# Moved to the SD card: the SPI flash cannot hold this and the Meshtastic
+# basebands at once. m4_init_from_sd() loads /BASEBAND/<TAG>.img on demand, so
+# copy the matching .img from build/firmware/baseband/ to the card.
+set(add_to_firmware FALSE)
 DeclareTargets(PWTH weather)
+set(add_to_firmware TRUE)
 
 set(MODE_FLAGS "-Os")
 
