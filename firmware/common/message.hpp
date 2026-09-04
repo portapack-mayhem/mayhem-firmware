@@ -171,6 +171,8 @@ class Message {
         TetraBsch = 113,
         TetraDnb = 114,
         AudioDDCConfig = 115,
+        EntropyRxConfigure = 116,
+        EntropyBlock = 117,
         MAX
     };
 
@@ -502,6 +504,72 @@ class AFSKDataMessage : public Message {
 
     bool is_data;
     uint32_t value;
+};
+
+/* Entropy harvester (external app "Rand Pwd").
+ *
+ * The M4 samples the raw I/Q stream and ships packed ADC least-significant
+ * bits together with a per-block min-entropy credit that it computed itself
+ * (the M4 has the FPU; the M0 must not do float). The M0 never re-derives the
+ * credit, it only accumulates it. See firmware/baseband/proc_entropy.cpp and
+ * firmware/application/external/random_password/ui_random_password.cpp. */
+class EntropyRxConfigureMessage : public Message {
+   public:
+    constexpr EntropyRxConfigureMessage(
+        uint32_t sampling_rate,
+        uint32_t buffer_decimation,
+        uint32_t settle_buffers,
+        bool enabled)
+        : Message{ID::EntropyRxConfigure},
+          sampling_rate{sampling_rate},
+          buffer_decimation{buffer_decimation},
+          settle_buffers{settle_buffers},
+          enabled{enabled} {
+    }
+
+    uint32_t sampling_rate;
+    /* Harvest one DMA buffer in this many; the rest are not even looked at. */
+    uint32_t buffer_decimation;
+    /* Discard this many buffers before harvesting again (PLL settling after a
+     * retune produces high-amplitude *deterministic* transients). */
+    uint32_t settle_buffers;
+    bool enabled;
+};
+
+class EntropyBlockMessage : public Message {
+   public:
+    /* 64 bytes = 512 raw bits = one I and one Q ADC LSB from each of 256
+     * samples. At the default decimation this is ~61 blocks/s. */
+    static constexpr size_t block_bytes = 64;
+
+    /* Health test failures, per channel. Non-zero means the block was not
+     * credited. Split I/Q because a DC-stuck front end (I constant, Q
+     * constant-but-different) looks like a perfect 0101... alternation once
+     * the two channels are interleaved, which no per-stream test would catch. */
+    static constexpr uint8_t health_repetition_i = 0x01;
+    static constexpr uint8_t health_repetition_q = 0x02;
+    static constexpr uint8_t health_proportion_i = 0x04;
+    static constexpr uint8_t health_proportion_q = 0x08;
+    static constexpr uint8_t health_transition_i = 0x10;
+    static constexpr uint8_t health_transition_q = 0x20;
+
+    constexpr EntropyBlockMessage()
+        : Message{ID::EntropyBlock} {
+    }
+
+    uint8_t data[block_bytes]{};
+    /* M4 cycle-count delta between DMA buffer arrivals. The DMA is clocked
+     * from the Si5351, the core from PLL1, so this is a genuine two-oscillator
+     * beat -- but it is mixed in UNCREDITED, because its jitter magnitude has
+     * never been measured on this hardware. */
+    uint32_t jitter{0};
+    /* Min-entropy credited for this block, in milli-bits. Zero if any health
+     * test failed. Capped at 512 * 0.125 = 64 bits by the M4. */
+    uint32_t credit_mbits{0};
+    /* Estimated per-raw-bit min-entropy x1000, for display only. */
+    uint16_t h_min_mbits{0};
+    uint8_t health_flags{0};
+    uint8_t reserved{0};
 };
 
 struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6 {

@@ -118,7 +118,7 @@ set(EXTCPPSRC
 	#random 464  bytes.
 	external/random_password/main.cpp
 	external/random_password/ui_random_password.cpp
-	external/random_password/sha512.cpp
+	external/random_password/sha256.cpp
 
 	#acars
 	external/acars_rx/main.cpp

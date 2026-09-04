@@ -356,6 +356,16 @@ void set_time_sink(
     send_message(&message);
 }
 
+void set_entropy_rx(
+    const uint32_t sampling_rate,
+    const uint32_t buffer_decimation,
+    const uint32_t settle_buffers,
+    const bool enabled) {
+    const EntropyRxConfigureMessage message{
+        sampling_rate, buffer_decimation, settle_buffers, enabled};
+    send_message(&message);
+}
+
 void set_wefax_config(uint8_t lpm = 120, uint8_t ioc = 0) {
     const WeFaxRxConfigureMessage message{lpm, ioc};
     send_message(&message);

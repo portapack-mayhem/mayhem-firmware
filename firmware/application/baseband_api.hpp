@@ -105,6 +105,11 @@ void set_audio_ddc_frequency(int32_t frequency);
 void set_time_sink(
     const size_t sampling_rate,
     const size_t trigger);
+void set_entropy_rx(
+    const uint32_t sampling_rate,
+    const uint32_t buffer_decimation,
+    const uint32_t settle_buffers,
+    const bool enabled);
 void set_siggen_tone(const uint32_t tone);
 void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t duration);
 void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw);
