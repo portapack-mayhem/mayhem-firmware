@@ -49,6 +49,20 @@ void TPMSTXView::update_signal_type_from_packet() {
         case tpms::Reading::Type::FLM_64:
         case tpms::Reading::Type::FLM_72:
         case tpms::Reading::Type::FLM_80:
+        case tpms::Reading::Type::Toyota:
+        case tpms::Reading::Type::Ford:
+        case tpms::Reading::Type::Citroen:
+        case tpms::Reading::Type::Renault:
+        case tpms::Reading::Type::Hyundai_VDO:
+        case tpms::Reading::Type::Nissan:
+        case tpms::Reading::Type::Abarth124:
+        case tpms::Reading::Type::Jansite:
+        case tpms::Reading::Type::Jansite_Solar:
+        case tpms::Reading::Type::Kia:
+        case tpms::Reading::Type::Elantra2012:
+        case tpms::Reading::Type::PMV107J:
+        case tpms::Reading::Type::Renault_0435R:
+        case tpms::Reading::Type::AVE:
             signal_type_ = tpms::SignalType::FSK_19k2_Schrader;
             break;
         case tpms::Reading::Type::GMC_96:
@@ -103,7 +117,20 @@ void TPMSTXView::update_packet_display() {
     if (packet_type_ == tpms::Reading::Type::GMC_96 ||
         packet_type_ == tpms::Reading::Type::FLM_64 ||
         packet_type_ == tpms::Reading::Type::FLM_72 ||
-        packet_type_ == tpms::Reading::Type::FLM_80) {
+        packet_type_ == tpms::Reading::Type::FLM_80 ||
+        packet_type_ == tpms::Reading::Type::Toyota ||
+        packet_type_ == tpms::Reading::Type::Ford ||
+        packet_type_ == tpms::Reading::Type::Citroen ||
+        packet_type_ == tpms::Reading::Type::Renault ||
+        packet_type_ == tpms::Reading::Type::Hyundai_VDO ||
+        packet_type_ == tpms::Reading::Type::Abarth124 ||
+        packet_type_ == tpms::Reading::Type::Jansite ||
+        packet_type_ == tpms::Reading::Type::Jansite_Solar ||
+        packet_type_ == tpms::Reading::Type::Kia ||
+        packet_type_ == tpms::Reading::Type::Elantra2012 ||
+        packet_type_ == tpms::Reading::Type::PMV107J ||
+        packet_type_ == tpms::Reading::Type::Renault_0435R ||
+        packet_type_ == tpms::Reading::Type::AVE) {
         status += " " + to_string_dec_int(temperature_c_) + "C";
     } else {
         status += " (no temp)";
@@ -724,7 +751,7 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
                     if (!type_str.empty()) {
                         int type = std::stoi(type_str);
                         if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) &&
-                            type <= static_cast<int>(tpms::Reading::Type::GMC_96)) {
+                            type <= static_cast<int>(tpms::Reading::Type::AVE)) {
                             packet_type_ = static_cast<tpms::Reading::Type>(type);
                             options_packet_type.set_by_value(type);
                         }
