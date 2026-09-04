@@ -517,6 +517,13 @@ DeclareTargets(PFUT flash_utility)
 set(add_to_firmware FALSE)
 set(MODE_FLAGS "-O3")
 
+### Entropy harvester (external app: random_password)
+
+set(MODE_CPPSRC
+	proc_entropy.cpp
+)
+DeclareTargets(PENT entropy)
+
 ### VOR TX
 
 set(MODE_CPPSRC

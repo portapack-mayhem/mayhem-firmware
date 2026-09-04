@@ -135,6 +135,7 @@ constexpr image_tag_t image_tag_rttyrx{'P', 'R', 'T', 'R'};
 constexpr image_tag_t image_tag_rttytx{'P', 'R', 'T', 'T'};
 constexpr image_tag_t image_tag_tonedetect{'P', 'T', 'N', 'E'};
 constexpr image_tag_t image_tag_tetrarx{'P', 'T', 'E', 'T'};
+constexpr image_tag_t image_tag_entropy{'P', 'E', 'N', 'T'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 
