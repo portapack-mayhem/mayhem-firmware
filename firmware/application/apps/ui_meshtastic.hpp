@@ -465,6 +465,10 @@ struct MeshSettings {
     // changes slowly. 0 = never.
     uint32_t nbr_min{360};
     bool ignore_mqtt{false};  // drop LoRa packets that came via MQTT
+    // What to do with a frame whose payload CRC failed - see MeshRouter::CrcPolicy.
+    // The middle position is the default: a damaged text is still worth reading, a
+    // damaged coordinate is not worth having.
+    uint8_t crc_policy{1};
     bool sf_enabled{false};   // Store and Forward server
     // Both of these buy comfort with memory, and the memory is genuinely short: the
     // app leaves about two kilobytes of contiguous heap, and the on-screen keyboard
@@ -1582,7 +1586,8 @@ class MeshRadioPageView : public MeshSettingsPage {
         {{0, S4}, "Freq slot:", Theme::getInstance()->fg_light->foreground},
         {{0, S5}, "NodeInfo min:", Theme::getInstance()->fg_light->foreground},
         {{18 * 8, S2}, "CR:", Theme::getInstance()->fg_light->foreground},
-        {{0, S7 + 22}, "TX pwr:", Theme::getInstance()->fg_light->foreground}};
+        {{0, S7 + 22}, "TX pwr:", Theme::getInstance()->fg_light->foreground},
+        {{0, S7 + 44}, "Damaged:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField field_region_{{7 * 8, S0}, 14, {}};
     OptionsField field_preset_{{7 * 8, S1}, 14, {}};
@@ -1600,9 +1605,18 @@ class MeshRadioPageView : public MeshSettingsPage {
     // informs rather than enforces.
     OptionsField field_txpwr_{{8 * 8, S7 + 22}, 6, {{"Region", 0}, {"Max", 1}, {"Custom", 2}}};
     NumberField field_txdb_{{15 * 8, S7 + 22}, 2, {0, 47}, 1, ' '};
+    // What to do with a frame whose payload CRC fails. Not a yes or no, because
+    // there is no automatic gain control here: a near node can overload the receiver
+    // while a far one is barely heard, so the useful trade between losing packets and
+    // seeing corrupted ones is the operator's to make. Suggested by htotoo, who found
+    // the missing check in the first place.
+    OptionsField field_crc_{
+        {9 * 8, S7 + 44},
+        9,
+        {{"show all", 0}, {"text only", 1}, {"drop", 2}}};
     // How far to pull a telescopic whip out for the frequency actually in use. The
     // number people want in the field is the quarter wave, in centimetres.
-    Text text_whip_{{0, S7 + 44, screen_width, 16}, ""};
+    Text text_whip_{{0, S7 + 66, screen_width, 16}, ""};
 
     void update_whip();
 };
@@ -2233,6 +2247,7 @@ class MeshtasticView : public View {
     // A traceroute request waiting to be answered from on_timer, held exactly like the
     // metrics one below: assembling and encrypting a packet inside the RX callback is
     // far more stack than that callback has.
+    uint32_t crc_bad_seen_{0};  // last damaged-frame count announced in chat
     uint32_t bad_hash_seen_{0};  // last reported channel-filter rejection count
     uint32_t trace_dest_{0};
     uint32_t trace_req_id_{0};

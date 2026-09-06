@@ -128,6 +128,92 @@ int main() {
                 check(lora::header_has_crc(h2) == (crc != 0), "header states its CRC flag");
             }
 
+    // ---- payload CRC ---------------------------------------------------------
+    // The transmitter's construction against the receiver's reading of it, which is
+    // the pair that was never joined up: the transmitter has appended these two bytes
+    // since it was written, and a hardware SX126x accepts its frames, but the receiver
+    // stopped at the declared length and never looked at them.
+    //
+    // The trap is the whitening boundary. The payload is whitened and the CRC bytes
+    // are not, so a receiver that keeps the LFSR running over them compares the CRC
+    // against a different number on every packet and rejects everything.
+    {
+        for (int len = 1; len <= 64; len++) {
+            std::vector<uint8_t> payload(len);
+            for (int i = 0; i < len; i++)
+                payload[i] = static_cast<uint8_t>(i * 73 + len * 11 + 5);
+
+            // Transmitter: whitened payload nibbles, then the CRC in four raw nibbles.
+            std::vector<uint8_t> nib;
+            uint8_t tx_st = 0xFF;
+            for (int i = 0; i < len; i++) {
+                const uint8_t w = static_cast<uint8_t>(payload[i] ^ lora::whiten_next(tx_st));
+                nib.push_back(w & 0xF);
+                nib.push_back((w >> 4) & 0xF);
+            }
+            const uint16_t crc = lora::payload_crc(payload.data(), len);
+            nib.push_back(crc & 0xF);
+            nib.push_back((crc >> 4) & 0xF);
+            nib.push_back((crc >> 8) & 0xF);
+            nib.push_back((crc >> 12) & 0xF);
+
+            // Receiver: de-whiten while inside the declared length, then take the
+            // trailing bytes as they came off the air.
+            std::vector<uint8_t> got;
+            uint8_t rx_st = 0xFF;
+            for (size_t i = 0; i + 1 < nib.size(); i += 2) {
+                const uint8_t raw = static_cast<uint8_t>((nib[i + 1] << 4) | nib[i]);
+                const bool in_payload = got.size() < static_cast<size_t>(len);
+                got.push_back(in_payload ? static_cast<uint8_t>(raw ^ lora::whiten_next(rx_st))
+                                         : raw);
+            }
+
+            bool same = got.size() == static_cast<size_t>(len) + 2;
+            for (int i = 0; same && i < len; i++) same = got[i] == payload[i];
+            check(same, "payload survives the round trip");
+
+            const uint16_t heard = static_cast<uint16_t>(got[len] | (got[len + 1] << 8));
+            check(lora::payload_crc(got.data(), len) == heard, "CRC of a clean frame agrees");
+
+            // A single flipped bit anywhere in the payload has to show up. One bit in
+            // sixteen slips past a CRC-16 by chance; walking every byte of every length
+            // would catch a check that only looks at part of the frame.
+            for (int i = 0; i < len; i++) {
+                std::vector<uint8_t> bad(got.begin(), got.begin() + len);
+                bad[i] ^= 0x40;
+                check(lora::payload_crc(bad.data(), len) != heard,
+                      "CRC rejects a flipped bit");
+            }
+        }
+
+        // A frame recorded off the air, which is the half that can disagree with us:
+        // a broadcast from a stock node in captures/cap2.cs8, decoded by the reference
+        // decoder. The payload is de-whitened, the two CRC bytes are as they arrived.
+        // Nothing here shares an assumption with the transmitter above - if our idea of
+        // the polynomial, the byte order or the whitening boundary were wrong, this is
+        // where it would show.
+        {
+            const uint8_t frame[30] = {
+                0xFF, 0xFF, 0xFF, 0xFF, 0x9C, 0xD1, 0x83, 0x69, 0xCC, 0x0C,
+                0xAA, 0xF7, 0xA5, 0x0E, 0x00, 0x9C, 0xF8, 0x9A, 0xC5, 0xD0,
+                0x27, 0x44, 0x6E, 0x6D, 0xC8, 0x18, 0x1B, 0x76, 0x2D, 0x1E};
+            const uint16_t sent = 0x63C4;  // bytes C4 63 on the air, low byte first
+            check(lora::payload_crc(frame, 30) == sent,
+                  "CRC of a frame recorded off the air matches the one it carried");
+        }
+
+        // And the boundary itself: de-whitening the CRC bytes too, which is the way to
+        // get this wrong, must not accidentally still pass.
+        const uint8_t payload[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+        const uint16_t crc = lora::payload_crc(payload, 8);
+        uint8_t st = 0xFF;
+        for (int i = 0; i < 8; i++) lora::whiten_next(st);  // LFSR after the payload
+        const uint8_t w_lo = static_cast<uint8_t>((crc & 0xFF) ^ lora::whiten_next(st));
+        const uint8_t w_hi = static_cast<uint8_t>(((crc >> 8) & 0xFF) ^ lora::whiten_next(st));
+        check(static_cast<uint16_t>(w_lo | (w_hi << 8)) != crc,
+              "whitening the CRC bytes changes them");
+    }
+
     // ---- recorded off the air ------------------------------------------------
     // A broadcast text from a stock Heltec on LONG_MODERATE (SF11, 125 kHz), 2026-08-26:
     // the demodulator's raw peak bins, read out of the device over the console. The

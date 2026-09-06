@@ -330,6 +330,9 @@ struct MeshPacket {
     float rx_snr{0.0f};
     bool encrypted{false};
     bool decoded{false};
+    // The payload CRC did not match. Kept rather than dropped so a damaged text can
+    // still be shown, marked; nothing a machine acts on unread is taken from it.
+    bool damaged{false};
     uint8_t channel_index{0};  // which of our configured channels it arrived on
 
     std::string text_payload() const {

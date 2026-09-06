@@ -76,6 +76,8 @@ class LoRaProcessor : public BasebandProcessor {
     uint8_t hdr_count_{0};
     uint8_t payload_len_target_{0};  // bytes to collect (from header), 0 = unknown
     bool header_valid_{false};       // last decode_header() checksum result (debug/gate)
+    bool hdr_has_crc_{false};        // header says two CRC bytes follow the payload
+    uint8_t crc_state_{0};           // LoRaPacketMessage::CRC_* for the frame being sent
     // The LoRa header block carries SF-2 nibbles = 5 header + (SF-7) PAYLOAD nibbles.
     // At SF7 there are none (SF-2 == 5); at SF11 the first 4 payload nibbles (2 bytes)
     // live in the header block and MUST be fed to the payload or the whole payload
@@ -457,6 +459,9 @@ class LoRaProcessor : public BasebandProcessor {
     uint8_t decode_header();  // reduced-rate header block -> packet length
     void process_sym_block();
     void feed_nibble(uint8_t nibble);  // nibble -> byte assembly + dewhiten -> payload_buf
+    bool payload_complete() const;       // payload, plus its CRC bytes when declared
+    void check_payload_crc(size_t len);  // sets crc_state_ from payload_buf
+    void send_truncated(size_t min_len);  // a packet that ended early, clamped to its length
     uint8_t lora_whiten_step();
     void reset_rx();
 

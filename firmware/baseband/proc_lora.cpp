@@ -113,6 +113,8 @@ void LoRaProcessor::reset_rx() {
     stored_realign_ = 0;
     hdr_count_ = 0;
     payload_len_target_ = 0;
+    hdr_has_crc_ = false;
+    crc_state_ = 0;
     up_acc_ = 0.0;
     up_cnt_ = 0;
     have_down_ = false;
@@ -141,12 +143,51 @@ void LoRaProcessor::feed_nibble(uint8_t nibble) {
         nibble_lo_ = nibble;
         nibble_lo_valid_ = true;
     } else {
+        const uint8_t raw = static_cast<uint8_t>((nibble << 4) | nibble_lo_);
+        // The two CRC bytes ride at the end of the frame, outside the whitening, so
+        // once the declared payload is complete the LFSR stops and they are kept as
+        // they came off the air. De-whitening them would compare the CRC against a
+        // different number on every packet and fail all of them.
+        const bool in_payload = !payload_len_target_ || decoded_len_ < payload_len_target_;
         const uint8_t byte_val =
-            static_cast<uint8_t>(((nibble << 4) | nibble_lo_) ^ lora_whiten_step());
+            in_payload ? static_cast<uint8_t>(raw ^ lora_whiten_step()) : raw;
         if (decoded_len_ < MAX_PAYLOAD)
             payload_buf[decoded_len_++] = byte_val;
         nibble_lo_valid_ = false;
     }
+}
+
+// A packet that ended before its length was reached: send what was assembled, but
+// never more than the header said the payload would be. Anything past that point is
+// the CRC, which is not payload - handing it up would reach the decoder as a trailing
+// junk byte. If the CRC did arrive after all, it is checked here too.
+void LoRaProcessor::send_truncated(size_t min_len) {
+    size_t n = decoded_len_;
+    if (payload_len_target_ && n > payload_len_target_) n = payload_len_target_;
+    if (n < min_len) return;
+    check_payload_crc(n);
+    send_packet(payload_buf.data(), n);
+}
+
+// True once the payload and, when the header declares one, its two CRC bytes have
+// been assembled. The receiver used to stop at the declared length and step over the
+// CRC without reading it, which is why no frame was ever checked.
+bool LoRaProcessor::payload_complete() const {
+    size_t need = static_cast<size_t>(payload_len_target_) + (hdr_has_crc_ ? 2u : 0u);
+    if (need > MAX_PAYLOAD) need = MAX_PAYLOAD;
+    return decoded_len_ >= need;
+}
+
+// Compare the trailing bytes against the CRC of the payload. Both sit in payload_buf:
+// the payload de-whitened, the CRC as received, low byte first.
+void LoRaProcessor::check_payload_crc(size_t len) {
+    crc_state_ = LoRaPacketMessage::CRC_UNCHECKED;
+    if (!hdr_has_crc_ || len < 1) return;
+    if (static_cast<size_t>(decoded_len_) < len + 2) return;  // trailing bytes never arrived
+    const uint16_t want =
+        static_cast<uint16_t>(payload_buf[len] | (payload_buf[len + 1] << 8));
+    const uint16_t have = lora::payload_crc(payload_buf.data(), static_cast<int>(len));
+    crc_state_ = (have == want) ? LoRaPacketMessage::CRC_OK : LoRaPacketMessage::CRC_BAD;
 }
 
 void LoRaProcessor::process_sym_block() {
@@ -218,6 +259,9 @@ uint8_t LoRaProcessor::decode_header() {
     uint8_t c4, clo;
     lora::header_checksum(h0, h1, h2, &c4, &clo);
     header_valid_ = ((nib[3] & 1) == c4 && (nib[4] & 0xF) == clo);
+    // Bit 0 of the third nibble says a payload CRC follows the payload. Meshtastic
+    // always sets it; honouring the flag keeps the check off frames that carry none.
+    hdr_has_crc_ = lora::header_has_crc(h2);
     {  // Block length for the payload that follows, from this header's own CR field.
         const int hdr_cr = lora::header_coding_rate(h2);
         rx_cw_len_ = (hdr_cr >= 1 && hdr_cr <= 4) ? static_cast<uint8_t>(4 + hdr_cr)
@@ -364,7 +408,7 @@ void LoRaProcessor::process_one_symbol() {
                 if (last_peak_mag_ > ref_peak_mag_) ref_peak_mag_ = last_peak_mag_;
                 if (ref_peak_mag_ > 0.0f && last_peak_mag_ < ref_peak_mag_ * 0.10f) {
                     if (++weak_sym_count_ >= 3) {
-                        if (decoded_len_ >= 4) send_packet(payload_buf.data(), decoded_len_);
+                        send_truncated(4);
                         reset_rx();
                         return;
                     }
@@ -377,7 +421,7 @@ void LoRaProcessor::process_one_symbol() {
             if (near_zero_up) {
                 new_pre_run_++;
                 if (new_pre_run_ >= NEW_PRE_DETECT) {
-                    if (decoded_len_ >= 4) send_packet(payload_buf.data(), decoded_len_);
+                    send_truncated(4);
                     reset_rx();
                     return;
                 }
@@ -397,8 +441,9 @@ void LoRaProcessor::process_one_symbol() {
                 process_sym_block();
                 sym_in_block_ = 0;
                 // Stop at the header-declared length (the rest is CRC + trailing).
-                if (payload_len_target_ && decoded_len_ >= payload_len_target_) {
-                    send_packet(payload_buf.data(), payload_len_target_);
+                if (payload_len_target_ && payload_complete()) {
+                    check_payload_crc(payload_len_target_);
+                                send_packet(payload_buf.data(), payload_len_target_);
                     reset_rx();
                     return;
                 }
@@ -406,7 +451,7 @@ void LoRaProcessor::process_one_symbol() {
 
             payload_sym_count_++;
             if (payload_sym_count_ >= PAYLOAD_SYM_LIMIT) {
-                if (decoded_len_ >= 4) send_packet(payload_buf.data(), decoded_len_);
+                send_truncated(4);
                 reset_rx();
             }
             break;
@@ -591,8 +636,8 @@ void LoRaProcessor::execute(const buffer_c8_t& buffer) {
             // stream cipher) and protobuf tolerate a cut tail, so the M0 still recovers
             // the name from the partial.  Short packets finish via the length/weak-sym
             // paths (state already HUNT here), so this never double-sends them.
-            if (rx_state_ == RxState::PAYLOAD && decoded_len_ >= 20)
-                send_packet(payload_buf.data(), decoded_len_);
+            if (rx_state_ == RxState::PAYLOAD)
+                send_truncated(20);
             reset_rx();
             phase_ = RxPhase::ACQUIRE;
             read_idx_ = write_idx_;  // discard stale; re-acquire fresh
@@ -681,6 +726,7 @@ void LoRaProcessor::set_rx_busy(bool busy) {
 void LoRaProcessor::send_packet(const uint8_t* data, size_t len) {
     LoRaPacketMessage msg{};
     msg.length = static_cast<uint8_t>(std::min(len, sizeof(msg.data)));
+    msg.crc_state = crc_state_;
     for (size_t i = 0; i < msg.length; i++) msg.data[i] = data[i];
     // Approximate RSSI (dBm) from the packet's peak dechirp power. ref_peak_mag_
     // is |peak FFT bin|^2, so 10*log10 gives dB. log10 via a cheap IEEE-754
@@ -1234,7 +1280,7 @@ bool LoRaProcessor::sf11_try_decode() {
                         if (sym_in_block_ >= rx_cw_len_) {
                             process_sym_block();
                             sym_in_block_ = 0;
-                            if (payload_len_target_ && decoded_len_ >= payload_len_target_) {
+                            if (payload_len_target_ && payload_complete()) {
 #if SF11_DEBUG
                                 {  // dump first 6 payload bytes + drop flag (miss delta since FINE start)
                                     uint16_t dmiss = (uint16_t)(shared_memory.m4_buffer_missed - sf11_miss0_);
@@ -1244,6 +1290,7 @@ bool LoRaProcessor::sf11_try_decode() {
                                     send_packet(pm, 8);
                                 }
 #endif
+                                check_payload_crc(payload_len_target_);
                                 send_packet(payload_buf.data(), payload_len_target_);
                                 sf11_reset();
                                 return true;
@@ -1675,7 +1722,7 @@ void LoRaProcessor::sf11_consume() {
         if (sym_in_block_ >= rx_cw_len_) {
             process_sym_block();
             sym_in_block_ = 0;
-            if (payload_len_target_ && decoded_len_ >= payload_len_target_) {
+            if (payload_len_target_ && payload_complete()) {
 #if SF11_DEBUG
                 {  // streamed-payload dump: drop flag + first 6 bytes
                     uint16_t dmiss = (uint16_t)(shared_memory.m4_buffer_missed - sf11_miss0_);
@@ -1685,13 +1732,14 @@ void LoRaProcessor::sf11_consume() {
                     send_packet(pm, 8);
                 }
 #endif
-                send_packet(payload_buf.data(), payload_len_target_);
+                check_payload_crc(payload_len_target_);
+                                send_packet(payload_buf.data(), payload_len_target_);
                 sf11_reset();
                 return;
             }
         }
         if (++sf11_pay_have_ >= PAYLOAD_SYM_LIMIT) {
-            if (decoded_len_ >= 4) send_packet(payload_buf.data(), decoded_len_);
+            send_truncated(4);
             sf11_reset();
         }
     }

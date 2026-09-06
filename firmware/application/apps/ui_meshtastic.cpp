@@ -2519,7 +2519,10 @@ void MeshtasticChatView::on_packet(const MeshPacket& pkt) {
                                           ? "<c" + to_string_dec_uint(pkt.channel_index) + "> "
                                           : "");
     const std::string who = peer_label(ne, pkt.header.from);
-    const std::string line = stamp() + ch_tag + who + (who.empty() ? "" : ": ") + m.text;
+    // A text whose payload CRC failed is shown rather than dropped, because one wrong
+    // character still reads - but it is never passed off as sound.
+    const std::string line = stamp() + (pkt.damaged ? "[?] " : "") + ch_tag + who +
+                             (who.empty() ? "" : ": ") + m.text;
     // A node the user gave a colour gets a square at the left edge, like the delivery
     // dots on our own messages.
     const uint8_t colour = (ne && ne->colour) ? static_cast<uint8_t>(8 + ne->colour) : 0;
@@ -4633,7 +4636,7 @@ MeshRadioPageView::MeshRadioPageView(NavigationView& nav, MeshSettings& cfg, Mes
     add_children({&labels_, &field_region_, &field_preset_, &field_hops_, &field_cr_,
                   &button_freq_, &field_slot_, &field_nodeinfo_,
                   &check_mqtt_, &check_ignore_mqtt_, &field_txpwr_, &field_txdb_,
-                  &text_whip_});
+                  &field_crc_, &text_whip_});
     update_whip();
 
     field_cr_.set_by_value(cfg_.coding_rate);
@@ -4762,6 +4765,12 @@ MeshRadioPageView::MeshRadioPageView(NavigationView& nav, MeshSettings& cfg, Mes
 
     check_ignore_mqtt_.set_value(cfg_.ignore_mqtt);
     check_ignore_mqtt_.on_select = [this](Checkbox&, bool v) { cfg_.ignore_mqtt = v; changed(); };
+
+    field_crc_.set_by_value(cfg_.crc_policy);
+    field_crc_.on_change = [this](size_t, OptionsField::value_t v) {
+        cfg_.crc_policy = static_cast<uint8_t>(v);
+        changed();
+    };
 }
 
 const uint8_t MeshPrivacyPageView::RAND_BIT[MeshPrivacyPageView::NBITS] = {
@@ -5053,6 +5062,7 @@ const SettingDef SETTING_DEFS[] = {
     {"niv_min"sv, offsetof(MeshSettings, nodeinfo_min), K::U32},
     {"nbr_min"sv, offsetof(MeshSettings, nbr_min), K::U32},
     {"ign_mqtt"sv, offsetof(MeshSettings, ignore_mqtt), K::BOOL},
+    {"crcpol"sv, offsetof(MeshSettings, crc_policy), K::U8},
     {"sf_en"sv, offsetof(MeshSettings, sf_enabled), K::BOOL},
     {"sf_max"sv, offsetof(MeshSettings, sf_max), K::U32},
     {"sf_ttl"sv, offsetof(MeshSettings, sf_ttl_min), K::U32},
@@ -6061,7 +6071,8 @@ void MeshtasticView::on_lora_packet(const LoRaPacketMessage* msg) {
         msg->data, msg->length,
         msg->rssi,  // approximate dBm from the M4 dechirp peak power
         msg->snr_tenths / 10.0f,
-        uptime_ticks_);
+        uptime_ticks_,
+        msg->crc_state);
 
     // Two announcements per neighbour at most: one when its id is first heard, one when
     // its NodeInfo finally resolves that id to a name (which usually arrives later).
@@ -6158,6 +6169,7 @@ void MeshtasticView::on_timer() {
     router_.set_hop_limit(cfg_.hop_limit);  // keep the Setup hop-limit applied to our TX
     router_.set_ok_to_mqtt(cfg_.mqtt_ok);
     router_.set_ignore_mqtt(cfg_.ignore_mqtt);
+    router_.set_crc_policy(cfg_.crc_policy);
     router_.set_hw_model(cfg_.hw_model);
     router_.set_role(cfg_.node_role);
 
@@ -6347,6 +6359,21 @@ void MeshtasticView::on_timer() {
         }
     }
 
+    // The damaged-frame rate, said out loud now and then. Without it the setting above
+    // is a guess: "text only" quietly throws work away, and nobody can tell whether it
+    // is throwing away one frame in a hundred or one in three. Rarely, and one short
+    // line, because this is a chat and not a log.
+    {
+        const uint32_t n = router_.counters().rx_crc;
+        if (n != crc_bad_seen_ && (crc_bad_seen_ == 0 || (n % 32) == 0)) {
+            crc_bad_seen_ = n;
+            chat_view_.write_console("* crc bad " + to_string_dec_uint(n) + " of " +
+                                     to_string_dec_uint(router_.counters().rx) + "\n");
+        } else {
+            crc_bad_seen_ = n;
+        }
+    }
+
     if (trace_dest_ && !tx_pending_) {
         const uint32_t asker = trace_dest_;
         const uint32_t req_id = trace_req_id_;
@@ -6397,7 +6424,9 @@ void MeshtasticView::on_timer() {
             reply.send_uptime = (cfg_.telemetry.up_mode != 2);
             reply.packets_tx = c.tx;
             reply.packets_rx = c.rx;
-            reply.packets_rx_bad = c.rx_bad;
+            // Frames whose payload CRC failed belong here: this is Meshtastic's own
+            // field for "received, but not sound", and it is what a phone plots.
+            reply.packets_rx_bad = c.rx_bad + c.rx_crc;
             reply.rx_dupe = c.rx_dupe;
             reply.tx_relay = c.tx_relay;
             reply.tx_dropped = c.tx_dropped;

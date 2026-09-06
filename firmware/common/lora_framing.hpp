@@ -247,6 +247,38 @@ inline bool header_has_crc(uint8_t nib2) {
     return nib2 & 1;
 }
 
+// Payload CRC-16 (poly 0x1021, init 0). LoRa runs it over the first len-2 payload
+// bytes and then XORs in the last two, so a short payload still exercises every
+// bit of the register. The two CRC bytes ride at the end of the frame, after the
+// payload and outside the whitening, low byte first.
+//
+// This lived in the transmitter only, where a hardware SX126x confirmed it byte for
+// byte. The receiver never computed it at all: it validated the header checksum,
+// which covers the length and the coding rate, then stopped at the declared length
+// and stepped over these two bytes without looking. So every frame that demodulated
+// was passed up as sound, and a single flipped bit became a mangled name or a
+// position on the wrong continent, with nothing to mark it. Reported from the field
+// by htotoo, whose mesh has enough traffic for damaged frames to be common; a
+// two-node bench in clean air almost never produces one.
+inline uint16_t crc16_step(uint16_t crc, uint8_t b) {
+    for (int i = 0; i < 8; i++) {
+        if (((crc & 0x8000) >> 8) ^ (b & 0x80))
+            crc = static_cast<uint16_t>((crc << 1) ^ 0x1021);
+        else
+            crc = static_cast<uint16_t>(crc << 1);
+        b = static_cast<uint8_t>(b << 1);
+    }
+    return crc;
+}
+
+inline uint16_t payload_crc(const uint8_t* p, int len) {
+    if (len < 1) return 0;
+    uint16_t crc = 0;
+    for (int i = 0; i < len - 2; i++) crc = crc16_step(crc, p[i]);
+    if (len == 1) return static_cast<uint16_t>(crc ^ p[0]);
+    return static_cast<uint16_t>(crc ^ p[len - 1] ^ (p[len - 2] << 8));
+}
+
 }  // namespace lora
 
 #endif /*__LORA_FRAMING_H__*/

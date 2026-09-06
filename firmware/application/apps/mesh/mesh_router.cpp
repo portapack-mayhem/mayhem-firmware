@@ -87,15 +87,32 @@ void MeshRouter::mark_seen(uint32_t from, uint32_t packet_id) {
     seen_head_ = (seen_head_ + 1) % SEEN_CACHE_SIZE;
 }
 
-bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks) {
+bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks,
+                           uint8_t crc_state) {
     last_uptime_ticks_ = uptime_ticks;  // the decrypt path below has no clock of its own
     counters_.rx++;
+
+    // The payload CRC, which until now was never computed. The explicit header carries
+    // a checksum of its own, but that covers the length and the coding rate only, so a
+    // frame with a flipped payload bit passed every test this code made and was handed
+    // up as sound: a mangled name, a position on the wrong continent, an invented
+    // neighbour in the node list, and the whole thing re-flooded to everyone in earshot.
+    // On a two-node bench in clean air almost nothing is damaged, which is why it went
+    // unnoticed here; in a mesh with real traffic a good share of frames arrive broken.
+    // The counter is kept whatever the policy says, so the packet error rate on the
+    // air can be read off even with the checking turned off - a number to argue from
+    // instead of an impression.
+    const bool crc_failed = (crc_state == 2 /* LoRaPacketMessage::CRC_BAD */);
+    if (crc_failed) counters_.rx_crc++;
+    if (crc_failed && crc_policy_ == CRC_DROP) return false;
+    const bool damaged = crc_failed && crc_policy_ != CRC_ACCEPT;
     if (len < PKT_HEADER_SIZE || len > PKT_MAX_SIZE) {
         counters_.rx_bad++;
         return false;
     }
 
     MeshPacket pkt;
+    pkt.damaged = damaged;
     pkt.header = PacketHeader::from_bytes(raw);
     pkt.rx_rssi = rssi;
     pkt.rx_snr = snr;
@@ -153,8 +170,10 @@ bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float sn
     // Nothing here to decode or show - just carry it one hop further for its owner.
     // The caller applies the node's role (a muted or hidden client repeats nothing)
     // before it actually keys the radio, so that check does not belong here.
+    // Relaying a damaged frame spreads the corruption into other people's meshes, and
+    // it cannot be checked again downstream because the CRC travels with the payload.
     if (relay_only)
-        return !mqtt_ignored && pkt.header.hop_limit() > 0;
+        return !damaged && !mqtt_ignored && pkt.header.hop_limit() > 0;
 
     const uint8_t* payload = raw + PKT_HEADER_SIZE;
     const size_t pay_len = len - PKT_HEADER_SIZE;
@@ -166,10 +185,16 @@ bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float sn
             use_channel_key(static_cast<size_t>(ch));  // decrypt with the matched channel's key
             decrypt_decode(pkt, payload, pay_len);
         }
-        if (pkt.decoded)
-            dispatch(pkt, !mqtt_ignored);
-        else
+        if (pkt.decoded) {
+            // A text with one wrong character still reads, so it is shown and marked.
+            // Everything a machine acts on unread is thrown away instead: a corrupted
+            // coordinate is worse than no coordinate, and a corrupted sender id would
+            // enter the node list as a neighbour who does not exist.
+            if (!damaged || pkt.data.portnum == PortNum::TEXT_MESSAGE)
+                dispatch(pkt, !mqtt_ignored);
+        } else {
             counters_.rx_bad++;  // decrypted to something that is not a Data
+        }
     }
 
     // Everything below trusts the frame, so nothing below runs for one we could not
@@ -179,6 +204,11 @@ bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float sn
     // does not exist, for every node in earshot. A frame whose payload decrypts and
     // parses is one whose header survived too.
     if (!pkt.decoded) return false;
+
+    // ...and neither does one whose payload failed its CRC. The sender id sits in the
+    // header, which has no checksum of its own worth the name, so learning a node from
+    // a damaged frame is how the list fills with neighbours nobody can hear.
+    if (damaged) return false;
 
     // Update node DB with signal info. Hops travelled = hop_start - hop_limit
     // (0 for a direct neighbour). The old code used MAX_HOP_LIMIT as the baseline,

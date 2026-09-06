@@ -2044,6 +2044,14 @@ class LoRaPacketMessage : public Message {
     // in the winning bin. The app used to pass a hardcoded zero, so every node in the
     // list reported 0.0 dB whatever the link was really like.
     int16_t snr_tenths{0};
+    // Payload CRC-16 verdict from the demodulator. The explicit header carries its own
+    // checksum, but that covers only the length and the coding rate; this is the only
+    // thing that says the payload itself arrived intact. UNCHECKED means the header
+    // declared no CRC, or the frame ended before its trailing bytes arrived.
+    static constexpr uint8_t CRC_UNCHECKED{0};
+    static constexpr uint8_t CRC_OK{1};
+    static constexpr uint8_t CRC_BAD{2};
+    uint8_t crc_state{CRC_UNCHECKED};
     uint8_t data[MAX_DATA]{};
 };
 

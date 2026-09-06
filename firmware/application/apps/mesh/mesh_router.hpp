@@ -60,7 +60,21 @@ class MeshRouter {
     // Process a raw LoRa PHY payload received from the baseband.
     // Returns true if the packet should be re-broadcast (flooded).
     // Calls on_rx_packet callback for packets delivered to this node.
-    bool on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks);
+    // What to do with a frame whose payload CRC failed. There is no automatic gain
+    // control on this hardware, so a near node can overload the receiver while a far one
+    // is barely heard, and the useful trade between losing packets and showing corrupted
+    // ones changes with the traffic. It is therefore the operator's setting, not ours.
+    enum CrcPolicy : uint8_t {
+        CRC_ACCEPT = 0,  // take everything, as this did before the check existed
+        CRC_TEXT = 1,    // damaged text shown marked; nothing machine-read is taken
+        CRC_DROP = 2,    // a damaged frame goes no further
+    };
+    void set_crc_policy(uint8_t p) { crc_policy_ = p; }
+
+    // crc_state is LoRaPacketMessage::CRC_*; UNCHECKED is treated as sound, since a
+    // header that declares no CRC has nothing to fail.
+    bool on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks,
+                   uint8_t crc_state = 0);
 
     // Build and return a raw LoRa payload for a TX text message.
     // Returns number of bytes written to out_buf (0 on error).
@@ -201,6 +215,7 @@ class MeshRouter {
     struct Counters {
         uint32_t rx{0};          // frames handed up by the demodulator
         uint32_t rx_bad{0};      // of those, malformed or undecodable
+        uint32_t rx_crc{0};      // ...and of those, ones whose payload CRC failed
         uint32_t rx_dupe{0};     // already seen, dropped by the flood cache
         uint32_t tx{0};          // frames accepted for transmission
         uint32_t tx_relay{0};    // of those, someone else's carried one hop further
@@ -244,6 +259,7 @@ class MeshRouter {
     uint32_t local_node_id_{0xDEADBEEF};
     uint32_t packet_counter_{0};
     Counters counters_{};
+    uint8_t crc_policy_{CRC_TEXT};
     uint8_t last_bad_hash_{0};
     uint32_t last_bad_from_{0};
     uint32_t bad_hash_n_{0};

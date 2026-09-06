@@ -219,6 +219,73 @@ int main(int argc, char**) {
           "asks for a response and is not itself one");
     CHECK(tr.data.payload_len == 0, "empty RouteDiscovery: the hops are filled in en route");
 
+    // ---- payload CRC policy --------------------------------------------------
+    // The demodulator's verdict arrives as a plain number (2 = LoRaPacketMessage::
+    // CRC_BAD) so the router pulls in no firmware headers and can be exercised here.
+    // Before this existed every frame that demodulated was treated as sound.
+    {
+        NodeDB db_c{};
+        MeshRouter c{db_c};
+        c.set_local_node(0x11223344, DEFAULT_PSK, sizeof(DEFAULT_PSK));
+        c.set_channel_hash(0x22);
+        c.seed_packet_id(5000);
+
+        MeshPacket seen{};
+        bool got_one = false;
+        b.set_on_packet([&](const MeshPacket& p) { seen = p; got_one = true; });
+
+        uint8_t f[PKT_MAX_SIZE];
+        const uint32_t before = b.counters().rx_crc;
+
+        // The default: a damaged text is still worth reading, so it is shown and
+        // marked - and it goes no further, because relaying it would push the
+        // corruption into other people's meshes.
+        size_t n = c.build_text_tx(f, sizeof(f), "HELLO", 5);
+        got_one = false;
+        bool r = b.on_raw_rx(f, n, -50, 10.0f, 200, 2);
+        CHECK(!r, "damaged: never relayed");
+        CHECK(got_one && seen.text_payload() == "HELLO" && seen.damaged,
+              "damaged text: delivered and marked");
+        CHECK(b.counters().rx_crc == before + 1, "damaged: counted");
+        CHECK(db_c.find(0x6983D19C) == nullptr && db_b.find(0x11223344) == nullptr,
+              "damaged: teaches the node list nothing");
+
+        // A position out of the same frame is thrown away instead. A corrupted
+        // coordinate is worse than no coordinate: it is acted on unread.
+        PositionData pos{};
+        pos.latitude = 55.7558;
+        pos.longitude = 37.6173;
+        pos.valid = true;
+        n = c.build_position_tx(f, sizeof(f), pos);
+        got_one = false;
+        r = b.on_raw_rx(f, n, -50, 10.0f, 201, 2);
+        CHECK(!got_one && !r, "damaged position: dropped, not shown");
+
+        b.set_crc_policy(MeshRouter::CRC_DROP);
+        n = c.build_text_tx(f, sizeof(f), "STRICT", 6);
+        got_one = false;
+        r = b.on_raw_rx(f, n, -50, 10.0f, 202, 2);
+        CHECK(!got_one && !r, "drop: a damaged text does not arrive at all");
+
+        // And the old behaviour is still available to whoever wants it.
+        b.set_crc_policy(MeshRouter::CRC_ACCEPT);
+        n = c.build_text_tx(f, sizeof(f), "RAW", 3);
+        got_one = false;
+        r = b.on_raw_rx(f, n, -50, 10.0f, 203, 2);
+        CHECK(got_one && seen.text_payload() == "RAW" && !seen.damaged,
+              "show all: a damaged text arrives unmarked");
+        CHECK(r, "show all: relayed like any other");
+        CHECK(b.counters().rx_crc == before + 4,
+              "the counter runs whatever the policy says");
+
+        b.set_crc_policy(MeshRouter::CRC_TEXT);
+        n = c.build_text_tx(f, sizeof(f), "GOOD", 4);
+        got_one = false;
+        r = b.on_raw_rx(f, n, -50, 10.0f, 204, 1);
+        CHECK(got_one && seen.text_payload() == "GOOD" && !seen.damaged && r,
+              "a sound frame passes untouched");
+    }
+
     printf("\n%s\n", fails ? "FAILURES" : "ALL PASS");
     return fails;
 }

@@ -55,27 +55,6 @@ uint8_t LoRaTXProcessor::whiten_step() {
 // receiver; see the file header for where the format comes from. It used to sit here in full, and a second copy sat in proc_lora.cpp;
 // keeping the two in step by hand is what failed when LDRO arrived - this side
 // computed the flag and then coded the payload at full rate anyway.
-namespace {
-
-// LoRa payload CRC-16 (poly 0x1021, init 0, over len-2 bytes, XOR with last 2 bytes).
-inline uint16_t crc16_step(uint16_t crc, uint8_t b) {
-    for (int i = 0; i < 8; i++) {
-        if (((crc & 0x8000) >> 8) ^ (b & 0x80))
-            crc = static_cast<uint16_t>((crc << 1) ^ 0x1021);
-        else
-            crc = static_cast<uint16_t>(crc << 1);
-        b = static_cast<uint8_t>(b << 1);
-    }
-    return crc;
-}
-inline uint16_t mesh_crc(const uint8_t* p, int len) {
-    uint16_t crc = 0;
-    for (int i = 0; i < len - 2; i++) crc = crc16_step(crc, p[i]);
-    return static_cast<uint16_t>(crc ^ p[len - 1] ^ (p[len - 2] << 8));
-}
-
-}  // namespace
-
 // --- Frame builder ------------------------------------------------------------
 void LoRaTXProcessor::push_sym(uint16_t chip, bool up, bool quarter) {
     if (frame_len_ < MAX_FRAME_SYMS)
@@ -126,7 +105,7 @@ void LoRaTXProcessor::build_frame(const uint8_t* payload, size_t payload_len) {
         nib[nn++] = wb & 0xF;
         nib[nn++] = (wb >> 4) & 0xF;
     }
-    const uint16_t crc = mesh_crc(payload, len);
+    const uint16_t crc = lora::payload_crc(payload, len);
     nib[nn++] = crc & 0xF;
     nib[nn++] = (crc >> 4) & 0xF;
     nib[nn++] = (crc >> 8) & 0xF;
