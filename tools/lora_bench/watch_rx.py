@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """Watch the Heltec RX-monitor and announce every PortaPack frame it decodes.
 
-Usage:  ~/.venv/mesh/bin/python tools/lora_bench/watch_rx.py
+Usage:  python3 tools/lora_bench/watch_rx.py
 Then open the Meshtastic app on the PortaPack (it broadcasts NodeInfo on launch
 and every ~minute). Each decoded frame prints here. crc=OK = full success.
 Ctrl-C to stop.
 """
-import glob, sys, time
+import sys, time
 import serial
+from ports import meshtastic_port
 
-ports = [p for p in glob.glob('/dev/cu.usbmodem*') if 'Transceiver' not in p]
-if not ports:
-    print("Meshtastic node not found. Plug it in, or set MESHTASTIC_PORT=/dev/...")
-    sys.exit(1)
-port = ports[0]
-print(f"Listening on {port} @115200 — open the Meshtastic app on the PortaPack now.")
+# Through the shared helper rather than a glob of its own: that one only knew the
+# macOS device names, so this script was the one piece of the bench that did not run
+# on Linux.
+port = meshtastic_port()
+print(f"Listening on {port} @115200, open the Meshtastic app on the PortaPack now.")
 print("Waiting for frames (Ctrl-C to stop)...\n")
 
 s = serial.Serial(port, 115200, timeout=0.3)
