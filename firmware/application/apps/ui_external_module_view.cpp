@@ -22,6 +22,7 @@
 #include "ui_external_module_view.hpp"
 #include "portapack.hpp"
 #include "ui_standalone_view.hpp"
+#include "theme.hpp"
 
 #include "i2cdevmanager.hpp"
 #include "i2cdev_ppmod.hpp"
@@ -114,7 +115,7 @@ void ExternalModuleView::on_tick_second() {
                 break;
         }
 
-        menu_apps.add_item({itemText, ui::Color::grey(), nullptr, [](KeyEvent) {}});
+        menu_apps.add_item({itemText, ui::Theme::getInstance()->fg_light->foreground, nullptr, [](KeyEvent) {}});
     }
 
     shown_count_ = (int32_t)device_info->application_count;
