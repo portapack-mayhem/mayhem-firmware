@@ -49,12 +49,7 @@ class ExternalModuleView : public View {
                       &text_name,
                       &text_version,
                       &text_number_apps,
-                      &text_app1_name,
-                      &text_app2_name,
-                      &text_app3_name,
-                      &text_app4_name,
-                      &text_app5_name,
-                      &dummy});
+                      &menu_apps});
 
         text_header.set("No module connected");
 
@@ -77,15 +72,14 @@ class ExternalModuleView : public View {
     Text text_version{{24, 48, 200, 16}};
     Text text_number_apps{{24, 64, 200, 16}};
 
-    Text text_app1_name{{24, 96, 200, 16}};
-    Text text_app2_name{{24, 112, 200, 16}};
-    Text text_app3_name{{24, 128, 200, 16}};
-    Text text_app4_name{{24, 144, 200, 16}};
-    Text text_app5_name{{24, 160, 200, 16}};
+    // Scrollable, unlimited app list.
+    MenuView menu_apps{
+        {0, 84, screen_width, screen_height - 84},
+        true};
 
-    Button dummy{
-        {screen_width, 0, 0, 0},
-        ""};
+    // Rebuild the list only when the reported app count changes, so the user
+    // can scroll without it resetting every second.
+    int32_t shown_count_{-1};
 
     SignalToken signal_token_tick_second{};
 
