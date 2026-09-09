@@ -79,15 +79,18 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     // the signal is below the user threshold. Carrier-based, so it keys on the
     // AM carrier (e.g. airband/ATC) rather than on audio-band noise.
     if (squelch_level > 0 && channel_out.count > 0) {
-        float acc = 0.0f;
+        uint64_t sum_mag_sq = 0;
         for (size_t i = 0; i < channel_out.count; i++) {
-            const float re = channel_out.p[i].real();
-            const float im = channel_out.p[i].imag();
-            acc += re * re + im * im;
+            const int32_t re = channel_out.p[i].real();
+            const int32_t im = channel_out.p[i].imag();
+            sum_mag_sq += static_cast<uint64_t>(re) * re + static_cast<uint64_t>(im) * im;
         }
-        const float mean_power = acc / (float)channel_out.count;
-        // dBFS relative to int16 full-scale power (32768^2 -> ~90.31 dB).
-        const float level_dbfs = (mean_power > 0.0f) ? (10.0f * log10f(mean_power) - 90.31f) : -200.0f;
+
+        constexpr float full_scale_mag2 = 32768.0f * 32768.0f;
+        const float mean_mag2_norm =
+            static_cast<float>(sum_mag_sq) / (static_cast<float>(channel_out.count) * full_scale_mag2);
+        const float level_dbfs = (mean_mag2_norm > 0.0f) ? mag2_to_dbv_norm(mean_mag2_norm) : -200.0f;
+
         // Map squelch_level 1..99 to a threshold of -80..-20 dBFS.
         const float threshold_dbfs = -80.0f + (squelch_level - 1) * (60.0f / 98.0f);
         if (level_dbfs < threshold_dbfs) {
