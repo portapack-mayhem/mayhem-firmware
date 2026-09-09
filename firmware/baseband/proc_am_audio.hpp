@@ -67,6 +67,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
     bool configured{false};
+    uint8_t squelch_level{0};  // AM channel-power squelch threshold (0 = off), SDR++-style
     size_t spectrum_interval_samples{0};
     size_t spectrum_samples{0};
     bool spectrum_capture_active{false};

@@ -43,8 +43,8 @@ struct AMConfig {
     const iir_biquad_config_t audio_12k_iir_filter_config;  // added to handle two var IIR filter types : 300 hpf(as before) , 1500Hz lpf for Wefax.
     const size_t spectrum_decimation_factor;
 
-    void apply() const;
-    void apply(AMConfigureMessage::Zoom_waterfall spectrum_zoom) const;
+    void apply(uint8_t squelch_level = 0) const;
+    void apply(AMConfigureMessage::Zoom_waterfall spectrum_zoom, uint8_t squelch_level = 0) const;
 };
 
 struct NBFMConfig {

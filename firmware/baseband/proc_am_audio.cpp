@@ -27,6 +27,7 @@
 #include "event_m4.hpp"
 
 #include <array>
+#include <cmath>
 #include "dsp_hilbert.hpp"
 
 // Phase 2: Constructor to start threads AFTER object is fully initialized
@@ -72,6 +73,29 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
     feed_channel_stats(channel_out);
 
     auto audio = demodulate(channel_out);  // now 3 AM demodulation types : demod_am, demod_ssb, demod_ssb_fm (for Wefax)
+
+    // SDR++-style power squelch on the complex channel signal (opt-in; 0 = off).
+    // Measures mean channel power, converts to dBFS, and mutes the audio when
+    // the signal is below the user threshold. Carrier-based, so it keys on the
+    // AM carrier (e.g. airband/ATC) rather than on audio-band noise.
+    if (squelch_level > 0 && channel_out.count > 0) {
+        float acc = 0.0f;
+        for (size_t i = 0; i < channel_out.count; i++) {
+            const float re = channel_out.p[i].real();
+            const float im = channel_out.p[i].imag();
+            acc += re * re + im * im;
+        }
+        const float mean_power = acc / (float)channel_out.count;
+        // dBFS relative to int16 full-scale power (32768^2 -> ~90.31 dB).
+        const float level_dbfs = (mean_power > 0.0f) ? (10.0f * log10f(mean_power) - 90.31f) : -200.0f;
+        // Map squelch_level 1..99 to a threshold of -80..-20 dBFS.
+        const float threshold_dbfs = -80.0f + (squelch_level - 1) * (60.0f / 98.0f);
+        if (level_dbfs < threshold_dbfs) {
+            for (size_t i = 0; i < audio.count; i++)
+                audio.p[i] = 0.0f;
+        }
+    }
+
     audio_compressor.execute_in_place(audio);
     audio_output.write(audio);
 }
@@ -151,6 +175,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
     spectrum_interval_samples =
         decim_0_output_fs / spectrum_rate_hz;
     audio_output.configure(message.audio_hpf_lpf_config);  // hpf in all AM demod modes (AM-6K/9K, USB/LSB,DSB), except Wefax (lpf there).
+    squelch_level = message.squelch_level;
 
     configured = true;
 }
