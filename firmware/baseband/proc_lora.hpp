@@ -458,9 +458,9 @@ class LoRaProcessor : public BasebandProcessor {
     void process_one_symbol();
     uint8_t decode_header();  // reduced-rate header block -> packet length
     void process_sym_block();
-    void feed_nibble(uint8_t nibble);  // nibble -> byte assembly + dewhiten -> payload_buf
-    bool payload_complete() const;       // payload, plus its CRC bytes when declared
-    void check_payload_crc(size_t len);  // sets crc_state_ from payload_buf
+    void feed_nibble(uint8_t nibble);     // nibble -> byte assembly + dewhiten -> payload_buf
+    bool payload_complete() const;        // payload, plus its CRC bytes when declared
+    void check_payload_crc(size_t len);   // sets crc_state_ from payload_buf
     void send_truncated(size_t min_len);  // a packet that ended early, clamped to its length
     uint8_t lora_whiten_step();
     void reset_rx();

@@ -443,7 +443,7 @@ void LoRaProcessor::process_one_symbol() {
                 // Stop at the header-declared length (the rest is CRC + trailing).
                 if (payload_len_target_ && payload_complete()) {
                     check_payload_crc(payload_len_target_);
-                                send_packet(payload_buf.data(), payload_len_target_);
+                    send_packet(payload_buf.data(), payload_len_target_);
                     reset_rx();
                     return;
                 }
@@ -1733,7 +1733,7 @@ void LoRaProcessor::sf11_consume() {
                 }
 #endif
                 check_payload_crc(payload_len_target_);
-                                send_packet(payload_buf.data(), payload_len_target_);
+                send_packet(payload_buf.data(), payload_len_target_);
                 sf11_reset();
                 return;
             }

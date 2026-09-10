@@ -5800,8 +5800,8 @@ void MeshtasticView::resend_lora_config() {
 // The firmware's own global cap (config_tx_gain_max_db) and its TX-disable switch apply
 // on top of whatever this returns: the operator's system-wide choice always wins.
 uint8_t MeshtasticView::active_tx_gain() const {
-    constexpr uint8_t GAIN_MAX = 47;
-    if (cfg_.tx_pwr_mode == 1) return GAIN_MAX;  // max
+    constexpr uint8_t GAIN_MAX = MESH_TX_GAIN_MAX;  // 47 on a One, 31 on a Pro
+    if (cfg_.tx_pwr_mode == 1) return GAIN_MAX;     // max
     if (cfg_.tx_pwr_mode == 2) return (cfg_.tx_pwr_db > GAIN_MAX) ? GAIN_MAX : cfg_.tx_pwr_db;
 
     int8_t most = -128;  // most permissive region

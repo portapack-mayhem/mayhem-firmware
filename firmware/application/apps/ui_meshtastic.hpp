@@ -417,6 +417,17 @@ struct ChatDisplay {
     uint32_t tx_retry_s{12};
 };
 
+// The top of the transmitter's gain scale, which is the chip's own and differs between
+// the boards: the MAX2837 on the HackRF One takes 0-47, the MAX2831 on the Pro takes
+// 0-31 and its driver clips anything above that. With 47 written in, "Region" stepped
+// down from a ceiling the Pro does not have, so on a Pro any region less than 16 dB
+// below the most permissive one still transmitted at full gain.
+#ifdef PRALINE
+constexpr uint8_t MESH_TX_GAIN_MAX = 31;
+#else
+constexpr uint8_t MESH_TX_GAIN_MAX = 47;
+#endif
+
 // ---- Everything this app remembers -----------------------------------------
 // One structure, for the same reason ChatDisplay above is one: the settings screens
 // used to take their share of it as separate reference parameters, and the last of
@@ -451,15 +462,15 @@ struct MeshSettings {
     // LoRa settings for the same reason. Ours is honest about it: "preset" is default.
     uint8_t coding_rate{0};
     // Transmit power, and whose choice it is. HackRF's gain scale is NOT calibrated in
-    // dBm - 47 is a position on a control, not a figure - so the app does not pretend to
-    // enforce a legal limit. What "Region" does is honest and stated: it steps the gain
-    // down by as many dB as the chosen region's limit sits below the most permissive one
-    // in the table. "Max" asks for everything the radio has. Either way the firmware's
-    // own global cap (config_tx_gain_max_db) still applies on top - this setting cannot
-    // exceed what the operator has already allowed system-wide.
-    uint8_t tx_pwr_mode{0};     // 0 = region, 1 = max, 2 = custom
-    uint8_t tx_pwr_db{47};      // used when custom
-    uint32_t nodeinfo_min{15};  // NodeInfo broadcast interval, minutes (Meshtastic default 15)
+    // dBm - the top of it is a position on a control, not a figure - so the app does
+    // not pretend to enforce a legal limit. What "Region" does is honest and stated: it
+    // steps the gain down by as many dB as the chosen region's limit sits below the most
+    // permissive one in the table. "Max" asks for everything the radio has. Either way
+    // the firmware's own global cap (config_tx_gain_max_db) still applies on top - this
+    // setting cannot exceed what the operator has already allowed system-wide.
+    uint8_t tx_pwr_mode{0};               // 0 = region, 1 = max, 2 = custom
+    uint8_t tx_pwr_db{MESH_TX_GAIN_MAX};  // used when custom
+    uint32_t nodeinfo_min{15};            // NodeInfo broadcast interval, minutes (Meshtastic default 15)
     // NeighborInfo broadcast interval, minutes. Meshtastic's default is six hours and
     // it refuses anything under four - the packet is heavy and the picture it draws
     // changes slowly. 0 = never.
@@ -469,7 +480,7 @@ struct MeshSettings {
     // The middle position is the default: a damaged text is still worth reading, a
     // damaged coordinate is not worth having.
     uint8_t crc_policy{1};
-    bool sf_enabled{false};   // Store and Forward server
+    bool sf_enabled{false};  // Store and Forward server
     // Both of these buy comfort with memory, and the memory is genuinely short: the
     // app leaves about two kilobytes of contiguous heap, and the on-screen keyboard
     // wants 4848 bytes of it in one piece. Raise them if your traffic needs it and you
@@ -1604,7 +1615,7 @@ class MeshRadioPageView : public MeshSettingsPage {
     // Whose choice the transmit power is - see MeshSettings::tx_pwr_mode for why this
     // informs rather than enforces.
     OptionsField field_txpwr_{{8 * 8, S7 + 22}, 6, {{"Region", 0}, {"Max", 1}, {"Custom", 2}}};
-    NumberField field_txdb_{{15 * 8, S7 + 22}, 2, {0, 47}, 1, ' '};
+    NumberField field_txdb_{{15 * 8, S7 + 22}, 2, {0, MESH_TX_GAIN_MAX}, 1, ' '};
     // What to do with a frame whose payload CRC fails. Not a yes or no, because
     // there is no automatic gain control here: a near node can overload the receiver
     // while a far one is barely heard, so the useful trade between losing packets and
@@ -2247,7 +2258,7 @@ class MeshtasticView : public View {
     // A traceroute request waiting to be answered from on_timer, held exactly like the
     // metrics one below: assembling and encrypting a packet inside the RX callback is
     // far more stack than that callback has.
-    uint32_t crc_bad_seen_{0};  // last damaged-frame count announced in chat
+    uint32_t crc_bad_seen_{0};   // last damaged-frame count announced in chat
     uint32_t bad_hash_seen_{0};  // last reported channel-filter rejection count
     uint32_t trace_dest_{0};
     uint32_t trace_req_id_{0};

@@ -87,8 +87,7 @@ void MeshRouter::mark_seen(uint32_t from, uint32_t packet_id) {
     seen_head_ = (seen_head_ + 1) % SEEN_CACHE_SIZE;
 }
 
-bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks,
-                           uint8_t crc_state) {
+bool MeshRouter::on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks, uint8_t crc_state) {
     last_uptime_ticks_ = uptime_ticks;  // the decrypt path below has no clock of its own
     counters_.rx++;
 

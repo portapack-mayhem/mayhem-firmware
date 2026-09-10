@@ -73,8 +73,7 @@ class MeshRouter {
 
     // crc_state is LoRaPacketMessage::CRC_*; UNCHECKED is treated as sound, since a
     // header that declares no CRC has nothing to fail.
-    bool on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks,
-                   uint8_t crc_state = 0);
+    bool on_raw_rx(const uint8_t* raw, size_t len, int8_t rssi, float snr, uint32_t uptime_ticks, uint8_t crc_state = 0);
 
     // Build and return a raw LoRa payload for a TX text message.
     // Returns number of bytes written to out_buf (0 on error).
