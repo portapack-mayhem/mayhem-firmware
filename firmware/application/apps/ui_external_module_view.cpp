@@ -73,8 +73,12 @@ void ExternalModuleView::on_tick_second() {
     text_version.set("Version: " + std::to_string(device_info->module_version));
     text_number_apps.set("No# Apps: " + std::to_string(device_info->application_count));
 
-    // Only rebuild the (scrollable) list when the app count changed.
-    if ((int32_t)device_info->application_count == shown_count_) {
+    // Only skip the rebuild when the app count is unchanged AND the current
+    // list is complete. If some getStandaloneAppInfo() calls failed transiently
+    // (e.g. an I2C read glitch) the menu holds fewer items than reported, so we
+    // rebuild to let the list self-heal on a later tick.
+    if ((int32_t)device_info->application_count == shown_count_ &&
+        menu_apps.item_count() == (size_t)device_info->application_count) {
         return;
     }
 
