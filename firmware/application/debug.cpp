@@ -31,6 +31,9 @@
 #include "portapack.hpp"
 #include "string_format.hpp"
 #include "irq_controls.hpp"
+
+// Set by operator new when an allocation fails (common/chibios_cpp.cpp).
+extern size_t g_oom_size;
 #include "file_path.hpp"
 
 #include "gpio.hpp"
@@ -87,6 +90,14 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
 
     painter.draw_string({15, 55}, *Theme::getInstance()->bg_darkest, "Hint: ");
     painter.draw_string({15 + 8 * 8, 55}, *Theme::getInstance()->bg_darkest, hint);
+
+    // An allocation failure leaves the two numbers that explain it: what was asked
+    // for and what was left. Without them "Out of Memory" is a photograph of a wall.
+    if (g_oom_size) {
+        painter.draw_string({15, 71}, *Theme::getInstance()->bg_darkest,
+                            "want " + to_string_dec_uint(g_oom_size) +
+                                " free " + to_string_dec_uint(chCoreStatus()));
+    }
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint) {

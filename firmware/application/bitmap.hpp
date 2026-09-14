@@ -833,6 +833,40 @@ static constexpr Bitmap bitmap_icon_brightness{
     {16, 16},
     bitmap_icon_brightness_data};
 
+// Meshtastic logo (16x16, 1bpp): "/" slash (3px) + "^" chevron (3px)
+// Bit n in byte0 = col n (0-7 left), bit n in byte1 = col n+8 (8-15 right)
+// Row visualisation (X=ON):
+//  0: ................   8: XXX.....XXX.XXX.
+//  1: .........XXX....   9: XXX....XXX..XXX.
+//  2: ...XXX...XXX....  10: XXX....XXX..XXX.
+//  3: ..XXX....XXXXX..  11: XXX....XXX..XXX.
+//  4: ..XXX....XXXXX..  12: XXX....XXX..XXX.
+//  5: ..XXX....XXXXX..  13: ................
+//  6: .XXX....XXX.XXX.  14: ................
+//  7: .XXX....XXX.XXX.  15: ................
+// Chat bubble with three dots + tail — reads as "mesh messaging" at 16px.
+static constexpr uint8_t bitmap_icon_meshtastic_data[] = {
+    0x00, 0x00,  // row  0
+    0xFC, 0x3F,  // row  1
+    0xFE, 0x7F,  // row  2
+    0xFE, 0x7F,  // row  3
+    0xFE, 0x7F,  // row  4
+    0x66, 0x66,  // row  5  (three dots)
+    0x66, 0x66,  // row  6
+    0xFE, 0x7F,  // row  7
+    0xFE, 0x7F,  // row  8
+    0xFE, 0x7F,  // row  9
+    0xFC, 0x3F,  // row 10
+    0x3C, 0x00,  // row 11  (tail)
+    0x1C, 0x00,  // row 12
+    0x0C, 0x00,  // row 13
+    0x00, 0x00,  // row 14
+    0x00, 0x00,  // row 15
+};
+static constexpr Bitmap bitmap_icon_meshtastic{
+    {16, 16},
+    bitmap_icon_meshtastic_data};
+
 static constexpr uint8_t bitmap_icon_btle_data[] = {
     0xE0,
     0x03,

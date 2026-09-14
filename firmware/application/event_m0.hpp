@@ -62,6 +62,7 @@ class EventDispatcher {
     static void request_stop();
 
     static void set_display_sleep(const bool sleep);
+    static bool is_display_sleep() { return display_sleep; }
 
     static void charge_deep_sleep(const bool sleep);
 

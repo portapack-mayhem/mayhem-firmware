@@ -25,17 +25,30 @@
 
 #include <ch.h>
 
+// "Out of Memory" on its own says nothing about why, and the panic screen is all
+// there is afterwards. The number that decides it is the size that could not be
+// served: a four-figure request means the budget is too tight, a two-figure one
+// means the heap is fragmented, and they call for opposite fixes.
+//
+// Only the store happens here. Formatting it cost one of the external applications
+// 900 bytes and broke their 32 kB ceiling, so the panic screen prints it instead.
+size_t g_oom_size = 0;
+
 void* operator new(size_t size) {
     void* p = chHeapAlloc(0x0, size);
-    if (p == nullptr)
+    if (p == nullptr) {
+        g_oom_size = size;
         chDbgPanic("Out of Memory");
+    }
     return p;
 }
 
 void* operator new[](size_t size) {
     void* p = chHeapAlloc(0x0, size);
-    if (p == nullptr)
+    if (p == nullptr) {
+        g_oom_size = size;
         chDbgPanic("Out of Memory");
+    }
     return p;
 }
 

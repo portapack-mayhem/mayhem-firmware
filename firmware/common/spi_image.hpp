@@ -134,6 +134,8 @@ constexpr image_tag_t image_tag_vor_rx{'P', 'V', 'R', 'X'};
 constexpr image_tag_t image_tag_rttyrx{'P', 'R', 'T', 'R'};
 constexpr image_tag_t image_tag_rttytx{'P', 'R', 'T', 'T'};
 constexpr image_tag_t image_tag_tonedetect{'P', 'T', 'N', 'E'};
+constexpr image_tag_t image_tag_lora_rx{'P', 'L', 'O', 'R'};
+constexpr image_tag_t image_tag_lora_tx{'P', 'L', 'O', 'T'};
 constexpr image_tag_t image_tag_tetrarx{'P', 'T', 'E', 'T'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
