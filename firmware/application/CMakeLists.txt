@@ -283,7 +283,6 @@ set(CPPSRC
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
-	apps/pocsag_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_battinfo.cpp
 	apps/ui_bmp_file_viewer.cpp
@@ -291,7 +290,6 @@ set(CPPSRC
 	apps/ui_debug.cpp
 	apps/ui_debug_max17055.cpp
 	apps/ui_dfu_menu.cpp
-	apps/ui_encoders.cpp
 	apps/ui_external_module_view.cpp
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
@@ -301,12 +299,9 @@ set(CPPSRC
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_playlist.cpp
-	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
 	apps/ui_recon.cpp
-	apps/ui_search.cpp
 	apps/ui_settings.cpp
-	apps/ui_sonde.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_standalone_view.cpp
 	apps/ui_subghzd.cpp

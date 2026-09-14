@@ -1,0 +1,39 @@
+name: Build Check
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: build (${{ matrix.device_name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: default
+            device_name: HackRF
+            cmake_args: ""
+          - device: portarf
+            device_name: PortaRF
+            cmake_args: "-DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=2"
+          - device: hpro
+            device_name: HackRF Pro
+            cmake_args: "-DBOARD=PRALINE"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Git Submodule Update
+        run: |
+          git submodule update --init --recursive
+      - name: Build the Docker image
+        run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
+      - name: Make build folder
+        run: mkdir ${{ github.workspace }}/build
+      - name: Run the Docker image
+        run: docker run -e VERSION_STRING=build_check -i -v ${{ github.workspace }}:/havoc portapack-dev ${{ matrix.cmake_args }}
+      - name: Verify firmware binary produced
+        run: test -f build/firmware/portapack-mayhem-firmware.bin
