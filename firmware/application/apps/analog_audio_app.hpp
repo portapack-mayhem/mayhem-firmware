@@ -100,6 +100,17 @@ class AMOptionsView : public View {
          {"ZOOM x2", (int)AMSpectrumZoomOption::X2},
          {"ZOOM x3", (int)AMSpectrumZoomOption::X3},
          {"ZOOM x4", (int)AMSpectrumZoomOption::X4}}};
+
+    Text label_squelch{
+        {UI_POS_X(10), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
+        "SQ"};
+    NumberField field_squelch{
+        {UI_POS_X(13), UI_POS_Y(0)},
+        2,
+        {0, 99},
+        1,
+        ' ',
+    };
 };
 
 class AMFMAptOptionsView : public View {

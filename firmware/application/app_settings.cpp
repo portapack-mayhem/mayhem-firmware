@@ -203,6 +203,7 @@ void copy_to_radio_model(const AppSettings& settings) {
             settings.wfm_config_index,
             settings.wfmam_config_index,
             settings.squelch);
+        receiver_model.set_am_squelch_level(settings.am_squelch);
     }
 
     receiver_model.set_frequency_step(settings.step);
@@ -227,6 +228,7 @@ void copy_from_radio_model(AppSettings& settings) {
         settings.vga = receiver_model.vga();
         settings.rx_amp = receiver_model.rf_amp();
         settings.squelch = receiver_model.squelch_level();
+        settings.am_squelch = receiver_model.am_squelch_level();
 
         settings.modulation = static_cast<uint8_t>(receiver_model.modulation());
         settings.am_config_index = receiver_model.am_configuration();
@@ -288,6 +290,7 @@ SettingsManager::SettingsManager(
         bindings_.emplace_back("wfm_config_index"sv, &settings_.wfm_config_index);
         bindings_.emplace_back("wfmam_config_index"sv, &settings_.wfmam_config_index);
         bindings_.emplace_back("squelch"sv, &settings_.squelch);
+        bindings_.emplace_back("am_squelch"sv, &settings_.am_squelch);
     }
 
     // Common model settings.

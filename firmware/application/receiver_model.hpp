@@ -61,6 +61,7 @@ class ReceiverModel {
         uint8_t nbfm_config_index = 0;
         uint8_t wfm_config_index = 0;
         uint8_t squelch_level = 80;
+        uint8_t am_squelch_level = 0;  // AM channel-power squelch threshold (0 = off)
     };
 
     /* The frequency to receive (no offset). */
@@ -108,6 +109,9 @@ class ReceiverModel {
 
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
+
+    uint8_t am_squelch_level() const;
+    void set_am_squelch_level(uint8_t v);
 
     void set_antenna_bias();
 

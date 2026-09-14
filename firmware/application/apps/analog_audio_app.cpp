@@ -72,7 +72,14 @@ AMOptionsView::AMOptionsView(
         &label_config,
         &options_config,
         &zoom_config,
+        &label_squelch,
+        &field_squelch,
     });
+
+    field_squelch.set_value(receiver_model.am_squelch_level());
+    field_squelch.on_change = [](int32_t v) {
+        receiver_model.set_am_squelch_level(v);
+    };
 
     zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
         receiver_model.set_am_configuration(

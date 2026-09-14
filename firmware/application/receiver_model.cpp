@@ -251,6 +251,15 @@ void ReceiverModel::set_squelch_level(uint8_t v) {
     update_modulation();
 }
 
+uint8_t ReceiverModel::am_squelch_level() const {
+    return settings_.am_squelch_level;
+}
+
+void ReceiverModel::set_am_squelch_level(uint8_t v) {
+    settings_.am_squelch_level = v;
+    update_modulation();
+}
+
 void ReceiverModel::set_antenna_bias() {
     update_antenna_bias();
 }
@@ -486,7 +495,7 @@ void ReceiverModel::update_modulation() {
 }
 
 void ReceiverModel::update_am_configuration() {
-    am_configs[am_configuration()].apply(am_spectrum_zoom_);
+    am_configs[am_configuration()].apply(am_spectrum_zoom_, am_squelch_level());
 }
 
 void ReceiverModel::update_amfm_configuration() {
