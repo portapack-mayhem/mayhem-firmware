@@ -22,6 +22,7 @@
 #include "ui_external_module_view.hpp"
 #include "portapack.hpp"
 #include "ui_standalone_view.hpp"
+#include "theme.hpp"
 
 #include "i2cdevmanager.hpp"
 #include "i2cdev_ppmod.hpp"
@@ -31,7 +32,7 @@
 namespace ui {
 
 void ExternalModuleView::focus() {
-    dummy.focus();
+    menu_apps.focus();
 }
 
 void ExternalModuleView::on_tick_second() {
@@ -44,11 +45,10 @@ void ExternalModuleView::on_tick_second() {
         text_name.set("");
         text_version.set("");
         text_number_apps.set("");
-        text_app1_name.set("");
-        text_app2_name.set("");
-        text_app3_name.set("");
-        text_app4_name.set("");
-        text_app5_name.set("");
+        if (shown_count_ != -1) {
+            menu_apps.clear();
+            shown_count_ = -1;
+        }
         return;
     }
 
@@ -59,11 +59,10 @@ void ExternalModuleView::on_tick_second() {
         text_name.set("");
         text_version.set("");
         text_number_apps.set("");
-        text_app1_name.set("");
-        text_app2_name.set("");
-        text_app3_name.set("");
-        text_app4_name.set("");
-        text_app5_name.set("");
+        if (shown_count_ != -1) {
+            menu_apps.clear();
+            shown_count_ = -1;
+        }
         return;
     }
 
@@ -74,59 +73,56 @@ void ExternalModuleView::on_tick_second() {
     text_version.set("Version: " + std::to_string(device_info->module_version));
     text_number_apps.set("No# Apps: " + std::to_string(device_info->application_count));
 
-    for (uint32_t i = 0; i < device_info->application_count && i < 5; i++) {
+    // Only skip the rebuild when the app count is unchanged AND the current
+    // list is complete. If some getStandaloneAppInfo() calls failed transiently
+    // (e.g. an I2C read glitch) the menu holds fewer items than reported, so we
+    // rebuild to let the list self-heal on a later tick.
+    if ((int32_t)device_info->application_count == shown_count_ &&
+        menu_apps.item_count() == (size_t)device_info->application_count) {
+        return;
+    }
+
+    menu_apps.clear();
+
+    for (uint32_t i = 0; i < device_info->application_count; i++) {
         auto appInfo = dev->getStandaloneAppInfo(i);
         if (appInfo.has_value() == false) {
             continue;
         }
 
-        std::string btnText = (std::string) "App " + std::to_string(i + 1) + ": " + (const char*)appInfo->app_name;
+        std::string itemText = (std::string) "App " + std::to_string(i + 1) + ": " + (const char*)appInfo->app_name;
 
         switch (appInfo->menu_location) {
             case app_location_t::UTILITIES:
-                btnText += " (Utilities)";
+                itemText += " (Utilities)";
                 break;
             case app_location_t::RX:
-                btnText += " (RX)";
+                itemText += " (RX)";
                 break;
             case app_location_t::TX:
-                btnText += " (TX)";
+                itemText += " (TX)";
                 break;
             case app_location_t::TRX:
-                btnText += " (TRX)";
+                itemText += " (TRX)";
                 break;
             case app_location_t::SETTINGS:
-                btnText += " (Settings)";
+                itemText += " (Settings)";
                 break;
             case app_location_t::DEBUG:
-                btnText += " (Debug)";
+                itemText += " (Debug)";
                 break;
             case app_location_t::HOME:
-                btnText += " (Home)";
+                itemText += " (Home)";
                 break;
             case app_location_t::GAMES:
-                btnText += " (Games)";
+                itemText += " (Games)";
                 break;
         }
 
-        switch (i) {
-            case 0:
-                text_app1_name.set(btnText);
-                break;
-            case 1:
-                text_app2_name.set(btnText);
-                break;
-            case 2:
-                text_app3_name.set(btnText);
-                break;
-            case 3:
-                text_app4_name.set(btnText);
-                break;
-            case 4:
-                text_app5_name.set(btnText);
-                break;
-        }
+        menu_apps.add_item({itemText, ui::Theme::getInstance()->fg_light->foreground, nullptr, [](KeyEvent) {}});
     }
+
+    shown_count_ = (int32_t)device_info->application_count;
 }
 
 }  // namespace ui
