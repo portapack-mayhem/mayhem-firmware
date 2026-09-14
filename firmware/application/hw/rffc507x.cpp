@@ -109,11 +109,18 @@ size_t divider_log2(const rf::Frequency lo_frequency) {
      * The reference choice for that case is 675 * 8 = 5400 MHz. */
     auto lo_divider_log2 = lo::divider_log2_min;
     auto vco_frequency = lo_frequency;
+#ifdef PRALINE
     while (((vco_frequency << 1) <= vco::range.maximum) &&
            (lo_divider_log2 < lo::divider_log2_max)) {
         vco_frequency <<= 1;
         lo_divider_log2 += 1;
     }
+#else
+    while (vco::range.below_range(vco_frequency)) {
+        vco_frequency <<= 1;
+        lo_divider_log2 += 1;
+    }
+#endif
 
     return lo_divider_log2;
 }
