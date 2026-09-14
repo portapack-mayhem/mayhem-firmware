@@ -32,7 +32,6 @@
 #include "ui_about_simple.hpp"
 #include "ui_btle_rx.hpp"
 #include "ui_debug.hpp"
-#include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
 #include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
@@ -42,15 +41,11 @@
 #include "ui_mictx.hpp"
 
 #include "ui_playlist.hpp"
-#include "ui_rds.hpp"
 #include "ui_recon.hpp"
-#include "ui_search.hpp"
 #include "ui_settings.hpp"
 #include "ui_textentry.hpp"
-#include "ui_sonde.hpp"
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
-#include "ui_text_editor.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
@@ -59,9 +54,7 @@
 
 #include "analog_audio_app.hpp"
 #include "ble_rx_app.hpp"
-#include "ble_tx_app.hpp"
 #include "capture_app.hpp"
-#include "pocsag_app.hpp"
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -97,15 +90,9 @@ const NavigationView::AppList NavigationView::appList = {
     /* RX ********************************************************************/
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
-    {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
-    {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
-    {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     /* TX ********************************************************************/
-    {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
-    {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
-    {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
@@ -113,7 +100,6 @@ const NavigationView::AppList NavigationView::appList = {
     {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
-    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
