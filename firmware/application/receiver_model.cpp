@@ -334,6 +334,8 @@ void ReceiverModel::disable() {
 
 void ReceiverModel::initialize() {
     settings_ = settings_t{};
+    hidden_offset = 0;
+    application_fs4_direction_ = RxFs4Direction::Down;
     am_spectrum_zoom_ = spectrum_zoom_for_am_config(settings_.am_config_index);
 }
 
@@ -369,14 +371,29 @@ int32_t ReceiverModel::tuning_offset() {
     if ((modulation() == Mode::SpectrumAnalysis)) {
         return 0;
     } else {
-        return -(sampling_rate() / 4);
+        const int32_t quarter_rate = static_cast<int32_t>(sampling_rate() / 4);
+        const rf::Frequency effective_frequency = target_frequency() + hidden_offset;
+        return baseband::supports_rx_fs4() && effective_frequency - quarter_rate < 0
+                   ? quarter_rate
+                   : -quarter_rate;
     }
 }
 
 void ReceiverModel::update_tuning_frequency() {
-    // TODO: use positive offset if freq < offset.
     if (enabled_) {
-        radio::set_tuning_frequency(target_frequency() + hidden_offset + tuning_offset());
+        const auto offset = tuning_offset();
+        if (!radio::set_tuning_frequency(target_frequency() + hidden_offset + offset))
+            return;
+
+        if (modulation() != Mode::SpectrumAnalysis && baseband::supports_rx_fs4()) {
+            application_fs4_direction_ = offset > 0 ? RxFs4Direction::Up : RxFs4Direction::Down;
+            // Re-send on enable too: the active processor may have restarted.
+            baseband::set_rx_fs4_direction(application_fs4_direction_);
+        }
+#ifdef PRALINE
+        // A tune can change the FPGA shift (including the special zero entry).
+        update_baseband_bandwidth();
+#endif
     }
 }
 

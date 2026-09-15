@@ -132,8 +132,10 @@ void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);
 
 bool is_image_running();
+bool supports_rx_fs4();
+void set_rx_fs4_direction(RxFs4Direction direction);
 void run_image(const portapack::spi_flash::image_tag_t image_tag, bool enforce_core_sync = true);
-void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true);
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true, const portapack::spi_flash::image_tag_t prepared_image_tag = portapack::spi_flash::image_tag_none);
 void shutdown();
 
 void spectrum_streaming_start();

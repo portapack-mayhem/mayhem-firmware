@@ -35,6 +35,10 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
         return;
     }
 
+    // Only the processing thread applies frequency-only direction changes.
+    if (requested_fs4_direction_.load(std::memory_order_relaxed) != applied_fs4_direction_)
+        configure_fs4(decim_0_taps_);
+
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto channel = decim_1.execute(decim_0_out, dst_buffer);
 
@@ -159,8 +163,26 @@ void WidebandFMAudio::post_message(const buffer_c16_t& data) {
     fft_step = 0;
 }
 
+void WidebandFMAudio::configure_fs4(const std::array<int16_t, 24>& taps) {
+    // Keep the short first-stage update coherent with the processing thread.
+    chSysLock();
+    decim_0_taps_ = taps;
+    const auto direction = requested_fs4_direction_.load(std::memory_order_relaxed);
+    using Shift = dsp::decimate::FIRC8xR16x24FS4Decim4::Shift;
+    decim_0.configure(decim_0_taps_, dsp::decimate::c8_to_c32_sat_scalar,
+                      direction == RxFs4Direction::Up ? Shift::Up : Shift::Down);
+    applied_fs4_direction_ = direction;
+    chSysUnlock();
+}
+
 void WidebandFMAudio::on_message(const Message* const message) {
     switch (message->id) {
+        case Message::ID::RxFs4Config:
+            requested_fs4_direction_.store(
+                static_cast<const RxFs4ConfigMessage*>(message)->direction,
+                std::memory_order_relaxed);
+            break;
+
         case Message::ID::UpdateSpectrum:
         case Message::ID::SpectrumStreamingConfig:
             channel_spectrum.on_message(message);
@@ -188,7 +210,7 @@ void WidebandFMAudio::configure_wfm(const WFMConfigureMessage& message) {
     constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
     constexpr size_t decim_1_input_fs = decim_0_output_fs;
 
-    decim_0.configure(message.decim_0_filter.taps);
+    configure_fs4(message.decim_0_filter.taps);
     // decim_1.configure(message.decim_1_filter.taps);  // Original .
 
     // TODO dynamic decim1 ,  with decimation 2 / 8 and  16 x taps , / 32 taps .
@@ -219,7 +241,7 @@ void WidebandFMAudio::configure_wfmam(const WFMAMConfigureMessage& message) {
     constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
     constexpr size_t decim_1_input_fs = decim_0_output_fs;
 
-    decim_0.configure(message.decim_0_filter.taps);
+    configure_fs4(message.decim_0_filter.taps);
 
     // decim_1.configure(message.decim_1_filter.taps);  // Original .
     // TODO dynamic decim1 ,  with decimation 2 / 8 and  16 x taps , / 32 taps .

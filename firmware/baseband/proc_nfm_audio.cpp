@@ -50,6 +50,10 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
         return;
     }
 
+    // Only the processing thread applies frequency-only direction changes.
+    if (requested_fs4_direction_.load(std::memory_order_relaxed) != applied_fs4_direction_)
+        configure_fs4(decim_0_taps_);
+
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto audio_decim_0_out = audio_decim_0.execute(decim_0_out, dst_buffer);
 
@@ -137,8 +141,26 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
     }
 }
 
+void NarrowbandFMAudio::configure_fs4(const std::array<int16_t, 24>& taps) {
+    // Keep the short first-stage update coherent with the processing thread.
+    chSysLock();
+    decim_0_taps_ = taps;
+    const auto direction = requested_fs4_direction_.load(std::memory_order_relaxed);
+    using Shift = dsp::decimate::FIRC8xR16x24FS4Decim4::Shift;
+    decim_0.configure(decim_0_taps_, 33554432,
+                      direction == RxFs4Direction::Up ? Shift::Up : Shift::Down);
+    applied_fs4_direction_ = direction;
+    chSysUnlock();
+}
+
 void NarrowbandFMAudio::on_message(const Message* const message) {
     switch (message->id) {
+        case Message::ID::RxFs4Config:
+            requested_fs4_direction_.store(
+                static_cast<const RxFs4ConfigMessage*>(message)->direction,
+                std::memory_order_relaxed);
+            break;
+
         case Message::ID::UpdateSpectrum:
         case Message::ID::SpectrumStreamingConfig:
             channel_spectrum.on_message(message);
@@ -177,7 +199,7 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 
     const size_t demod_input_fs = channel_filter_output_fs;
 
-    decim_0.configure(message.decim_0_filter.taps, 33554432);
+    configure_fs4(message.decim_0_filter.taps);
     audio_decim_0.configure(taps_audio_wide_halfband_0.taps);
     translating_decim_1.configure(
         message.decim_1_filter.taps, audio_decim_0_output_fs);

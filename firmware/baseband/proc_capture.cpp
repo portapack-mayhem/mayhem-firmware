@@ -34,6 +34,12 @@ CaptureProcessor::CaptureProcessor() {
 }
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
+    const auto direction = requested_fs4_direction_.load(std::memory_order_relaxed);
+    if (direction != applied_fs4_direction_) {
+        decim_0.configure_fs4(decim_0_taps_, direction);
+        applied_fs4_direction_ = direction;
+    }
+
     auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     auto out_buffer = decim_1.execute(decim_0_out, dst_buffer);
 
@@ -67,6 +73,12 @@ void CaptureProcessor::on_beep_message(const AudioBeepMessage& message) {
 
 void CaptureProcessor::on_message(const Message* const message) {
     switch (message->id) {
+        case Message::ID::RxFs4Config:
+            requested_fs4_direction_.store(
+                static_cast<const RxFs4ConfigMessage*>(message)->direction,
+                std::memory_order_relaxed);
+            break;
+
         case Message::ID::UpdateSpectrum:
         case Message::ID::SpectrumStreamingConfig:
             channel_spectrum.on_message(message);
@@ -125,34 +137,34 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     switch (message.oversample_rate) {
         case OversampleRate::x4:
             // M4 can't handle 2 decimation passes for sample rates needing x4.
-            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+            configure_fs4<FIRC8xR16x24FS4Decim4>(taps_200k_decim_0.taps);
             decim_1.set<NoopDecim>();
             break;
 
         case OversampleRate::x8:
             // M4 can't handle 2 decimation passes for sample rates <= 600k.
             if (message.sample_rate < 600'000) {
-                decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+                configure_fs4<FIRC8xR16x24FS4Decim4>(taps_200k_decim_0.taps);
                 decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
             } else {
                 // Using 180k taps to provide better filtering with a single pass.
-                decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_180k_wfm_decim_0.taps);
+                configure_fs4<FIRC8xR16x24FS4Decim8>(taps_180k_wfm_decim_0.taps);
                 decim_1.set<NoopDecim>();
             }
             break;
 
         case OversampleRate::x16:
-            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps);
+            configure_fs4<FIRC8xR16x24FS4Decim8>(taps_200k_decim_0.taps);
             decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
             break;
 
         case OversampleRate::x32:
-            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+            configure_fs4<FIRC8xR16x24FS4Decim4>(taps_200k_decim_0.taps);
             decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
             break;
 
         case OversampleRate::x64:
-            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps);
+            configure_fs4<FIRC8xR16x24FS4Decim8>(taps_200k_decim_0.taps);
             decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
             break;
 

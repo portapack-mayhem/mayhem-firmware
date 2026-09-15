@@ -149,6 +149,7 @@ class ReceiverModel {
     AMConfigureMessage::Zoom_waterfall am_spectrum_zoom_{AMConfigureMessage::Zoom_waterfall::ZOOM_x_1};
     settings_t settings_{};
     bool enabled_ = false;
+    RxFs4Direction application_fs4_direction_{RxFs4Direction::Down};
     rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.
 
     int32_t tuning_offset();

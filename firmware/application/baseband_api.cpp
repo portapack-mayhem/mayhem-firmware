@@ -470,6 +470,18 @@ void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start) {
 }
 
 static bool baseband_image_running = false;
+static bool rx_fs4_supported = false;
+
+bool supports_rx_fs4() {
+    return baseband_image_running && rx_fs4_supported;
+}
+
+void set_rx_fs4_direction(RxFs4Direction direction) {
+    if (supports_rx_fs4()) {
+        const RxFs4ConfigMessage message{direction};
+        send_message(&message);
+    }
+}
 
 bool is_image_running() {
     return baseband_image_running;
@@ -484,6 +496,10 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     shared_memory.clear_baseband_ready();
 
     m4_init(image_tag, memory::map::m4_code, false);
+    rx_fs4_supported = image_tag == spi_flash::image_tag_am_audio ||
+                       image_tag == spi_flash::image_tag_nfm_audio ||
+                       image_tag == spi_flash::image_tag_wfm_audio ||
+                       image_tag == spi_flash::image_tag_capture;
     baseband_image_running = true;
 
     creg::m4txevent::enable();
@@ -499,7 +515,8 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     }
 }
 
-void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync) {
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const spi_flash::image_tag_t prepared_image_tag) {
+    rx_fs4_supported = false;
     if (baseband_image_running) {
         chDbgPanic("BBRunning");
     }
@@ -508,6 +525,8 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync) {
     shared_memory.clear_baseband_ready();
 
     m4_init_prepared(m4_code, false);
+    // Only explicitly identified Capture images support application FS4 control.
+    rx_fs4_supported = prepared_image_tag == spi_flash::image_tag_capture;
     baseband_image_running = true;
 
     creg::m4txevent::enable();
@@ -524,6 +543,7 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync) {
 }
 
 void shutdown() {
+    rx_fs4_supported = false;
     if (!baseband_image_running) {
         return;
     }
