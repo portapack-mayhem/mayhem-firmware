@@ -17,10 +17,10 @@ https://physics.princeton.edu/pulsar/k1jt/FT4_FT8_QEX.pdf
     ldpc.c/.h        Belief-propagation decoder for LDPC(174,91)
     message.c/.h     Payload packing and unpacking
     text.c/.h        Callsign and locator string handling
-    debug.h          Logging stubs
+    debug.h          Logging macros, compiled out when LOG_LEVEL is undefined
 
 Imported at upstream commit `9fec6ca39886edbf96f4f5e71edc76da5074e871` (2025-08-24,
-"non-standard callsigns; special CQ; field type annotation"). Ten of the twelve files
+"non-standard callsigns; special CQ; field type annotation"). Eleven of the thirteen files
 above are byte-identical to that revision; the two that are not are listed below.
 
 ## Local changes

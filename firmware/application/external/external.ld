@@ -704,10 +704,6 @@ SECTIONS
     {
         KEEP(*(.external_app.app_ft8_rx.application_information));
         */external/ft8_rx/*(*ui*external_app*ft8_rx*);
-        /* The loader reads the baseband image that follows this section as 32-bit words,
-           and the application core cannot do unaligned word accesses, so the section has
-           to end on a word boundary. */
-        . = ALIGN(4);
     } > ram_external_app_ft8_rx
 
 

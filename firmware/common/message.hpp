@@ -443,7 +443,7 @@ class FT8PacketMessage : public Message {
      * report[6], terminator. */
     static constexpr size_t text_length = 35;
 
-    FT8PacketMessage(
+    constexpr FT8PacketMessage(
         const char* message_text,
         int16_t sync_score)
         : Message{ID::FT8Packet},

@@ -25,7 +25,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 static WF_ELEM_T waterfall_buffer[FT8_WATERFALL_SIZE];
 static float goertzel_coeff[FT8_NUM_BINS];
@@ -41,8 +40,33 @@ static float cos_unit_quadrant(float x) {
     return 1.0f + x2 * (-1.0f / 2.0f + x2 * (1.0f / 24.0f + x2 * (-1.0f / 720.0f + x2 * (1.0f / 40320.0f + x2 * (-1.0f / 3628800.0f + x2 * (1.0f / 479001600.0f))))));
 }
 
+// log2 from the exponent plus a series on the mantissa. Calling log10f here costs 146
+// instructions per bin, and 368 of them in the one execute() that closes a symbol overrun
+// the 666.7 us a 2048-sample DMA transfer allows, so the baseband thread lost one buffer
+// per symbol. decode.h quantises to 0.5 dB steps and ft8_sync_score only ever takes
+// differences between neighbouring bytes, so any monotonic affine map of dB will do.
+static float log2_from_bits(float x) {
+    union {
+        float f;
+        uint32_t i;
+    } u;
+    u.f = x;
+    int e = (int)((u.i >> 23) & 0xFFu) - 127;
+    u.i = (u.i & 0x007FFFFFu) | 0x3F800000u;
+    float m = u.f;
+    // Centring the mantissa on 1 keeps |t| <= 0.1716, where the first dropped term of the
+    // series is 7e-7, against a quantisation step of 0.166 in log2 units.
+    if (m > 1.4142136f) {
+        m *= 0.5f;
+        e++;
+    }
+    const float t = (m - 1.0f) / (m + 1.0f);
+    const float t2 = t * t;
+    return (float)e + t * (2.8853900f + t2 * (0.9617967f + t2 * 0.5770780f));
+}
+
 // Quantize one symbol's Goertzel power to the byte scale decode.h expects
-// (WF_ELEM_MAG: mag_dB = byte * 0.5 - 120).
+// (WF_ELEM_MAG: mag_dB = byte * 0.5 - 120, so byte = 20*log10(power) + 240).
 //
 // The Goertzel sum for an on-bin tone of amplitude A is A*N/2, so dividing the power by
 // N*N puts a full-scale tone at A^2/4, the reference upstream ft8_lib uses. Dividing by N
@@ -59,8 +83,8 @@ static void finish_goertzel_symbol(ft8_decoder_state_t* state) {
         power *= (1.0f / ((float)FT8_SAMPLES_PER_SYMBOL * (float)FT8_SAMPLES_PER_SYMBOL));
         if (power < 1e-20f) power = 1e-20f;
 
-        float power_db = 10.0f * log10f(power);
-        int m = (int)((power_db + 120.0f) * 2.0f);
+        // 20/log2(10) = 6.0206 converts the log2 above into the byte scale.
+        int m = (int)(6.0206f * log2_from_bits(power) + 240.0f);
         if (m < 0) m = 0;
         if (m > 255) m = 255;
         state->waterfall.mag[block_offset + b] = (WF_ELEM_T)m;
@@ -117,9 +141,9 @@ bool ft8_portapack_feed_sample(ft8_decoder_state_t* state, float sample) {
     // Inf passes the NaN check, since Inf == Inf holds.
     if (sample != sample || sample > 1e15f || sample < -1e15f) sample = 0.0f;
 
-    // About 12 instructions per bin from the -Os disassembly, so 368 bins at 12 kHz cost
-    // roughly 36-48% of the 204 MHz M4. That is why time_osr stays at 1: a second bank
-    // would not fit the budget.
+    // About 12 instructions per bin from the -Os disassembly, so 368 bins at 12 kHz take
+    // roughly 280 us of the 666.7 us a DMA transfer allows on the 200 MHz M4. That is why
+    // time_osr stays at 1: a second bank would not fit the budget.
     for (int b = 0; b < FT8_NUM_BINS; b++) {
         float s0 = sample + goertzel_coeff[b] * goertzel_s1[b] - goertzel_s2[b];
         goertzel_s2[b] = goertzel_s1[b];
@@ -195,10 +219,13 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
 void ft8_portapack_message_text(const ftx_message_t* message, char* text) {
     ftx_message_offsets_t offsets;
 
-    // A hashed callsign that no table resolves renders as <...> and is reported as an
-    // error, so the return code is ignored and the text kept. ftx_message_decode()
-    // terminates the string before it dispatches, so an unknown type leaves it empty.
-    ftx_message_decode(message, NULL, text, &offsets);
+    // Standard and non-standard payloads keep their partially filled fields on an error
+    // return, so a CRC-valid message whose callsign fails to unpack would otherwise print
+    // a lone space or a truncated call. A hashed callsign renders as <...> and returns OK,
+    // so nothing readable is lost here.
+    if (ftx_message_decode(message, NULL, text, &offsets) != FTX_MESSAGE_RC_OK) {
+        text[0] = '\0';
+    }
 }
 
 void ft8_portapack_reset_slot(ft8_decoder_state_t* state) {

@@ -1,17 +1,22 @@
-#ifndef _INCLUDE_DEBUG_H_
-#define _INCLUDE_DEBUG_H_
+#ifndef _DEBUG_H_INCLUDED_
+#define _DEBUG_H_INCLUDED_
 
-// Debug stub for Portapack baseband
-// All LOG macros are disabled (no-op)
-
-#define LOG_FATAL 0
-#define LOG_ERROR 1
+#define LOG_DEBUG 0
+#define LOG_INFO  1
 #define LOG_WARN  2
-#define LOG_INFO  3
-#define LOG_DEBUG 4
-#define LOG_TRACE 5
+#define LOG_ERROR 3
+#define LOG_FATAL 4
 
-// Disable all logging in baseband (no printf available)
-#define LOG(level, ...) do { } while(0)
+#ifdef LOG_LEVEL
+#ifndef LOG_PRINTF
+#include <stdio.h>
+#define LOG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
+#endif
+#define LOG(level, ...)     \
+    if (level >= LOG_LEVEL) \
+    LOG_PRINTF(__VA_ARGS__)
+#else // ifdef LOG_LEVEL
+#define LOG(level, ...)
+#endif
 
-#endif // _INCLUDE_DEBUG_H_
+#endif // _DEBUG_H_INCLUDED_
