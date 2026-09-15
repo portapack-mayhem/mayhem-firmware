@@ -98,13 +98,29 @@ size_t divider_log2(const rf::Frequency lo_frequency) {
                 return;
         }
         */
-    /* Compute LO divider. */
+    /* Compute LO divider.
+     *
+     * Mirror the reference firmware (hackrf rffc5071.c rffc5071_config_synth()):
+     * pick the LARGEST divider that keeps the VCO at or below its maximum, i.e.
+     * the highest VCO frequency in range. The previous rule stopped at the first
+     * divider that lifted the VCO to or above the minimum, which parks the VCO
+     * exactly on its 2.7 GHz floor for some LOs (e.g. LO = 675 MHz, used for
+     * 3.000 GHz TX on PRALINE: 675 * 4 = 2700.0 MHz) where lock is marginal.
+     * The reference choice for that case is 675 * 8 = 5400 MHz. */
     auto lo_divider_log2 = lo::divider_log2_min;
     auto vco_frequency = lo_frequency;
+#ifdef PRALINE
+    while (((vco_frequency << 1) <= vco::range.maximum) &&
+           (lo_divider_log2 < lo::divider_log2_max)) {
+        vco_frequency <<= 1;
+        lo_divider_log2 += 1;
+    }
+#else
     while (vco::range.below_range(vco_frequency)) {
         vco_frequency <<= 1;
         lo_divider_log2 += 1;
     }
+#endif
 
     return lo_divider_log2;
 }
@@ -306,6 +322,15 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     _dirty[Register::P2_FREQ2] = 1;
     _dirty[Register::P2_FREQ3] = 1;
     flush();
+
+    /* Reference rffc5071_set_frequency(): when the part is already enabled,
+     * request a relock so the new LO is tuned immediately. (radio.cpp normally
+     * disables the part around set_frequency(), in which case enable() starts a
+     * fresh calibration and this is a no-op.) */
+    if (_map.r.sdi_ctrl.enbl) {
+        _map.r.pll_ctrl.relok = 1;  /* RELOK lives in PLL_CTRL (reg 0x09, bit 3) */
+        flush_one(Register::PLL_CTRL);
+    }
 }
 
 void RFFC507x::set_gpo1(const bool new_value) {
