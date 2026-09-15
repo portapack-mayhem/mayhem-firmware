@@ -407,6 +407,10 @@ set(EXTCPPSRC
 	external/aprs_tx/main.cpp
 	external/aprs_tx/ui_aprs_tx.cpp
 
+	#ft8 rx
+	external/ft8_rx/main.cpp
+	external/ft8_rx/ui_ft8_rx.cpp
+
 	#sd over usb
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
@@ -509,5 +513,6 @@ set(EXTAPPLIST
 	ais_rx
 	aprs_rx
 	aprs_tx
+	ft8_rx
 	sdusb
 )
