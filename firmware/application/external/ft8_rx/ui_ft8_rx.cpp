@@ -63,8 +63,14 @@ FT8RxView::FT8RxView(NavigationView& nav)
 
     field_frequency.set_step(100);
 
-    options_band.on_change = [](size_t, OptionsField::value_t v) {
-        receiver_model.set_target_frequency(v);
+    /* Going through the frequency field rather than the model keeps the two in step:
+     * the field retunes the receiver itself and redraws with the new dial. */
+    options_band.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v != 0)
+            field_frequency.set_value(v);
+    };
+    field_frequency.updated = [this](rf::Frequency f) {
+        options_band.set_by_value(f);
     };
     options_band.set_by_value(receiver_model.target_frequency());
 

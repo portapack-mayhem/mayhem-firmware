@@ -99,7 +99,11 @@ class FT8RxView : public View {
     OptionsField options_band{
         {0, 1 * 16},
         3,
-        {{"160", 1840000},
+        /* set_by_value falls back to the first entry when the dial matches nothing, so
+         * that entry has to mean "no band" rather than 160 m, or tuning by hand would
+         * snap the receiver onto the first preset. */
+        {{"---", 0},
+         {"160", 1840000},
          {"80m", 3573000},
          {"60m", 5357000},
          {"40m", 7074000},
