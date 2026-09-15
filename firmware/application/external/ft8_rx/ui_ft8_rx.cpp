@@ -51,7 +51,9 @@ FT8RxView::FT8RxView(NavigationView& nav)
                   &field_threshold,
                   &field_volume,
                   &field_frequency,
+                  &options_band,
                   &text_status,
+                  &text_decodes,
                   &console});
 
     field_threshold.set_value(initial_threshold);
@@ -60,6 +62,11 @@ FT8RxView::FT8RxView(NavigationView& nav)
     };
 
     field_frequency.set_step(100);
+
+    options_band.on_change = [](size_t, OptionsField::value_t v) {
+        receiver_model.set_target_frequency(v);
+    };
+    options_band.set_by_value(receiver_model.target_frequency());
 
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
@@ -101,7 +108,11 @@ void FT8RxView::on_status(const FT8RxStatusMessage* message) {
     switch (message->state) {
         case FT8RxStatusMessage::SyncState::Searching:
             text_status.set_style(Theme::getInstance()->fg_red);
-            text_status.set("Searching for slot");
+            text_status.set("Searching");
+            break;
+        case FT8RxStatusMessage::SyncState::Heard:
+            text_status.set_style(Theme::getInstance()->fg_yellow);
+            text_status.set("Heard, no decode");
             break;
         case FT8RxStatusMessage::SyncState::Refining:
             text_status.set_style(Theme::getInstance()->fg_yellow);
@@ -109,8 +120,13 @@ void FT8RxView::on_status(const FT8RxStatusMessage* message) {
             break;
         case FT8RxStatusMessage::SyncState::Locked:
             text_status.set_style(Theme::getInstance()->fg_green);
-            text_status.set("Locked   " + to_string_dec_uint(decodes_total) + " decoded");
+            text_status.set("Locked");
             break;
+    }
+
+    if (decodes_total > 0) {
+        text_decodes.set_style(Theme::getInstance()->fg_light);
+        text_decodes.set(to_string_dec_uint(decodes_total) + " RX");
     }
 }
 

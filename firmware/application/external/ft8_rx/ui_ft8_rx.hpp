@@ -93,9 +93,33 @@ class FT8RxView : public View {
         {0, 0},
         nav_};
 
+    /* The standard FT8 dial frequencies. Picking one retunes the receiver; the frequency
+     * field above stays usable for anything else, and simply shows no band once the dial
+     * no longer matches an entry. */
+    OptionsField options_band{
+        {0, 1 * 16},
+        3,
+        {{"160", 1840000},
+         {"80m", 3573000},
+         {"60m", 5357000},
+         {"40m", 7074000},
+         {"30m", 10136000},
+         {"20m", 14074000},
+         {"17m", 18100000},
+         {"15m", 21074000},
+         {"12m", 24915000},
+         {"10m", 28074000},
+         {"6m ", 50313000}}};
+
+    /* State on the left, count on the right with a gap between them: the count sits
+     * directly above the decoded-message column, and run together they read as one line. */
     Text text_status{
-        {0, 1 * 16, 240, 16},
-        "Searching for slot"};
+        {4 * 8, 1 * 16, 17 * 8, 16},
+        "Searching"};
+
+    Text text_decodes{
+        {22 * 8, 1 * 16, 8 * 8, 16},
+        ""};
 
     Console console{
         {0, 2 * 16, 240, screen_height - 2 * 16}};

@@ -135,6 +135,15 @@ class FT8RxProcessor : public BasebandProcessor {
         Track,    // Locked; re-centre the window every slot
     };
 
+    /* Acquire covers two situations the user needs to tell apart: an empty band, and a
+     * transmission the correlator can see but cannot decode. Reporting them as one state
+     * leaves no way to distinguish a dead band from a dead signal path. */
+    uint8_t reported_state() const {
+        if (sync_state == SyncState::Acquire)
+            return decoder_state.sync_score >= SYNC_MIN_SCORE ? 1 : 0;
+        return sync_state == SyncState::Fine ? 2 : 3;
+    }
+
     static constexpr int32_t SLOT_SAMPLES = 15 * FT8_SAMPLE_RATE;  // 180000 = 15.000 s
     static constexpr int32_t CAPTURE_SAMPLES = FT8_WATERFALL_BLOCKS * FT8_SAMPLES_PER_SYMBOL;
     // What is left of the slot after the capture. The decoder runs here: measured
@@ -197,7 +206,7 @@ class FT8RxProcessor : public BasebandProcessor {
     // Runs on FT8DecodeThread once the slot has been decoded: turns the Costas
     // measurement into the next capture-phase correction.
     void on_slot_decoded();
-    uint8_t sync_state_code() const { return (uint8_t)sync_state; }
+    uint8_t sync_state_code() const { return reported_state(); }
 
    private:
     uint32_t next_slot_gap();
