@@ -172,6 +172,9 @@ class Message {
         TetraDnb = 114,
         AudioDDCConfig = 115,
         RxFs4Config = 116,
+        FT8Packet = 117,
+        FT8Configure = 118,
+        FT8RxStatus = 119,
         MAX
     };
 
@@ -432,6 +435,61 @@ class EPIRBRXConfig : public Message {
     bool spectrum_on = false;
     bool audio_on = true;
     uint8_t squelch{50};
+};
+
+/* FT8 decodes are shipped as the raw 77-bit payload and turned into text on the
+ * application side, because ft8_lib's unpacker does not fit in the baseband image
+ * alongside the decoder. */
+class FT8PacketMessage : public Message {
+   public:
+    static constexpr size_t payload_length = 10;
+
+    FT8PacketMessage(
+        const uint8_t* payload_bytes,
+        int16_t sync_score)
+        : Message{ID::FT8Packet},
+          payload{},
+          score{sync_score} {
+        for (size_t i = 0; i < payload_length; i++)
+            payload[i] = payload_bytes[i];
+    }
+
+    uint8_t payload[payload_length];
+    int16_t score;  // Costas sync score of the candidate this came from
+};
+
+/* Sent once per 15 s slot so the UI can tell the user whether the receiver has found
+ * the slot boundary; an unsynchronised FT8 receiver decodes nothing and looks identical
+ * to a dead band. */
+class FT8RxStatusMessage : public Message {
+   public:
+    enum class SyncState : uint8_t {
+        Searching = 0,  // Hunting for the slot boundary
+        Refining = 1,   // Boundary found, walking the sub-symbol phase
+        Locked = 2,     // Tracking the slot
+    };
+
+    constexpr FT8RxStatusMessage(
+        SyncState sync_state,
+        uint8_t decodes)
+        : Message{ID::FT8RxStatus},
+          state{sync_state},
+          decode_count{decodes} {
+    }
+
+    SyncState state;
+    uint8_t decode_count;
+};
+
+class FT8ConfigureMessage : public Message {
+   public:
+    constexpr FT8ConfigureMessage(
+        uint8_t threshold_value)
+        : Message{ID::FT8Configure},
+          threshold{threshold_value} {
+    }
+
+    uint8_t threshold;  // Minimum Costas score a candidate needs to be reported
 };
 
 class TPMSPacketMessage : public Message {

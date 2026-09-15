@@ -787,6 +787,25 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTET tetra_rx)
 
+### FT8 RX
+
+set(MODE_CPPSRC
+	proc_ft8_rx.cpp
+	ft8_lib/constants.c
+	ft8_lib/crc.c
+	ft8_lib/decode.c
+	ft8_portapack.c
+	ft8_lib/ldpc.c
+)
+# The decoder plus its tables sit close to the 32k external app ceiling, so this image is
+# built for size rather than speed.
+set(MODE_FLAGS "-Os")
+# ft8_lib needs log10f and sqrtf.
+set(ORIG_LIBS ${LIBS})
+set(LIBS ${LIBS} m)
+DeclareTargets(PFT8 ft8_rx)
+set(LIBS ${ORIG_LIBS})
+
 ### SD over USB
 
 set(MODE_INCDIR

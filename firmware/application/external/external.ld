@@ -119,6 +119,7 @@ MEMORY
     ram_external_app_ais_rx                (rwx) : org = 0xAE0E0000, len = 32k
     ram_external_app_aprs_rx               (rwx) : org = 0xAE0F0000, len = 32k
     ram_external_app_aprs_tx               (rwx) : org = 0xAE100000, len = 32k
+    ram_external_app_ft8_rx                (rwx) : org = 0xAE110000, len = 32k
 }
 
 SECTIONS
@@ -698,6 +699,16 @@ SECTIONS
         KEEP(*(.external_app.app_aprs_tx.application_information));
         *(*ui*external_app*aprs_tx*);
     } > ram_external_app_aprs_tx
+
+    .external_app_ft8_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ft8_rx.application_information));
+        */external/ft8_rx/*(*ui*external_app*ft8_rx*);
+        /* ft8_lib's unpacker declares itself extern "C" in its own header, so its
+           sections carry plain C names that the rule above cannot match. Everything this
+           app compiles belongs in its own slot, so take the rest by path. */
+        */external/ft8_rx/*(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*);
+    } > ram_external_app_ft8_rx
 
 
 
