@@ -173,8 +173,7 @@ class Message {
         AudioDDCConfig = 115,
         RxFs4Config = 116,
         FT8Packet = 117,
-        FT8Configure = 118,
-        FT8RxStatus = 119,
+        FT8RxStatus = 118,
         MAX
     };
 
@@ -480,17 +479,6 @@ class FT8RxStatusMessage : public Message {
 
     SyncState state;
     uint8_t decode_count;
-};
-
-class FT8ConfigureMessage : public Message {
-   public:
-    constexpr FT8ConfigureMessage(
-        uint8_t threshold_value)
-        : Message{ID::FT8Configure},
-          threshold{threshold_value} {
-    }
-
-    uint8_t threshold;  // Minimum Costas score a candidate needs to be reported
 };
 
 class TPMSPacketMessage : public Message {

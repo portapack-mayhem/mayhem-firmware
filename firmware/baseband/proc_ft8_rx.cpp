@@ -324,10 +324,6 @@ void FT8RxProcessor::on_message(const Message* const message) {
             capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
             break;
 
-        case Message::ID::FT8Configure:
-            configure_threshold(*reinterpret_cast<const FT8ConfigureMessage*>(message));
-            break;
-
         default:
             break;
     }
@@ -339,10 +335,6 @@ void FT8RxProcessor::capture_config(const CaptureConfigMessage& message) {
     } else {
         audio_output.set_stream(nullptr);
     }
-}
-
-void FT8RxProcessor::configure_threshold(const FT8ConfigureMessage& message) {
-    ft8_portapack_set_min_score(&decoder_state, message.threshold);
 }
 
 int main() {

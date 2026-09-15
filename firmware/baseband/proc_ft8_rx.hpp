@@ -197,7 +197,6 @@ class FT8RxProcessor : public BasebandProcessor {
 
     // Message handlers
     void capture_config(const CaptureConfigMessage& message);
-    void configure_threshold(const FT8ConfigureMessage& message);
 
     // FT8 processing
     void process_ft8_audio(const buffer_f32_t& audio);

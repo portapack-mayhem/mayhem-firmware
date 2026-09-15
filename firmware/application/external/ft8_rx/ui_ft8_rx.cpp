@@ -48,18 +48,12 @@ FT8RxView::FT8RxView(NavigationView& nav)
                   &field_lna,
                   &field_vga,
                   &rssi,
-                  &field_threshold,
                   &field_volume,
                   &field_frequency,
                   &options_band,
                   &text_status,
                   &text_decodes,
                   &console});
-
-    field_threshold.set_value(initial_threshold);
-    field_threshold.on_change = [this](int32_t value) {
-        baseband::set_ft8_config(static_cast<uint8_t>(value));
-    };
 
     field_frequency.set_step(100);
 
@@ -85,7 +79,6 @@ FT8RxView::FT8RxView(NavigationView& nav)
 
     audio::output::start();
 
-    baseband::set_ft8_config(initial_threshold);
 }
 
 void FT8RxView::on_packet(const FT8PacketMessage* message) {

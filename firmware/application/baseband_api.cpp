@@ -605,11 +605,6 @@ void request_beep(RequestSignalMessage::Signal beep_type) {
     send_message(&message);
 }
 
-void set_ft8_config(uint8_t threshold) {
-    const FT8ConfigureMessage message{threshold};
-    send_message(&message);
-}
-
 void request_roger_beep() {
     request_beep(RequestSignalMessage::Signal::RogerBeepRequest);
 }

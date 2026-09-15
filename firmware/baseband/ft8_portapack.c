@@ -110,8 +110,6 @@ bool ft8_portapack_init(ft8_decoder_state_t* state) {
     state->initialized = true;
     state->decoding_active = false;
 
-    // Default configuration
-    state->min_score_threshold = 30;
     state->skip_count = 0;
     state->samples_in_symbol = 0;
 
@@ -193,16 +191,13 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
     }
     state->max_magnitude = max_mag;
 
-    // The candidate search doubles as the slot-timing sensor, so it always runs at a
-    // threshold low enough to see the band. Letting the user's setting gate it would mean
-    // that raising the threshold past the strongest signal's score blinds the sync loop
-    // and the receiver drifts out of alignment with no way back.
-    int search_score = state->min_score_threshold;
-    if (search_score > FT8_SYNC_SEARCH_SCORE) search_score = FT8_SYNC_SEARCH_SCORE;
+    // The candidate search doubles as the slot-timing sensor, so its threshold is fixed:
+    // a search that can be tuned past the strongest signal's score would blind the sync
+    // loop and leave the receiver drifting with no way back.
     state->num_candidates = ftx_find_candidates(&state->waterfall,
                                                   FT8_MAX_CANDIDATES,
                                                   state->candidates,
-                                                  search_score);
+                                                  FT8_MIN_SYNC_SCORE);
 
     if (state->num_candidates >= FT8_MAX_CANDIDATES) {
         state->skip_count++;
@@ -224,8 +219,6 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
     for (int i = 0; i < state->num_candidates && state->num_messages < FT8_MAX_MESSAGES; i++) {
         ftx_message_t msg;
         ftx_decode_status_t st;
-        // The user's threshold still filters what gets reported.
-        if (state->candidates[i].score < state->min_score_threshold) continue;
         if (ftx_decode_candidate(&state->waterfall, &state->candidates[i],
                                   FT8_LDPC_ITERATIONS, &msg, &st) && st.ldpc_errors == 0) {
             // Check for duplicate payload (same signal decoded at different time/freq offsets)
@@ -274,9 +267,3 @@ void ft8_portapack_reset_slot(ft8_decoder_state_t* state) {
     state->waterfall.num_blocks = 0;
 }
 
-void ft8_portapack_set_min_score(ft8_decoder_state_t* state, int threshold) {
-    if (!state) return;
-    if (threshold < 10) threshold = 10;
-    if (threshold > 150) threshold = 150;
-    state->min_score_threshold = threshold;
-}

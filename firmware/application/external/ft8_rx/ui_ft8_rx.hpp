@@ -47,8 +47,6 @@ class FT8RxView : public View {
      * a wide sampling rate and the baseband narrows it rather than the radio. */
     static constexpr uint32_t sampling_rate = 3072000;
     static constexpr uint32_t baseband_bandwidth = 1750000;
-    /* Lowest Costas score a candidate needs before its decode is reported. */
-    static constexpr uint8_t initial_threshold = 10;
     /* Payloads remembered within a slot, so one transmission decoded from several
      * candidates is printed once. */
     static constexpr int recent_max = 20;
@@ -76,15 +74,10 @@ class FT8RxView : public View {
     VGAGainField field_vga{
         {16 * 8, 0}};
 
+    /* The only signal indicator the app has, so it gets the width the threshold field
+     * used to take. */
     RSSI rssi{
-        {19 * 8 - 4, 3, 52, 8}};
-
-    NumberField field_threshold{
-        {UI_POS_X_RIGHT(5), 0},
-        2,
-        {10, 99},
-        1,
-        ' '};
+        {19 * 8 - 4, 3, 74, 8}};
 
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), 0}};

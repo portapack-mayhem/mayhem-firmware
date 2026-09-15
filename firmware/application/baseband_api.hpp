@@ -115,7 +115,6 @@ void set_morsetx_config(uint8_t mode, uint32_t tone, float fm_delta);
 void set_morsetx_key(bool key_down);
 void set_wefax_config(uint8_t lpm, uint8_t ioc);
 void set_noaaapt_config();
-void set_ft8_config(uint8_t threshold);
 void set_vor_config(bool enabled = true);
 void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled = true, const std::string& ident = "", bool enabled = true);
 void set_flex_config();

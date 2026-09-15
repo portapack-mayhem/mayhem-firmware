@@ -45,9 +45,10 @@
 #define FT8_MAX_CANDIDATES     15        // Maximum decode candidates
 #define FT8_MAX_MESSAGES       10        // Maximum messages per slot
 #define FT8_LDPC_ITERATIONS    10        // LDPC iterations
-// Ceiling on the score the candidate search runs at, so the slot-timing loop keeps
-// seeing the band no matter how high the user raises the reporting threshold.
-#define FT8_SYNC_SEARCH_SCORE  10
+// Lowest Costas score a candidate is worth trying to decode. Anything that gets past the
+// LDPC decoder still has to match a 14-bit CRC, so weak candidates cost a decode attempt
+// rather than a false message, and there is nothing to gain by raising this.
+#define FT8_MIN_SYNC_SCORE     10
 
 // Waterfall buffer configuration
 // A transmission is 79 symbols (12.64 s) but the T/R slot is 15 s, so the analysis
@@ -96,8 +97,6 @@ typedef struct {
     // can: it never succeeds on the aliased alignment.
     bool sync_confirmed;
 
-    // Configuration
-    int min_score_threshold;
 
     // Status flags
     bool initialized;
@@ -134,8 +133,6 @@ int ft8_portapack_decode(ft8_decoder_state_t* state);
 // Reset decoder for new slot
 void ft8_portapack_reset_slot(ft8_decoder_state_t* state);
 
-// Set minimum score threshold for candidate detection
-void ft8_portapack_set_min_score(ft8_decoder_state_t* state, int threshold);
 
 #ifdef __cplusplus
 }
