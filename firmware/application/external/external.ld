@@ -708,6 +708,10 @@ SECTIONS
            sections carry plain C names that the rule above cannot match. Everything this
            app compiles belongs in its own slot, so take the rest by path. */
         */external/ft8_rx/*(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*);
+        /* The loader reads the baseband image that follows this section as 32-bit words,
+           and the application core cannot do unaligned word accesses, so the section has
+           to end on a word boundary. */
+        . = ALIGN(4);
     } > ram_external_app_ft8_rx
 
 
