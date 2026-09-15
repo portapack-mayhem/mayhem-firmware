@@ -171,6 +171,7 @@ class Message {
         TetraBsch = 113,
         TetraDnb = 114,
         AudioDDCConfig = 115,
+        RxFs4Config = 116,
         MAX
     };
 
@@ -309,6 +310,18 @@ class SpectrumStreamingConfigMessage : public Message {
     }
 
     Mode mode{Mode::Stopped};
+};
+
+// Application sample-rate translation, independent of PRALINE's AFE shift.
+enum class RxFs4Direction : uint8_t { Down,
+                                      Up };
+
+class RxFs4ConfigMessage : public Message {
+   public:
+    constexpr RxFs4ConfigMessage(RxFs4Direction direction)
+        : Message{ID::RxFs4Config}, direction{direction} {}
+
+    const RxFs4Direction direction;
 };
 
 class AudioDDCConfigMessage : public Message {

@@ -23,6 +23,8 @@
 #ifndef __PROC_WFM_AUDIO_H__
 #define __PROC_WFM_AUDIO_H__
 
+#include <atomic>
+
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
@@ -99,6 +101,10 @@ class WidebandFMAudio : public BasebandProcessor {
         complex_audio.size()};
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+    std::array<int16_t, 24> decim_0_taps_{};
+    std::atomic<RxFs4Direction> requested_fs4_direction_{RxFs4Direction::Down};
+    RxFs4Direction applied_fs4_direction_{RxFs4Direction::Down};
+    void configure_fs4(const std::array<int16_t, 24>& taps);
     // dsp::decimate::FIRC16xR16x16Decim2 decim_1{};   //original condition , before adding wfmam
 
     // decim_1 will handle different types of FIR filters depending on selection.
