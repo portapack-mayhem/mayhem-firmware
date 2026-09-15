@@ -115,8 +115,13 @@ class FT8RxView : public View {
         {22 * 8, 1 * 16, 8 * 8, 16},
         ""};
 
+    /* NavigationView sits below the 16 px system status bar, so a view's own y = 0 is
+     * screen y = 16 and the last usable row is screen_height - 16. Console hands its
+     * screen rect straight to the display's hardware scroll region, so a rect that runs
+     * past that row sets the region's bottom fixed area negative and the panel then shows
+     * frame rows nothing has written. */
     Console console{
-        {0, 2 * 16, 240, screen_height - 2 * 16}};
+        {0, 2 * 16, screen_width, screen_height - 3 * 16}};
 
     uint32_t decodes_total{0};
 
