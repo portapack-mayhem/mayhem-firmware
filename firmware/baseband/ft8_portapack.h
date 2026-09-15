@@ -1,12 +1,22 @@
 /*
- * FT8 Portapack Adapter
- * Bridges ft8_lib with Portapack Mayhem baseband infrastructure
+ * Copyright (C) 2026 Dmytro Onyshko
  *
- * Key adaptations:
- * - Uses Goertzel algorithm for exact 6.25 Hz bin spacing (matches FT8 tone spacing)
- * - Incremental sample processing (no burst computation)
- * - Optimized for Portapack's 96KB RAM (M4 core)
- * - Integration with existing Portapack DSP chain
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
  */
 
 #ifndef _FT8_PORTAPACK_H_
@@ -19,122 +29,77 @@
 #include "ft8_lib/decode.h"
 #include "ft8_lib/message.h"
 
-// FT8 timing constants
-#define FT8_SLOT_DURATION 12.64f  // Length of a transmission; the T/R slot is 15 s
-#define FT8_NUM_SYMBOLS 79        // Total symbols in FT8 message
-#define FT8_SYNC_SYMBOLS 7        // Costas sync symbols
-#define FT8_TONE_SPACING 6.25f    // Hz between tones
-#define FT8_SYMBOL_RATE 6.25f     // Symbols per second
+#define FT8_NUM_SYMBOLS 79
 
-// Audio processing parameters
-// Input is 24kHz, software decimation 2:1 gives 12kHz for Goertzel
-#define FT8_SAMPLE_RATE 12000        // Goertzel sample rate
-#define FT8_SAMPLES_PER_SYMBOL 1920  // 160ms * 12kHz = 1920 samples per symbol
-// DFT size = samples per symbol = 1920
-// This gives bin spacing = 12000/1920 = 6.25 Hz — EXACTLY matches FT8 tone spacing
-#define FT8_FFT_SIZE FT8_SAMPLES_PER_SYMBOL
+// ft8_lib's decoder assumes one waterfall bin equals one FT8 tone, so the bin spacing has
+// to be exactly 6.25 Hz. At 12 kHz that means a 1920-point transform; a 2048-point FFT
+// gives 5.86 Hz and breaks sync detection.
+#define FT8_SAMPLE_RATE 12000
+#define FT8_SAMPLES_PER_SYMBOL 1920
 
-// Frequency range (audio frequencies after USB demodulation)
-// FT8 signals occupy 200-2500 Hz in USB audio
-#define FT8_FREQ_MIN 200.0f   // Minimum frequency (Hz)
-#define FT8_FREQ_MAX 2500.0f  // Maximum frequency (Hz)
-#define FT8_FREQ_MIN_BIN 32   // 200 Hz / 6.25 Hz = bin 32
-#define FT8_NUM_BINS 368      // Frequency bins covering 200-2500 Hz (2300/6.25=368)
+// FT8 occupies 200-2500 Hz of the USB audio, which is DFT bins 32..399.
+#define FT8_FREQ_MIN_BIN 32
+#define FT8_NUM_BINS 368
 
-// Memory optimization
-#define FT8_MAX_CANDIDATES 15   // Maximum decode candidates
-#define FT8_MAX_MESSAGES 10     // Maximum messages per slot
-#define FT8_LDPC_ITERATIONS 10  // LDPC iterations
-// Lowest Costas score a candidate is worth trying to decode. Anything that gets past the
-// LDPC decoder still has to match a 14-bit CRC, so weak candidates cost a decode attempt
-// rather than a false message, and there is nothing to gain by raising this.
+#define FT8_MAX_CANDIDATES 15
+#define FT8_MAX_MESSAGES 10
+#define FT8_LDPC_ITERATIONS 10
+
+// Anything past the LDPC decoder still has to match a 14-bit CRC, so a weak candidate
+// costs a decode attempt rather than a false message.
 #define FT8_MIN_SYNC_SCORE 10
 
-// Waterfall buffer configuration
-// A transmission is 79 symbols (12.64 s) but the T/R slot is 15 s, so the analysis
-// window is made longer than the transmission. The extra 12 blocks are the slack the
-// slot-tracking loop needs: the transmission is parked in the middle and clock error
-// moves it within that slack instead of off the end of the buffer.
-#define FT8_WATERFALL_BLOCKS 91   // 14.56 s; the remaining 440 ms runs the decoder
-#define FT8_WATERFALL_TIME_OSR 1  // No time oversampling
-#define FT8_WATERFALL_FREQ_OSR 1  // No frequency oversampling
+// A transmission is 79 symbols but the T/R slot is 15 s, so the window is longer than the
+// transmission. The extra 12 blocks are the slack the slot-tracking loop moves within.
+#define FT8_WATERFALL_BLOCKS 91
+#define FT8_WATERFALL_TIME_OSR 1
+#define FT8_WATERFALL_FREQ_OSR 1
 
-// Waterfall size: 91 * 1 * 1 * 368 = 33,488 bytes (uint8_t)
 #define FT8_WATERFALL_SIZE (FT8_WATERFALL_BLOCKS * FT8_WATERFALL_TIME_OSR * \
                             FT8_WATERFALL_FREQ_OSR * FT8_NUM_BINS)
 
-// FT8 decoder state
 typedef struct {
-    // Waterfall data
     ftx_waterfall_t waterfall;
-    WF_ELEM_T* waterfall_data;
 
-    // Decode candidates
     ftx_candidate_t candidates[FT8_MAX_CANDIDATES];
     int num_candidates;
 
-    // Decoded messages
     ftx_message_t messages[FT8_MAX_MESSAGES];
-    int16_t message_scores[FT8_MAX_MESSAGES];  // Sync score per decoded message
+    int16_t message_scores[FT8_MAX_MESSAGES];
     int num_messages;
 
-    // Statistics
-    uint32_t slot_count;
-    uint32_t decode_count;
-    uint32_t error_count;
-    uint32_t skip_count;
-
-    // Slot synchronisation observables, refreshed by ft8_portapack_decode().
-    // Every station on the band keys to the same slot boundary, so the strongest
-    // candidate's time_offset is a direct measurement of our own misalignment.
-    int16_t sync_time_offset;  // Block where the transmission starts
-    int16_t sync_score;        // Costas score of that candidate; 0 when none was found
-    // True when sync_time_offset came from a candidate that passed CRC. The Costas array
-    // repeats every FT8_SYNC_OFFSET = 36 blocks, so a window misaligned by one full
-    // period still matches two of the three sync groups and scores in the thirties while
-    // every data symbol is 36 places out. Score alone cannot tell the two apart, and
-    // neither can repeating the measurement, since the alias is just as stable. A decode
-    // can: it never succeeds on the aliased alignment.
+    // Every station on the band keys to the same slot boundary, so the time_offset of the
+    // best candidate measures our own misalignment.
+    int16_t sync_time_offset;
+    int16_t sync_score;
+    // Set when sync_time_offset came from a candidate that passed CRC. The Costas array
+    // repeats every 36 blocks, so a window misaligned by one full period still matches two
+    // of the three sync groups and scores in the thirties while every data symbol is 36
+    // places out. Score cannot tell the two apart and the alias is just as stable across
+    // slots, but a decode never succeeds on it.
     bool sync_confirmed;
 
-    // Status flags
     bool initialized;
-    bool decoding_active;
-
-    // Goertzel incremental state
-    int samples_in_symbol;  // Count of samples processed in current symbol
-
-    // Debug (minimal - keep only useful fields)
-    float debug_audio_peak;
-    int debug_blocks_written;
-    int max_magnitude;
-
+    int samples_in_symbol;
 } ft8_decoder_state_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Initialize FT8 decoder (precomputes Goertzel coefficients)
 bool ft8_portapack_init(ft8_decoder_state_t* state);
-
-// Free FT8 decoder resources
 void ft8_portapack_free(ft8_decoder_state_t* state);
 
-// Feed one audio sample at 12kHz to the Goertzel filters (incremental processing)
-// Returns true when the analysis window (FT8_WATERFALL_BLOCKS symbols) is full
+// Returns true once the analysis window holds FT8_WATERFALL_BLOCKS symbols.
 bool ft8_portapack_feed_sample(ft8_decoder_state_t* state, float sample);
 
-// Decode current waterfall data
-// Returns number of successfully decoded messages
+// Returns the number of messages decoded from the captured window.
 int ft8_portapack_decode(ft8_decoder_state_t* state);
 
-// Reset decoder for new slot
 void ft8_portapack_reset_slot(ft8_decoder_state_t* state);
 
-// Unpack a decoded payload into displayable text. text must hold
-// FTX_MAX_MESSAGE_LENGTH bytes; it comes back empty for a payload that matches no known
-// message type.
+// text must hold FTX_MAX_MESSAGE_LENGTH bytes. It comes back empty for a payload of a
+// type the library does not unpack.
 void ft8_portapack_message_text(const ftx_message_t* message, char* text);
 
 #ifdef __cplusplus
