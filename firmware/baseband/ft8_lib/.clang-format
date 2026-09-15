@@ -1,0 +1,4 @@
+# Imported third-party sources: keep them byte-identical to upstream so the next import
+# is a plain file copy rather than a merge.
+DisableFormat: true
+SortIncludes: false
