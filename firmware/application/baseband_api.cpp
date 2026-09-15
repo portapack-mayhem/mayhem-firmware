@@ -514,7 +514,7 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     }
 }
 
-void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync) {
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const spi_flash::image_tag_t prepared_image_tag) {
     rx_fs4_supported = false;
     if (baseband_image_running) {
         chDbgPanic("BBRunning");
@@ -524,6 +524,8 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync) {
     shared_memory.clear_baseband_ready();
 
     m4_init_prepared(m4_code, false);
+    // Only explicitly identified Capture images support application FS4 control.
+    rx_fs4_supported = prepared_image_tag == spi_flash::image_tag_capture;
     baseband_image_running = true;
 
     creg::m4txevent::enable();
