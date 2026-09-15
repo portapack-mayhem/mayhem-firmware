@@ -436,24 +436,26 @@ class EPIRBRXConfig : public Message {
     uint8_t squelch{50};
 };
 
-/* FT8 decodes are shipped as the raw 77-bit payload and turned into text on the
- * application side, because ft8_lib's unpacker does not fit in the baseband image
- * alongside the decoder. */
+/* One decoded FT8 transmission, already unpacked to text by the baseband. */
 class FT8PacketMessage : public Message {
    public:
-    static constexpr size_t payload_length = 10;
+    /* Longest text an FT8 payload unpacks to: callsign[13], space, callsign[13], space,
+     * report[6], terminator. */
+    static constexpr size_t text_length = 35;
 
     FT8PacketMessage(
-        const uint8_t* payload_bytes,
+        const char* message_text,
         int16_t sync_score)
         : Message{ID::FT8Packet},
-          payload{},
+          text{},
           score{sync_score} {
-        for (size_t i = 0; i < payload_length; i++)
-            payload[i] = payload_bytes[i];
+        size_t i = 0;
+        for (; i < text_length - 1 && message_text[i] != '\0'; i++)
+            text[i] = message_text[i];
+        text[i] = '\0';
     }
 
-    uint8_t payload[payload_length];
+    char text[text_length];
     int16_t score;  // Costas sync score of the candidate this came from
 };
 

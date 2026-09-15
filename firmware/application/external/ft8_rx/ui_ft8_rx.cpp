@@ -23,10 +23,7 @@
 
 #include "audio.hpp"
 #include "baseband_api.hpp"
-#include "ft8_message.hpp"
 #include "string_format.hpp"
-
-#include <cstring>
 
 using namespace portapack;
 
@@ -78,30 +75,14 @@ FT8RxView::FT8RxView(NavigationView& nav)
     receiver_model.enable();
 
     audio::output::start();
-
 }
 
 void FT8RxView::on_packet(const FT8PacketMessage* message) {
-    /* The same transmission is often decoded from several candidates, and a station
-     * repeats its call across slots, so only the payloads not seen recently are shown. */
-    for (int i = 0; i < recent_count; i++) {
-        if (std::memcmp(message->payload, recent_payloads[i], FT8PacketMessage::payload_length) == 0)
-            return;
-    }
-    std::memcpy(recent_payloads[recent_index], message->payload, FT8PacketMessage::payload_length);
-    recent_index = (recent_index + 1) % recent_max;
-    if (recent_count < recent_max) recent_count++;
-
-    const auto text = payload_to_text(message->payload);
-    if (!text.empty())
-        console.writeln(text);
+    if (message->text[0] != '\0')
+        console.writeln(message->text);
 }
 
 void FT8RxView::on_status(const FT8RxStatusMessage* message) {
-    /* A new slot starts here, so a station calling again is worth showing again. */
-    recent_count = 0;
-    recent_index = 0;
-
     decodes_total += message->decode_count;
 
     switch (message->state) {

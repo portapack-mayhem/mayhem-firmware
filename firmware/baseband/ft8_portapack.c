@@ -195,9 +195,9 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
     // a search that can be tuned past the strongest signal's score would blind the sync
     // loop and leave the receiver drifting with no way back.
     state->num_candidates = ftx_find_candidates(&state->waterfall,
-                                                  FT8_MAX_CANDIDATES,
-                                                  state->candidates,
-                                                  FT8_MIN_SYNC_SCORE);
+                                                FT8_MAX_CANDIDATES,
+                                                state->candidates,
+                                                FT8_MIN_SYNC_SCORE);
 
     if (state->num_candidates >= FT8_MAX_CANDIDATES) {
         state->skip_count++;
@@ -220,7 +220,8 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
         ftx_message_t msg;
         ftx_decode_status_t st;
         if (ftx_decode_candidate(&state->waterfall, &state->candidates[i],
-                                  FT8_LDPC_ITERATIONS, &msg, &st) && st.ldpc_errors == 0) {
+                                 FT8_LDPC_ITERATIONS, &msg, &st) &&
+            st.ldpc_errors == 0) {
             // Check for duplicate payload (same signal decoded at different time/freq offsets)
             bool duplicate = false;
             for (int j = 0; j < state->num_messages; j++) {
@@ -251,6 +252,17 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
     return state->num_messages;
 }
 
+void ft8_portapack_message_text(const ftx_message_t* message, char* text) {
+    ftx_message_offsets_t offsets;
+
+    // A hashed callsign that no table can resolve renders as <...> and is reported as an
+    // error, so the return code is ignored and the text kept: the rest of the message is
+    // still worth showing. Holding a hash table would mean keeping every callsign heard
+    // this session. Payloads of a type the library does not unpack come back empty,
+    // because ftx_message_decode() terminates the string before it dispatches.
+    ftx_message_decode(message, NULL, text, &offsets);
+}
+
 void ft8_portapack_reset_slot(ft8_decoder_state_t* state) {
     if (!state) return;
     // Clear the buffer before publishing num_blocks = 0, so the baseband thread can
@@ -266,4 +278,3 @@ void ft8_portapack_reset_slot(ft8_decoder_state_t* state) {
     memset(goertzel_s2, 0, sizeof(goertzel_s2));
     state->waterfall.num_blocks = 0;
 }
-

@@ -89,9 +89,9 @@ class FT8RxProcessor : public BasebandProcessor {
     static constexpr size_t baseband_fs = 3072000;  // 3.072 MHz input
 
     // Decimation chain: 3.072 MHz → 384 kHz → 48 kHz → 24 kHz (like AFSK RX)
-    static constexpr size_t decim_0_output_fs = baseband_fs / 8;  // 384 kHz
+    static constexpr size_t decim_0_output_fs = baseband_fs / 8;        // 384 kHz
     static constexpr size_t decim_1_output_fs = decim_0_output_fs / 8;  // 48 kHz
-    static constexpr size_t audio_fs = 24000;  // 24 kHz audio (48k / 2 via channel_filter)
+    static constexpr size_t audio_fs = 24000;                           // 24 kHz audio (48k / 2 via channel_filter)
 
     // Buffers
     std::array<complex16_t, 512> dst{};

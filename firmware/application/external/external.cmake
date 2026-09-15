@@ -410,9 +410,6 @@ set(EXTCPPSRC
 	#ft8 rx
 	external/ft8_rx/main.cpp
 	external/ft8_rx/ui_ft8_rx.cpp
-	# ft8_lib payload-to-text unpacker; it runs on M0 because it does not fit in the
-	# baseband image next to the decoder.
-	external/ft8_rx/ft8_message.cpp
 
 	#sd over usb
 	external/sdusb/main.cpp

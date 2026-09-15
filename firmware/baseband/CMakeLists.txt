@@ -796,6 +796,8 @@ set(MODE_CPPSRC
 	ft8_lib/decode.c
 	ft8_portapack.c
 	ft8_lib/ldpc.c
+	ft8_lib/message.c
+	ft8_lib/text.c
 )
 # The decoder plus its tables sit close to the 32k external app ceiling, so this image is
 # built for size rather than speed.

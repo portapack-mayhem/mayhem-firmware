@@ -47,9 +47,6 @@ class FT8RxView : public View {
      * a wide sampling rate and the baseband narrows it rather than the radio. */
     static constexpr uint32_t sampling_rate = 3072000;
     static constexpr uint32_t baseband_bandwidth = 1750000;
-    /* Payloads remembered within a slot, so one transmission decoded from several
-     * candidates is printed once. */
-    static constexpr int recent_max = 20;
 
     NavigationView& nav_;
 
@@ -121,9 +118,6 @@ class FT8RxView : public View {
     Console console{
         {0, 2 * 16, 240, screen_height - 2 * 16}};
 
-    uint8_t recent_payloads[recent_max][FT8PacketMessage::payload_length]{};
-    int recent_count{0};
-    int recent_index{0};
     uint32_t decodes_total{0};
 
     MessageHandlerRegistration message_handler_packet{

@@ -88,10 +88,12 @@ void FT8DecodeThread::run() {
         // valid for the window that was just decoded.
         processor_->on_slot_decoded();
 
-        // Ship decoded payloads to the application core, which turns them into text.
+        // Ship decoded messages to the application core as text.
         for (int i = 0; i < state_->num_messages; i++) {
+            char text[FTX_MAX_MESSAGE_LENGTH];
+            ft8_portapack_message_text(&state_->messages[i], text);
             shared_memory.application_queue.push(
-                FT8PacketMessage{state_->messages[i].payload, state_->message_scores[i]});
+                FT8PacketMessage{text, state_->message_scores[i]});
         }
 
         // One status update per slot, so the UI can show whether the slot clock is locked.
@@ -112,7 +114,6 @@ FT8RxProcessor::FT8RxProcessor() {
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
     channel_filter.configure(taps_11k0_channel.taps, 2);  // decimation=2 gives 24kHz
-
 
     // Configure audio output without processing
     audio_output.configure(false);
