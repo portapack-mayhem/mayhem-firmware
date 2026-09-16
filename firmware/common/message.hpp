@@ -467,7 +467,7 @@ class FT8RxStatusMessage : public Message {
     enum class SyncState : uint8_t {
         Searching = 0,  // Nothing above the noise; hunting for the slot boundary
         Heard = 1,      // An FT8 transmission is in the passband but has not decoded
-        Refining = 2,   // Boundary found, walking the sub-symbol phase
+        Syncing = 2,    // Boundary found, walking the sub-symbol phase
         Locked = 3,     // Tracking the slot
     };
 

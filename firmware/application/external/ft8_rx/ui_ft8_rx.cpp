@@ -94,7 +94,7 @@ void FT8RxView::on_status(const FT8RxStatusMessage* message) {
             text_status.set_style(Theme::getInstance()->fg_yellow);
             text_status.set("Heard, no decode");
             break;
-        case FT8RxStatusMessage::SyncState::Refining:
+        case FT8RxStatusMessage::SyncState::Syncing:
             text_status.set_style(Theme::getInstance()->fg_yellow);
             text_status.set("Syncing");
             break;
