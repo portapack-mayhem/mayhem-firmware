@@ -29,7 +29,7 @@ namespace config {
 // Forward declarations
 Config low_band(const rf::Frequency target_frequency, const uint32_t afe_rate, const bool transmit);
 Config mid_band(const rf::Frequency target_frequency, const uint32_t afe_rate, const bool transmit);
-Config high_band(const rf::Frequency target_frequency);
+Config high_band(const rf::Frequency target_frequency, const uint32_t afe_rate, const bool transmit);
 
 #ifdef PRALINE
 /*
@@ -392,7 +392,7 @@ Config mid_band(const rf::Frequency target_frequency, const uint32_t afe_rate, c
     }
 
     /* 2580-2740 MHz: above the bypass window, downconvert. */
-    return high_band(target_frequency);
+    return high_band(target_frequency, afe_rate, transmit);
 #else
     (void)afe_rate;
     (void)transmit;
@@ -403,37 +403,53 @@ Config mid_band(const rf::Frequency target_frequency, const uint32_t afe_rate, c
 #endif
 }
 
-// High band >2740 Mhz (HackRF One) or >2580 MHz (PRALINE):
+// High band >2740 Mhz (HackRF One). On PRALINE the high band IF is taken from
+// the reference tune tables instead; see high_band() below.
+#ifndef PRALINE
 constexpr rf::Frequency high_band_second_lo_frequency(const rf::Frequency target_frequency) {
-#ifdef PRALINE
-    // Praline formula tuned for MAX2831 (2.3-2.6 GHz range)
-    // Keep second_lo in MAX2831's range while allowing RFFC5072 to work
-    //
-    // For high-band, we use LOW-side injection: LO = RF - IF
-    // So IF should be chosen to keep LO (and thus VCO) in a good range
-    //
-    // Based on hackrf_usb tune_config_tx patterns:
-    if (target_frequency < 3600'000'000)
-        return 2400'000'000 + ((target_frequency - 2740'000'000) / 4);
-    else if (target_frequency < 5100'000'000)
-        return 2500'000'000 + ((target_frequency - 3600'000'000) / 6);
-    else
-        return 2550'000'000 + ((target_frequency - 5100'000'000) / 10);
-#else
     if (target_frequency < 3600'000'000)
         return (2170'000'000 + (((target_frequency - 2740'000'000) * 57) / 86));
     else if (target_frequency < 5100'000'000)
         return (2350'000'000 + ((target_frequency - 3600'000'000) / 5));
     else
         return (2500'000'000 + ((target_frequency - 5100'000'000) / 9));
-#endif
 }
+#endif
 
-Config high_band(const rf::Frequency target_frequency) {
+Config high_band(const rf::Frequency target_frequency, const uint32_t afe_rate, const bool transmit) {
+#ifdef PRALINE
+    /* radio.c radio_update_frequency(), RF_PATH_FILTER_HIGH_PASS (>2580 MHz):
+     * the IF comes from the reference tune tables, which keep the MAX2831
+     * within 2325-2575 MHz (TX) rather than letting a formula push it past
+     * ~2.6 GHz, and the first LO is low-side injected: LO = RF - IF. There is
+     * no spectrum inversion on the high band (hackrf_usb.c radio_changed()
+     * only inverts for LOW_PASS). The RX table also carries the quarter-rate
+     * shift, handled the same way as in low_band()/mid_band(). */
+    const PralineTuneConfig* entry = select_tune_config(target_frequency, transmit);
+
+    /* Past the end of the table: no usable configuration. */
+    if ((entry->rf_range_end_mhz == 0) && (entry->if_mhz == 0))
+        return {};
+
+    const uint8_t shift = (afe_rate == 0) ? 0 : entry->shift;
+    const rf::Frequency analog_rf = analog_from_digital_rf(target_frequency, shift, afe_rate);
+
+    /* if_mhz == 0 means bypass; the tables never do that above 2580 MHz, but
+     * fall back to tuning the MAX2831 direct rather than dividing by zero. */
+    if (entry->if_mhz == 0)
+        return {0, analog_rf, rf::path::Band::Mid, false, shift};
+
+    const rf::Frequency second_lo_frequency = static_cast<rf::Frequency>(entry->if_mhz) * 1'000'000;
+    const rf::Frequency first_lo_frequency = analog_rf - second_lo_frequency;
+    return {first_lo_frequency, second_lo_frequency, rf::path::Band::High, false, shift};
+#else
+    (void)afe_rate;
+    (void)transmit;
     const rf::Frequency second_lo_frequency = high_band_second_lo_frequency(target_frequency);
     const rf::Frequency first_lo_frequency = target_frequency - second_lo_frequency;
     const bool mixer_invert = false;
     return {first_lo_frequency, second_lo_frequency, rf::path::Band::High, mixer_invert};
+#endif
 }
 
 Config create(const rf::Frequency target_frequency, const uint32_t afe_rate, const bool transmit) {
@@ -443,7 +459,7 @@ Config create(const rf::Frequency target_frequency, const uint32_t afe_rate, con
     } else if (rf::path::band_mid.contains(target_frequency)) {
         return mid_band(target_frequency, afe_rate, transmit);
     } else if (rf::path::band_high.contains(target_frequency)) {
-        return high_band(target_frequency);
+        return high_band(target_frequency, afe_rate, transmit);
     } else {
         return {};
     }
