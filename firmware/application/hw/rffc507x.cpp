@@ -328,7 +328,7 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
      * disables the part around set_frequency(), in which case enable() starts a
      * fresh calibration and this is a no-op.) */
     if (_map.r.sdi_ctrl.enbl) {
-        _map.r.pll_ctrl.relok = 1;  /* RELOK lives in PLL_CTRL (reg 0x09, bit 3) */
+        _map.r.pll_ctrl.relok = 1; /* RELOK lives in PLL_CTRL (reg 0x09, bit 3) */
         flush_one(Register::PLL_CTRL);
     }
 }
