@@ -371,7 +371,9 @@ void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     chprintf(chp, "send %d bytes\r\n", size);
 
-    uint8_t buffer[USB_BULK_BUFFER_SIZE];
+    /* static: 512 bytes is too large for the shell thread stack, and only one
+     * file can be open through the shell at a time (shell_file is global). */
+    static uint8_t buffer[USB_BULK_BUFFER_SIZE];
 
     do {
         size_t bytes_to_read = size > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : size;
