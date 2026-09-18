@@ -35,14 +35,17 @@ jobs:
             device_name: HackRF
             cmake_args: ""
             artifact_suffix: "_hackrf"
+            device_subdir: hackrf
           - device: portarf
             device_name: PortaRF
-            cmake_args: "-DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=2"
+            cmake_args: "-DFLASH_MB_SIZE=2 -DFLASH_MB_LIMIT_SIZE=2 -DDEVICE_SUBDIR=portarf"
             artifact_suffix: "_portarf"
+            device_subdir: portarf
           - device: hpro
             device_name: HackRF Pro
             cmake_args: "-DBOARD=PRALINE"
             artifact_suffix: "_hpro"
+            device_subdir: hpro
     steps:
       - name: Get version date
         id: version_date
@@ -63,7 +66,7 @@ jobs:
         run: docker run -e VERSION_STRING=${{ steps.version_date.outputs.date }} -i -v ${{ github.workspace }}:/havoc portapack-dev ${{ matrix.cmake_args }}
       - name: Create Small SD Card ZIP - No World Map
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_nightly_${{ steps.version_date.outputs.date }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}${{ matrix.artifact_suffix }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_nightly_${{ steps.version_date.outputs.date }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS/${{ matrix.device_subdir }} && cp build/firmware/application/*.ppma sdcard/APPS/${{ matrix.device_subdir }} && cp build/firmware/standalone/*/*.ppmp sdcard/APPS/${{ matrix.device_subdir }} && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
       - name: Download world map
         run: |
           wget https://github.com/portapack-mayhem/mayhem-firmware/releases/download/world_map/world_map.zip
@@ -78,7 +81,7 @@ jobs:
           zip -j firmware.zip build/firmware/portapack-mayhem-firmware.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_nightly_${{ steps.version_date.outputs.date }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cp build/firmware/standalone/*/*.ppmp sdcard/APPS && cd sdcard && zip -r ../sdcard.zip . && cd ..
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-mayhem-firmware.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}${{ matrix.artifact_suffix }}.bin && cp build/firmware/portapack-mayhem_OCI.ppfw.tar sdcard/FIRMWARE/mayhem_nightly_${{ steps.version_date.outputs.date }}${{ matrix.artifact_suffix }}_OCI.ppfw.tar && mkdir -p sdcard/APPS/${{ matrix.device_subdir }} && cp build/firmware/application/*.ppma sdcard/APPS/${{ matrix.device_subdir }} && cp build/firmware/standalone/*/*.ppmp sdcard/APPS/${{ matrix.device_subdir }} && cd sdcard && zip -r ../sdcard.zip . && cd ..
       - name: Upload firmware zip artifact
         uses: actions/upload-artifact@v4
         with:
@@ -145,6 +148,21 @@ jobs:
           mv firmware_combined_hpro/hackrf_usb.dfu firmware_combined/firmware/hackrf_hpro_usb.dfu
           mv firmware_combined_hpro/hackrf_usb.bin firmware_combined/firmware/hackrf_hpro_usb.bin
           cd firmware_combined && zip -r ../firmware_all_devices.zip . && cd ..
+      - name: Create Combined SD Card ZIPs
+        run: |
+          VER="${{ steps.version_date.outputs.date }}"
+          # Combine all 3 device sdcard artifacts into one (with world map)
+          mkdir -p combined_sdcard
+          unzip -o artifacts/sdcard-default/sdcard.zip -d combined_sdcard
+          unzip -o artifacts/sdcard-portarf/sdcard.zip -d combined_sdcard
+          unzip -o artifacts/sdcard-hpro/sdcard.zip -d combined_sdcard
+          cd combined_sdcard && zip -r ../sdcard-combined.zip . && cd ..
+          # Combine all 3 device sdcard artifacts into one (no world map)
+          mkdir -p combined_sdcard_no_map
+          unzip -o artifacts/sdcard-no-map-default/sdcard-no-map.zip -d combined_sdcard_no_map
+          unzip -o artifacts/sdcard-no-map-portarf/sdcard-no-map.zip -d combined_sdcard_no_map
+          unzip -o artifacts/sdcard-no-map-hpro/sdcard-no-map.zip -d combined_sdcard_no_map
+          cd combined_sdcard_no_map && zip -r ../sdcard-combined-no-map.zip . && cd ..
       - name: Prepare release assets
         run: |
           VER="${{ steps.version_date.outputs.date }}"
@@ -155,13 +173,9 @@ jobs:
           cp artifacts/oci-tar-hpro/portapack-mayhem_OCI.ppfw.tar "release_assets/OCI_hpro_mayhem_nightly_${VER}.ppfw.tar"
           # Combined firmware
           cp firmware_all_devices.zip "release_assets/FIRMWARE_mayhem_nightly_${VER}.zip"
-          # SD card assets
-          cp artifacts/sdcard-default/sdcard.zip "release_assets/COPY_TO_SDCARD_hackrf_mayhem_nightly_${VER}.zip"
-          cp artifacts/sdcard-no-map-default/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_hackrf_mayhem_nightly_${VER}-no-world-map.zip"
-          cp artifacts/sdcard-portarf/sdcard.zip "release_assets/COPY_TO_SDCARD_portarf_mayhem_nightly_${VER}.zip"
-          cp artifacts/sdcard-no-map-portarf/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_portarf_mayhem_nightly_${VER}-no-world-map.zip"
-          cp artifacts/sdcard-hpro/sdcard.zip "release_assets/COPY_TO_SDCARD_hpro_mayhem_nightly_${VER}.zip"
-          cp artifacts/sdcard-no-map-hpro/sdcard-no-map.zip "release_assets/COPY_TO_SDCARD_hpro_mayhem_nightly_${VER}-no-world-map.zip"
+          # Combined SD card assets (2 zips instead of 6)
+          cp sdcard-combined.zip "release_assets/COPY_TO_SDCARD_mayhem_nightly_${VER}.zip"
+          cp sdcard-combined-no-map.zip "release_assets/COPY_TO_SDCARD_mayhem_nightly_${VER}-no-world-map.zip"
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
