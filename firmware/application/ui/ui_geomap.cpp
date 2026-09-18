@@ -64,19 +64,11 @@ GeoPos::GeoPos(
     set_lon(0);
 
     const auto changed_fn = [this](int32_t) {
-        // Convert degrees/minutes/seconds fields to decimal (floating point) lat/lon degree
-        float lat_value = lat();
-        float lon_value = lon();
-
-        text_lat_decimal.set(to_string_decimal(lat_value, 5));
-        text_lon_decimal.set(to_string_decimal(lon_value, 5));
-
-        if (on_change && report_change)
-            on_change(altitude(), lat_value, lon_value, speed());
+        report_position();
     };
 
-    const auto changed_hemisphere_fn = [changed_fn](size_t, OptionsField::value_t) {
-        changed_fn(0);
+    const auto changed_hemisphere_fn = [this](size_t, OptionsField::value_t) {
+        report_position();
     };
 
     field_altitude.on_change = changed_fn;
@@ -90,44 +82,15 @@ GeoPos::GeoPos(
     field_lon_minutes.on_change = changed_fn;
     field_lon_seconds.on_change = changed_fn;
 
-    const auto wrapped_lat_seconds = [this](int32_t v) {
-        const auto old_minutes = field_lat_minutes.value();
-        field_lat_minutes.on_encoder(v);
-        if (field_lat_minutes.value() == old_minutes) {
-            field_lat_seconds.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    // Degrees now holds a magnitude, so a minutes wrap always carries in the
-    // same direction regardless of hemisphere.
-    const auto wrapped_lat_minutes = [this](int32_t v) {
-        const auto old_degrees = field_lat_degrees.value();
-        field_lat_degrees.on_encoder(v);
-        if (field_lat_degrees.value() == old_degrees) {
-            field_lat_minutes.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    const auto wrapped_lon_seconds = [this](int32_t v) {
-        const auto old_minutes = field_lon_minutes.value();
-        field_lon_minutes.on_encoder(v);
-        if (field_lon_minutes.value() == old_minutes) {
-            field_lon_seconds.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    const auto wrapped_lon_minutes = [this](int32_t v) {
-        const auto old_degrees = field_lon_degrees.value();
-        field_lon_degrees.on_encoder(v);
-        if (field_lon_degrees.value() == old_degrees) {
-            field_lon_minutes.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    field_lat_seconds.on_wrap = wrapped_lat_seconds;
-    field_lat_minutes.on_wrap = wrapped_lat_minutes;
-    field_lon_seconds.on_wrap = wrapped_lon_seconds;
-    field_lon_minutes.on_wrap = wrapped_lon_minutes;
+    // Route each DMS field's encoder through the signed arcsecond model so a turn moves
+    // the coordinate along the number line and crosses 0 correctly (issue #3317). One
+    // second is the base unit; minutes and degrees step by 60 and 3600 of it.
+    field_lat_degrees.on_delta = [this](int32_t d) { adjust_lat(d * 3600); };
+    field_lat_minutes.on_delta = [this](int32_t d) { adjust_lat(d * 60); };
+    field_lat_seconds.on_delta = [this](int32_t d) { adjust_lat(d); };
+    field_lon_degrees.on_delta = [this](int32_t d) { adjust_lon(d * 3600); };
+    field_lon_minutes.on_delta = [this](int32_t d) { adjust_lon(d * 60); };
+    field_lon_seconds.on_delta = [this](int32_t d) { adjust_lon(d); };
 
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
     if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
@@ -198,6 +161,69 @@ float GeoPos::lon() {
     float magnitude = field_lon_degrees.value() + (field_lon_minutes.value() / 60.0) + (field_lon_seconds.value() / 3600.0);
     return (field_lon_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
 };
+
+int32_t GeoPos::lat_arcseconds() {
+    int32_t magnitude = field_lat_degrees.value() * 3600 + field_lat_minutes.value() * 60 + field_lat_seconds.value();
+    return (field_lat_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
+}
+
+int32_t GeoPos::lon_arcseconds() {
+    int32_t magnitude = field_lon_degrees.value() * 3600 + field_lon_minutes.value() * 60 + field_lon_seconds.value();
+    return (field_lon_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
+}
+
+void GeoPos::set_lat_arcseconds(int32_t arcseconds) {
+    if (arcseconds > lat_arcsecond_limit) arcseconds = lat_arcsecond_limit;
+    if (arcseconds < -lat_arcsecond_limit) arcseconds = -lat_arcsecond_limit;
+    bool south = arcseconds < 0;
+    int32_t magnitude = south ? -arcseconds : arcseconds;
+    field_lat_hemisphere.set_by_value(south ? 1 : 0);
+    field_lat_degrees.set_value(magnitude / 3600);
+    field_lat_minutes.set_value((magnitude / 60) % 60);
+    field_lat_seconds.set_value(magnitude % 60);
+}
+
+void GeoPos::set_lon_arcseconds(int32_t arcseconds) {
+    if (arcseconds > lon_arcsecond_limit) arcseconds = lon_arcsecond_limit;
+    if (arcseconds < -lon_arcsecond_limit) arcseconds = -lon_arcsecond_limit;
+    bool west = arcseconds < 0;
+    int32_t magnitude = west ? -arcseconds : arcseconds;
+    field_lon_hemisphere.set_by_value(west ? 1 : 0);
+    field_lon_degrees.set_value(magnitude / 3600);
+    field_lon_minutes.set_value((magnitude / 60) % 60);
+    field_lon_seconds.set_value(magnitude % 60);
+}
+
+// Rewrite the fields from a single signed value so a hemisphere flip and the magnitude
+// reflection happen together. report_change is held off while the four fields settle,
+// then the final position is reported once.
+void GeoPos::adjust_lat(int32_t arcsecond_delta) {
+    bool previous = report_change;
+    report_change = false;
+    set_lat_arcseconds(lat_arcseconds() + arcsecond_delta);
+    report_change = previous;
+    report_position();
+}
+
+void GeoPos::adjust_lon(int32_t arcsecond_delta) {
+    bool previous = report_change;
+    report_change = false;
+    set_lon_arcseconds(lon_arcseconds() + arcsecond_delta);
+    report_change = previous;
+    report_position();
+}
+
+void GeoPos::report_position() {
+    // Convert degrees/minutes/seconds fields to decimal (floating point) lat/lon degree
+    float lat_value = lat();
+    float lon_value = lon();
+
+    text_lat_decimal.set(to_string_decimal(lat_value, 5));
+    text_lon_decimal.set(to_string_decimal(lon_value, 5));
+
+    if (on_change && report_change)
+        on_change(altitude(), lat_value, lon_value, speed());
+}
 
 int32_t GeoPos::altitude() {
     return field_altitude.value();
