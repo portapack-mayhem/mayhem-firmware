@@ -136,13 +136,27 @@ class TPMSTXView : public View {
 
     OptionsField options_packet_type{
         {6 * 8, 1 * 16},
-        10,
+        12,
         {
             {"Schrader", (int32_t)tpms::Reading::Type::Schrader},
             {"FLM_64", (int32_t)tpms::Reading::Type::FLM_64},
             {"FLM_72", (int32_t)tpms::Reading::Type::FLM_72},
             {"FLM_80", (int32_t)tpms::Reading::Type::FLM_80},
             {"GMC_96", (int32_t)tpms::Reading::Type::GMC_96},
+            {"Toyota", (int32_t)tpms::Reading::Type::Toyota},
+            {"Ford", (int32_t)tpms::Reading::Type::Ford},
+            {"Citroen", (int32_t)tpms::Reading::Type::Citroen},
+            {"Renault", (int32_t)tpms::Reading::Type::Renault},
+            {"Hyundai", (int32_t)tpms::Reading::Type::Hyundai_VDO},
+            {"Nissan", (int32_t)tpms::Reading::Type::Nissan},
+            {"Abarth", (int32_t)tpms::Reading::Type::Abarth124},
+            {"Jansite", (int32_t)tpms::Reading::Type::Jansite},
+            {"Jansite-S", (int32_t)tpms::Reading::Type::Jansite_Solar},
+            {"Kia", (int32_t)tpms::Reading::Type::Kia},
+            {"Elantra", (int32_t)tpms::Reading::Type::Elantra2012},
+            {"PMV107J", (int32_t)tpms::Reading::Type::PMV107J},
+            {"Renault-R", (int32_t)tpms::Reading::Type::Renault_0435R},
+            {"AVE", (int32_t)tpms::Reading::Type::AVE},
         }};
 
     OptionsField options_pressure{
