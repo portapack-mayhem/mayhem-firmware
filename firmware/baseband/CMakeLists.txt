@@ -787,6 +787,26 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTET tetra_rx)
 
+### FT8 RX
+
+set(MODE_CPPSRC
+	proc_ft8_rx.cpp
+	ft8_lib/constants.c
+	ft8_lib/crc.c
+	ft8_lib/decode.c
+	ft8_portapack.c
+	ft8_lib/ldpc.c
+	ft8_lib/message.c
+	ft8_lib/text.c
+)
+# The decoder plus its tables sit close to the 32k external app ceiling, so this image is
+# built for size rather than speed. message.c sets LOG_LEVEL, which makes ft8_lib's
+# debug.h reach for fprintf; defining LOG_PRINTF empty keeps stdio out of the image and
+# leaves the vendored header byte-identical to upstream.
+set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
+DeclareTargets(PFT8 ft8_rx)
+set(MODE_FLAGS "-O3")
+
 ### SD over USB
 
 set(MODE_INCDIR
