@@ -172,6 +172,27 @@ class BMPFileCache {
     uint16_t stamp_{0};
 };
 
+// A degrees/minutes/seconds sub-field whose encoder turns are handed to the owning
+// GeoPos instead of being applied locally. GeoPos keeps the coordinate as a signed
+// arcsecond value, so panning stays continuous across 0 - including the (-1, 0) band
+// along the equator and the Greenwich meridian that a magnitude field cannot cross on
+// its own (see issue #3317). The field still displays an unsigned magnitude; the sign
+// lives in the hemisphere field next to it.
+class GeoPosField : public NumberField {
+   public:
+    using NumberField::NumberField;
+
+    std::function<void(int32_t)> on_delta{};
+
+    bool on_encoder(const EncoderEvent delta) override {
+        if (on_delta) {
+            on_delta(delta);
+            return true;
+        }
+        return NumberField::on_encoder(delta);
+    }
+};
+
 class GeoPos : public View {
    public:
     enum alt_unit {
@@ -206,6 +227,19 @@ class GeoPos : public View {
     void set_report_change(bool v);
 
    private:
+    // Signed arcsecond view of the DMS fields. The encoder handlers work on these so a
+    // turn moves the coordinate along the number line, flipping the hemisphere and
+    // reflecting the magnitude when it crosses 0 (issue #3317).
+    static constexpr int32_t lat_arcsecond_limit = 90 * 3600;
+    static constexpr int32_t lon_arcsecond_limit = 180 * 3600;
+    int32_t lat_arcseconds();
+    int32_t lon_arcseconds();
+    void set_lat_arcseconds(int32_t arcseconds);
+    void set_lon_arcseconds(int32_t arcseconds);
+    void adjust_lat(int32_t arcsecond_delta);
+    void adjust_lon(int32_t arcsecond_delta);
+    void report_position();
+
     bool read_only{false};
     bool report_change{true};
     alt_unit altitude_unit_{};
@@ -247,21 +281,21 @@ class GeoPos : public View {
         1,
         {{"N", 0},
          {"S", 1}}};
-    NumberField field_lat_degrees{
+    GeoPosField field_lat_degrees{
         {6 * 8, 1 * 16},
         3,
         {0, 90},
         1,
         ' ',
         false};
-    NumberField field_lat_minutes{
+    GeoPosField field_lat_minutes{
         {10 * 8, 1 * 16},
         2,
         {0, 59},
         1,
         ' ',
         true};
-    NumberField field_lat_seconds{
+    GeoPosField field_lat_seconds{
         {13 * 8, 1 * 16},
         2,
         {0, 59},
@@ -277,21 +311,21 @@ class GeoPos : public View {
         1,
         {{"E", 0},
          {"W", 1}}};
-    NumberField field_lon_degrees{
+    GeoPosField field_lon_degrees{
         {6 * 8, 2 * 16},
         3,
         {0, 180},
         1,
         ' ',
         false};
-    NumberField field_lon_minutes{
+    GeoPosField field_lon_minutes{
         {10 * 8, 2 * 16},
         2,
         {0, 59},
         1,
         ' ',
         true};
-    NumberField field_lon_seconds{
+    GeoPosField field_lon_seconds{
         {13 * 8, 2 * 16},
         2,
         {0, 59},
