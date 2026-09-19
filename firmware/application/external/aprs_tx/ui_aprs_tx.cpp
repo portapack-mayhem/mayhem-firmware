@@ -239,7 +239,7 @@ APRSTXView::APRSTXView(NavigationView& nav) {
 
     button_mangps.on_select = [this, &nav](Button&) {
         nav.push<GeoMapView>(
-            0,
+            last_altitude,
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::HIDDEN,
             last_lat,
