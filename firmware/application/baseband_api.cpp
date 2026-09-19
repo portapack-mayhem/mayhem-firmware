@@ -556,10 +556,10 @@ void shutdown() {
     shared_memory.application_queue.reset();
     // Allow time for the shutdown message to be processed and for the baseband
     // core to stop before starting another image. Otherwise, the M4 may still be
-    // running and cause a crash when the next image is started.
-#ifdef PRALINE
+    // running and cause a crash when the next image is started. A processor whose
+    // destructor joins a worker thread holds the M4 for as long as that thread's
+    // current pass takes, so the wait applies to every target, not only Praline.
     chThdSleepMilliseconds(20);
-#endif
     baseband_image_running = false;
 }
 
