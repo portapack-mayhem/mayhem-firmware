@@ -55,9 +55,22 @@ void APRSTXView::start_tx() {
     std::string gps = text_gps_coord.get();
     std::string token = "?GPS?";
     size_t pos = 0;
+    bool has_gps = false;
     while ((pos = new_payload.find(token, pos)) != std::string::npos) {
         new_payload.replace(pos, token.size(), gps);
         pos += gps.size();
+        has_gps = true;
+    }
+
+    // APRS altitude comment extension "/A=aaaaaa" (6 digits, feet). Appended after the
+    // position so the symbol code the user types behind ?GPS? stays intact, and only
+    // when a real position is present. A zero altitude is a valid value, so it is sent
+    // as /A=000000 instead of being dropped (issue #3300).
+    if (has_gps && gps != "-") {
+        int32_t feet = (int32_t)(last_altitude * 3.28084f + 0.5f);
+        if (feet < 0) feet = 0;
+        if (feet > 999999) feet = 999999;
+        new_payload += "/A=" + to_string_dec_uint(feet, 6, '0');
     }
 
     text_payload.set(new_payload);
@@ -144,6 +157,7 @@ void APRSTXView::on_gps(const GPSPosDataMessage* message) {
     }
     last_lat = message->lat;
     last_lon = message->lon;
+    last_altitude = message->altitude;
     process_coordinates(message->lat, message->lon);
 }
 
@@ -230,9 +244,10 @@ APRSTXView::APRSTXView(NavigationView& nav) {
             GeoPos::spd_unit::HIDDEN,
             last_lat,
             last_lon,
-            [this](int32_t, float lat, float lon, int32_t) {
+            [this](int32_t altitude, float lat, float lon, int32_t) {
                 last_lat = lat;
                 last_lon = lon;
+                last_altitude = altitude;
                 manual_gps_mode = true;
                 gps_is_manual.set("MANUAL");
                 process_coordinates(lat, lon);
