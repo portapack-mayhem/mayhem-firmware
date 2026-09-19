@@ -208,11 +208,13 @@ void GeoPos::adjust_lat(int32_t arcsecond_delta) {
 }
 
 void GeoPos::adjust_lon(int32_t arcsecond_delta) {
+    const int32_t old_arcseconds = lon_arcseconds();
     bool previous = report_change;
     report_change = false;
-    set_lon_arcseconds(lon_arcseconds() + arcsecond_delta);
+    set_lon_arcseconds(old_arcseconds + arcsecond_delta);
     report_change = previous;
-    report_position();
+    if (lon_arcseconds() != old_arcseconds)
+        report_position();
 }
 
 void GeoPos::report_position() {
