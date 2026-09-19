@@ -198,11 +198,13 @@ void GeoPos::set_lon_arcseconds(int32_t arcseconds) {
 // reflection happen together. report_change is held off while the four fields settle,
 // then the final position is reported once.
 void GeoPos::adjust_lat(int32_t arcsecond_delta) {
+    const int32_t old_arcseconds = lat_arcseconds();
     bool previous = report_change;
     report_change = false;
-    set_lat_arcseconds(lat_arcseconds() + arcsecond_delta);
+    set_lat_arcseconds(old_arcseconds + arcsecond_delta);
     report_change = previous;
-    report_position();
+    if (lat_arcseconds() != old_arcseconds)
+        report_position();
 }
 
 void GeoPos::adjust_lon(int32_t arcsecond_delta) {
