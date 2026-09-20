@@ -208,7 +208,6 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
                 state->sync_confirmed = true;
             }
             state->messages[state->num_messages] = msg;
-            state->message_scores[state->num_messages] = state->candidates[i].score;
             // Bin spacing is 6.25 Hz, kept as an integer ratio to avoid float here.
             state->message_freqs[state->num_messages] =
                 (int16_t)(((FT8_FREQ_MIN_BIN + state->candidates[i].freq_offset) * 25) / 4);
