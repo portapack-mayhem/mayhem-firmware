@@ -34,7 +34,9 @@ def convert_map(input_path, output_path, chunk_rows=64):
     """
     if chunk_rows <= 0:
         raise ValueError("chunk_rows must be positive")
-    if Path(input_path).resolve() == Path(output_path).resolve():
+    input_path, output_path = Path(input_path), Path(output_path)
+    if (input_path.resolve() == output_path.resolve()
+            or (output_path.exists() and input_path.samefile(output_path))):
         raise ValueError("Input and output must be different files")
 
     # The supplied world map deliberately exceeds Pillow's image-size limit.
