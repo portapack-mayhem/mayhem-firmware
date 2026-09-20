@@ -81,8 +81,25 @@ FT8RxView::FT8RxView(NavigationView& nav)
 }
 
 void FT8RxView::on_packet(const FT8PacketMessage* message) {
-    if (message->text[0] != '\0')
-        console.writeln(message->text);
+    if (message->text[0] == '\0')
+        return;
+
+    /* The message takes the left of the line and the audio frequency the right, so the
+     * frequencies line up in a column down the screen and the passband can be read at a
+     * glance. A message long enough to reach the column keeps its text and loses the
+     * alignment rather than being cut. */
+    std::string line{message->text};
+    const std::string freq = to_string_dec_uint(message->frequency) + "Hz";
+    /* screen_width is set at runtime, so the column count is taken here rather than
+     * fixed at compile time. The font is the 8 px fixed one the rest of the layout uses. */
+    const size_t columns = screen_width / 8;
+
+    if (line.length() + freq.length() < columns)
+        line.append(columns - freq.length() - line.length(), ' ');
+    else
+        line += ' ';
+
+    console.writeln(line + freq);
 }
 
 void FT8RxView::on_status(const FT8RxStatusMessage* message) {

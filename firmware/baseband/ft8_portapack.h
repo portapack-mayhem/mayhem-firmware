@@ -66,6 +66,9 @@ typedef struct {
 
     ftx_message_t messages[FT8_MAX_MESSAGES];
     int16_t message_scores[FT8_MAX_MESSAGES];
+    // Audio frequency each message was decoded at, in Hz. Stations pick their own slot
+    // inside the 200-2500 Hz passband, so this is what tells them apart on one dial.
+    int16_t message_freqs[FT8_MAX_MESSAGES];
     int num_messages;
 
     // Every station on the band keys to the same slot boundary, so the time_offset of the
