@@ -172,6 +172,8 @@ class Message {
         TetraDnb = 114,
         AudioDDCConfig = 115,
         RxFs4Config = 116,
+        FT8Packet = 117,
+        FT8RxStatus = 118,
         MAX
     };
 
@@ -432,6 +434,53 @@ class EPIRBRXConfig : public Message {
     bool spectrum_on = false;
     bool audio_on = true;
     uint8_t squelch{50};
+};
+
+/* One decoded FT8 transmission, already unpacked to text by the baseband. */
+class FT8PacketMessage : public Message {
+   public:
+    /* Longest text an FT8 payload unpacks to: callsign[13], space, callsign[13], space,
+     * report[6], terminator. */
+    static constexpr size_t text_length = 35;
+
+    constexpr FT8PacketMessage(
+        const char* message_text,
+        int16_t sync_score)
+        : Message{ID::FT8Packet},
+          text{},
+          score{sync_score} {
+        size_t i = 0;
+        for (; i < text_length - 1 && message_text[i] != '\0'; i++)
+            text[i] = message_text[i];
+        text[i] = '\0';
+    }
+
+    char text[text_length];
+    int16_t score;  // Costas sync score of the candidate this came from
+};
+
+/* Sent once per 15 s slot so the UI can tell the user whether the receiver has found
+ * the slot boundary; an unsynchronised FT8 receiver decodes nothing and looks identical
+ * to a dead band. */
+class FT8RxStatusMessage : public Message {
+   public:
+    enum class SyncState : uint8_t {
+        Searching = 0,  // Nothing above the noise; hunting for the slot boundary
+        Heard = 1,      // An FT8 transmission is in the passband but has not decoded
+        Syncing = 2,    // Boundary found, walking the sub-symbol phase
+        Locked = 3,     // Tracking the slot
+    };
+
+    constexpr FT8RxStatusMessage(
+        SyncState sync_state,
+        uint8_t decodes)
+        : Message{ID::FT8RxStatus},
+          state{sync_state},
+          decode_count{decodes} {
+    }
+
+    SyncState state;
+    uint8_t decode_count;
 };
 
 class TPMSPacketMessage : public Message {
