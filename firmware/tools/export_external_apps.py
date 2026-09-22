@@ -22,23 +22,24 @@
 # Boston, MA 02110-1301, USA.
 #
 
-import os
 import sys
-import struct
 import subprocess
 from external_app_info import maximum_application_size
 from external_app_info import external_apps_address_start
 from external_app_info import external_apps_address_end
+from elf_info import external_app_section_prefix
+from elf_info import read_relocations
+from elf_info import read_section_addresses
 
 usage_message = """
 PortaPack external app image creator
 This script is used in the build process and should never be run manually.
 See firmware/application/CMakeLists.txt > COMMAND ${EXPORT_EXTERNAL_APP_IMAGES}
 
-Usage: <command> <project source dir> <binary dir> <cmake objcopy path> <list of external image prefixes>
+Usage: <command> <binary dir> <cmake objcopy path> <cmake readelf path> <m4 code region size> <list of external image prefixes>
 """
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 6:
 	print(usage_message)
 	sys.exit(-1)
 
@@ -53,7 +54,7 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-def patch_image(path, image_data, search_address, replace_address):
+def patch_image(path, image_data, section_address, replace_address, reloc_addresses):
 	if (len(image_data) % 4) != 0:
 		#sys.exit(-1)
 		print("\n External App image file:", path, ", size not divideable by 4 :", len(image_data))
@@ -62,39 +63,81 @@ def patch_image(path, image_data, search_address, replace_address):
 			image_data += b'\x00' ; j+=1
 		print("file size:", len(image_data)," after padded:",j, "bytes")
 
-	external_application_image = bytearray()
+	external_application_image = bytearray(image_data)
+	# The whole link region belongs to this app, not just the bytes it occupies:
+	# a one-past-the-end pointer to an object at the end of the section is valid
+	# and still has to be relocated. Regions are 64 KiB apart in "external.ld"
+	# and maximum_application_size is 32 KiB, so this window cannot reach into
+	# the next app's region.
+	section_end = section_address + maximum_application_size
 
-	for x in range(int(len(image_data)/4)):
-		snippet = image_data[x*4:4*(x+1)]
-		val = int.from_bytes(snippet, byteorder='little')
+	# The app is linked at section_address (0xADxxxxxx, picked in
+	# "external.ld" so the range is unused) but actually runs at
+	# replace_address inside m4_code, so every pointer into the app's own
+	# section is corrected here. The link cannot use the real address because
+	# gcc does not permit the same memory range for several apps.
+	for address in reloc_addresses:
+		offset = address - section_address
+		if offset < 0 or offset + 4 > len(image_data):
+			continue
+		val = int.from_bytes(image_data[offset:offset+4], byteorder='little')
 
-		# in firmware/application/external/external.ld the origin is set to something like search_address=0xADB00000
-		# if the value is above the search_address and inside a 32kb window (maximum size of an app) we replace it
-		# with replace_address=(0x1008000 + m4 size) where the app will actually be located. The reason we do this instead just
-		# using the right address in external.ld is gcc does not permit to use the same memory range multiple times.
-		if val > search_address and (val - search_address) < maximum_application_size:
-			relative_address = val - search_address
-			new_address = replace_address + relative_address
-
-			new_snippet = new_address.to_bytes(4, byteorder='little')
-			external_application_image += new_snippet
-		else:
-			external_application_image += snippet
-			if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size):
-				print ("WARNING: External code address", hex(val), "at offset", hex(x*4), "in", path)
+		if section_address <= val < section_end:
+			new_address = replace_address + (val - section_address)
+			external_application_image[offset:offset+4] = new_address.to_bytes(4, byteorder='little')
+		elif external_apps_address_start <= val < external_apps_address_end:
+			# A pointer into a different app's section. That app is not
+			# loaded, so the address is not valid at run time.
+			print("WARNING: External code address", hex(val), "at offset", hex(offset), "in", path)
 
 	return external_application_image
 
-project_source_dir = sys.argv[1]   #/portapack-mayhem/firmware/application
-binary_dir = sys.argv[2]           #/portapack-mayhem/build/firmware/application
-cmake_objcopy = sys.argv[3]
+binary_dir = sys.argv[1]           #/portapack-mayhem/build/firmware/application
+cmake_objcopy = sys.argv[2]
+cmake_readelf = sys.argv[3]
+
+# Size of portapack::memory::map::m4_code, from M4_CODE_SIZE in "rules.cmake".
+# An app's M0 code and the baseband image it carries both live there, so their
+# total is what has to fit. 40 KiB on the LPC4320, 64 KiB on the LPC4330.
+m4_code_size = int(sys.argv[4], 0)
+
+
+def check_fits(prefix, app_len, m4_len, m4_tag):
+	total = app_len + m4_len
+	if total <= m4_code_size:
+		return
+	print("application {} does not fit in the {} byte m4_code region: "
+	      "{} bytes of app code + {} bytes of baseband image {} = {} bytes, "
+	      "{} too many".format(prefix, m4_code_size, app_len, m4_len,
+	                           m4_tag if m4_tag else "(none)", total,
+	                           total - m4_code_size))
+	sys.exit(-1)
 
 memory_location_header_position = 0
-externalAppEntry_header_position = 4
 m4_app_tag_header_position = 76
 m4_app_offset_header_position = 80
 
-for external_image_prefix in sys.argv[4:]:
+application_elf = "{}/application.elf".format(binary_dir)
+section_addresses = read_section_addresses(cmake_readelf, application_elf)
+relocations = read_relocations(cmake_readelf, application_elf)
+abs32_offsets = {
+	section: [r.offset for r in entries if r.type == "R_ARM_ABS32"]
+	for section, entries in relocations.items()
+	if section.startswith(external_app_section_prefix)
+}
+
+if not abs32_offsets:
+	print("no .rel.external_app_* sections in {} - the application must be linked "
+	      "with --emit-relocs for the app images to be relocated".format(application_elf))
+	sys.exit(-1)
+
+for external_image_prefix in sys.argv[5:]:
+	section_name = external_app_section_prefix + external_image_prefix
+	if section_name not in section_addresses:
+		print("no {} section in {}".format(section_name, application_elf))
+		sys.exit(-1)
+	section_address = section_addresses[section_name]
+	reloc_addresses = abs32_offsets.get(section_name, [])
 
 	# COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
 	himg = "{}/external_app_{}.himg".format(binary_dir, external_image_prefix)
@@ -109,9 +152,10 @@ for external_image_prefix in sys.argv[4:]:
 	# skip m4 if not set
 	if (chunk_data[0] == 0 and chunk_data[1] == 0 and chunk_data[2] == 0 and chunk_data[3] == 0):
 		replace_address = 0x10080000
-		search_address = int.from_bytes(external_application_image[externalAppEntry_header_position:externalAppEntry_header_position+4], byteorder='little') & 0xFFFF0000
-		external_application_image = patch_image(himg, external_application_image, search_address, replace_address)
+		external_application_image = patch_image(himg, external_application_image, section_address, replace_address, reloc_addresses)
 		external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
+
+		check_fits(external_image_prefix, len(external_application_image), 0, None)
 
 		checksum = 0
 		for i in range(0, len(external_application_image), 4):
@@ -137,15 +181,12 @@ for external_image_prefix in sys.argv[4:]:
 		sys.exit(-1)
 
 	replace_address = 0x10080000 + len(m4_image)
-	search_address = int.from_bytes(external_application_image[externalAppEntry_header_position:externalAppEntry_header_position+4], byteorder='little') & 0xFFFF0000
-	external_application_image = patch_image(himg, external_application_image, search_address, replace_address)
+	external_application_image = patch_image(himg, external_application_image, section_address, replace_address, reloc_addresses)
 
 	external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 	external_application_image[m4_app_offset_header_position:m4_app_offset_header_position+4] = app_image_len.to_bytes(4, byteorder='little')
 
-	if (len(external_application_image) > maximum_application_size) != 0:
-		print("application {} can not exceed 32kb: {} bytes used".format(external_image_prefix, len(external_application_image)))
-		sys.exit(-1)
+	check_fits(external_image_prefix, app_image_len, len(m4_image), chunk_tag)
 
 	checksum = 0
 	for i in range(0, len(external_application_image), 4):
