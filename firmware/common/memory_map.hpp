@@ -121,6 +121,12 @@ static_assert(m4_code.base() >= local_sram_1.base() &&
                   m4_code.end() <= local_sram_1.end(),
               "m4_code does not fit in local SRAM bank 2");
 
+/* The M4 linker RAM region has to fit in bank 1 on every board. */
+#if defined(PORTAPACK_M4_RAM_SIZE)
+static_assert(PORTAPACK_M4_RAM_SIZE <= local_sram_0.size(),
+              "M4_RAM_SIZE in rules.cmake does not fit in local SRAM bank 1");
+#endif
+
 /* The shared memory sits above whatever the M4 linker is told its RAM is. If
  * the two drift apart the M4 heap grows into the message queues.
  */
