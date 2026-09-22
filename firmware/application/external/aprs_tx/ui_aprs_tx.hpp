@@ -61,6 +61,7 @@ class APRSTXView : public View {
     bool manual_gps_mode = false;
     float last_lat = 0.0f;
     float last_lon = 0.0f;
+    int32_t last_altitude = 0;  // metres; transmitted as the APRS /A= extension (feet)
 
     app_settings::SettingsManager settings_{
         "tx_aprs",
@@ -72,6 +73,7 @@ class APRSTXView : public View {
          {"payload"sv, &payload},
          {"last_lat"sv, &last_lat},
          {"last_lon"sv, &last_lon},
+         {"last_alt"sv, &last_altitude},
          {"path"sv, &path_cache}}};
 
     void start_tx();
