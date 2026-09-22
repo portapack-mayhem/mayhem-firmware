@@ -66,9 +66,10 @@ def patch_image(path, image_data, section_address, replace_address, reloc_addres
 	external_application_image = bytearray(image_data)
 	# The whole link region belongs to this app, not just the bytes it occupies:
 	# a one-past-the-end pointer to an object at the end of the section is valid
-	# and still has to be relocated. Regions are 64 KiB apart in "external.ld"
-	# and maximum_application_size is 32 KiB, so this window cannot reach into
-	# the next app's region.
+	# and still has to be relocated, including one that points exactly at the
+	# end of a full region. Regions are 64 KiB apart in "external.ld" and
+	# maximum_application_size is 32 KiB, so this window, end included, cannot
+	# reach into the next app's region.
 	section_end = section_address + maximum_application_size
 
 	# The app is linked at section_address (0xADxxxxxx, picked in
@@ -82,7 +83,7 @@ def patch_image(path, image_data, section_address, replace_address, reloc_addres
 			continue
 		val = int.from_bytes(image_data[offset:offset+4], byteorder='little')
 
-		if section_address <= val < section_end:
+		if section_address <= val <= section_end:
 			new_address = replace_address + (val - section_address)
 			external_application_image[offset:offset+4] = new_address.to_bytes(4, byteorder='little')
 		elif external_apps_address_start <= val < external_apps_address_end:
@@ -155,7 +156,9 @@ for external_image_prefix in sys.argv[5:]:
 		external_application_image = patch_image(himg, external_application_image, section_address, replace_address, reloc_addresses)
 		external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 
-		check_fits(external_image_prefix, len(external_application_image), 0, None)
+		# Without a baseband the loader copies the whole file, checksum word
+		# included, to the start of m4_code, so that word has to fit too.
+		check_fits(external_image_prefix, len(external_application_image) + 4, 0, None)
 
 		checksum = 0
 		for i in range(0, len(external_application_image), 4):
