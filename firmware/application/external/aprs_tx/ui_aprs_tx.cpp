@@ -67,7 +67,7 @@ void APRSTXView::start_tx() {
     // when a real position is present. A zero altitude is a valid value, so it is sent
     // as /A=000000 instead of being dropped (issue #3300).
     if (has_gps && gps != "-") {
-        int32_t feet = (int32_t)(last_altitude * 3.28084f + 0.5f);
+        int64_t feet = (static_cast<int64_t>(last_altitude) * 328084 + 50000) / 100000;
         if (feet < 0) feet = 0;
         if (feet > 999999) feet = 999999;
         new_payload += "/A=" + to_string_dec_uint(feet, 6, '0');
