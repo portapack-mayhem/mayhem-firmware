@@ -133,6 +133,11 @@ Optional<Reading> Packet::reading_toyota() const {
      * 72 bits data with CRC-8
      * Pressure in (raw * 0.25 - 7) PSI
      * Temperature in (raw - 40) C
+     *
+     * NOTE: Toyota (like PMV107J and AVE) is differential Manchester encoded, which the
+     * plain-Manchester reader_ used here does not decode, so this will not lock onto a
+     * real Toyota frame yet. Left in place for a follow-up that adds a differential
+     * Manchester reader; the crc_valid_length() gate keeps it from false-triggering.
      */
     const auto length = crc_valid_length();
     if (length != 72) {
@@ -140,7 +145,6 @@ Optional<Reading> Packet::reading_toyota() const {
     }
 
     const auto id = reader_.read(0, 32);
-    const auto status = (reader_.read(32, 1) << 7) | reader_.read(39, 7);
     const auto pressure_raw = (reader_.read(33, 7) << 1) | reader_.read(40, 1);
     const auto temp_raw = (reader_.read(41, 7) << 1) | reader_.read(48, 1);
     const auto pressure2 = reader_.read(56, 8) ^ 0xff;
@@ -153,7 +157,7 @@ Optional<Reading> Packet::reading_toyota() const {
     return Reading{
         Reading::Type::Toyota,
         (uint32_t)id,
-        Pressure{static_cast<int>(pressure_raw * 0.25 - 7.0) * 7},  // Convert to kPa
+        Pressure{static_cast<int>((pressure_raw * 0.25 - 7.0) * 7)},  // (raw*0.25 - 7) PSI -> kPa
         Temperature{static_cast<int>(temp_raw - 40)}};
 }
 
@@ -165,7 +169,8 @@ Optional<Reading> Packet::reading_ford() const {
      * Temperature in (raw - 56) C
      */
     const auto id = reader_.read(0, 32);
-    const auto pressure_raw = ((reader_.read(48, 1) << 8) | reader_.read(32, 8));
+    // Pressure high bit is b[6] & 0x20 (rtl_433 tpms_ford.c), i.e. bit 50, not bit 48.
+    const auto pressure_raw = ((reader_.read(50, 1) << 8) | reader_.read(32, 8));
     const auto temp_raw = reader_.read(40, 8);
     const auto flags = reader_.read(48, 8);
     const auto checksum = reader_.read(56, 8);
@@ -200,14 +205,10 @@ Optional<Reading> Packet::reading_citroen() const {
      * Pressure in (raw * 1.364) kPa
      * Temperature in (raw - 50) C
      */
-    const auto state = reader_.read(0, 8);
     const auto id = reader_.read(8, 32);
     const auto flags = reader_.read(40, 4);
-    const auto repeat = reader_.read(44, 4);
     const auto pressure_raw = reader_.read(48, 8);
     const auto temp_raw = reader_.read(56, 8);
-    const auto battery = reader_.read(64, 8);
-    const auto checksum = reader_.read(72, 8);
 
     // Sanity checks
     if (pressure_raw == 0 || temp_raw == 0) {
@@ -241,8 +242,7 @@ Optional<Reading> Packet::reading_renault() const {
     const auto flags = reader_.read(0, 6);
     const auto pressure_raw = (reader_.read(6, 2) << 8) | reader_.read(8, 8);
     const auto temp_raw = reader_.read(16, 8);
-    const auto id = reader_.read(24, 24);  // Little-endian in original
-    const auto unknown = reader_.read(48, 16);
+    const auto id = reader_.read(24, 24);
     const auto crc = reader_.read(64, 8);
 
     // Verify CRC-8
@@ -256,7 +256,7 @@ Optional<Reading> Packet::reading_renault() const {
         crc_calc.process_byte(bytes[i]);
     }
 
-    if (crc_calc.checksum() != crc) {
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
         return {};
     }
 
@@ -275,13 +275,10 @@ Optional<Reading> Packet::reading_hyundai_vdo() const {
      * Pressure in (raw * 1.375) kPa
      * Temperature in (raw - 50) C
      */
-    const auto state = reader_.read(0, 8);
     const auto id = reader_.read(8, 32);
     const auto flags = reader_.read(40, 4);
-    const auto repeat = reader_.read(44, 4);
     const auto pressure_raw = reader_.read(48, 8);
     const auto temp_raw = reader_.read(56, 8);
-    const auto battery = reader_.read(64, 8);
     const auto crc = reader_.read(72, 8);
 
     // Verify CRC-8 with poly 0x07 init 0xaa
@@ -295,7 +292,7 @@ Optional<Reading> Packet::reading_hyundai_vdo() const {
         crc_calc.process_byte(bytes[i]);
     }
 
-    if (crc_calc.checksum() != crc) {
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
         return {};
     }
 
@@ -313,17 +310,34 @@ Optional<Reading> Packet::reading_nissan() const {
      * 37 bits
      * Pressure in (raw / 4.0) PSI
      */
-    const auto mode = reader_.read(0, 3);
-    const auto id = ((reader_.read(3, 5) << 19) |
-                     (reader_.read(8, 8) << 11) |
-                     (reader_.read(16, 8) << 3) |
-                     reader_.read(24, 3));
-    const auto pressure_raw = ((reader_.read(27, 5) << 3) | reader_.read(32, 3));
+    uint8_t b[5];
+    for (size_t i = 0; i < 5; i++)
+        b[i] = reader_.read(i * 8, 8);
+
+    // sum2N checksum over the 37 bits (rtl_433 tpms_nissan.c); a valid message yields 0.
+    // Without it, any unknown packet is accepted as Nissan and blocks later decoders.
+    uint8_t chk = 0;
+    for (size_t i = 0; i < 4; i++) {
+        chk += b[i] >> 7;
+        chk += b[i] >> 5;
+        chk += b[i] >> 3;
+        chk += b[i] >> 1;
+        chk += (uint8_t)(b[i] << 1);
+    }
+    chk += b[4] >> 7;
+    chk += b[4] >> 5;
+    chk += b[4] >> 3;
+    if ((~chk & 0x03) != 0)
+        return {};
+
+    const auto mode = b[0] >> 5;
+    const auto id = ((b[0] & 0x1F) << 19) | (b[1] << 11) | (b[2] << 3) | (b[3] >> 5);
+    const auto pressure_raw = ((b[3] & 0x1F) << 3) | (b[4] >> 5);
 
     return Reading{
         Reading::Type::Nissan,
         (uint32_t)id,
-        Pressure{static_cast<int>(pressure_raw / 4.0 * 7)},  // Convert PSI to kPa
+        Pressure{static_cast<int>((pressure_raw / 4.0 - 3.0) * 7)},  // (raw/4 - 3) PSI -> kPa
         {},
         Flags{static_cast<Flags>(mode)}};
 }
@@ -339,8 +353,6 @@ Optional<Reading> Packet::reading_abarth124() const {
     const auto flags = reader_.read(32, 8);
     const auto pressure_raw = reader_.read(40, 8);
     const auto temp_raw = reader_.read(48, 8);
-    const auto status = reader_.read(56, 8);
-    const auto checksum = reader_.read(64, 8);
 
     // Verify XOR checksum
     uint8_t xor_sum = 0;
@@ -400,7 +412,6 @@ Optional<Reading> Packet::reading_jansite_solar() const {
     const auto flags = reader_.read(40, 8);
     const auto temp_raw = reader_.read(48, 8);
     const auto pressure_raw = reader_.read(56, 8);
-    const auto unknown = reader_.read(64, 8);
     const auto crc = reader_.read(72, 16);
 
     // Verify CRC-16/BUYPASS
@@ -448,7 +459,6 @@ Optional<Reading> Packet::reading_kia() const {
                      (reader_.read(32, 8) << 12) |
                      (reader_.read(40, 8) << 4) |
                      reader_.read(48, 4));
-    const auto unknown2 = ((reader_.read(52, 4) << 8) | reader_.read(56, 8));
     const auto crc = reader_.read(64, 8) & 0xF8;  // Last 3 bits are padding
 
     // Verify CRC-8
@@ -456,14 +466,13 @@ Optional<Reading> Packet::reading_kia() const {
     for (size_t i = 0; i < 8; i++) {
         bytes[i] = reader_.read(i * 8, 8);
     }
-    bytes[8] = crc;
 
     CRC<8> crc_calc{0x07, 0x76};
     for (size_t i = 0; i < 8; i++) {
         crc_calc.process_byte(bytes[i]);
     }
 
-    if (crc_calc.checksum() != crc) {
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
         return {};
     }
 
@@ -499,7 +508,7 @@ Optional<Reading> Packet::reading_elantra2012() const {
         crc_calc.process_byte(bytes[i]);
     }
 
-    if (crc_calc.checksum() != crc) {
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
         return {};
     }
 
@@ -536,8 +545,6 @@ Optional<Reading> Packet::reading_renault_0435r() const {
     const auto flags = reader_.read(24, 8);
     const auto pressure_raw = reader_.read(32, 8);
     const auto temp_raw = reader_.read(40, 8);
-    const auto accel = reader_.read(48, 8);
-    const auto checksum = reader_.read(56, 8);
     const auto tick = reader_.read(64, 8);
 
     // Verify XOR checksum
