@@ -585,58 +585,35 @@ Optional<Reading> Packet::reading_ave() const {
 
 Optional<Reading> Packet::reading() const {
     switch (signal_type()) {
-        case SignalType::FSK_19k2_Schrader:
-            return reading_fsk_19k2_schrader();
         case SignalType::OOK_8k192_Schrader:
             return reading_ook_8k192_schrader();
         case SignalType::OOK_8k4_Schrader:
             return reading_ook_8k4_schrader();
-        default:
-            // Try all new decoders
-            {
-                auto result = reading_toyota();
-                if (result.is_valid()) return result;
-
-                result = reading_ford();
-                if (result.is_valid()) return result;
-
-                result = reading_citroen();
-                if (result.is_valid()) return result;
-
-                result = reading_renault();
-                if (result.is_valid()) return result;
-
-                result = reading_hyundai_vdo();
-                if (result.is_valid()) return result;
-
-                result = reading_nissan();
-                if (result.is_valid()) return result;
-
-                result = reading_abarth124();
-                if (result.is_valid()) return result;
-
-                result = reading_jansite();
-                if (result.is_valid()) return result;
-
-                result = reading_jansite_solar();
-                if (result.is_valid()) return result;
-
-                result = reading_kia();
-                if (result.is_valid()) return result;
-
-                result = reading_elantra2012();
-                if (result.is_valid()) return result;
-
-                result = reading_pmv107j();
-                if (result.is_valid()) return result;
-
-                result = reading_renault_0435r();
-                if (result.is_valid()) return result;
-
-                result = reading_ave();
-                if (result.is_valid()) return result;
-            }
-            return {};
+        case SignalType::FSK_19k2_Schrader:
+        default: {
+            // Every FSK TPMS packet is delivered as FSK_19k2_Schrader by the baseband
+            // (they share the alternating preamble and fit in the captured length), so
+            // the manufacturer decoders have to be tried here, not in a separate signal
+            // type. All of these protocols validate with only an 8-bit check, so any one
+            // decoder accepts an unrelated packet about 1 in 256 times; running the weak
+            // XOR/sum decoders (Abarth/Citroen/Ford/Nissan/Renault-0435R) up front made a
+            // real Hyundai sensor decode as Abarth. To keep classification trustworthy,
+            // dispatch only the decoders whose check is strong or highly specific:
+            //   - Jansite-Solar: CRC-16 behind a fixed 0xdd33 sync (effectively no false
+            //     accepts), tried first.
+            //   - Hyundai-VDO / Renault / Kia / Elantra-2012: CRC-8.
+            // then fall back to the FLM/Schrader classification. The 8-bit XOR/sum
+            // protocols and Jansite (no checksum) are left out of auto-dispatch because
+            // they cannot be told apart reliably from a shared capture; Toyota/PMV107J/
+            // AVE are differential Manchester and need a decoder not yet available.
+            Optional<Reading> r;
+            if ((r = reading_jansite_solar()).is_valid()) return r;
+            if ((r = reading_hyundai_vdo()).is_valid()) return r;
+            if ((r = reading_renault()).is_valid()) return r;
+            if ((r = reading_kia()).is_valid()) return r;
+            if ((r = reading_elantra2012()).is_valid()) return r;
+            return reading_fsk_19k2_schrader();
+        }
     }
 }
 
