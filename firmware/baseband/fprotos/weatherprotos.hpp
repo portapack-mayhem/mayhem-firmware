@@ -31,9 +31,12 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "w-solight_te44.hpp"
 #include "w-bresser_3ch.hpp"
 #include "w-vauno_en8822.hpp"
+#include "w-fineoffset-ook.hpp"
+#include "w-fineoffset-fsk.hpp"
 
 #include <vector>
 #include <memory>
+#include <cstring>
 #include "portapack_shared_memory.hpp"
 
 #ifndef __FPROTO_PROTOLISTWTH_H__
@@ -72,11 +75,15 @@ class WeatherProtos : public FProtoListGeneral {
         protos[FPW_Bresser3CH_V1] = nullptr;  // done by FProtoWeatheBresser3CH
         protos[FPW_Vauno_EN8822] = new FProtoWeatherVaunoEN8822();
         protos[FPW_OREGON2B] = nullptr;  // done by FProtoWeatherOregon2
+        protos[FPW_FO_WH2] = new FProtoWeatherFineOffsetOOK();
+        // FPW_FO_WH5 .. FPW_FO_WH53 are done by FProtoWeatherFineOffsetOOK
+        // FPW_FO_WH24 .. FPW_FO_WH55 are done by fineoffset_fsk, it gets data from the FSK detector, not from feed()
 
         // set callback for them
         for (uint8_t i = 0; i < FPW_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
         }
+        fineoffset_fsk.setCallback(callbackTarget);
     }
 
     ~WeatherProtos() {  // not needed for current operation logic, but a bit more elegant :)
@@ -90,6 +97,13 @@ class WeatherProtos : public FProtoListGeneral {
 
     static void callbackTarget(FProtoWeatherBase* instance) {
         WeatherDataMessage packet_message{instance->getSensorType(), instance->getData()};
+        uint8_t len = 0;
+        const uint8_t* payload = instance->getPayload(len);
+        if (payload) {
+            if (len > sizeof(packet_message.payload)) len = sizeof(packet_message.payload);
+            memcpy(packet_message.payload, payload, len);
+            packet_message.payload_len = len;
+        }
         shared_memory.application_queue.push(packet_message);
     }
 
@@ -99,8 +113,17 @@ class WeatherProtos : public FProtoListGeneral {
         }
     }
 
+    // pulses from the FSK detector
+    static void feed_fsk(void* ctx, bool level, uint32_t duration) {
+        static_cast<WeatherProtos*>(ctx)->fineoffset_fsk.feed_fsk(level, duration);
+    }
+    void fsk_end() {
+        fineoffset_fsk.fsk_end();
+    }
+
    protected:
     FProtoWeatherBase* protos[FPW_COUNT] = {NULL};
+    FProtoWeatherFineOffsetFSK fineoffset_fsk{};
 };
 
 #endif

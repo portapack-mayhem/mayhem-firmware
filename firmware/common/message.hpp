@@ -1575,6 +1575,8 @@ class WeatherDataMessage : public Message {
     }
     uint8_t sensorType = 0;
     uint64_t decode_data = 0;
+    uint8_t payload_len = 0;
+    uint8_t payload[32]{};  // raw frame for protocols longer than 64 bits (WS_MAX_PAYLOAD)
 };
 
 class SubGhzDDataMessage : public Message {
