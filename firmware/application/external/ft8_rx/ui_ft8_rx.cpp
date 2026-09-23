@@ -86,8 +86,8 @@ void FT8RxView::on_packet(const FT8PacketMessage* message) {
 
     /* The message takes the left of the line and the audio frequency the right, so the
      * frequencies line up in a column down the screen and the passband can be read at a
-     * glance. A message long enough to reach the column keeps its text and loses the
-     * alignment rather than being cut. */
+     * glance. A message too long to leave room for the column keeps its text, and the
+     * frequency moves down a row and stays in the column. */
     std::string text{message->text};
     const std::string freq = to_string_dec_uint(message->frequency) + "Hz";
     /* screen_width is set at runtime, so the column count is taken here rather than
@@ -99,7 +99,7 @@ void FT8RxView::on_packet(const FT8PacketMessage* message) {
     if (text.length() + freq.length() < columns)
         text.append(columns - freq.length() - text.length(), ' ');
     else
-        text += ' ';
+        text += '\n' + std::string(columns - freq.length(), ' ');
 
     /* A CQ is the line an operator can answer, so its text is picked out of the list. The
      * frequency stays white: it reads as a column down the screen, and colouring it would
