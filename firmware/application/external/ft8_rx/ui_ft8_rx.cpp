@@ -88,18 +88,27 @@ void FT8RxView::on_packet(const FT8PacketMessage* message) {
      * frequencies line up in a column down the screen and the passband can be read at a
      * glance. A message long enough to reach the column keeps its text and loses the
      * alignment rather than being cut. */
-    std::string line{message->text};
+    std::string text{message->text};
     const std::string freq = to_string_dec_uint(message->frequency) + "Hz";
     /* screen_width is set at runtime, so the column count is taken here rather than
      * fixed at compile time. The font is the 8 px fixed one the rest of the layout uses. */
     const size_t columns = screen_width / 8;
 
-    if (line.length() + freq.length() < columns)
-        line.append(columns - freq.length() - line.length(), ' ');
+    /* Padding is measured before the colour escape goes on, because the escape occupies
+     * two bytes of the string and no columns on screen. */
+    if (text.length() + freq.length() < columns)
+        text.append(columns - freq.length() - text.length(), ' ');
     else
-        line += ' ';
+        text += ' ';
 
-    console.writeln(line + freq);
+    /* A CQ is the line an operator can answer, so its text is picked out of the list. The
+     * frequency stays white: it reads as a column down the screen, and colouring it would
+     * break that column into stripes. */
+    const bool calling = std::string{message->text}.compare(0, 3, "CQ ") == 0;
+    if (calling)
+        console.writeln(STR_COLOR_GREEN + text + STR_COLOR_WHITE + freq);
+    else
+        console.writeln(text + freq);
 }
 
 void FT8RxView::on_status(const FT8RxStatusMessage* message) {
