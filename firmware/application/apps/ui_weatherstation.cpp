@@ -47,7 +47,9 @@ struct WeatherExtraValue {
 
 static uint8_t weather_extra_values(const WeatherReadings& r, WeatherExtraValue* v) {
     v[0] = {"Wind:     ", " m/s", r.wind_avg, WS_NO_U16, true};
-    v[1] = {"Wind dir: ", " deg", r.wind_dir, WS_NO_U16, false};
+    uint16_t wind_dir = r.wind_dir;
+    if (weather_wind_south && wind_dir != WS_NO_U16) wind_dir = (wind_dir + 180) % 360;
+    v[1] = {"Wind dir: ", " deg", wind_dir, WS_NO_U16, false};
     v[2] = {"Gust:     ", " m/s", r.wind_gust, WS_NO_U16, true};
     v[3] = {"Rain:     ", " mm", r.rain, WS_NO_U32, true};
     v[4] = {"Pressure: ", " hPa", r.pressure, WS_NO_U16, true};
@@ -162,6 +164,7 @@ WeatherView::WeatherView(NavigationView& nav)
                   &options_temperature,
                   &button_clear_list,
                   &check_log,
+                  &check_wind_south,
                   &recent_entries_view});
 
     logger = std::make_unique<WeatherLogger>();
@@ -179,6 +182,11 @@ WeatherView::WeatherView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
     options_temperature.set_selected_index(weather_units_fahr, false);
+
+    check_wind_south.on_select = [](Checkbox&, bool v) {
+        weather_wind_south = v;
+    };
+    check_wind_south.set_value(weather_wind_south);
 
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;

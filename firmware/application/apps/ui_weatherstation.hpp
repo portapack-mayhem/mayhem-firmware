@@ -40,6 +40,8 @@ using namespace ui;
 namespace ui {
 
 static bool weather_units_fahr{false};
+// In the southern hemisphere the Fine Offset arrays are installed rotated by 180 degrees (solar panel to the north), the consoles correct it the same way.
+static bool weather_wind_south{false};
 
 struct WeatherRecentEntry : public WeatherReadings {
     using Key = uint64_t;
@@ -111,6 +113,7 @@ class WeatherView : public View {
         {
             {"units_fahr"sv, &weather_units_fahr},
             {"log"sv, &logging},
+            {"wind_south"sv, &weather_wind_south},
         }};
 
     WeatherRecentEntries recent{};
@@ -150,6 +153,12 @@ class WeatherView : public View {
         {10 * 8, 18},
         3,
         "Log",
+        true};
+
+    Checkbox check_wind_south{
+        {17 * 8, 18},
+        5,
+        "S.Hem",
         true};
 
     static constexpr auto header_height = 3 * 16;
