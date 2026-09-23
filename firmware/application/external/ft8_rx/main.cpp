@@ -75,7 +75,7 @@ __attribute__((section(".external_app.app_ft8_rx.application_information"), used
         0xFF,
         0xFF,
     },
-    /*.icon_color = */ ui::Color::blue().v,
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 

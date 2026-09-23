@@ -83,7 +83,7 @@ void FT8DecodeThread::run() {
             char text[FTX_MAX_MESSAGE_LENGTH];
             ft8_portapack_message_text(&state_->messages[i], text);
             shared_memory.application_queue.push(
-                FT8PacketMessage{text, state_->message_scores[i]});
+                FT8PacketMessage{text, state_->message_freqs[i]});
         }
 
         // One update per slot, so the UI can show whether the slot clock is locked.

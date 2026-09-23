@@ -27,6 +27,7 @@
 #include "radio_state.hpp"
 #include "receiver_model.hpp"
 #include "ui.hpp"
+#include "ui_channel.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
@@ -71,10 +72,16 @@ class FT8RxView : public View {
     VGAGainField field_vga{
         {16 * 8, 0}};
 
-    /* The only signal indicator the app has, so it gets the width the threshold field
-     * used to take. */
     RSSI rssi{
-        {19 * 8 - 4, 3, 74, 8}};
+        {19 * 8 - 4, 0, 74, 4}};
+
+    /* Channel power, in the pair the other receivers draw. This app needs it more than
+     * most: there is no AGC in front of the decoder, and too much gain drives waterfall
+     * bins to the top of the byte scale, where ft8_sync_score, built from differences
+     * between neighbouring bins, collapses. The overload threshold turns the bar red
+     * before that happens. */
+    Channel channel{
+        {19 * 8 - 4, 5, 74, 4}};
 
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), 0}};

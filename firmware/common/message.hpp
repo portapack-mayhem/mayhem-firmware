@@ -445,10 +445,10 @@ class FT8PacketMessage : public Message {
 
     constexpr FT8PacketMessage(
         const char* message_text,
-        int16_t sync_score)
+        int16_t audio_frequency)
         : Message{ID::FT8Packet},
           text{},
-          score{sync_score} {
+          frequency{audio_frequency} {
         size_t i = 0;
         for (; i < text_length - 1 && message_text[i] != '\0'; i++)
             text[i] = message_text[i];
@@ -456,7 +456,9 @@ class FT8PacketMessage : public Message {
     }
 
     char text[text_length];
-    int16_t score;  // Costas sync score of the candidate this came from
+    /* Audio frequency inside the 200-2500 Hz passband. Every station on the band shares
+     * one dial and picks its own slot, so this is what places a decode in the passband. */
+    int16_t frequency;
 };
 
 /* Sent once per 15 s slot so the UI can tell the user whether the receiver has found

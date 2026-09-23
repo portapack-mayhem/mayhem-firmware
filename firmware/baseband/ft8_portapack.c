@@ -40,6 +40,60 @@ static float cos_unit_quadrant(float x) {
     return 1.0f + x2 * (-1.0f / 2.0f + x2 * (1.0f / 24.0f + x2 * (-1.0f / 720.0f + x2 * (1.0f / 40320.0f + x2 * (-1.0f / 3628800.0f + x2 * (1.0f / 479001600.0f))))));
 }
 
+/* Callsigns heard with their 22-bit hash, so that a later message carrying only the hash
+ * can be shown with the callsign instead of <...>. FT8 sends a hash once both stations
+ * have exchanged full callsigns, and roughly half the traffic on a busy band is hashed.
+ * The table is a ring: on a full table the oldest entry goes, which keeps the stations
+ * currently working each other in it. */
+#define FT8_HASH_ENTRIES 32
+
+typedef struct {
+    char callsign[12];  // 11 characters is the longest a callsign can be, plus terminator
+    uint32_t n22;
+} ft8_hash_entry_t;
+
+static ft8_hash_entry_t hash_table[FT8_HASH_ENTRIES];
+static int hash_count;
+static int hash_next;
+
+static bool hash_lookup(ftx_callsign_hash_type_t hash_type, uint32_t hash, char* callsign) {
+    // The 12- and 10-bit hashes are the top bits of the 22-bit one, so one stored value
+    // answers all three. The shorter ones collide, and the newest entry wins.
+    int shift = (hash_type == FTX_CALLSIGN_HASH_12_BITS) ? 10 : (hash_type == FTX_CALLSIGN_HASH_10_BITS) ? 12
+                                                                                                         : 0;
+    for (int i = 0; i < hash_count; i++) {
+        int idx = hash_next - 1 - i;
+        if (idx < 0) idx += FT8_HASH_ENTRIES;
+        if ((hash_table[idx].n22 >> shift) == hash) {
+            strcpy(callsign, hash_table[idx].callsign);
+            return true;
+        }
+    }
+    return false;
+}
+
+static void hash_save(const char* callsign, uint32_t n22) {
+    for (int i = 0; i < hash_count; i++) {
+        if (hash_table[i].n22 != n22) continue;
+        // Known already: take the entry out and let it go back in as the newest, or a
+        // station heard every slot would still age out behind 32 others.
+        const int newest = (hash_next + FT8_HASH_ENTRIES - 1) % FT8_HASH_ENTRIES;
+        for (int j = i; j != newest; j = (j + 1) % FT8_HASH_ENTRIES) {
+            hash_table[j] = hash_table[(j + 1) % FT8_HASH_ENTRIES];
+        }
+        hash_next = newest;
+        hash_count--;
+        break;
+    }
+    hash_table[hash_next].n22 = n22;
+    strncpy(hash_table[hash_next].callsign, callsign, sizeof(hash_table[0].callsign) - 1);
+    hash_table[hash_next].callsign[sizeof(hash_table[0].callsign) - 1] = '\0';
+    hash_next = (hash_next + 1) % FT8_HASH_ENTRIES;
+    if (hash_count < FT8_HASH_ENTRIES) hash_count++;
+}
+
+static ftx_callsign_hash_interface_t hash_interface = {hash_lookup, hash_save};
+
 // log2 from the exponent plus a series on the mantissa. Calling log10f here costs 146
 // instructions per bin, and 368 of them in the one execute() that closes a symbol overrun
 // the 666.7 us a 2048-sample DMA transfer allows, so the baseband thread lost one buffer
@@ -113,6 +167,10 @@ bool ft8_portapack_init(ft8_decoder_state_t* state) {
 
     state->initialized = true;
     state->samples_in_symbol = 0;
+
+    // The table is file-static, so a restart of the app has to clear it.
+    hash_count = 0;
+    hash_next = 0;
 
     const float two_pi_over_n = 2.0f * 3.14159265358979f / (float)FT8_SAMPLES_PER_SYMBOL;
     for (int b = 0; b < FT8_NUM_BINS; b++) {
@@ -208,7 +266,9 @@ int ft8_portapack_decode(ft8_decoder_state_t* state) {
                 state->sync_confirmed = true;
             }
             state->messages[state->num_messages] = msg;
-            state->message_scores[state->num_messages] = state->candidates[i].score;
+            // Bin spacing is 6.25 Hz, kept as an integer ratio to avoid float here.
+            state->message_freqs[state->num_messages] =
+                (int16_t)(((FT8_FREQ_MIN_BIN + state->candidates[i].freq_offset) * 25) / 4);
             state->num_messages++;
         }
     }
@@ -221,9 +281,9 @@ void ft8_portapack_message_text(const ftx_message_t* message, char* text) {
 
     // Standard and non-standard payloads keep their partially filled fields on an error
     // return, so a CRC-valid message whose callsign fails to unpack would otherwise print
-    // a lone space or a truncated call. A hashed callsign renders as <...> and returns OK,
-    // so nothing readable is lost here.
-    if (ftx_message_decode(message, NULL, text, &offsets) != FTX_MESSAGE_RC_OK) {
+    // a lone space or a truncated call. Decoding fills the hash table from every full
+    // callsign it sees, so hashed callsigns resolve once their owner has been heard.
+    if (ftx_message_decode(message, &hash_interface, text, &offsets) != FTX_MESSAGE_RC_OK) {
         text[0] = '\0';
     }
 }
