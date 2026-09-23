@@ -45,12 +45,15 @@ FT8RxView::FT8RxView(NavigationView& nav)
                   &field_lna,
                   &field_vga,
                   &rssi,
+                  &channel,
                   &field_volume,
                   &field_frequency,
                   &options_band,
                   &text_status,
                   &text_decodes,
                   &console});
+
+    channel.set_overload_threshold(-3);
 
     field_frequency.set_step(100);
 
