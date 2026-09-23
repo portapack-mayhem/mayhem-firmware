@@ -74,7 +74,16 @@ static bool hash_lookup(ftx_callsign_hash_type_t hash_type, uint32_t hash, char*
 
 static void hash_save(const char* callsign, uint32_t n22) {
     for (int i = 0; i < hash_count; i++) {
-        if (hash_table[i].n22 == n22) return;
+        if (hash_table[i].n22 != n22) continue;
+        // Known already: take the entry out and let it go back in as the newest, or a
+        // station heard every slot would still age out behind 32 others.
+        const int newest = (hash_next + FT8_HASH_ENTRIES - 1) % FT8_HASH_ENTRIES;
+        for (int j = i; j != newest; j = (j + 1) % FT8_HASH_ENTRIES) {
+            hash_table[j] = hash_table[(j + 1) % FT8_HASH_ENTRIES];
+        }
+        hash_next = newest;
+        hash_count--;
+        break;
     }
     hash_table[hash_next].n22 = n22;
     strncpy(hash_table[hash_next].callsign, callsign, sizeof(hash_table[0].callsign) - 1);
