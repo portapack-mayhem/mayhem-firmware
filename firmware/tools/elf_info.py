@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-#
+# Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
 # Copyright (C) 2026 Mayhem firmware contributors
 #
 # This file is part of PortaPack.
