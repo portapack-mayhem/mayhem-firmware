@@ -13,6 +13,10 @@ Also it must have a switch-case element in the getWeatherSensorTypeName() functi
 #define WS_NO_CHANNEL 0xFF
 // #define WS_NO_BTN 0xFF
 #define WS_NO_TEMPERATURE -273.0f
+#define WS_NO_U8 0xFF
+#define WS_NO_U16 0xFFFF
+#define WS_NO_U32 0xFFFFFFFF
+#define WS_MAX_PAYLOAD 32  // max raw frame bytes a protocol can pass to the app (Fine Offset WS90 is the longest)
 
 enum FPROTO_WEATHER_SENSOR {
     FPW_Invalid = 0,
@@ -43,6 +47,30 @@ enum FPROTO_WEATHER_SENSOR {
     FPW_Bresser3CH_V1 = 25,
     FPW_Vauno_EN8822 = 26,
     FPW_OREGON2B = 27,
+    // Fine Offset / Ecowitt family. OOK ones are done by FProtoWeatherFineOffsetOOK, FSK ones by FProtoWeatherFineOffsetFSK.
+    FPW_FO_WH2 = 28,
+    FPW_FO_WH5 = 29,
+    FPW_FO_WH0530 = 30,
+    FPW_FO_WH1080 = 31,
+    FPW_FO_WH3080UV = 32,
+    FPW_FO_WH53 = 33,
+    FPW_FO_WH24 = 34,
+    FPW_FO_WH65 = 35,
+    FPW_FO_WS69 = 36,
+    FPW_FO_WH25 = 37,
+    FPW_FO_WH32 = 38,
+    FPW_FO_WH0290 = 39,
+    FPW_FO_WH31E = 40,
+    FPW_FO_WH40 = 41,
+    FPW_FO_WN20 = 42,
+    FPW_FO_WS68 = 43,
+    FPW_FO_WH51 = 44,
+    FPW_FO_WS80 = 45,
+    FPW_FO_WS85 = 46,
+    FPW_FO_WS90 = 47,
+    FPW_FO_WN34 = 48,
+    FPW_FO_WH57 = 49,
+    FPW_FO_WH55 = 50,
     FPW_COUNT  // this must be the last
 };
 
