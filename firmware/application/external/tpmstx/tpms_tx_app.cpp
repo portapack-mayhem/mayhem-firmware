@@ -723,11 +723,17 @@ TPMSTXView::TPMSTXView(NavigationView& nav)
 
                     if (!type_str.empty()) {
                         int type = std::stoi(type_str);
-                        if (type >= static_cast<int>(tpms::Reading::Type::FLM_64) &&
-                            type <= static_cast<int>(tpms::Reading::Type::GMC_96)) {
-                            packet_type_ = static_cast<tpms::Reading::Type>(type);
-                            options_packet_type.set_by_value(type);
+                        if (type < static_cast<int>(tpms::Reading::Type::FLM_64) ||
+                            type > static_cast<int>(tpms::Reading::Type::GMC_96)) {
+                            // A receive-only protocol (e.g. Hyundai-VDO) the transmitter
+                            // cannot build. Abort instead of applying the saved fields to
+                            // the previously selected type, which would transmit a wrong
+                            // frame.
+                            text_status.set("Type not TX-supported");
+                            return;
                         }
+                        packet_type_ = static_cast<tpms::Reading::Type>(type);
+                        options_packet_type.set_by_value(type);
                     }
 
                     if (!id_str.empty()) {

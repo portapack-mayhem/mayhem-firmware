@@ -127,16 +127,494 @@ Optional<Reading> Packet::reading_ook_8k4_schrader() const {
     }
 }
 
+Optional<Reading> Packet::reading_toyota() const {
+    /*
+     * Toyota TPMS - FSK Differential Manchester
+     * 72 bits data with CRC-8
+     * Pressure in (raw * 0.25 - 7) PSI
+     * Temperature in (raw - 40) C
+     *
+     * NOTE: Toyota (like PMV107J and AVE) is differential Manchester encoded, which the
+     * plain-Manchester reader_ used here does not decode, so this will not lock onto a
+     * real Toyota frame yet. Left in place for a follow-up that adds a differential
+     * Manchester reader; the crc_valid_length() gate keeps it from false-triggering.
+     */
+    const auto length = crc_valid_length();
+    if (length != 72) {
+        return {};
+    }
+
+    const auto id = reader_.read(0, 32);
+    const auto pressure_raw = (reader_.read(33, 7) << 1) | reader_.read(40, 1);
+    const auto temp_raw = (reader_.read(41, 7) << 1) | reader_.read(48, 1);
+    const auto pressure2 = reader_.read(56, 8) ^ 0xff;
+
+    // Verify pressure consistency
+    if (pressure_raw != pressure2) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Toyota,
+        (uint32_t)id,
+        Pressure{static_cast<int>((pressure_raw * 0.25 - 7.0) * 7)},  // (raw*0.25 - 7) PSI -> kPa
+        Temperature{static_cast<int>(temp_raw - 40)}};
+}
+
+Optional<Reading> Packet::reading_ford() const {
+    /*
+     * Ford TPMS - FSK Manchester
+     * 64 bits with simple checksum
+     * Pressure in (raw * 0.25) PSI
+     * Temperature in (raw - 56) C
+     */
+    const auto id = reader_.read(0, 32);
+    // Pressure high bit is b[6] & 0x20 (rtl_433 tpms_ford.c), i.e. bit 50, not bit 48.
+    const auto pressure_raw = ((reader_.read(50, 1) << 8) | reader_.read(32, 8));
+    const auto temp_raw = reader_.read(40, 8);
+    const auto flags = reader_.read(48, 8);
+    const auto checksum = reader_.read(56, 8);
+
+    // Verify checksum
+    uint8_t sum = 0;
+    for (size_t i = 0; i < 7; i++) {
+        sum += reader_.read(i * 8, 8);
+    }
+    if ((sum & 0xff) != checksum) {
+        return {};
+    }
+
+    // Temperature valid if bit 7 is not set
+    Optional<Temperature> temperature{};
+    if ((temp_raw & 0x80) == 0) {
+        temperature = Temperature{static_cast<int>(temp_raw & 0x7f) - 56};
+    }
+
+    return Reading{
+        Reading::Type::Ford,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 0.25 * 7)},  // Convert to kPa
+        temperature,
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_citroen() const {
+    /*
+     * Citroen TPMS - FSK Manchester
+     * 80 bits with XOR checksum
+     * Pressure in (raw * 1.364) kPa
+     * Temperature in (raw - 50) C
+     */
+    const auto id = reader_.read(8, 32);
+    const auto flags = reader_.read(40, 4);
+    const auto pressure_raw = reader_.read(48, 8);
+    const auto temp_raw = reader_.read(56, 8);
+
+    // Sanity checks
+    if (pressure_raw == 0 || temp_raw == 0) {
+        return {};
+    }
+
+    // Verify XOR checksum (bytes 1-9 XOR = 0)
+    uint8_t xor_sum = 0;
+    for (size_t i = 1; i < 10; i++) {
+        xor_sum ^= reader_.read(i * 8, 8);
+    }
+    if (xor_sum != 0) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Citroen,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 1.364)},
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_renault() const {
+    /*
+     * Renault TPMS - FSK Manchester
+     * 72 bits with CRC-8
+     * Pressure in (raw * 0.75) kPa
+     * Temperature in (raw - 30) C
+     */
+    const auto flags = reader_.read(0, 6);
+    const auto pressure_raw = (reader_.read(6, 2) << 8) | reader_.read(8, 8);
+    const auto temp_raw = reader_.read(16, 8);
+    // ID is little-endian on the wire (rtl_433: b[5] << 16 | b[4] << 8 | b[3]).
+    const auto id = (reader_.read(40, 8) << 16) | (reader_.read(32, 8) << 8) | reader_.read(24, 8);
+    const auto crc = reader_.read(64, 8);
+
+    // Verify CRC-8
+    uint8_t bytes[8];
+    for (size_t i = 0; i < 8; i++) {
+        bytes[i] = reader_.read(i * 8, 8);
+    }
+
+    CRC<8> crc_calc{0x07, 0x00};
+    for (size_t i = 0; i < 8; i++) {
+        crc_calc.process_byte(bytes[i]);
+    }
+
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Renault,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 0.75)},
+        Temperature{static_cast<int>(temp_raw - 30)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_hyundai_vdo() const {
+    /*
+     * Hyundai VDO TPMS - FSK Manchester
+     * 80 bits with CRC-8
+     * Pressure in (raw * 1.375) kPa
+     * Temperature in (raw - 50) C
+     */
+    const auto id = reader_.read(8, 32);
+    const auto flags = reader_.read(40, 4);
+    const auto pressure_raw = reader_.read(48, 8);
+    const auto temp_raw = reader_.read(56, 8);
+    const auto crc = reader_.read(72, 8);
+
+    // Verify CRC-8 with poly 0x07 init 0xaa
+    uint8_t bytes[9];
+    for (size_t i = 0; i < 9; i++) {
+        bytes[i] = reader_.read(i * 8, 8);
+    }
+
+    CRC<8> crc_calc{0x07, 0xaa};
+    for (size_t i = 0; i < 9; i++) {
+        crc_calc.process_byte(bytes[i]);
+    }
+
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Hyundai_VDO,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 1.375)},
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_nissan() const {
+    /*
+     * Nissan TPMS - FSK Manchester
+     * 37 bits
+     * Pressure in (raw / 4.0) PSI
+     */
+    uint8_t b[5];
+    for (size_t i = 0; i < 5; i++)
+        b[i] = reader_.read(i * 8, 8);
+
+    // sum2N checksum over the 37 bits (rtl_433 tpms_nissan.c); a valid message yields 0.
+    // Without it, any unknown packet is accepted as Nissan and blocks later decoders.
+    uint8_t chk = 0;
+    for (size_t i = 0; i < 4; i++) {
+        chk += b[i] >> 7;
+        chk += b[i] >> 5;
+        chk += b[i] >> 3;
+        chk += b[i] >> 1;
+        chk += (uint8_t)(b[i] << 1);
+    }
+    chk += b[4] >> 7;
+    chk += b[4] >> 5;
+    chk += b[4] >> 3;
+    if ((~chk & 0x03) != 0)
+        return {};
+
+    const auto mode = b[0] >> 5;
+    const auto id = ((b[0] & 0x1F) << 19) | (b[1] << 11) | (b[2] << 3) | (b[3] >> 5);
+    const auto pressure_raw = ((b[3] & 0x1F) << 3) | (b[4] >> 5);
+
+    return Reading{
+        Reading::Type::Nissan,
+        (uint32_t)id,
+        Pressure{static_cast<int>((pressure_raw / 4.0 - 3.0) * 7)},  // (raw/4 - 3) PSI -> kPa
+        {},
+        Flags{static_cast<Flags>(mode)}};
+}
+
+Optional<Reading> Packet::reading_abarth124() const {
+    /*
+     * Abarth 124 Spider / VDO TG1C - FSK Manchester
+     * 72 bits with XOR checksum
+     * Pressure in (raw * 1.38) kPa
+     * Temperature in (raw - 50) C
+     */
+    const auto id = reader_.read(0, 32);
+    const auto flags = reader_.read(32, 8);
+    const auto pressure_raw = reader_.read(40, 8);
+    const auto temp_raw = reader_.read(48, 8);
+
+    // Verify XOR checksum
+    uint8_t xor_sum = 0;
+    for (size_t i = 0; i < 9; i++) {
+        xor_sum ^= reader_.read(i * 8, 8);
+    }
+    if (xor_sum != 0) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Abarth124,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 1.38)},
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_jansite() const {
+    /*
+     * Jansite TPMS - FSK Manchester
+     * 56 bits (no reliable checksum)
+     * Pressure in (raw * 1.7) kPa
+     * Temperature in (raw - 50) C
+     */
+    const auto id = ((reader_.read(0, 8) << 20) |
+                     (reader_.read(8, 8) << 12) |
+                     (reader_.read(16, 8) << 4) |
+                     (reader_.read(24, 4)));
+    const auto flags = reader_.read(28, 4);
+    const auto pressure_raw = reader_.read(32, 8);
+    const auto temp_raw = reader_.read(40, 8);
+
+    return Reading{
+        Reading::Type::Jansite,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 1.7)},
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_jansite_solar() const {
+    /*
+     * Jansite Solar TPMS - FSK Manchester
+     * 88 bits with CRC-16
+     * Pressure in (raw * 1.6) kPa
+     * Temperature in (raw - 55) C
+     */
+    const auto sync = reader_.read(0, 16);
+    if (sync != 0xdd33) {
+        return {};
+    }
+
+    const auto id = ((reader_.read(16, 8) << 16) |
+                     (reader_.read(24, 8) << 8) |
+                     reader_.read(32, 8));
+    const auto flags = reader_.read(40, 8);
+    const auto temp_raw = reader_.read(48, 8);
+    const auto pressure_raw = reader_.read(56, 8);
+    const auto crc = reader_.read(72, 16);
+
+    // Verify CRC-16/BUYPASS
+    uint8_t bytes[9];
+    for (size_t i = 0; i < 9; i++) {
+        bytes[i] = reader_.read(i * 8 + 16, 8);  // Skip sync word
+    }
+
+    uint16_t crc_calc = 0;
+    for (size_t i = 0; i < 7; i++) {  // CRC over first 7 bytes
+        crc_calc = crc_calc ^ (bytes[i] << 8);
+        for (int j = 0; j < 8; j++) {
+            if (crc_calc & 0x8000) {
+                crc_calc = (crc_calc << 1) ^ 0x8005;
+            } else {
+                crc_calc = crc_calc << 1;
+            }
+        }
+    }
+
+    if (crc_calc != crc) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Jansite_Solar,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw * 1.6)},
+        Temperature{static_cast<int>(temp_raw - 55)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_kia() const {
+    /*
+     * Kia TPMS - FSK Manchester
+     * 138 bits (after 16-bit preamble) with CRC-8
+     * Pressure in (raw / 5.0) PSI
+     * Temperature in (raw - 50) C
+     */
+    const auto unknown1 = reader_.read(0, 4);
+    const auto pressure_raw = ((reader_.read(4, 4) << 4) | reader_.read(8, 4));
+    const auto temp_raw = ((reader_.read(12, 4) << 4) | reader_.read(16, 4));
+    // read() returns int32_t; cast the top nibble before <<28 so IDs with a top bit
+    // of 8-F don't shift into the sign bit (undefined behavior).
+    const auto id = ((static_cast<uint32_t>(reader_.read(20, 4)) << 28) |
+                     (reader_.read(24, 8) << 20) |
+                     (reader_.read(32, 8) << 12) |
+                     (reader_.read(40, 8) << 4) |
+                     reader_.read(48, 4));
+    const auto crc = reader_.read(64, 8) & 0xF8;  // Last 3 bits are padding
+
+    // Verify CRC-8
+    uint8_t bytes[8];
+    for (size_t i = 0; i < 8; i++) {
+        bytes[i] = reader_.read(i * 8, 8);
+    }
+
+    CRC<8> crc_calc{0x07, 0x76};
+    for (size_t i = 0; i < 8; i++) {
+        crc_calc.process_byte(bytes[i]);
+    }
+
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Kia,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw / 5.0 * 7)},  // Convert PSI to kPa
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(unknown1)}};
+}
+
+Optional<Reading> Packet::reading_elantra2012() const {
+    /*
+     * Elantra 2012 / TRW - FSK Manchester
+     * 64 bits with CRC-8
+     * Pressure in (raw + 60) kPa
+     * Temperature in (raw - 50) C
+     */
+    const auto pressure_raw = reader_.read(0, 8);
+    const auto temp_raw = reader_.read(8, 8);
+    const auto id = reader_.read(16, 32);
+    const auto flags = reader_.read(48, 8);
+    const auto crc = reader_.read(56, 8);
+
+    // Verify CRC-8
+    uint8_t bytes[7];
+    for (size_t i = 0; i < 7; i++) {
+        bytes[i] = reader_.read(i * 8, 8);
+    }
+
+    CRC<8> crc_calc{0x07, 0x00};
+    for (size_t i = 0; i < 7; i++) {
+        crc_calc.process_byte(bytes[i]);
+    }
+
+    if (static_cast<uint8_t>(crc_calc.checksum()) != static_cast<uint8_t>(crc)) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Elantra2012,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw + 60)},
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_pmv107j() const {
+    /*
+     * PMV-107J (Toyota) - FSK Differential Manchester
+     * 66 bits with CRC-8
+     * Pressure in (raw - 40) * 2.48 kPa
+     * Temperature in (raw - 40) C
+     */
+    // This uses differential Manchester which requires special handling
+    // For now, return empty as it needs different decoder
+    return {};
+}
+
+Optional<Reading> Packet::reading_renault_0435r() const {
+    /*
+     * Renault 0435R - FSK Manchester
+     * 72 bits with XOR checksum
+     * Pressure in (raw / 0.75) kPa
+     * Temperature in (raw - 50) C
+     */
+    const auto id = ((reader_.read(0, 8) << 16) |
+                     (reader_.read(8, 8) << 8) |
+                     reader_.read(16, 8));
+    const auto flags = reader_.read(24, 8);
+    const auto pressure_raw = reader_.read(32, 8);
+    const auto temp_raw = reader_.read(40, 8);
+    const auto tick = reader_.read(64, 8);
+
+    // Verify XOR checksum
+    uint8_t xor_sum = 0;
+    for (size_t i = 0; i < 9; i++) {
+        xor_sum ^= reader_.read(i * 8, 8);
+    }
+    if (xor_sum != 0) {
+        return {};
+    }
+
+    // Sanity check tick
+    const auto has_tick = (tick >> 7) & 1;
+    const auto tick_val = tick & 0x7F;
+    if (tick != 0 && (!has_tick || tick_val > 30)) {
+        return {};
+    }
+
+    return Reading{
+        Reading::Type::Renault_0435R,
+        (uint32_t)id,
+        Pressure{static_cast<int>(pressure_raw / 0.75)},
+        Temperature{static_cast<int>(temp_raw - 50)},
+        Flags{static_cast<Flags>(flags)}};
+}
+
+Optional<Reading> Packet::reading_ave() const {
+    /*
+     * AVE TPMS - FSK Differential Manchester
+     * 64 bits with CRC-8 (poly 0x31, init 0xff)
+     * Pressure varies by mode (default: raw * 2.352 kPa)
+     * Temperature in (raw - 50) C
+     */
+    // This uses differential Manchester which requires special handling
+    // For now, return empty as it needs different decoder
+    return {};
+}
+
 Optional<Reading> Packet::reading() const {
     switch (signal_type()) {
-        case SignalType::FSK_19k2_Schrader:
-            return reading_fsk_19k2_schrader();
         case SignalType::OOK_8k192_Schrader:
             return reading_ook_8k192_schrader();
         case SignalType::OOK_8k4_Schrader:
             return reading_ook_8k4_schrader();
-        default:
-            return {};
+        case SignalType::FSK_19k2_Schrader:
+        default: {
+            // The baseband only emits a packet after matching its 0101...0110 (55 55 55
+            // 56) FSK preamble, so a manufacturer protocol is only reachable here if it
+            // uses that same preamble. Hyundai-VDO and Renault do (preamble 55 55 55 56)
+            // and are verified on real sensors; both validate with a CRC-8, so a frame of
+            // one is misread as the other only on a ~1/256 checksum collision. Try them,
+            // then fall back to the FLM/Schrader classification.
+            //
+            // The other decoders are deliberately NOT dispatched:
+            //   - Kia (preamble ed71), Elantra-2012 (7155) and Jansite-Solar (a6a65a) use
+            //     different preambles the baseband never matches - they need their own
+            //     baseband packet builders first (follow-up).
+            //   - Abarth/Citroen/Ford/Nissan/Renault-0435R/Jansite validate with only an
+            //     8-bit XOR/sum (or none), too weak to tell apart from a shared capture -
+            //     dispatching them made a real Hyundai sensor decode as Abarth.
+            //   - Toyota/PMV107J/AVE are differential Manchester (reader is plain
+            //     Manchester).
+            Optional<Reading> r;
+            if ((r = reading_hyundai_vdo()).is_valid()) return r;
+            if ((r = reading_renault()).is_valid()) return r;
+            return reading_fsk_19k2_schrader();
+        }
     }
 }
 
