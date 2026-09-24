@@ -60,6 +60,17 @@ class SubGhzDProcessor : public BasebandProcessor {
     size_t baseband_fs = 0;  // will be set later by configure message
     uint32_t nsPerDecSamp = 0;
 
+    uint8_t modulation = 0;  // 0 = AM/OOK, 1 = FM/FSK (2-FSK) - selected from the app
+    // FM/FSK demod state: an FM discriminator turns the two frequencies into a bipolar
+    // signal. A slow carrier tracker (fm_dc) removes the frequency offset without
+    // following a long constant tone (e.g. a Princeton guard gap), and slicing is against
+    // it with a hysteresis scaled to the running FSK deviation (fm_amp).
+    int16_t prev_re = 0;
+    int16_t prev_im = 0;
+    int32_t fm_filt = 0;  // low-passed discriminator
+    int32_t fm_dc = 0;    // slow carrier (frequency-offset) tracker = decision level
+    int32_t fm_amp = 1;   // running |discriminator - carrier| = FSK deviation magnitude
+
     /* Array Buffer aux. used in decim0 and decim1 IQ c16 signed  data ; (decim0 defines the max length of the array) */
     std::array<complex16_t, 512> dst{};  // decim0 /4 ,  2048/4 = 512 complex I,Q
     const buffer_c16_t dst_buffer{

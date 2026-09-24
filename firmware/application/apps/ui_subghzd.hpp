@@ -152,6 +152,13 @@ class SubGhzDView : public View {
         "Log",
         true};
 
+    // Modulation: AM/OOK (default) or FM/FSK. Many remotes are FSK.
+    OptionsField options_mod{
+        {20 * 8, 18},
+        2,
+        {{"AM", 0},
+         {"FM", 1}}};
+
     static constexpr auto header_height = 3 * 16;
 
     std::unique_ptr<SubGhzDLogger> logger{};

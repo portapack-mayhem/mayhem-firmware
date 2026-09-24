@@ -140,6 +140,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
                   &field_frequency,
                   &button_clear_list,
                   &check_log,
+                  &options_mod,
                   &recent_entries_view});
 
     baseband::run_image(portapack::spi_flash::image_tag_subghzd);
@@ -163,6 +164,10 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
     recent_entries_view.on_select = [this](const SubGhzDRecentEntry& entry) {
         nav_.push<SubGhzDRecentEntryDetailView>(entry);
     };
+    options_mod.on_change = [this](size_t, int32_t v) {
+        baseband::set_subghzd_config((uint8_t)v, receiver_model.sampling_rate());  // 0=AM, 1=FM
+    };
+    options_mod.set_by_value(0);
     baseband::set_subghzd_config(0, receiver_model.sampling_rate());  // 0=am
     receiver_model.enable();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
