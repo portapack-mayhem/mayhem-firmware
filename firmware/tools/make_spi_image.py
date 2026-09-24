@@ -25,9 +25,11 @@
 
 import sys
 import os
-from external_app_info import maximum_application_size
 from external_app_info import external_apps_address_start
 from external_app_info import external_apps_address_end
+from elf_info import external_app_section_prefix
+from elf_info import read_loaded_sections
+from elf_info import read_relocations
 import subprocess
 
 import re
@@ -36,7 +38,7 @@ from pathlib import Path
 usage_message = """
 PortaPack SPI flash image generator
 
-Usage: <command> <application_path> <baseband_path> <output_path> <spi_size>
+Usage: <command> <application_path> <baseband_path> <output_path> <spi_size> <application_elf> <cmake readelf path>
        Where paths refer to the .bin files for each component project.
        spi_size is the total size of the target flash (e.g. 1048576).
 """
@@ -167,7 +169,7 @@ def get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(path):
 
 #^^^^^^^^gcc version check from elf file^^^^^^^^
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 7:
     print(usage_message)
     sys.exit(-1)
 
@@ -175,6 +177,8 @@ application_image = read_image(sys.argv[1])
 baseband_image = read_image(sys.argv[2])
 output_path = sys.argv[3]
 spi_size = int(sys.argv[4], 0)
+application_elf = sys.argv[5]
+cmake_readelf = sys.argv[6]
 
 print("\ncheck gcc versions from all elf target\n")
 application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
@@ -244,15 +248,40 @@ pad_size = spi_size - 4 - len(spi_image)
 for i in range(pad_size):
     spi_image += spi_image_default_byte
 
-# quick "add up the words" checksum, and check for possible references to code in external apps
+def report_external_app_references(readelf, elf_path):
+    """Report internal firmware references to external app addresses.
+
+    An external app is linked at 0xADxxxxxx, the unused range picked in
+    "external.ld", and only exists there at link time. It is copied into
+    m4_code to run, and only while that one app is open, so a reference held by
+    the internal firmware is dangling.
+
+    The relocation entries say which words are addresses. Scanning the image
+    for the byte pattern cannot tell a pointer from a pair of Thumb
+    instructions holding the same value, and most of the SPI image is LZ4
+    compressed baseband data where any match is noise.
+    """
+    found = False
+    loaded = read_loaded_sections(readelf, elf_path)
+    for section, entries in read_relocations(readelf, elf_path).items():
+        if section not in loaded:
+            continue  # debug info, not part of the flashed image
+        if section.startswith(external_app_section_prefix):
+            continue  # removed from application.bin, and handled by the packer
+        for relocation in entries:
+            if external_apps_address_start <= relocation.symbol_value < external_apps_address_end:
+                print("WARNING: {} references external app address {} ({})".format(
+                    section, hex(relocation.symbol_value), relocation.symbol_name))
+                found = True
+    return found
+
+
+report_external_app_references(cmake_readelf, application_elf)
+
+# quick "add up the words" checksum
 checksum = 0
 for i in range(0, len(spi_image), 4):
-    snippet = spi_image[i:i + 4]
-    val = int.from_bytes(snippet, byteorder='little')
-    checksum += val
-    if (val >= external_apps_address_start) and (val < external_apps_address_end) and (
-            (val & 0xFFFF) < maximum_application_size):
-        print("WARNING: Possible external code address", hex(val), "at offset", hex(i), "in", sys.argv[3])
+    checksum += int.from_bytes(spi_image[i:i + 4], byteorder='little')
 
 final_checksum = 0
 checksum = (final_checksum - checksum) & 0xFFFFFFFF

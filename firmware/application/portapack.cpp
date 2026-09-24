@@ -64,6 +64,7 @@ extern "C" {
 
 #ifdef PRALINE
 #include "fpga_bridge.h"
+#include "memory_map.hpp"
 #endif
 }
 
@@ -641,7 +642,14 @@ init_status_t init() {
     // This function returns LD_SUCCESS (0) if the FPGA confirms the bitstream
     // Call fpga_bridge_init and continue boot regardless of result
     // (Watchdog was resetting device when we halted with while(1))
-    int load_result = fpga_bridge_init(&shared_memory.bb_data.data[0]);
+    /* The decompressor needs about 8 KiB of scratch, more than the shared
+     * memory region can lend it. m4_code is free at this point, since no
+     * baseband image is loaded until an app asks for one, and it is the only
+     * block that size.
+     */
+    static_assert(portapack::memory::map::m4_code.size() >= FPGA_BRIDGE_SCRATCH_SIZE,
+                  "m4_code is too small for the FPGA bitstream scratch buffer");
+    int load_result = fpga_bridge_init(reinterpret_cast<uint8_t*>(portapack::memory::map::m4_code.base()));
     (void)load_result;  // Ignore result for now, just let boot continue
 
     /* RELEASE FPGA RESET */

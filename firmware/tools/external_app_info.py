@@ -23,6 +23,13 @@
 
 # External app address ranges below must match those in linker file "external.ld".
 # The end address is exclusive.
+#
+# maximum_application_size is the size of one app's link region in
+# "external.ld", which is what makes an address belong to an app's own section.
+# It is not the run-time budget: an app's M0 code and the M4 baseband image it
+# runs share portapack::memory::map::m4_code, whose size is board dependent and
+# is passed to "export_external_apps.py" by CMake (M4_CODE_SIZE in
+# "rules.cmake").
 maximum_application_size = 32*1024
 external_apps_address_start = 0xADB00000
 external_apps_address_end = 0xAE118000

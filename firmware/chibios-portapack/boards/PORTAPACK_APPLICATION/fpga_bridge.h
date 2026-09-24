@@ -112,6 +112,12 @@ typedef enum {
 
 /* Initialize the FPGA - loads bitstream from SPIFI flash
  * Returns: 0 on success, non-zero on failure */
+/* Scratch that fpga_bridge_init() writes through mem_base: a 4 KiB decompressed
+ * output block followed by the SPIFI read context. fpga_bridge.c checks this is
+ * big enough, the caller checks its buffer is at least this large.
+ */
+#define FPGA_BRIDGE_SCRATCH_SIZE 12288
+
 int fpga_bridge_init(uint8_t* mem_base);
 
 /* Set operating mode - MUST be called before using mode-specific functions

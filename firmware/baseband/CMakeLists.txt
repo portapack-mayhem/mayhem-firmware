@@ -44,7 +44,22 @@ if(cpp20_supported)
 else()
 	set(USE_CPPOPT "-std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+
+# C++ standard deprecations that the vendored ChibiOS 2.6 headers use when
+# included from C++: compound assignment to volatile, and the register storage
+# class, which GCC requires to bind a variable to an explicit register
+# (port_lock()/port_unlock() in chcore_v7m.h).
+#
+# Each -Wno-* is passed only when the compiler knows the positive form. GCC
+# accepts an unknown -Wno-* silently, then reports "unrecognized command line
+# option" as soon as any other diagnostic fires.
+foreach(cxx_warning volatile register)
+	check_cxx_compiler_flag("-W${cxx_warning}" cxx_warn_${cxx_warning}_supported)
+	if(cxx_warn_${cxx_warning}_supported)
+		set(USE_CPPOPT "${USE_CPPOPT} -Wno-${cxx_warning}")
+	endif()
+endforeach()
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
