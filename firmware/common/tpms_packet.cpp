@@ -242,7 +242,8 @@ Optional<Reading> Packet::reading_renault() const {
     const auto flags = reader_.read(0, 6);
     const auto pressure_raw = (reader_.read(6, 2) << 8) | reader_.read(8, 8);
     const auto temp_raw = reader_.read(16, 8);
-    const auto id = reader_.read(24, 24);
+    // ID is little-endian on the wire (rtl_433: b[5] << 16 | b[4] << 8 | b[3]).
+    const auto id = (reader_.read(40, 8) << 16) | (reader_.read(32, 8) << 8) | reader_.read(24, 8);
     const auto crc = reader_.read(64, 8);
 
     // Verify CRC-8
@@ -454,7 +455,9 @@ Optional<Reading> Packet::reading_kia() const {
     const auto unknown1 = reader_.read(0, 4);
     const auto pressure_raw = ((reader_.read(4, 4) << 4) | reader_.read(8, 4));
     const auto temp_raw = ((reader_.read(12, 4) << 4) | reader_.read(16, 4));
-    const auto id = ((reader_.read(20, 4) << 28) |
+    // read() returns int32_t; cast the top nibble before <<28 so IDs with a top bit
+    // of 8-F don't shift into the sign bit (undefined behavior).
+    const auto id = ((static_cast<uint32_t>(reader_.read(20, 4)) << 28) |
                      (reader_.read(24, 8) << 20) |
                      (reader_.read(32, 8) << 12) |
                      (reader_.read(40, 8) << 4) |
@@ -591,27 +594,25 @@ Optional<Reading> Packet::reading() const {
             return reading_ook_8k4_schrader();
         case SignalType::FSK_19k2_Schrader:
         default: {
-            // Every FSK TPMS packet is delivered as FSK_19k2_Schrader by the baseband
-            // (they share the alternating preamble and fit in the captured length), so
-            // the manufacturer decoders have to be tried here, not in a separate signal
-            // type. All of these protocols validate with only an 8-bit check, so any one
-            // decoder accepts an unrelated packet about 1 in 256 times; running the weak
-            // XOR/sum decoders (Abarth/Citroen/Ford/Nissan/Renault-0435R) up front made a
-            // real Hyundai sensor decode as Abarth. To keep classification trustworthy,
-            // dispatch only the decoders whose check is strong or highly specific:
-            //   - Jansite-Solar: CRC-16 behind a fixed 0xdd33 sync (effectively no false
-            //     accepts), tried first.
-            //   - Hyundai-VDO / Renault / Kia / Elantra-2012: CRC-8.
-            // then fall back to the FLM/Schrader classification. The 8-bit XOR/sum
-            // protocols and Jansite (no checksum) are left out of auto-dispatch because
-            // they cannot be told apart reliably from a shared capture; Toyota/PMV107J/
-            // AVE are differential Manchester and need a decoder not yet available.
+            // The baseband only emits a packet after matching its 0101...0110 (55 55 55
+            // 56) FSK preamble, so a manufacturer protocol is only reachable here if it
+            // uses that same preamble. Hyundai-VDO and Renault do (preamble 55 55 55 56)
+            // and are verified on real sensors; both validate with a CRC-8, so a frame of
+            // one is misread as the other only on a ~1/256 checksum collision. Try them,
+            // then fall back to the FLM/Schrader classification.
+            //
+            // The other decoders are deliberately NOT dispatched:
+            //   - Kia (preamble ed71), Elantra-2012 (7155) and Jansite-Solar (a6a65a) use
+            //     different preambles the baseband never matches - they need their own
+            //     baseband packet builders first (follow-up).
+            //   - Abarth/Citroen/Ford/Nissan/Renault-0435R/Jansite validate with only an
+            //     8-bit XOR/sum (or none), too weak to tell apart from a shared capture -
+            //     dispatching them made a real Hyundai sensor decode as Abarth.
+            //   - Toyota/PMV107J/AVE are differential Manchester (reader is plain
+            //     Manchester).
             Optional<Reading> r;
-            if ((r = reading_jansite_solar()).is_valid()) return r;
             if ((r = reading_hyundai_vdo()).is_valid()) return r;
             if ((r = reading_renault()).is_valid()) return r;
-            if ((r = reading_kia()).is_valid()) return r;
-            if ((r = reading_elantra2012()).is_valid()) return r;
             return reading_fsk_19k2_schrader();
         }
     }
