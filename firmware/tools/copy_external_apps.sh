@@ -41,10 +41,11 @@ do
         mountpoint=$(findmnt -f -o TARGET --noheadings $part)
         if [[ ! -z "$mountpoint" ]]; then
 
-            echo "Copying external applications to" $mountpoint
-            mkdir -p $mountpoint/APPS
-            cp application/*.ppma $mountpoint/APPS
-            cp standalone/*/*.ppmp $mountpoint/APPS
+            SUBDIR=${DEVICE_SUBDIR:-hackrf}
+            echo "Copying external applications to $mountpoint/APPS/$SUBDIR"
+            mkdir -p $mountpoint/APPS/$SUBDIR
+            cp application/*.ppma $mountpoint/APPS/$SUBDIR
+            cp standalone/*/*.ppmp $mountpoint/APPS/$SUBDIR
 
             echo "Unmounting" $mountpoint
             umount $mountpoint
