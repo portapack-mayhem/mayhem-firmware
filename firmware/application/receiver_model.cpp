@@ -380,7 +380,7 @@ void ReceiverModel::set_narrowband_capture_enabled(bool enabled) {
 
 rx_afe::CapturePolicy ReceiverModel::capture_afe_policy() const {
     return rx_afe::capture_policy(sampling_rate(),
-                                 narrowband_capture_enabled_ && modulation() == Mode::Capture);
+                                  narrowband_capture_enabled_ && modulation() == Mode::Capture);
 }
 #endif
 
