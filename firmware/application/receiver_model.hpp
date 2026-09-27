@@ -31,6 +31,7 @@
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "volume.hpp"
+#include "rx_afe_policy.hpp"
 
 // TODO: consider a base class for ReceiverModel & TransmitterModel.
 // There are multiple values that are actually shared by both.
@@ -74,6 +75,10 @@ class ReceiverModel {
 
     uint32_t sampling_rate() const;
     void set_sampling_rate(uint32_t v);
+#ifdef PRALINE
+    // Application-owned opt-in; retained across temporary RX disable/enable.
+    void set_narrowband_capture_enabled(bool enabled);
+#endif
 
     rf::Frequency frequency_step() const;
     void set_frequency_step(rf::Frequency f);
@@ -149,6 +154,10 @@ class ReceiverModel {
     AMConfigureMessage::Zoom_waterfall am_spectrum_zoom_{AMConfigureMessage::Zoom_waterfall::ZOOM_x_1};
     settings_t settings_{};
     bool enabled_ = false;
+#ifdef PRALINE
+    bool narrowband_capture_enabled_ = false;
+    rx_afe::CapturePolicy capture_afe_policy() const;
+#endif
     RxFs4Direction application_fs4_direction_{RxFs4Direction::Down};
     rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.
 

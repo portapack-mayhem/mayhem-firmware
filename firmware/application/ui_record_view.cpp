@@ -144,6 +144,10 @@ OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
     if (file_type == FileType::WAV)
         return OversampleRate::None;
 
+    // Reduce I/Q recording oversampling; keep Replay's shared policy unchanged.
+    if (sample_rate == 75'000) return OversampleRate::x16;
+    if (sample_rate == 150'000) return OversampleRate::x8;
+
     return ::get_oversample_rate(sample_rate);
 }
 

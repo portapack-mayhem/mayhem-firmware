@@ -23,6 +23,7 @@
 #define __RADIO_H__
 
 #include "rf_path.hpp"
+#include "rx_afe_policy.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -65,6 +66,9 @@ void set_rx_max283x_iq_phase_calibration(const size_t v);
 void disable();
 
 #ifdef PRALINE
+// RX-only overrides; the one-argument APIs retain normal behavior.
+bool set_tuning_frequency(rf::Frequency frequency, bool disable_afe_quarter_shift);
+void set_baseband_filter_bandwidth_rx(uint32_t bandwidth_minimum, rx_afe::NarrowbandPolicy policy);
 void invalidate_spi_config();
 void set_rx_buff_vcm(const size_t v);
 #endif
