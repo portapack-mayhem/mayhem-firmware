@@ -101,6 +101,9 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         waterfall.start();
     };
 
+#ifdef PRALINE
+    receiver_model.set_narrowband_capture_enabled(true);
+#endif
     receiver_model.enable();
     option_bandwidth.set_by_value(capture_rate);
 
@@ -119,6 +122,9 @@ CaptureAppView::CaptureAppView(
 
 CaptureAppView::~CaptureAppView() {
     receiver_model.disable();
+#ifdef PRALINE
+    receiver_model.set_narrowband_capture_enabled(false);
+#endif
     baseband::shutdown();
 }
 
