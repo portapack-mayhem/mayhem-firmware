@@ -558,12 +558,27 @@ void EventDispatcher::handle_switches() {
     if (switches_state.count() == 0) {
         // If all keys are released, we are no longer in a key event.
         in_key_event = false;
+        combo_fired_ = false;
     }
 
     if (in_key_event) {
-        if (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up]) {
-            const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
-            context.focus_manager().update(top_widget, event);
+        // Global chord gestures. The first key of the chord already generated its
+        // own event on press; combo_fired_ makes sure the gesture itself fires only
+        // once per press (not on every poll while the keys stay held).
+        //   Up + Down    -> Home  (jump straight back to the main menu from any app)
+        //   Left + Right -> Back
+        //   Left + Up    -> Back  (legacy chord, kept for backwards compatibility)
+        if (!combo_fired_) {
+            if (switches_state[(size_t)ui::KeyEvent::Up] && switches_state[(size_t)ui::KeyEvent::Down]) {
+                combo_fired_ = true;
+                auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+                if (nav) nav->home(true);
+            } else if ((switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) ||
+                       (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up])) {
+                combo_fired_ = true;
+                const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
+                context.focus_manager().update(top_widget, event);
+            }
         }
 
         // If we're in a key event, return. We will ignore all additional key
