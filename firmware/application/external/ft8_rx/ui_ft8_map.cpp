@@ -195,7 +195,11 @@ static const char* country_for_call(const char* call, char (&name)[16]) {
 static uint32_t distance_km(float lat1, float lon1, float lat2, float lon2) {
     const float s_lat = sinf((lat2 - lat1) * deg_to_rad / 2);
     const float s_lon = sinf((lon2 - lon1) * deg_to_rad / 2);
-    const float a = s_lat * s_lat + cosf(lat1 * deg_to_rad) * cosf(lat2 * deg_to_rad) * s_lon * s_lon;
+    float a = s_lat * s_lat + cosf(lat1 * deg_to_rad) * cosf(lat2 * deg_to_rad) * s_lon * s_lon;
+    // Float rounding can push a just past 1 for near-antipodal points, which would make
+    // sqrtf(a) > 1 and asinf() return NaN; clamp so the distance stays valid.
+    if (a > 1.0f)
+        a = 1.0f;
     return (uint32_t)(2 * 6371.0f * asinf(sqrtf(a)) + 0.5f);
 }
 
@@ -556,11 +560,25 @@ void FT8MapView::draw_overlay(Painter& painter) {
         draw_field_letters(painter, r);
 
     const Point home = have_home_ ? geomap.geo_to_pixel(home_lat_, home_lon_) : Point{};
-    const auto line_to = [&](const FT8Spot& s, Color color) {
-        Point a = home;
-        Point b = geomap.geo_to_pixel(s.lat, s.lon);
+    const auto segment = [&](Point a, Point b, Color color) {
         if (clip_line(a, b, r.width(), r.height()))
             display.draw_line(a + r.location(), b + r.location(), color);
+    };
+    // A straight line from home to the station, taken the short way round. If that way
+    // crosses the antimeridian the station's longitude is shifted off the near edge (so
+    // the line leaves the map at the correct side, clipped there) and a mirror segment is
+    // drawn from the station's real position toward home off the opposite edge, instead of
+    // one segment streaking back across the whole map.
+    const auto line_to = [&](const FT8Spot& s, Color color) {
+        float dlon = s.lon - home_lon_;
+        if (dlon > 180.0f)
+            dlon -= 360.0f;
+        else if (dlon < -180.0f)
+            dlon += 360.0f;
+        const float near_lon = home_lon_ + dlon;
+        segment(home, geomap.geo_to_pixel(s.lat, near_lon), color);
+        if (near_lon > 180.0f || near_lon < -180.0f)
+            segment(geomap.geo_to_pixel(s.lat, s.lon), geomap.geo_to_pixel(home_lat_, s.lon - dlon), color);
     };
     const auto dot = [&](Point p, Color color) {
         if (p.x() >= 2 && p.x() < r.width() - 2 && p.y() >= 2 && p.y() < r.height() - 2)

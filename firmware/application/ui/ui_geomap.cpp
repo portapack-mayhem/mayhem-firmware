@@ -464,6 +464,17 @@ ui::Point GeoMap::geo_to_pixel(float lat, float lon) {
         }
         x += geomap_rect_half_width;
         y += geomap_rect_half_height;
+        // Saturate to the int16 coordinate range: a far off-screen point (e.g. a station
+        // near the poles at high zoom) can exceed it and wrap to the wrong side before
+        // clip_line() gets to discard it.
+        if (x > 32767.0f)
+            x = 32767.0f;
+        else if (x < -32768.0f)
+            x = -32768.0f;
+        if (y > 32767.0f)
+            y = 32767.0f;
+        else if (y < -32768.0f)
+            y = -32768.0f;
         return {(int16_t)x, (int16_t)y};
     }
     // osm calculation

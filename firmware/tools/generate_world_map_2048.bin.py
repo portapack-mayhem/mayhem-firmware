@@ -49,6 +49,10 @@ if input_path.lower().endswith(".bin"):
 			f.seek(4 + (y * step_y) * width * 2)
 			line = array("H")
 			line.frombytes(f.read(width * 2))
+			# Source is little-endian; make the values correct in native order so the
+			# little-endian output conversion below is right on a big-endian host too.
+			if sys.byteorder != "little":
+				line.byteswap()
 			rows.append(line[::step_x][:SIZE])
 else:
 	from PIL import Image
