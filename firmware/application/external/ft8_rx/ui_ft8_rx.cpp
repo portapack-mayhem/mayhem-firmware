@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2026 Dmytro Onyshko
+ * Copyright (C) 2026 Khanfar
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -51,7 +53,12 @@ FT8RxView::FT8RxView(NavigationView& nav)
                   &options_band,
                   &text_status,
                   &text_decodes,
+                  &button_map,
                   &console});
+
+    button_map.on_select = [this](ImageButton&) {
+        map_view_ = nav_.push<FT8MapView>(qth_, spots_, [this]() { map_view_ = nullptr; });
+    };
 
     channel.set_overload_threshold(-3);
 
@@ -109,10 +116,20 @@ void FT8RxView::on_packet(const FT8PacketMessage* message) {
         console.writeln(STR_COLOR_GREEN + text + STR_COLOR_WHITE + freq);
     else
         console.writeln(text + freq);
+
+    FT8Spot spot;
+    if (parse_spot(message->text, spot)) {
+        spots_.add(spot);
+        spots_changed_ = true;
+    }
 }
 
 void FT8RxView::on_status(const FT8RxStatusMessage* message) {
     decodes_total += message->decode_count;
+
+    if (spots_changed_ && map_view_)
+        map_view_->spots_changed();
+    spots_changed_ = false;
 
     switch (message->state) {
         case FT8RxStatusMessage::SyncState::Searching:
@@ -135,7 +152,8 @@ void FT8RxView::on_status(const FT8RxStatusMessage* message) {
 
     if (decodes_total > 0) {
         text_decodes.set_style(Theme::getInstance()->fg_light);
-        text_decodes.set(to_string_dec_uint(decodes_total) + " RX");
+        // Seven columns: the space goes once the count needs five digits.
+        text_decodes.set(to_string_dec_uint(decodes_total) + (decodes_total < 10000 ? " RX" : "RX"));
     }
 }
 

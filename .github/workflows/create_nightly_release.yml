@@ -70,6 +70,9 @@ jobs:
       - name: Unzip world map
         run: |
           unzip world_map.zip -d sdcard/ADSB
+      - name: Make FT8 world map
+        run: |
+          sudo apt-get install -y python3-pil && python3 firmware/tools/generate_world_map_2048.bin.py sdcard/ADSB/world_map.jpg sdcard/ADSB/world_map_2048.bin
       - name: Prepare Firmware ZIP
         run: |
           mkdir -p flashing/firmware && cp build/hackrf/firmware/hackrf_usb/hackrf_usb.dfu flashing/firmware/hackrf_usb.dfu && cp build/hackrf/firmware/hackrf_usb/hackrf_usb.bin flashing/firmware/hackrf_usb.bin

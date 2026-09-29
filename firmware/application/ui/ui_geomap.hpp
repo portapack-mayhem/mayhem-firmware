@@ -2,6 +2,9 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2026 Dmytro Onyshko
+ * Copyright (C) 2026 Khanfar
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -389,7 +392,32 @@ class GeoMap : public Widget {
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
+    /* Reads the given .bin map instead of /ADSB/world_map.bin. Call before init(). An
+     * app that picks its own map wants that map, so this also turns the OSM tiles off. */
+    void set_map_file(const std::filesystem::path& path);
+
+    /* Screen position of a coordinate, relative to the widget's top-left corner. May be
+     * outside the widget when the coordinate is off the visible part of the map. */
+    ui::Point geo_to_pixel(float lat, float lon);
+
+    /* Redraws the whole map on the next paint, for callers that draw over it. */
+    void refresh();
+
+    /* Zoom level as used by on_encoder(): 1 is one map pixel per screen pixel, n > 1
+     * magnifies n times and -n shows n map pixels per screen pixel (0 and -1 are not
+     * used). set_zoom() takes any value on that scale. */
+    int16_t zoom() const { return map_zoom; }
+    void set_zoom(int16_t zoom);
+
+    /* Moves the map by a drag of (dx, dy) screen pixels, following the finger. */
+    void pan(int dx, int dy);
+
+    float center_lat() const { return lat_; }
+    float center_lon() const { return lon_; }
+
    private:
+    void update_zoom();
+    void read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width);
     void draw_scale(Painter& painter);
     ui::Point item_rect_pixel(GeoMarker& item);
     GeoPoint lat_lon_to_map_pixel(float lat, float lon);
@@ -423,6 +451,7 @@ class GeoMap : public Widget {
     bool hide_center_marker_{false};
     GeoMapMode mode_{};
     File map_file{};
+    std::filesystem::path map_file_path{};
     BMPFileCache bmp_cache{};
     bool map_opened{};
     bool map_visible{};
