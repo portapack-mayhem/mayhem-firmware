@@ -119,6 +119,7 @@ void FT8RxView::on_packet(const FT8PacketMessage* message) {
 
     FT8Spot spot;
     if (parse_spot(message->text, spot)) {
+        spot.freq = message->frequency;
         spots_.add(spot);
         spots_changed_ = true;
     }

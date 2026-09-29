@@ -2,6 +2,7 @@
  * Copyright (C) 2026 Dmytro Onyshko
  * Copyright (C) 2026 Khanfar
  * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2026 Mohammad Moghtader (Xmoo26)
  *
  * This file is part of PortaPack.
  *
@@ -371,11 +372,74 @@ bool FT8SpotList::on_touch(const TouchEvent event) {
         return false;
     const int y = event.point.y() - screen_rect().top() - 8;
     const int i = scroll_ + y / 8;
-    if (y < 0 || i >= (int)spots_.count || i == selected())
+    if (y < 0 || i >= (int)spots_.count) {
         select(-1);
-    else
-        select(i);
+        return true;
+    }
+    select(i);
+    if (on_open)
+        on_open(i);  // tap a row -> open its full-screen detail
     return true;
+}
+
+/* Select opens the highlighted station's detail (for the rotary + OK, not just touch). */
+bool FT8SpotList::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Select && selected() >= 0 && on_open) {
+        on_open(selected());
+        return true;
+    }
+    return false;
+}
+
+/* FT8SpotDetailView ********************************************************/
+
+FT8SpotDetailView::FT8SpotDetailView(NavigationView& nav, const FT8Spot& spot, bool have_home, float home_lat, float home_lon)
+    : nav_{nav}, spot_{spot}, have_home_{have_home}, home_lat_{home_lat}, home_lon_{home_lon} {
+    add_children({&button_done});
+    button_done.on_select = [this](Button&) { nav_.pop(); };
+}
+
+void FT8SpotDetailView::focus() {
+    button_done.focus();
+}
+
+void FT8SpotDetailView::paint(Painter& painter) {
+    // Painter draws in absolute screen coordinates, and screen_rect() starts below
+    // the 16 px system status bar. Anchor everything to it so the status bar (and its
+    // screenshot button) stays visible instead of being painted over.
+    const auto r = screen_rect();
+    const auto& s = spot_;
+    const auto& font = ui::font::fixed_8x16;
+    const Color bg = Color::black();
+    const Color label = Theme::getInstance()->fg_light->foreground;
+
+    painter.fill_rectangle(r, bg);
+
+    // Callsign, large, coloured by CQ vs reply (same code as on the map).
+    painter.draw_string(r.location() + Point{2 * 8, 1 * 16}, font, s.cq ? Color::green() : Color::yellow(), bg, std::string(s.call));
+
+    int y = 3 * 16;
+    const auto row = [&](const char* lbl, const std::string& val) {
+        painter.draw_string(r.location() + Point{2 * 8, y}, font, label, bg, lbl);
+        painter.draw_string(r.location() + Point{12 * 8, y}, font, Color::white(), bg, val);
+        y += 20;
+    };
+
+    char buf[16];
+    row("Grid", std::string(s.grid));
+    char name[16];
+    row("Country", country_for_call(s.call, name));
+    if (have_home_) {
+        snprintf(buf, sizeof(buf), "%lu km", (unsigned long)distance_km(home_lat_, home_lon_, s.lat, s.lon));
+        row("Distance", buf);
+        snprintf(buf, sizeof(buf), "%lu deg", (unsigned long)bearing_deg(home_lat_, home_lon_, s.lat, s.lon));
+        row("Bearing", buf);
+    }
+    if (s.freq > 0) {
+        snprintf(buf, sizeof(buf), "%d Hz", s.freq);
+        row("Freq", buf);
+    }
+    row("Type", s.cq ? "CQ" : "reply");
 }
 
 /* FT8MapView ***************************************************************/
@@ -416,6 +480,10 @@ FT8MapView::FT8MapView(NavigationView& nav, std::string& qth, FT8Spots& spots, s
     geomap.on_zoom_step = [this](int dir) { step_zoom(dir); };
     geomap.on_paint_overlay = [this](Painter& painter) { draw_overlay(painter); };
     spot_list.on_change = [this]() { geomap.refresh(); };
+    spot_list.on_open = [this](int i) {
+        if (i >= 0 && i < (int)spots_.count)
+            nav_.push<FT8SpotDetailView>(spots_.spot[i], have_home_, home_lat_, home_lon_);
+    };
 
     // Without a map, focus() tells the user and closes the view.
     geomap.set_map_file(adsb_dir / u"world_map_2048.bin");
