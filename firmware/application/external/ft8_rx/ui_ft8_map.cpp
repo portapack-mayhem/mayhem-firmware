@@ -2,7 +2,7 @@
  * Copyright (C) 2026 Dmytro Onyshko
  * Copyright (C) 2026 Khanfar
  * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
- * Copyright (C) 2026 Mohammad Moghtader (Xmoo26)
+ * Copyright (C) 2026 Xmoo26
  *
  * This file is part of PortaPack.
  *
