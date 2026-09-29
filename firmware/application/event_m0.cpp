@@ -558,8 +558,12 @@ void EventDispatcher::handle_switches() {
     if (switches_state.count() == 0) {
         // If all keys are released, we are no longer in a key event.
         in_key_event = false;
-        combo_fired_ = false;
     }
+    // Clear the chord latch only once the keys are physically released. get_switches_state()
+    // is the auto-repeat state, which toggles low between repeat pulses while a key is held;
+    // resetting the latch on that would let a held chord dispatch again on its next pulse.
+    if (swizzled_switches() == 0)
+        combo_fired_ = false;
 
     if (in_key_event) {
         // Global chord gestures. The first key of the chord already generated its
@@ -576,8 +580,12 @@ void EventDispatcher::handle_switches() {
             } else if ((switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) ||
                        (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up])) {
                 combo_fired_ = true;
+                // Dispatch Back like a normal key press: let the focused view handle it
+                // (pop, or leave a sub-mode) and only fall back to focusing the back
+                // button. focus_manager().update() alone just moves focus to that button.
                 const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
-                context.focus_manager().update(top_widget, event);
+                if (!event_bubble_key(event))
+                    context.focus_manager().update(top_widget, event);
             }
         }
 
