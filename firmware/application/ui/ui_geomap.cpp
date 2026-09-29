@@ -316,9 +316,11 @@ void GeoMap::pan(int dx, int dy) {
 }
 
 /* Arrow keys pan the viewport (opposite sign to a touch drag, which grabs the map).
- * Only reached when the map itself has focus, so the coordinate-prompt (which keeps
- * focus on the GeoPos field) is unaffected. */
+ * PROMPT mode (the coordinate picker) leaves the arrows to the focus manager so they
+ * still move between its fields; panning there would trap focus on the map. */
 bool GeoMap::on_key(const KeyEvent key) {
+    if (mode_ == PROMPT)
+        return false;
     constexpr int step = 40;  // screen pixels per press
     int dx = 0, dy = 0;
     switch (key) {
@@ -857,6 +859,12 @@ void GeoMap::set_mode(GeoMapMode mode) {
 }
 
 void GeoMap::set_manual_panning(bool v) {
+    // Entering free-look with no tracked marker yet (e.g. a static entry the app has not
+    // sent a position update for): seed it from the current centre so the followed item
+    // stays visible once the centre marker is suppressed. Maps that deliberately have no
+    // centre marker (hide_center_marker_) keep none.
+    if (v && !manual_panning_ && !has_tracked_marker_ && !hide_center_marker_)
+        set_tracked_marker(lat_, lon_, angle_);
     manual_panning_ = v;
 }
 
