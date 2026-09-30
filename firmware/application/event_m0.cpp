@@ -555,38 +555,44 @@ void EventDispatcher::handle_switches() {
 
     portapack::bl_tick_counter = 0;
 
+    // The physical key state; get_switches_state() is the auto-repeat state, which
+    // toggles low between repeat pulses while a key is held.
+    const auto pressed = get_switches_pressed();
+
+    // A completed chord owns the keys until they are physically released: nothing is
+    // dispatched meanwhile, not even the repeat pulses of the keys still held.
+    if (combo_fired_) {
+        if (pressed.any())
+            return;
+        combo_fired_ = false;
+        in_key_event = false;
+        return;
+    }
+
     if (switches_state.count() == 0) {
         // If all keys are released, we are no longer in a key event.
         in_key_event = false;
     }
-    // Clear the chord latch only once the keys are physically released. get_switches_state()
-    // is the auto-repeat state, which toggles low between repeat pulses while a key is held;
-    // resetting the latch on that would let a held chord dispatch again on its next pulse.
-    if (swizzled_switches() == 0)
-        combo_fired_ = false;
 
     if (in_key_event) {
         // Global chord gestures. The first key of the chord already generated its
-        // own event on press; combo_fired_ makes sure the gesture itself fires only
-        // once per press (not on every poll while the keys stay held).
+        // own event on press; combo_fired_ makes the gesture fire once per press.
         //   Up + Down    -> Home  (jump straight back to the main menu from any app)
         //   Left + Right -> Back
         //   Left + Up    -> Back  (legacy chord, kept for backwards compatibility)
-        if (!combo_fired_) {
-            if (switches_state[(size_t)ui::KeyEvent::Up] && switches_state[(size_t)ui::KeyEvent::Down]) {
-                combo_fired_ = true;
-                auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
-                if (nav) nav->home(true);
-            } else if ((switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) ||
-                       (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up])) {
-                combo_fired_ = true;
-                // Dispatch Back like a normal key press: let the focused view handle it
-                // (pop, or leave a sub-mode) and only fall back to focusing the back
-                // button. focus_manager().update() alone just moves focus to that button.
-                const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
-                if (!event_bubble_key(event))
-                    context.focus_manager().update(top_widget, event);
-            }
+        if (pressed[(size_t)ui::KeyEvent::Up] && pressed[(size_t)ui::KeyEvent::Down]) {
+            combo_fired_ = true;
+            auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+            if (nav) nav->home(true);
+        } else if ((pressed[(size_t)ui::KeyEvent::Left] && pressed[(size_t)ui::KeyEvent::Right]) ||
+                   (pressed[(size_t)ui::KeyEvent::Left] && pressed[(size_t)ui::KeyEvent::Up])) {
+            combo_fired_ = true;
+            // Dispatch Back like a normal key press: let the focused view handle it
+            // (pop, or leave a sub-mode) and only fall back to focusing the back
+            // button. focus_manager().update() alone just moves focus to that button.
+            const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
+            if (!event_bubble_key(event))
+                context.focus_manager().update(top_widget, event);
         }
 
         // If we're in a key event, return. We will ignore all additional key

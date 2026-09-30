@@ -46,6 +46,10 @@ using EncoderPosition = uint32_t;
 void controls_init();
 uint8_t swizzled_switches();
 SwitchesState get_switches_state();
+// Debounced physical state of the six keys (no auto-repeat pulses), for code that
+// needs to know whether a key is really still held. Cached by the timer ISR, so it
+// does not touch the I/O bus.
+SwitchesState get_switches_pressed();
 EncoderPosition get_encoder_position();
 touch::Frame get_touch_frame();
 SwitchesState get_switches_repeat_config();
