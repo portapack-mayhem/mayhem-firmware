@@ -314,6 +314,11 @@ void GeoMap::pan(int dx, int dy) {
     if (lat > 85.0f) lat = 85.0f;
     if (lat < -85.0f) lat = -85.0f;
     move(lon, lat);
+    // Tell the owner where the centre went, as a touch in PROMPT mode does, so e.g.
+    // GeoMapView's coordinate fields follow and Wardrive reloads its markers for the
+    // new viewport.
+    if (on_move)
+        on_move(lon, lat, true);
     redraw_map = true;
     set_dirty();
 }
