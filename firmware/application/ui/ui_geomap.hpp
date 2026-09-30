@@ -393,11 +393,13 @@ class GeoMap : public Widget {
      * crosshair, so this is drawn at its geo position instead - otherwise the followed
      * station/aircraft/sonde would vanish the moment you pan away from centre. */
     void set_tracked_marker(float lat, float lon, uint16_t angle) {
-        // While free-panning the marker is drawn at its geo position; if it moves, the map
+        // While free-panning the marker is drawn at its geo position; if it moves or its
+        // label changes (e.g. ADS-B sets the callsign via update_tag() first), the map
         // under its old pixels must be repainted or it leaves a trail (paint() only clears
         // the background when redraw_map is set).
         if (manual_panning_ && has_tracked_marker_ &&
-            (tracked_marker_.lat != lat || tracked_marker_.lon != lon || tracked_marker_.angle != angle))
+            (tracked_marker_.lat != lat || tracked_marker_.lon != lon ||
+             tracked_marker_.angle != angle || tracked_marker_.tag != tag_))
             redraw_map = true;
         tracked_marker_.lat = lat;
         tracked_marker_.lon = lon;

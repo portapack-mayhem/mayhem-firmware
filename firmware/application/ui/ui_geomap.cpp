@@ -306,7 +306,10 @@ void GeoMap::pan(int dx, int dy) {
         lon = x * 360.0f / map_width - 180.0f;
         lat = asin(tanh((map_height - y + map_offset) / map_world_lon)) * 180.0 / pi;
     }
-    if (lon > 180.0f) lon = 180.0f;
+    // OSM tiles run 0..2^zoom-1, and exactly +180 deg maps to tile 2^zoom, which move()
+    // cannot find; keep that bound just inside the dateline.
+    const float lon_max = use_osm ? 179.9999f : 180.0f;
+    if (lon > lon_max) lon = lon_max;
     if (lon < -180.0f) lon = -180.0f;
     if (lat > 85.0f) lat = 85.0f;
     if (lat < -85.0f) lat = -85.0f;
@@ -931,8 +934,9 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
         display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
         display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
         tagOffset = 16;
-    } else if (angle_ < 360) {
-        // if we have a valid angle draw bearing
+    } else if (itemAngle < 360) {
+        // if the item has a valid angle draw bearing (the item's own angle, not the
+        // map's followed one, so e.g. an AIS target without heading gets a cross)
         draw_bearing(itemPoint, itemAngle, 10, color);
         tagOffset = 10;
     } else {
