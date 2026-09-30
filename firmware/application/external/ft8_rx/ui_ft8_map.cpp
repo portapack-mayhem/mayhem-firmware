@@ -135,23 +135,26 @@ bool parse_spot(const char* text, FT8Spot& spot) {
 }
 
 /* Callsign prefix to country, longest prefix wins. Not the full ITU table, the common
- * DX prefixes. One string rather than an array of pointers: "prefix name" per line. */
+ * DX prefixes. One string rather than an array of pointers: "prefix name" per line.
+ * A prefix "AA-AL" matches that first character with the second in that range, so a
+ * block shared by several countries (A: USA, but A8 Liberia, AM Spain...) maps only
+ * its own allocation and an unlisted one comes out unknown, not as the wrong country. */
 static const char country_table[] =
     "2E England\n3Z Poland\n4L Georgia\n4S Sri Lanka\n4X Israel\n4Z Israel\n5A Libya\n"
     "5H Tanzania\n5N Nigeria\n5R Madagascar\n5T Mauritania\n5X Uganda\n5Z Kenya\n"
     "6W Senegal\n6Y Jamaica\n7O Yemen\n7P Lesotho\n7X Algeria\n8P Barbados\n8Q Maldives\n"
     "9A Croatia\n9G Ghana\n9H Malta\n9J Zambia\n9K Kuwait\n9L Sierra Leone\n9M Malaysia\n"
-    "9N Nepal\n9Q DR Congo\n9V Singapore\n9Y Trinidad\nA United States\nA2 Botswana\n"
-    "A4 Oman\nA5 Bhutan\nA6 UAE\nA7 Qatar\nA9 Bahrain\nAP Pakistan\nB China\nBV Taiwan\n"
+    "9N Nepal\n9Q DR Congo\n9V Singapore\n9Y Trinidad\nAA-AL United States\nA2 Botswana\n"
+    "A4 Oman\nA5 Bhutan\nA6 UAE\nA7 Qatar\nA9 Bahrain\nAP Pakistan\nB0-B9 China\nBA-BL China\nBR-BT China\nBY-BZ China\nBV Taiwan\n"
     "C2 Nauru\nC6 Bahamas\nCE Chile\nCM Cuba\nCN Morocco\nCO Cuba\nCP Bolivia\n"
-    "CT Portugal\nCU Azores\nCX Uruguay\nD Germany\nD2 Angola\nDS South Korea\n"
+    "CT Portugal\nCU Azores\nCX Uruguay\nDA-DR Germany\nD2 Angola\nDS South Korea\n"
     "DU Philippines\nDZ Philippines\nE5 Cook Isl.\nE7 Bosnia\nEA Spain\nEB Spain\n"
     "EC Spain\nEI Ireland\nEK Armenia\nEL Liberia\nEP Iran\nER Moldova\nES Estonia\n"
     "ET Ethiopia\nEU Belarus\nEW Belarus\nEX Kyrgyzstan\nEY Tajikistan\nEZ Turkmenistan\n"
     "F France\nFK New Caledonia\nFO Fr.Polynesia\nG England\nGD Isle of Man\n"
     "GI N.Ireland\nGM Scotland\nGW Wales\nH4 Solomon Isl.\nHA Hungary\nHB Switzerland\n"
     "HC Ecuador\nHG Hungary\nHI Dominican Rep.\nHK Colombia\nHL South Korea\nHP Panama\n"
-    "HR Honduras\nHS Thailand\nHZ Saudi Arabia\nI Italy\nJ Japan\nJ2 Djibouti\n"
+    "HR Honduras\nHS Thailand\nHZ Saudi Arabia\nI Italy\nJA-JS Japan\nJ2 Djibouti\n"
     "J3 Grenada\nJ6 St.Lucia\nJ7 Dominica\nJT Mongolia\nJY Jordan\nK United States\n"
     "KH6 Hawaii\nKL7 Alaska\nKP4 Puerto Rico\nLA Norway\nLU Argentina\nLX Luxembourg\n"
     "LY Lithuania\nLZ Bulgaria\nM England\nMD Isle of Man\nMI N.Ireland\nMM Scotland\n"
@@ -162,7 +165,7 @@ static const char country_table[] =
     "SM Sweden\nSN Poland\nSO Poland\nSP Poland\nSQ Poland\nST Sudan\nSU Egypt\n"
     "SV Greece\nT7 San Marino\nTA Turkey\nTF Iceland\nTG Guatemala\nTI Costa Rica\n"
     "TJ Cameroon\nTL Centr.Afr.Rep.\nTN Congo\nTR Gabon\nTU Ivory Coast\nTY Benin\n"
-    "TZ Mali\nU Russia\nUJ Uzbekistan\nUK Uzbekistan\nUN Kazakhstan\nUR Ukraine\n"
+    "TZ Mali\nUA-UI Russia\nUJ Uzbekistan\nUK Uzbekistan\nUN Kazakhstan\nUR Ukraine\n"
     "US Ukraine\nUT Ukraine\nUX Ukraine\nV2 Antigua\nV3 Belize\nV4 St.Kitts\nV5 Namibia\n"
     "V6 Micronesia\nV7 Marshall Isl.\nV8 Brunei\nVA Canada\nVE Canada\nVK Australia\n"
     "VO Canada\nVP2 Anguilla\nVP5 Turks&Caicos\nVQ9 Diego Garcia\nVU India\nVY Canada\n"
@@ -176,8 +179,16 @@ static const char* country_for_call(const char* call, char (&name)[16]) {
     const char* found = nullptr;
     for (const char* p = country_table; *p;) {
         const char* space = strchr(p, ' ');
-        const size_t len = space - p;
-        if (len > best && strncmp(call, p, len) == 0) {
+        size_t len = space - p;
+        bool match;
+        if (len == 5 && p[2] == '-') {
+            // "AA-AL": the first character, then a range for the second.
+            match = call[0] == p[0] && call[1] >= p[1] && call[1] <= p[4];
+            len = 2;
+        } else {
+            match = strncmp(call, p, len) == 0;
+        }
+        if (match && len > best) {
             best = len;
             found = space + 1;
         }
@@ -331,7 +342,10 @@ void FT8SpotList::paint(Painter& painter) {
 
     // 48 columns of the 5 px font across 240 px; the table takes 44.
     char line[49];
-    snprintf(line, sizeof(line), "HEARD %-5d GRID COUNTRY        %s", n, have_home ? "      KM BRG" : "");
+    // The store keeps the most recent FT8Spots::max_spots stations (a fixed budget for
+    // the external app); once it is full the header says so.
+    snprintf(line, sizeof(line), "%s %-5d GRID COUNTRY        %s",
+             n >= (int)FT8Spots::max_spots ? "LAST " : "HEARD", n, have_home ? "      KM BRG" : "");
     painter.draw_string(r.location(), ui::font::fixed_5x8,
                         has_focus() ? Color::black() : Color::light_grey(),
                         has_focus() ? Color::light_grey() : Color::black(), line);

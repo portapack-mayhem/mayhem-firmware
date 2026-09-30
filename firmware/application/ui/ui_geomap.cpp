@@ -822,13 +822,11 @@ void GeoMap::move(const float lon, const float lat) {
         // Calculate x_pos/y_pos in map file corresponding to CENTER pixel of screen rect
         // (Note there is a 1:1 correspondence between map file pixels and screen pixels when map_zoom=1)
         GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
+        // No cap at the map edge: read_map_line() draws whatever falls outside the map
+        // black, so the requested point really ends up in the centre (a cap in screen
+        // pixels was wrong at any zoom other than 1, and left pan() a dead zone).
         x_pos = mapPoint.x;
         y_pos = mapPoint.y;
-        // Cap position
-        if (x_pos > (map_width - r.width() / 2))
-            x_pos = map_width - r.width() / 2;
-        if (y_pos > (map_height + r.height() / 2))
-            y_pos = map_height - r.height() / 2;
 
         // Scale calculation
         float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
