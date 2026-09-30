@@ -71,6 +71,9 @@ jobs:
         run: |
           unzip world_map.zip -d sdcard/ADSB
       - name: Make FT8 world map
+        # Input is sdcard/ADSB/world_map.jpg from the repository checkout, not the
+        # downloaded world_map.zip (that only holds world_map.bin). The JPEG path
+        # averages pixels; the .bin path would sample one in sixteen.
         run: |
           sudo apt-get install -y python3-pil && python3 firmware/tools/generate_world_map_2048.bin.py sdcard/ADSB/world_map.jpg sdcard/ADSB/world_map_2048.bin
       - name: Prepare Firmware ZIP
