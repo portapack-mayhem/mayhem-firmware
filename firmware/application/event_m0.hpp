@@ -111,6 +111,7 @@ class EventDispatcher {
     bool sd_card_present = false;
     static bool display_sleep;
     bool in_key_event = false;
+    bool combo_fired_ = false;  // latches a multi-key chord gesture so it fires once per press
     volatile bool waiting_for_frame = false;
     volatile bool waiting_for_shellmode = false;
     volatile bool shellmode_active = false;
