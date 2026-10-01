@@ -49,10 +49,10 @@ class WMBusProcessor : public BasebandProcessor {
     SyncState sync_state{SyncState::UNSYNCED};
 
     uint8_t current_byte{0};
-    uint8_t payload_length{0};
-    uint8_t physical_length{0};
+    uint16_t payload_length{0};
+    uint16_t physical_length{0};
     uint8_t payload_idx{0};
-    uint8_t payload_buffer[255];
+    uint8_t payload_buffer[500];
 
     uint32_t telemetry_counter{0};
     uint32_t peak_fm_val{0};

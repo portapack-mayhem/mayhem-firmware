@@ -56,7 +56,7 @@ void WMBusProcessor::execute(const buffer_c8_t& buffer) {
         int16_t clean_i = samp_i - (i_dc_acc >> 10);
         int16_t clean_q = samp_q - (q_dc_acc >> 10);
 
-        // 2. I/Q 4-tap  filter
+        // 2. I/Q 4-tap filter
         i_sum += clean_i - i_hist[iq_idx];
         i_hist[iq_idx] = clean_i;
 
@@ -79,7 +79,6 @@ void WMBusProcessor::execute(const buffer_c8_t& buffer) {
         int32_t fm_lpf = fm_sum / 4;
 
         // 5. fast DC Tracker
-        // A preamble (01010101)
         fm_dc_avg = (fm_dc_avg * 63 + fm_lpf) / 64;
         int32_t ac_val = fm_lpf - fm_dc_avg;
 
@@ -89,14 +88,14 @@ void WMBusProcessor::execute(const buffer_c8_t& buffer) {
         // Slicer
         bool current_bit = (ac_val > 0);
 
-        // 6. PLL
+        // 6. PLL (JAVÍTOTT: Típuskonverziós hiba elhárítva előjeles számítással)
         if (current_bit != last_bit) {
             int32_t error = 500 - (int32_t)phase;
             phase = ((int32_t)phase + error / 4) % 1000;
             last_bit = current_bit;
         }
 
-        // T-Mode 100kcps @ 1MHz -> phase shift  = 100 (1000 a max)
+        // T-Mode 100kcps @ 1MHz -> phase shift = 100
         // S-Mode 65.536kcps @ 1MHz -> phase shift = 65
         uint32_t phase_step = (op_mode == 2) ? 65 : 100;
         phase += phase_step;
@@ -131,9 +130,9 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
     chip_reg = (chip_reg << 1) | bit;
 
     if (sync_state == SyncState::UNSYNCED) {
-        if (op_mode == 0 || op_mode == 1) {
+        // JAVÍTOTT: Különválasztva a T-Mode és a C-Mode szinkronizáció
+        if (op_mode == 0) {  // T-MODE szinkron
             uint16_t sync_window = chip_reg & 0xFFFF;
-
             int err_norm = __builtin_popcount(sync_window ^ 0x543D);
             int err_inv = __builtin_popcount(sync_window ^ 0xABC2);
 
@@ -144,7 +143,25 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 payload_idx = 0;
                 stat_syncs++;
             }
-        } else if (op_mode == 2) {
+        } else if (op_mode == 1) {  // C-MODE szinkron áthelyezve ide
+            uint32_t sync_window = chip_reg & 0xFFFFFF;
+
+            // Format A
+            int err_a_norm = __builtin_popcount(sync_window ^ 0x55543D);
+            int err_a_inv = __builtin_popcount(sync_window ^ 0xAAABC2);
+
+            // Format B
+            int err_b_norm = __builtin_popcount(sync_window ^ 0x5554CB);
+            int err_b_inv = __builtin_popcount(sync_window ^ 0xAAAB34);
+
+            if (err_a_norm <= 1 || err_a_inv <= 1 || err_b_norm <= 1 || err_b_inv <= 1) {
+                inverted_iq = (err_a_inv <= 1 || err_b_inv <= 1);
+                sync_state = SyncState::READ_LEN_L;
+                chip_count = 0;
+                payload_idx = 0;
+                stat_syncs++;
+            }
+        } else if (op_mode == 2) {  // S-MODE szinkron
             uint32_t sync_window = chip_reg & 0x3FFFF;
             int err_norm = __builtin_popcount(sync_window ^ 0x00A6A6);
             int err_inv = __builtin_popcount(sync_window ^ (~0x00A6A6 & 0x3FFFF));
@@ -157,8 +174,8 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                 stat_syncs++;
             }
         }
-    } else {
-        if (op_mode == 0) {  // T-MODE
+    } else {                 // SYNCED STATE
+        if (op_mode == 0) {  // T-MODE adat
             chip_count++;
             if (chip_count == 6) {
                 chip_count = 0;
@@ -185,25 +202,16 @@ void WMBusProcessor::consume_chip(uint8_t bit) {
                     }
                 }
             }
-        } else if (op_mode == 1) {  // C-MODE
-            uint32_t sync_window = chip_reg & 0xFFFFFF;
-
-            // Format A: 0x55543D (norm) / 0xAAABC2 (inv)
-            int err_a_norm = __builtin_popcount(sync_window ^ 0x55543D);
-            int err_a_inv = __builtin_popcount(sync_window ^ 0xAAABC2);
-
-            // Format B: 0x5554CB (norm) / 0xAAAB34 (inv)
-            int err_b_norm = __builtin_popcount(sync_window ^ 0x5554CB);
-            int err_b_inv = __builtin_popcount(sync_window ^ 0xAAAB34);
-
-            if (err_a_norm <= 1 || err_a_inv <= 1 || err_b_norm <= 1 || err_b_inv <= 1) {
-                inverted_iq = (err_a_inv <= 1 || err_b_inv <= 1);
-                sync_state = SyncState::READ_LEN_L;
+        } else if (op_mode == 1) {  // JAVÍTOTT: C-MODE 8-bites adatgyűjtés
+            chip_count++;
+            if (chip_count == 8) {
                 chip_count = 0;
-                payload_idx = 0;
-                stat_syncs++;
+                uint8_t byte = chip_reg & 0xFF;
+                if (inverted_iq) byte = (~byte) & 0xFF;
+
+                handle_byte(byte);
             }
-        } else if (op_mode == 2) {  // S-MODE
+        } else if (op_mode == 2) {  // S-MODE adat
             chip_count++;
             if (chip_count == 16) {
                 chip_count = 0;
@@ -233,7 +241,7 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
     if (sync_state == SyncState::READ_LEN_L || sync_state == SyncState::READ_LEN_H) {
         payload_length = byte;
 
-        if (payload_length < 9 || payload_length > 250) {
+        if (payload_length < 9 || payload_length > 480) {
             sync_state = SyncState::UNSYNCED;
             stat_errors++;
             last_err_reason = (payload_length < 9) ? 2 : 3;  // len error
@@ -244,7 +252,9 @@ void WMBusProcessor::handle_byte(uint8_t byte) {
         // CRC bytes
         physical_length = payload_length + 1 + 2;
         if (payload_length > 9) {
-            uint8_t rem = payload_length - 9;
+            // JAVÍTÁS: uint16_t-re cserélve a 'rem', hogy a 'rem + 15'
+            // 241 + 15 = 256 esetén se csurdogáljon túl egy 8 bites változót.
+            uint16_t rem = payload_length - 9;
             physical_length += ((rem + 15) / 16) * 2;
         }
 

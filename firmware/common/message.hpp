@@ -2140,7 +2140,7 @@ struct WMBusPacketMessage : public Message {
     constexpr WMBusPacketMessage()
         : Message{ID::WMBusPacketMessageID} {}
 
-    uint8_t length = 0;
-    uint8_t data[255] = {0};
+    uint16_t length = 0;
+    uint8_t data[500] = {0};
 };
 #endif /*__MESSAGE_H__*/
