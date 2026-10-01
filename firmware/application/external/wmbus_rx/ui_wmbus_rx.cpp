@@ -8,7 +8,8 @@ using namespace portapack;
 
 namespace ui::external_app::wmbus_rx {
 
-WMBusRxView::WMBusRxView(NavigationView& nav) : nav_{nav} {
+WMBusRxView::WMBusRxView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&options_mode, &rssi, &channel, &field_rf_amp, &field_lna, &field_vga,
