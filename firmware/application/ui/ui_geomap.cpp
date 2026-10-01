@@ -310,6 +310,73 @@ void GeoMap::refresh() {
     set_dirty();
 }
 
+void GeoMap::pan(int dx, int dy) {
+    float lat, lon;
+    if (use_osm) {
+        lon = tile_pixel_x_to_lon(lon_to_pixel_x_tile(lon_, map_osm_real_zoom) - dx, map_osm_real_zoom);
+        lat = tile_pixel_y_to_lat(lat_to_pixel_y_tile(lat_, map_osm_real_zoom) - dy, map_osm_real_zoom);
+    } else {
+        // Screen pixels to map file pixels at the current zoom.
+        float scale = 1.0f;
+        if (map_zoom > 1)
+            scale = 1.0f / map_zoom;
+        else if (map_zoom < 0)
+            scale = -map_zoom;
+        const GeoPoint p = lat_lon_to_map_pixel(lat_, lon_);
+        const float x = p.x - dx * scale;
+        const float y = p.y - dy * scale;
+        // Inverse of lat_lon_to_map_pixel().
+        lon = x * 360.0f / map_width - 180.0f;
+        lat = asin(tanh((map_height - y + map_offset) / map_world_lon)) * 180.0 / pi;
+    }
+    // OSM tiles run 0..2^zoom-1, and exactly +180 deg maps to tile 2^zoom, which move()
+    // cannot find; keep that bound just inside the dateline.
+    const float lon_max = use_osm ? 179.9999f : 180.0f;
+    if (lon > lon_max) lon = lon_max;
+    if (lon < -180.0f) lon = -180.0f;
+    if (lat > 85.0f) lat = 85.0f;
+    if (lat < -85.0f) lat = -85.0f;
+    move(lon, lat);
+    // Tell the owner where the centre went, as a touch in PROMPT mode does, so e.g.
+    // GeoMapView's coordinate fields follow and Wardrive reloads its markers for the
+    // new viewport.
+    if (on_move)
+        on_move(lon, lat, true);
+    redraw_map = true;
+    set_dirty();
+}
+
+/* Arrow keys pan the viewport (opposite sign to a touch drag, which grabs the map).
+ * PROMPT mode (the coordinate picker) leaves the arrows to the focus manager so they
+ * still move between its fields; panning there would trap focus on the map. */
+bool GeoMap::on_key(const KeyEvent key) {
+    if (mode_ == PROMPT)
+        return false;
+    constexpr int step = 40;  // screen pixels per press
+    int dx = 0, dy = 0;
+    switch (key) {
+        case KeyEvent::Right:
+            dx = -step;
+            break;
+        case KeyEvent::Left:
+            dx = step;
+            break;
+        case KeyEvent::Up:
+            dy = step;
+            break;
+        case KeyEvent::Down:
+            dy = -step;
+            break;
+        default:
+            return false;
+    }
+    // Free-look: stop following the centred marker, otherwise the tracked target
+    // stays pinned to the screen centre and appears to pan along with the map.
+    set_manual_panning(true);
+    pan(dx, dy);
+    return true;
+}
+
 void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
     const auto r = screen_rect();
     ui::Dim width = r.width();
@@ -767,9 +834,12 @@ void GeoMap::paint(Painter& painter) {
         set_clean();
     }
 
-    // Draw the marker in the center
+    // Draw the followed item: centred while it is being tracked, or at its real geo
+    // position while free-panning (otherwise it would vanish behind the pan crosshair).
     if (!manual_panning_ && !hide_center_marker_) {
         draw_marker(painter, r.center() + Point(zoom_pixel_offset, zoom_pixel_offset), angle_, tag_, Color::red(), Color::white(), Color::black());
+    } else if (manual_panning_ && has_tracked_marker_) {
+        draw_marker_item(painter, tracked_marker_, Color::red(), Color::white(), Color::black());
     }
 }
 
@@ -907,6 +977,12 @@ void GeoMap::set_mode(GeoMapMode mode) {
 }
 
 void GeoMap::set_manual_panning(bool v) {
+    // Entering free-look with no tracked marker yet (e.g. a static entry the app has not
+    // sent a position update for): seed it from the current centre so the followed item
+    // stays visible once the centre marker is suppressed. Maps that deliberately have no
+    // centre marker (hide_center_marker_) keep none.
+    if (v && !manual_panning_ && !has_tracked_marker_ && !hide_center_marker_)
+        set_tracked_marker(lat_, lon_, angle_);
     manual_panning_ = v;
 }
 
@@ -973,8 +1049,9 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
         display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
         display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
         tagOffset = 16;
-    } else if (angle_ < 360) {
-        // if we have a valid angle draw bearing
+    } else if (itemAngle < 360) {
+        // if the item has a valid angle draw bearing (the item's own angle, not the
+        // map's followed one, so e.g. an AIS target without heading gets a cross)
         draw_bearing(itemPoint, itemAngle, 10, color);
         tagOffset = 10;
     } else {
@@ -1066,6 +1143,8 @@ void GeoMapView::update_my_orientation(uint16_t angle, bool refresh) {
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
+    // Keep the followed item drawable at its real position even while free-panning.
+    geomap.set_tracked_marker(lat, lon, angle);
     if (geomap.manual_panning()) {
         geomap.set_dirty();
         return;
