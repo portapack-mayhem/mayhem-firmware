@@ -31,10 +31,8 @@ void WMBusRxView::on_mode_changed(int32_t mode) {
     text_debug_err.set("Last err: no packet yet");
     baseband::set_wmbus_config((uint8_t)mode);
     if (mode == 2) {
-        // receiver_model.set_target_frequency(868300000);
         console.writeln("-> S-Mode (orig: 868.3 MHz)");
     } else {
-        // receiver_model.set_target_frequency(868950000);
         console.writeln((mode == 0) ? "-> T-Mode (orig: 868.95 MHz)" : "-> C-Mode (orig: 868.95 MHz)");
     }
 }
@@ -149,9 +147,24 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
 
     if (msg.length < 12) return;
 
-    // W-MBus Frame Format A - Block 1 CRC check ( C-mode)
+    uint8_t l_field = msg.data[0];
+    bool is_format_b = false;
+
+    uint16_t expected_len_a = l_field + 1 + 2;
+    if (l_field > 9) expected_len_a += (((l_field - 9) + 15) / 16) * 2;
+
+    uint16_t expected_len_b = l_field + 1 + 2;
+    if (l_field > 127) expected_len_b += (((l_field - 127) + 127) / 128) * 2;
+
+    if (msg.length == expected_len_b && msg.length != expected_len_a) {
+        is_format_b = true;
+    }
+
+    int first_block_size = is_format_b ? 128 : 10;
+    int bytes_to_check = std::min((int)l_field + 1, first_block_size);
+
     uint16_t calc_crc = 0x0000;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < bytes_to_check; i++) {
         calc_crc ^= (msg.data[i] << 8);
         for (int j = 0; j < 8; j++) {
             if (calc_crc & 0x8000) {
@@ -162,7 +175,7 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
         }
     }
     calc_crc = ~calc_crc;
-    uint16_t pkt_crc = (msg.data[10] << 8) | msg.data[11];
+    uint16_t pkt_crc = (msg.data[bytes_to_check] << 8) | msg.data[bytes_to_check + 1];
 
     if (calc_crc != pkt_crc) {
         text_debug_err.set("Last Err: CRC Fail");
@@ -177,18 +190,26 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
     uint8_t type_byte = msg.data[9];
     std::string type_str = "0x" + to_string_hex(type_byte, 2) + " (" + decode_device_type(type_byte) + ")";
 
-    uint8_t l_field = msg.data[0];
     console.writeln("------------------------");
     console.writeln("Mfr : " + mfr + "  ID: " + serial);
     console.writeln("Ver : " + ver + " Type: " + type_str);
 
-    auto get_byte = [&msg](int index) -> uint8_t {
-        if (index < 10) return msg.data[index];
-        int block = (index - 10) / 16;
-        int rem = (index - 10) % 16;
-        int phys_idx = 12 + block * 18 + rem;
-        if (phys_idx < msg.length) return msg.data[phys_idx];
-        return 0;
+    auto get_byte = [&msg, is_format_b](int index) -> uint8_t {
+        if (is_format_b) {
+            if (index < 128) return msg.data[index];
+            int block = (index - 128) / 128;
+            int rem = (index - 128) % 128;
+            int phys_idx = 130 + block * 130 + rem;
+            if (phys_idx < msg.length) return msg.data[phys_idx];
+            return 0;
+        } else {
+            if (index < 10) return msg.data[index];
+            int block = (index - 10) / 16;
+            int rem = (index - 10) % 16;
+            int phys_idx = 12 + block * 18 + rem;
+            if (phys_idx < msg.length) return msg.data[phys_idx];
+            return 0;
+        }
     };
 
     uint8_t ci_field = get_byte(10);
@@ -205,14 +226,14 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
             enc_mode = get_byte(ptr + 1) & 0x0F;
             has_cw = true;
         }
-        ptr += 2;  // Data szakasz
+        ptr += 2;
     } else if (ci_field == 0x7A || ci_field == 0x8A) {
-        ptr += 2;  // Access(1)+Status(1)
+        ptr += 2;
         if (ptr + 1 <= l_field) {
             enc_mode = get_byte(ptr + 1) & 0x0F;
             has_cw = true;
         }
-        ptr += 2;  // Data szakasz
+        ptr += 2;
     } else if (ci_field == 0x78 || ci_field == 0x88) {
         has_cw = false;
     }
@@ -253,7 +274,7 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
                     break;
                 case 0x05:
                     data_len = 4;
-                    break;  // 4 byte REAL
+                    break;
                 case 0x06:
                     data_len = 6;
                     break;
@@ -281,7 +302,7 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
                     break;
                 case 0x0D:
                     data_len = 0;
-                    break;  // Variable
+                    break;
                 case 0x0E:
                     data_len = 6;
                     is_bcd = true;

@@ -51,7 +51,7 @@ class WMBusProcessor : public BasebandProcessor {
     uint8_t current_byte{0};
     uint16_t payload_length{0};
     uint16_t physical_length{0};
-    uint8_t payload_idx{0};
+    uint16_t payload_idx{0};
     uint8_t payload_buffer[500];
 
     uint32_t telemetry_counter{0};
@@ -60,6 +60,7 @@ class WMBusProcessor : public BasebandProcessor {
     uint32_t stat_errors{0};
     uint8_t last_err_reason{0};
     uint8_t last_err_data{0};
+    bool is_format_b = false;
 
     uint8_t decode_3out6(uint8_t chips);
     void consume_chip(uint8_t bit);
