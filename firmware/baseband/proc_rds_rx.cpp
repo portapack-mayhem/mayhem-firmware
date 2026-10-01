@@ -83,20 +83,22 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 void RDSProcessor::consume_symbol(const float raw_symbol) {
     uint8_t sym = (raw_symbol > 0.0f) ? 1 : 0;
 
-    biphase_clock = !biphase_clock;
-
     if (!biphase_clock) {
         prev_sym = sym;
+        biphase_clock = true;
     } else {
         uint8_t bit = (sym != prev_sym) ? 0 : 1;
         process_bit(bit);
 
+        biphase_clock = false;
+
         if (sync_state == SyncState::UNSYNCED) {
             unsynced_bits++;
             if (unsynced_bits > 2000) {
-                biphase_clock = !biphase_clock;  // Bithatár elcsúsztatása
-                unsynced_bits = 0;
+                prev_sym = sym;
+                biphase_clock = true;
 
+                unsynced_bits = 0;
                 costas_freq = 0.0f;
                 costas_phase = 0.0f;
             }
