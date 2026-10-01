@@ -31,6 +31,7 @@
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "volume.hpp"
+#include "rx_afe_policy.hpp"
 
 // TODO: consider a base class for ReceiverModel & TransmitterModel.
 // There are multiple values that are actually shared by both.
@@ -61,6 +62,7 @@ class ReceiverModel {
         uint8_t nbfm_config_index = 0;
         uint8_t wfm_config_index = 0;
         uint8_t squelch_level = 80;
+        uint8_t am_squelch_level = 0;  // AM channel-power squelch threshold (0 = off)
     };
 
     /* The frequency to receive (no offset). */
@@ -73,6 +75,10 @@ class ReceiverModel {
 
     uint32_t sampling_rate() const;
     void set_sampling_rate(uint32_t v);
+#ifdef PRALINE
+    // Application-owned opt-in; retained across temporary RX disable/enable.
+    void set_narrowband_capture_enabled(bool enabled);
+#endif
 
     rf::Frequency frequency_step() const;
     void set_frequency_step(rf::Frequency f);
@@ -91,9 +97,11 @@ class ReceiverModel {
 
     uint8_t am_configuration() const;
     void set_am_configuration(uint8_t n);
+    void set_am_configuration(uint8_t n, AMConfigureMessage::Zoom_waterfall spectrum_zoom);
 
     uint8_t amfm_configuration() const;
     void set_amfm_configuration(uint8_t n);
+    void set_amfm_configuration(uint8_t n, AMConfigureMessage::Zoom_waterfall spectrum_zoom);
 
     uint8_t nbfm_configuration() const;
     void set_nbfm_configuration(uint8_t n);
@@ -106,6 +114,9 @@ class ReceiverModel {
 
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
+
+    uint8_t am_squelch_level() const;
+    void set_am_squelch_level(uint8_t v);
 
     void set_antenna_bias();
 
@@ -140,8 +151,14 @@ class ReceiverModel {
     settings_t& settings() { return settings_; }
 
    private:
+    AMConfigureMessage::Zoom_waterfall am_spectrum_zoom_{AMConfigureMessage::Zoom_waterfall::ZOOM_x_1};
     settings_t settings_{};
     bool enabled_ = false;
+#ifdef PRALINE
+    bool narrowband_capture_enabled_ = false;
+    rx_afe::CapturePolicy capture_afe_policy() const;
+#endif
+    RxFs4Direction application_fs4_direction_{RxFs4Direction::Down};
     rf::Frequency hidden_offset = 0;  // when we need to hide the offset from user, we set this. like when WeFax needs -300Hz.
 
     int32_t tuning_offset();

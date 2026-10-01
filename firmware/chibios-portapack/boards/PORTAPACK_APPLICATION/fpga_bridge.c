@@ -151,6 +151,9 @@ struct spifi_fpga_read_ctx {
     uint8_t buffer[4128 + 2];  // Compressed block + next size
 };
 
+_Static_assert(4096 + sizeof(struct spifi_fpga_read_ctx) <= FPGA_BRIDGE_SCRATCH_SIZE,
+               "FPGA_BRIDGE_SCRATCH_SIZE is too small for the bitstream decompressor");
+
 // ============================================================================
 // Low-Level Helper Functions
 // ============================================================================

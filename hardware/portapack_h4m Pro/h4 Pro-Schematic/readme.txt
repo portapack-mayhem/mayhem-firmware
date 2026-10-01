@@ -1,0 +1,1 @@
+The schematic files of H4M Pro are the same as H4M. The only difference is the use of an 18650 battery holder. If you have any questions about them, please feel free to contact me. Our email address is support@opensourcesdrlab.com

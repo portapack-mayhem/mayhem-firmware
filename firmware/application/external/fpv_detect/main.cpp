@@ -59,7 +59,8 @@ __attribute__((section(".external_app.app_fpv_detect.application_information"), 
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_wfm_audio */ {'P', 'W', 'F', 'M'},
+    // this has to be the biggest baseband used by the app. FPV DETECT is using CAPTURE only
+    /*.m4_app_tag = portapack::spi_flash::image_tag_capture */ {'P', 'C', 'A', 'P'},
     /*.m4_app_offset = */ 0x00000000,
 };
 }

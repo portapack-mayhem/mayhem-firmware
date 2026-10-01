@@ -35,6 +35,7 @@
 #include "audio_output.hpp"
 #include "filtered_spectrum_collector.hpp"
 
+#include <atomic>
 #include <cstdint>
 
 #define Z_MIN_FILTER_COUNT 224
@@ -72,6 +73,10 @@ class NarrowbandFMAudio : public BasebandProcessor {
         sizeof(tone) / sizeof(int16_t)};
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+    std::array<int16_t, 24> decim_0_taps_{};
+    std::atomic<RxFs4Direction> requested_fs4_direction_{RxFs4Direction::Down};
+    RxFs4Direction applied_fs4_direction_{RxFs4Direction::Down};
+    void configure_fs4(const std::array<int16_t, 24>& taps);
     dsp::decimate::FIRC16xR16x16Decim2 audio_decim_0{};
     dsp::FrequencyTranslatingDecimator32By8 translating_decim_1{};
     dsp::decimate::FIRAndDecimateComplex channel_filter{};

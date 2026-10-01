@@ -71,7 +71,8 @@ bool is_color_level(const std::string& line) {
 
 WaterfallDesignerView::WaterfallDesignerView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base(), true,
+                                 portapack::spi_flash::image_tag_capture);
 
     add_children({&labels,
                   &field_frequency,

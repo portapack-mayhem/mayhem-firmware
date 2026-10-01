@@ -73,6 +73,26 @@ void WhipCalcView::update_result() {
     uint8_t ant_count = 9;                      // Shown antennas counter
     length *= 1000;                             // Get length in mm needed to extend the antenna
     for (antenna_entry antenna : antenna_db) {  // go thru all antennas available
+        if (antenna.elements.empty())
+            continue;
+
+        // Needed quarter-wave length is shorter than the fully-collapsed antenna:
+        // above its fundamental range. Report it as retracted (shortest setting);
+        // a wideband RX whip still receives here via harmonics, but this
+        // quarter-wave model cannot compute those positions. This also avoids an
+        // out-of-bounds read of elements[-1] in the interpolation below.
+        if (length < antenna.elements.front()) {
+            console.write(antenna.label + ": retracted\n");
+            continue;
+        }
+
+        // Needed length is longer than the fully-extended antenna: already maxed
+        // out, so the frequency is below this antenna's range.
+        if (length > antenna.elements.back()) {
+            console.write(antenna.label + ": fully ext.\n");
+            continue;
+        }
+
         uint16_t element, refined_quarter = 0;
         for (element = 0; element < antenna.elements.size(); element++) {
             if (length == antenna.elements[element])  // Exact element in length

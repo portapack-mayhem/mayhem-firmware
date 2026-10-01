@@ -53,7 +53,7 @@ class HunterMainView : public View {
    private:
     SignalHunterAppView& parent_app;
     rf::Frequency current_freq_{433920000};
-    Text text_current_freq{{UI_POS_X_CENTER(14), UI_POS_Y(3), 112, 16}, ""};
+    BigFrequency big_display{{4, 24, 224, 52}, 0};
     Text text_status{{UI_POS_X_CENTER(12), UI_POS_Y(6), 96, 16}, "IDLE"};
     Button button_start_stop{{UI_POS_X_CENTER(10), UI_POS_Y(8), 80, 32}, "START"};
     Text text_hits{{UI_POS_X_CENTER(10), UI_POS_Y(11), 80, 16}, "Hits: 0"};

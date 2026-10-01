@@ -28,6 +28,7 @@
 #define __MAX2831_H__
 
 #include "max283x.hpp"
+#include "rx_afe_policy.hpp"
 #include "gpio.hpp"
 #include "spi_arbiter.hpp"
 
@@ -200,6 +201,7 @@ class MAX2831 : public MAX283x {
     void set_lna_gain(const int_fast8_t db) override;
     void set_vga_gain(const int_fast8_t db) override;
     void set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) override;
+    void set_lpf_rf_bandwidth_rx(uint32_t bandwidth_minimum, rx_afe::NarrowbandPolicy policy);
     void set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) override;
 
     bool set_frequency(const rf::Frequency lo_frequency) override;
