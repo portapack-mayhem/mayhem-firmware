@@ -90,7 +90,12 @@ void RdsRxView::on_data_rds(const RDSGroupMessage& msg) {
         // RT (txt) - 2A  2B
         else if (group_type == 2) {
             uint8_t segment = block_b & 0x0F;
-
+            uint8_t ab_flag = (block_b >> 4) & 0x01;
+            if (last_ab_flag != -1 && (int16_t)ab_flag != last_ab_flag) {
+                // new message
+                memset(radio_text, ' ', 64);
+            }
+            last_ab_flag = (int16_t)ab_flag;
             if (group_version == 0) {  // 2A group
                 if (!msg.is_c_prime) {
                     char c1 = (block_c >> 8) & 0xFF;
@@ -111,7 +116,7 @@ void RdsRxView::on_data_rds(const RDSGroupMessage& msg) {
                 if (c2 >= 32 && c2 <= 126) radio_text[segment * 2 + 1] = c2;
             }
 
-            // RRadio text split into 3 lines on the display
+            // Radio text split into 3 lines on the display
             std::string rt_str(radio_text, 64);
             text_rt_1.set(rt_str.substr(0, 30));
             text_rt_2.set(rt_str.substr(30, 30));

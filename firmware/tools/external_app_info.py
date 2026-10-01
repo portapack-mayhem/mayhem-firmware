@@ -32,4 +32,4 @@
 # "rules.cmake").
 maximum_application_size = 32*1024
 external_apps_address_start = 0xADB00000
-external_apps_address_end = 0xAE118000
+external_apps_address_end = 0xAE128000

@@ -54,6 +54,7 @@ class RdsRxView : public View {
 
     char ps_name[9] = "        ";
     char radio_text[65] = {0};
+    int16_t last_ab_flag = -1;
 
     void on_data_rds(const RDSGroupMessage& message);
 
