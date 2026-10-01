@@ -77,8 +77,8 @@ __attribute__((section(".external_app.app_detector_rx.application_information"),
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    // this has to be the biggest baseband used by the app. SPEC
-    /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'W', 'F', 'M'},
+    // this has to be the biggest baseband used by the app. Detector is using AM,CAPTURE and AM is the biggest
+    /*.m4_app_tag = portapack::spi_flash::image_tag_nfm */ {'P', 'A', 'M', 'A'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

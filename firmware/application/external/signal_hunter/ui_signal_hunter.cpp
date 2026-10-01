@@ -35,7 +35,7 @@ namespace ui::external_app::signal_hunter {
 // --- TAB 1: Main View ---
 HunterMainView::HunterMainView(Rect parent_rect, SignalHunterAppView& parent)
     : View(parent_rect), parent_app(parent) {
-    add_children({&text_current_freq, &text_status, &button_start_stop, &text_hits});
+    add_children({&big_display, &text_status, &button_start_stop, &text_hits});
     update_frequency(433920000);
 
     button_start_stop.on_select = [this](Button&) {
@@ -64,35 +64,29 @@ HunterMainView::HunterMainView(Rect parent_rect, SignalHunterAppView& parent)
 }
 
 void HunterMainView::on_show() {
-    if (!parent_app.freq_hop_mode) {
+    if (!parent_app.freq_hop_mode)
         current_freq_ = receiver_model.target_frequency();
-    }
-
-    update_frequency(current_freq_);  // force repaint
+    big_display.set(current_freq_);
 }
 
 void HunterMainView::focus() {
-    if (!parent_app.freq_hop_mode) {
+    if (!parent_app.freq_hop_mode)
         current_freq_ = receiver_model.target_frequency();
-    }
-
-    update_frequency(current_freq_);
+    big_display.set(current_freq_);
     button_start_stop.focus();
 }
 
 void HunterMainView::set_recording_state(bool recording) {
     if (recording)
-        text_current_freq.set_style(Theme::getInstance()->fg_red);
+        big_display.set_style(Theme::getInstance()->fg_red);
     else
-        text_current_freq.set_style(Theme::getInstance()->fg_light);
-
-    text_current_freq.set_dirty();    // force ui update
-    update_frequency(current_freq_);  // repaint with the new color
+        big_display.set_style(Theme::getInstance()->fg_light);
+    big_display.set(current_freq_);
 }
 
 void HunterMainView::update_frequency(rf::Frequency freq) {
     current_freq_ = freq;
-    text_current_freq.set(to_string_dec_uint(freq) + " Hz");
+    big_display.set(freq);
 }
 
 void HunterMainView::update_status(const std::string& status, const Style* style) {

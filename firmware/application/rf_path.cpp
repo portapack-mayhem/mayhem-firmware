@@ -76,11 +76,19 @@ void Path::update() {
 
     tx_enable.setState(is_tx);
 
-    // On the PRALINE board, the mixer is used ONLY on the Low band.
-    // Since setState() internally handles the active-low (MIX_ENABLE_N) hardware inversion,
-    // we simply pass 'true' to enable the mixer on Low band, and 'false' for Mid/High bands.
+    // On the PRALINE board the RFFC5072 mixer is used on BOTH the Low band
+    // (<2320 MHz, low-side image reject, LPF) and the High band (>2580 MHz,
+    // high-side image reject, LPF off). It is bypassed only in the Mid window
+    // (2320-2580 MHz) where the MAX2831 tunes the RF directly. This mirrors the
+    // reference firmware (hackrf rf_path.c rf_path_set_filter(): LOW_PASS and
+    // HIGH_PASS both call mixer_enable(); only BYPASS disables it).
+    //
+    // setState() handles the active-low MIX_ENABLE_N inversion, so 'true' means
+    // "mixer enabled". Bypassing the mixer on the High band leaves the MAX2831
+    // IF (~2.3-2.7 GHz) at the antenna port instead of the requested RF, which
+    // made TX (and RX) above 2580 MHz effectively not work.
 
-    mix_bypass.setState(band == Band::Low);
+    mix_bypass.setState(band != Band::Mid);
 
     lpf.setState(band == Band::Low);
     rf_amp_enable.setState(rf_amp_en);

@@ -148,6 +148,7 @@ static int_fast8_t cached_vga_gain = 0;
  * (0b00 none / 0b11 up / 0b01 down). The baseband filter width depends on it,
  * so ReceiverModel reads it back through get_quarter_shift(). */
 static uint8_t cached_quarter_shift = 0;
+static bool rx_aa_override_active = false;
 #endif
 
 void init() {
@@ -286,6 +287,12 @@ void set_direction(const rf::Direction new_direction) {
 }
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
+#ifdef PRALINE
+    return set_tuning_frequency(frequency, false);
+}
+
+bool set_tuning_frequency(const rf::Frequency frequency, const bool disable_afe_quarter_shift) {
+#endif
     rf::Frequency final_frequency = frequency;
     // if converter feature is enabled
     if (portapack::persistent_memory::config_converter()) {
@@ -318,7 +325,8 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
                               << portapack::clock_manager.get_resampling_n();
     const auto tuning_config = tuning::config::create(
         final_frequency,
-        afe_rate,
+        // Zero only the planner input: real clocks and decimation stay intact.
+        (direction == rf::Direction::Receive && disable_afe_quarter_shift) ? 0 : afe_rate,
         direction == rf::Direction::Transmit);
 #else
     const auto tuning_config = tuning::config::create(final_frequency);
@@ -405,8 +413,21 @@ void set_tx_gain(const int_fast8_t db) {
 }
 
 void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum) {
+#ifdef PRALINE
+    set_baseband_filter_bandwidth_rx(bandwidth_minimum, rx_afe::NarrowbandPolicy::Auto);
+#else
     second_if->set_lpf_rf_bandwidth_rx(bandwidth_minimum);
+#endif
 }
+
+#ifdef PRALINE
+void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum, rx_afe::NarrowbandPolicy policy) {
+    if (direction != rf::Direction::Receive)
+        policy = rx_afe::NarrowbandPolicy::Auto;
+    rx_aa_override_active = policy != rx_afe::NarrowbandPolicy::Auto;
+    second_if_max2831.set_lpf_rf_bandwidth_rx(bandwidth_minimum, policy);
+}
+#endif
 
 void set_baseband_filter_bandwidth_tx(const uint32_t bandwidth_minimum) {
     second_if->set_lpf_rf_bandwidth_tx(bandwidth_minimum);
@@ -447,6 +468,12 @@ void set_rx_max283x_iq_phase_calibration(const size_t v) {
 }
 
 void disable() {
+#ifdef PRALINE
+    if (rx_aa_override_active) {
+        gpio_control::aa_en.setInactive();
+        rx_aa_override_active = false;
+    }
+#endif
     if (direction == rf::Direction::Transmit && baseband::is_image_running()) {
         static constexpr uint32_t radio_tx_drain_timeout_ms = 100;
         shared_memory.radio_tx_drain = 1;  // Request drain of the current DMA queue.

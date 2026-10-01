@@ -44,7 +44,22 @@ if(cpp20_supported)
 else()
 	set(USE_CPPOPT "-std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+
+# C++ standard deprecations that the vendored ChibiOS 2.6 headers use when
+# included from C++: compound assignment to volatile, and the register storage
+# class, which GCC requires to bind a variable to an explicit register
+# (port_lock()/port_unlock() in chcore_v7m.h).
+#
+# Each -Wno-* is passed only when the compiler knows the positive form. GCC
+# accepts an unknown -Wno-* silently, then reports "unrecognized command line
+# option" as soon as any other diagnostic fires.
+foreach(cxx_warning volatile register)
+	check_cxx_compiler_flag("-W${cxx_warning}" cxx_warn_${cxx_warning}_supported)
+	if(cxx_warn_${cxx_warning}_supported)
+		set(USE_CPPOPT "${USE_CPPOPT} -Wno-${cxx_warning}")
+	endif()
+endforeach()
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -793,6 +808,26 @@ set(MODE_CPPSRC
 	proc_tetra.cpp
 )
 DeclareTargets(PTET tetra_rx)
+
+### FT8 RX
+
+set(MODE_CPPSRC
+	proc_ft8_rx.cpp
+	ft8_lib/constants.c
+	ft8_lib/crc.c
+	ft8_lib/decode.c
+	ft8_portapack.c
+	ft8_lib/ldpc.c
+	ft8_lib/message.c
+	ft8_lib/text.c
+)
+# The decoder plus its tables sit close to the 32k external app ceiling, so this image is
+# built for size rather than speed. message.c sets LOG_LEVEL, which makes ft8_lib's
+# debug.h reach for fprintf; defining LOG_PRINTF empty keeps stdio out of the image and
+# leaves the vendored header byte-identical to upstream.
+set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
+DeclareTargets(PFT8 ft8_rx)
+set(MODE_FLAGS "-O3")
 
 ### SD over USB
 

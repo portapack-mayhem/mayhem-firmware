@@ -126,6 +126,7 @@ constexpr image_tag_t image_tag_subcar{'P', 'S', 'C', 'D'};
 constexpr image_tag_t image_tag_protoview{'P', 'P', 'V', 'W'};
 constexpr image_tag_t image_tag_wefaxrx{'P', 'W', 'F', 'X'};
 constexpr image_tag_t image_tag_noaaapt_rx{'P', 'N', 'O', 'A'};
+constexpr image_tag_t image_tag_ft8_rx{'P', 'F', 'T', '8'};
 constexpr image_tag_t image_tag_sstv_rx{'P', 'S', 'R', 'X'};
 constexpr image_tag_t image_tag_morse{'P', 'M', 'R', 'S'};
 constexpr image_tag_t image_tag_morsetx{'P', 'M', 'R', 'T'};
