@@ -832,6 +832,14 @@ set(MODE_INCDIR
 	sd_over_usb/
 )
 
+### WMBUS Rx
+
+set(MODE_CPPSRC
+	proc_wmbus.cpp
+)
+DeclareTargets(PWMB wmbus_rx)
+
+
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
 

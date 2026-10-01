@@ -120,6 +120,9 @@ MEMORY
     ram_external_app_aprs_rx               (rwx) : org = 0xAE0F0000, len = 32k
     ram_external_app_aprs_tx               (rwx) : org = 0xAE100000, len = 32k
     ram_external_app_ft8_rx                (rwx) : org = 0xAE110000, len = 32k
+    ram_external_app_wmbus_rx              (rwx) : org = 0xAE130000, len = 32k
+
+
 }
 
 SECTIONS
@@ -705,6 +708,12 @@ SECTIONS
         KEEP(*(.external_app.app_ft8_rx.application_information));
         */external/ft8_rx/*(*ui*external_app*ft8_rx*);
     } > ram_external_app_ft8_rx
+
+    .external_app_wmbus_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_wmbus_rx.application_information));
+        *(*ui*external_app*wmbus_rx*);
+    } > ram_external_app_wmbus_rx
 
 
 
