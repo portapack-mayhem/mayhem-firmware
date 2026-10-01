@@ -32,7 +32,7 @@ void initialize_app(ui::NavigationView& nav) {
 
 extern "C" {
 
-__attribute__((section(".external_app.app_wmbus_rx.application_information"), used)) application_information_t _application_information_wpan_rx = {
+__attribute__((section(".external_app.app_wmbus_rx.application_information"), used)) application_information_t _application_information_wmbus_rx = {
     /*.memory_location = */ (uint8_t*)0x00000000,
     /*.externalAppEntry = */ ui::external_app::wmbus_rx::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
