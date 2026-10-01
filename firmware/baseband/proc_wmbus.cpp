@@ -92,7 +92,7 @@ void WMBusProcessor::execute(const buffer_c8_t& buffer) {
         // 6. PLL
         if (current_bit != last_bit) {
             int32_t error = 500 - (int32_t)phase;
-            phase = (phase + error / 4) % 1000;
+            phase = ((int32_t)phase + error / 4) % 1000;
             last_bit = current_bit;
         }
 

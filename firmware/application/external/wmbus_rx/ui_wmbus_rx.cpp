@@ -146,7 +146,7 @@ void WMBusRxView::on_data_wmbus(const WMBusPacketMessage& msg) {
 
     text_debug_err.set("Last Err: None");
 
-    if (msg.length < 13) return;
+    if (msg.length < 12) return;
 
     // W-MBus Frame Format A - Block 1 CRC check ( C-mode)
     uint16_t calc_crc = 0x0000;
