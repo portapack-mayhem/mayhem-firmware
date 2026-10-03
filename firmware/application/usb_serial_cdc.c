@@ -58,18 +58,14 @@ CH_IRQ_HANDLER(USB0_IRQHandler) {
 
     usb0_isr();
 
-    if (status & USB0_USBSTS_D_UI) {
-#ifdef PRALINE
-        if (thread_usb_event) {
-            chSysLockFromIsr();
-            chEvtSignalI(thread_usb_event, EVT_MASK_USB);
-            chSysUnlockFromIsr();
-        }
-#else
+    /* Signal unconditionally: usb0_isr() reads and clears USBSTS itself, so a
+     * transfer completion arriving between our read above and its read would
+     * be processed but missing from `status`, and the event thread would not
+     * be woken to consume it. */
+    if (thread_usb_event) {
         chSysLockFromIsr();
         chEvtSignalI(thread_usb_event, EVT_MASK_USB);
         chSysUnlockFromIsr();
-#endif
     }
 
     if (status & USB0_USBSTS_D_SLI) {
@@ -102,8 +98,17 @@ void usb_configuration_changed(usb_device_t* const device) {
     (void)device;
 
     usb_endpoint_init(&usb_endpoint_int_in, false);
-    usb_endpoint_init(&usb_endpoint_bulk_in, false);
+    /* Enable ZLP on bulk IN: transfers that are an exact multiple of
+     * wMaxPacketSize (512) need a zero-length packet so hosts reading with
+     * buffers larger than one packet see the transfer terminate. */
+    usb_endpoint_init(&usb_endpoint_bulk_in, true);
     usb_endpoint_init(&usb_endpoint_bulk_out, false);
+
+    /* Consider the channel open as soon as the host configures the device.
+     * Waiting only for SET_CONTROL_LINE_STATE (DTR) leaves the bulk OUT
+     * endpoint unprimed for hosts/tools that never assert DTR, which then
+     * hang on their first command. */
+    on_channel_opened();
 }
 
 void setup_usb_serial_controller(void) {
@@ -154,12 +159,22 @@ usb_request_status_t usb_class_request(usb_endpoint_t* const endpoint, const usb
     return status;
 }
 
+/* CDC line coding (7 bytes): dwDTERate, bCharFormat, bParityType, bDataBits.
+ * The baud rate is meaningless for a native USB device but strict hosts
+ * (e.g. macOS) expect GET_LINE_CODING to return the full structure rather
+ * than a zero-length response. Defaults to 115200 8N1. */
+static uint8_t cdc_line_coding[7] = {0x00, 0xC2, 0x01, 0x00, 0x00, 0x00, 0x08};
+
 usb_request_status_t usb_get_line_coding_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
     if (stage == USB_TRANSFER_STAGE_SETUP) {
+        uint16_t length = (endpoint->setup.length_h << 8) | endpoint->setup.length_l;
+        if (length > sizeof(cdc_line_coding))
+            length = sizeof(cdc_line_coding);
+
         usb_transfer_schedule_block(
             endpoint->in,
-            &endpoint->buffer,
-            0,
+            cdc_line_coding,
+            length,
             NULL,
             NULL);
     } else if (stage == USB_TRANSFER_STAGE_DATA) {
@@ -180,13 +195,20 @@ usb_request_status_t usb_set_control_line_state_request(usb_endpoint_t* const en
 
 usb_request_status_t usb_set_line_coding_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
     if (stage == USB_TRANSFER_STAGE_SETUP) {
+        /* Setting the line coding means a host application opened the port;
+         * treat it like DTR so the channel recovers after a bus suspend even
+         * with tools that never assert DTR. */
+        on_channel_opened();
+
         usb_transfer_schedule_block(
             endpoint->out,
             &endpoint->buffer,
-            32,
+            sizeof(endpoint->buffer),
             NULL,
             NULL);
     } else if (stage == USB_TRANSFER_STAGE_DATA) {
+        /* Remember what the host set so GET_LINE_CODING can echo it back. */
+        memcpy(cdc_line_coding, (const void*)endpoint->buffer, sizeof(cdc_line_coding));
         usb_transfer_schedule_ack(endpoint->in);
     }
 

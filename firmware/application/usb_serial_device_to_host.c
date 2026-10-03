@@ -40,12 +40,30 @@
 
 SerialUSBDriver SUSBD1;
 
+/* TX buffers handed to the USB DMA engine. They must stay valid until the
+ * transfer retires, so they cannot live on the caller's stack. Two buffers
+ * are alternated: with a transfer pool of 1, usb_transfer_schedule() only
+ * succeeds once the previous transfer has retired, so by the time a buffer
+ * is refilled the transfer-before-last that used it is guaranteed done. */
+static uint8_t tx_buffers[2][USBSERIAL_BUFFERS_SIZE];
+static uint8_t tx_buffer_index = 0;
+static bool tx_draining = FALSE;
+
 static void onotify(GenericQueue* qp) {
     SerialUSBDriver* sdp = chQGetLink(qp);
-    uint8_t buff[USBSERIAL_BUFFERS_SIZE];
-    int n = chOQGetFullI(&sdp->oqueue);
-    if (n > USBSERIAL_BUFFERS_SIZE) n = USBSERIAL_BUFFERS_SIZE;  // don't overflow
-    if (n > 0) {
+
+    /* Called with the system locked. Another thread may already be draining
+     * inside the unlocked window below; its loop will pick up our bytes. */
+    if (tx_draining)
+        return;
+    tx_draining = TRUE;
+
+    int n;
+    while ((n = chOQGetFullI(&sdp->oqueue)) > 0) {
+        if (n > USBSERIAL_BUFFERS_SIZE) n = USBSERIAL_BUFFERS_SIZE;  // don't overflow
+
+        uint8_t* buff = tx_buffers[tx_buffer_index];
+        tx_buffer_index ^= 1;
         for (int i = 0; i < n; i++) {
             buff[i] = chOQGetI(&sdp->oqueue);
         }
@@ -66,6 +84,8 @@ static void onotify(GenericQueue* qp) {
         } while (ret == -1);
         chSysLock();
     }
+
+    tx_draining = FALSE;
 }
 
 static size_t write(void* ip, const uint8_t* bp, size_t n) {
