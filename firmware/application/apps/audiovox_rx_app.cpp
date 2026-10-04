@@ -1,0 +1,789 @@
+/*
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2018 Furrtek
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#include "audiovox_rx_app.hpp"
+
+#include "audio.hpp"
+#include "baseband_api.hpp"
+#include "file.hpp"
+#include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
+#include "string_format.hpp"
+#include "ui_freqman.hpp"
+#include "utility.hpp"
+#include "radio.hpp"
+
+using namespace portapack;
+using namespace tonekey;
+
+namespace ui {
+
+namespace {
+
+constexpr uint8_t zoom_filter_offset(const OptionsField::value_t zoom_option) {
+    return zoom_option == (int)AudioVoxAMSpectrumZoomOption::X1 ? 0 : 6;
+}
+
+constexpr AMConfigureMessage::Zoom_waterfall zoom_spectrum_factor(
+    const OptionsField::value_t zoom_option) {
+    switch ((AudioVoxAMSpectrumZoomOption)zoom_option) {
+        case AudioVoxAMSpectrumZoomOption::X2:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_2;
+        case AudioVoxAMSpectrumZoomOption::X3:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_3;
+        case AudioVoxAMSpectrumZoomOption::X4:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_4;
+        default:
+            return AMConfigureMessage::Zoom_waterfall::ZOOM_x_1;
+    }
+}
+
+}  // namespace
+
+/* AudioVoxAMOptionsView *********************************************************/
+
+AudioVoxAMOptionsView::AudioVoxAMOptionsView(
+    AudioVoxRxView* view,
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+        &zoom_config,
+        &label_squelch,
+        &field_squelch,
+    });
+
+    field_squelch.set_value(receiver_model.am_squelch_level());
+    field_squelch.on_change = [](int32_t v) {
+        receiver_model.set_am_squelch_level(v);
+    };
+
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(
+            view->get_previous_AM_mode_option() + zoom_filter_offset(n),
+            zoom_spectrum_factor(n));
+        view->set_zoom_factor(AM_MODULATION, n);
+        view->set_previous_zoom_option(n);
+    };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AM_MODULATION));
+
+    freqman_set_bandwidth_option(AM_MODULATION, options_config);  // freqman.cpp to the options_config, only allowing 5 modes  freqman_bandwidths[AM]  {"DSB 9k", 0},  {"DSB 6k", 1},  {"USB+3k", 2}, {"LSB-3k", 3}, {"CW", 4},
+    options_config.set_by_value(receiver_model.am_configuration() - zoom_filter_offset(view->get_previous_zoom_option()));
+    options_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_am_configuration(
+            n + zoom_filter_offset(view->get_previous_zoom_option()),
+            zoom_spectrum_factor(view->get_previous_zoom_option()));
+        view->set_previous_AM_mode_option(n);
+    };
+}
+
+/* AudioVoxNBFMOptionsView *******************************************************/
+
+AudioVoxNBFMOptionsView::AudioVoxNBFMOptionsView(
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({&label_config,
+                  &options_config,
+                  &text_squelch,
+                  &field_squelch});
+
+    freqman_set_bandwidth_option(NFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.nbfm_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+        receiver_model.set_nbfm_configuration(n);
+    };
+
+    field_squelch.set_value(receiver_model.squelch_level());
+    field_squelch.on_change = [this](int32_t v) {
+        receiver_model.set_squelch_level(v);
+    };
+}
+
+/* AudioVoxWFMOptionsView *******************************************************/
+
+AudioVoxWFMOptionsView::AudioVoxWFMOptionsView(
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+    });
+
+    freqman_set_bandwidth_option(WFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.wfm_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+        receiver_model.set_wfm_configuration(n);
+    };
+}
+
+/* AudioVoxWFMAMAptOptionsView *******************************************************/
+
+AudioVoxWFMAMAptOptionsView::AudioVoxWFMAMAptOptionsView(
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+    });
+
+    freqman_set_bandwidth_option(WFMAM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    options_config.set_by_value(receiver_model.wfmam_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
+        receiver_model.set_wfmam_configuration(n);
+    };
+}
+
+/* AudioVoxAMFMAptOptionsView *********************************************************/
+
+AudioVoxAMFMAptOptionsView::AudioVoxAMFMAptOptionsView(
+    AudioVoxRxView* view,
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+        &zoom_config,
+    });
+
+    freqman_set_bandwidth_option(AMFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
+    receiver_model.set_amfm_configuration(5);                       // Fix index 5 manually, not from freqman: set to  RX AM (USB+FM) mode to demod audio tone, and get Wefax_APT signal.
+    options_config.set_by_value(receiver_model.amfm_configuration());
+
+    zoom_config.on_change = [this, view](size_t, OptionsField::value_t n) {
+        receiver_model.set_amfm_configuration(
+            5 + zoom_filter_offset(n),
+            zoom_spectrum_factor(n));
+        view->set_zoom_factor(AMFM_MODULATION, n);
+    };
+
+    // restore zoom selection
+    zoom_config.set_by_value(view->get_zoom_factor(AMFM_MODULATION));
+}
+
+/* AudioVoxSPECOptionsView *******************************************************/
+
+AudioVoxSPECOptionsView::AudioVoxSPECOptionsView(
+    AudioVoxRxView* view,
+    Rect parent_rect,
+    const Style* style)
+    : View{parent_rect} {
+    set_style(style);
+
+    add_children({
+        &label_config,
+        &options_config,
+        &text_speed,
+        &field_speed,
+        &text_rx_cal,
+        &field_rx_iq_phase_cal,
+    });
+
+    options_config.set_selected_index(view->get_spec_bw_index());
+    options_config.on_change = [this, view](size_t n, OptionsField::value_t bw) {
+        view->set_spec_bw(n, bw);
+    };
+
+    field_speed.set_value(view->get_spec_trigger());
+    field_speed.on_change = [this, view](int32_t v) {
+        view->set_spec_trigger(v);
+    };
+
+    field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                       // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
+    field_rx_iq_phase_cal.set_value(view->get_spec_iq_phase_calibration_value());  // using  accessor function of AudioVoxRxView to read iq_phase_calibration_value from rx_audio.ini
+    field_rx_iq_phase_cal.on_change = [this, view](int32_t v) {
+        view->set_spec_iq_phase_calibration_value(v);  // using  accessor function of AudioVoxRxView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
+    };
+
+    view->set_spec_iq_phase_calibration_value(view->get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
+}
+
+/* PralineOptionsView *******************************************************/
+
+#ifdef PRALINE
+PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
+    set_style(style);
+    set_parent_rect(parent_rect);
+    add_children({&label_sr, &options_sr, &label_dc, &options_dc,
+                  &label_qi, &options_qi, &label_qs, &options_qs});
+
+    // READ the current state from hardware
+    fpga_reg_1 = radio::debug::fpga::register_read(1);
+
+    // INITIALIZE UI WIDGETS based on read bits
+    options_dc.set_by_value((fpga_reg_1 & 0x01) ? 1 : 0);  // Bit 0
+    options_qi.set_by_value((fpga_reg_1 & 0x02) ? 1 : 0);  // Bit 1
+    options_qs.set_by_value((fpga_reg_1 & 0x04) ? 1 : 0);  // Bit 2
+    options_sr.set_value(receiver_model.sampling_rate());
+
+    options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v)); };
+    options_dc.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v)
+            fpga_reg_1 |= 0x01;
+        else
+            fpga_reg_1 &= ~0x01;
+        update_fpga_ctrl();
+    };
+
+    options_qi.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v)
+            fpga_reg_1 |= 0x02;
+        else
+            fpga_reg_1 &= ~0x02;
+        update_fpga_ctrl();
+    };
+
+    options_qs.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v)
+            fpga_reg_1 |= 0x04;
+        else
+            fpga_reg_1 &= ~0x04;
+        update_fpga_ctrl();
+    };
+}
+
+void PralineOptionsView::update_fpga_ctrl() {
+    radio::debug::fpga::register_write(1, fpga_reg_1);
+}
+#endif
+
+/* AudioVoxRxView *******************************************************/
+
+AudioVoxRxView::AudioVoxRxView(
+    NavigationView& nav)
+    : nav_(nav) {
+    // A baseband image _must_ be running before add waterfall view.
+    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+
+    add_children({&rssi,
+                  &channel,
+                  &audio,
+                  &field_frequency,
+                  &field_lna,
+                  &field_vga,
+                  &options_modulation,
+                  &field_volume,
+                  &text_ctcss,
+                  &record_view,
+                  &check_vox_rec,
+                  &text_vox_threshold,
+                  &field_vox_threshold,
+                  &text_vox_dbfs,
+#ifdef PRALINE
+                  &waterfall,
+                  &button_pro
+#else
+                  &waterfall
+#endif
+    });
+
+    check_vox_rec.on_select = [this](Checkbox&, bool enabled) {
+        vox_open_timer = 0;
+        vox_hang_timer = 0;
+        if (!enabled && vox_recording) {
+            record_view.stop();
+            vox_recording = false;
+        }
+    };
+    channel.on_stats = [this](const ChannelStatistics& statistics) {
+        this->handle_channel_statistics(statistics);
+    };
+    field_vox_threshold.set_value(vox_threshold_dbfs);
+    field_vox_threshold.on_change = [this](int32_t value) {
+        vox_threshold_dbfs = value;
+    };
+
+    // Filename Datetime and Frequency
+    record_view.set_filename_date_frequency(true);
+
+    field_frequency.on_show_options = [this]() {
+        this->on_show_options_frequency();
+    };
+    field_frequency.changing = [this](rf::Frequency frequency) {
+        return this->on_frequency_changed(frequency);
+    };
+    field_frequency.entered = [this](rf::Frequency frequency) {
+        this->set_frequency_absolute(frequency);
+    };
+
+    field_lna.on_show_options = [this]() {
+        this->on_show_options_rf_gain();
+    };
+
+    field_vga.on_show_options = [this]() {
+        this->on_show_options_rf_gain();
+    };
+
+    auto modulation = receiver_model.modulation();
+
+    // This app doesn't handle "Capture" mode.
+    if (modulation == ReceiverModel::Mode::Capture)
+        modulation = ReceiverModel::Mode::SpectrumAnalysis;
+
+    options_modulation.set_by_value(toUType(modulation));
+    options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
+        this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
+    };
+    options_modulation.on_show_options = [this]() {
+        this->on_show_options_modulation();
+    };
+
+    record_view.on_error = [&nav](std::string message) {
+        nav.display_modal("Error", message);
+    };
+
+    waterfall.on_select = [this](int32_t offset) {
+        field_frequency.set_value(
+            field_frequency.value() + offset * receiver_model.frequency_step());
+    };
+    waterfall.set_live_tuning(true);
+
+#ifdef PRALINE
+    button_pro.on_select = [this](Button&) { this->on_show_options_praline(); };
+#endif
+
+    audio::output::start();
+
+    // This call starts the correct baseband image to run
+    // and sets the radio up as necessary for the given modulation.
+    sliding_center_frequency = receiver_model.target_frequency();
+    on_modulation_changed(modulation);
+}
+
+AudioVoxRxView::AudioVoxRxView(
+    NavigationView& nav,
+    ReceiverModel::settings_t override)
+    : AudioVoxRxView(nav) {
+    // Settings to override when launched from another app (versus from AppSettings .ini file)
+    // TODO: Which other settings make sense to override?
+    set_frequency_absolute(override.frequency_app_override);
+    on_frequency_step_changed(override.frequency_step);
+    options_modulation.set_by_value(toUType(override.mode));
+}
+
+size_t AudioVoxRxView::get_spec_bw_index() {
+    return spec_bw_index;
+}
+
+void AudioVoxRxView::set_spec_bw(size_t index, uint32_t bw) {
+    spec_bw_index = index;
+    spec_bw = bw;
+
+    baseband::set_spectrum(bw, spec_trigger);
+    receiver_model.set_sampling_rate(bw);
+    receiver_model.set_baseband_bandwidth(bw / 2);
+}
+
+uint8_t AudioVoxRxView::get_zoom_factor(uint8_t mode) {  // define accessor functions inside AudioVoxRxView to read zoom value
+    if (mode == AM_MODULATION)
+        return zoom_factor_am;
+    else if (mode == AMFM_MODULATION)
+        return zoom_factor_amfm;
+    return 0;  // default if unsupported mode
+}
+
+void AudioVoxRxView::set_zoom_factor(uint8_t mode, uint8_t zoom) {  // define accessor functions inside AudioVoxRxView to write zoom value
+    if (mode == AM_MODULATION)
+        zoom_factor_am = zoom;
+    else if (mode == AMFM_MODULATION)
+        zoom_factor_amfm = zoom;
+}
+
+uint8_t AudioVoxRxView::get_previous_AM_mode_option() {
+    return previous_AM_mode_option;
+}
+
+void AudioVoxRxView::set_previous_AM_mode_option(uint8_t mode) {
+    previous_AM_mode_option = mode;
+}
+
+uint8_t AudioVoxRxView::get_previous_zoom_option() {
+    return previous_zoom;
+}
+
+void AudioVoxRxView::set_previous_zoom_option(uint8_t zoom) {
+    previous_zoom = zoom;
+}
+
+uint8_t AudioVoxRxView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AudioVoxRxView to read iq_phase_calibration_value
+    return iq_phase_calibration_value;
+}
+
+void AudioVoxRxView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions inside AudioVoxRxView to write iq_phase_calibration_value
+    iq_phase_calibration_value = cal_value;
+    radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
+}
+
+uint16_t AudioVoxRxView::get_spec_trigger() {
+    return spec_trigger;
+}
+
+void AudioVoxRxView::set_spec_trigger(uint16_t trigger) {
+    spec_trigger = trigger;
+
+    baseband::set_spectrum(spec_bw, spec_trigger);
+}
+
+AudioVoxRxView::~AudioVoxRxView() {
+    receiver_model.set_hidden_offset(0);
+    audio::output::stop();
+    receiver_model.disable();
+    baseband::shutdown();
+}
+
+void AudioVoxRxView::set_parent_rect(Rect new_parent_rect) {
+    View::set_parent_rect(new_parent_rect);
+
+    ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    waterfall.set_parent_rect(waterfall_rect);
+}
+
+void AudioVoxRxView::focus() {
+    field_frequency.focus();
+}
+
+void AudioVoxRxView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
+    receiver_model.set_baseband_bandwidth(bandwidth_hz);
+}
+
+void AudioVoxRxView::on_modulation_changed(ReceiverModel::Mode modulation) {
+    if (modulation != ReceiverModel::Mode::AMAudio && vox_recording) {
+        record_view.stop();
+        vox_recording = false;
+        vox_open_timer = 0;
+        vox_hang_timer = 0;
+    }
+    waterfall.stop();
+    update_modulation(modulation);
+    on_show_options_modulation();
+    waterfall.start();
+}
+
+void AudioVoxRxView::remove_options_widget() {
+    if (options_widget) {
+        remove_child(options_widget.get());
+        options_widget.reset();
+    }
+
+    field_lna.set_style(nullptr);
+    options_modulation.set_style(nullptr);
+    field_frequency.set_style(nullptr);
+}
+
+void AudioVoxRxView::set_options_widget(std::unique_ptr<Widget> new_widget) {
+    remove_options_widget();
+
+    if (new_widget) {
+        options_widget = std::move(new_widget);
+    } else {
+        // TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
+        options_widget = std::make_unique<Rectangle>(options_view_rect, Theme::getInstance()->option_active->background);
+    }
+    add_child(options_widget.get());
+}
+
+void AudioVoxRxView::on_show_options_frequency() {
+    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+
+    widget->set_step(receiver_model.frequency_step());
+    widget->on_change_step = [this](rf::Frequency f) {
+        this->on_frequency_step_changed(f);
+    };
+    widget->set_reference_ppm_correction(persistent_memory::correction_ppb() / 1000);
+    widget->on_change_reference_ppm_correction = [this](int32_t v) {
+        this->on_reference_ppm_correction_changed(v);
+    };
+
+    set_options_widget(std::move(widget));
+    field_frequency.set_style(Theme::getInstance()->option_active);
+}
+
+void AudioVoxRxView::on_show_options_rf_gain() {
+    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+
+    set_options_widget(std::move(widget));
+    field_lna.set_style(Theme::getInstance()->option_active);
+}
+
+void AudioVoxRxView::on_show_options_modulation() {
+    std::unique_ptr<Widget> widget;
+
+    const auto modulation = receiver_model.modulation();
+    switch (modulation) {
+        case ReceiverModel::Mode::AMAudio:
+            widget = std::make_unique<AudioVoxAMOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(false);
+            text_ctcss.hidden(true);
+            break;
+
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            widget = std::make_unique<AudioVoxNBFMOptionsView>(nbfm_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(false);
+            text_ctcss.hidden(false);
+            break;
+
+        case ReceiverModel::Mode::WidebandFMAudio:
+            widget = std::make_unique<AudioVoxWFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(true);
+            text_ctcss.hidden(true);
+            break;
+
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            widget = std::make_unique<AudioVoxWFMAMAptOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(true);
+            text_ctcss.hidden(true);
+            break;
+
+        case ReceiverModel::Mode::AMAudioFMApt:
+            widget = std::make_unique<AudioVoxAMFMAptOptionsView>(this, options_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(false);
+            text_ctcss.hidden(true);
+            break;
+
+        case ReceiverModel::Mode::SpectrumAnalysis:
+            widget = std::make_unique<AudioVoxSPECOptionsView>(this, nbfm_view_rect, Theme::getInstance()->option_active);
+            waterfall.show_audio_spectrum_view(false);
+            text_ctcss.hidden(true);
+            break;
+
+        default:
+            chDbgPanic("Unhandled Mode");
+            break;
+    }
+
+    set_options_widget(std::move(widget));
+    options_modulation.set_style(Theme::getInstance()->option_active);
+}
+
+void AudioVoxRxView::on_frequency_step_changed(rf::Frequency f) {
+    receiver_model.set_frequency_step(f);
+    field_frequency.set_step(f);
+}
+
+void AudioVoxRxView::on_reference_ppm_correction_changed(int32_t v) {
+    persistent_memory::set_correction_ppb(v * 1000);
+}
+
+void AudioVoxRxView::update_modulation(ReceiverModel::Mode modulation) {
+    audio::output::mute();
+    record_view.stop();
+
+    baseband::shutdown();
+
+    portapack::spi_flash::image_tag_t image_tag;
+    switch (modulation) {
+        case ReceiverModel::Mode::AMAudio:
+            image_tag = portapack::spi_flash::image_tag_am_audio;
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            image_tag = portapack::spi_flash::image_tag_nfm_audio;
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            image_tag = portapack::spi_flash::image_tag_wfm_audio;
+            break;
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            image_tag = portapack::spi_flash::image_tag_wfm_audio;
+            break;
+        case ReceiverModel::Mode::AMAudioFMApt:
+            image_tag = portapack::spi_flash::image_tag_am_audio;
+            break;
+        case ReceiverModel::Mode::SpectrumAnalysis:
+            image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
+            break;
+        default:
+            chDbgPanic("Unhandled Mode");
+            break;
+    }
+
+    baseband::run_image(image_tag);
+
+    if (modulation == ReceiverModel::Mode::SpectrumAnalysis) {
+        baseband::set_spectrum(spec_bw, spec_trigger);
+    }
+
+    const auto is_wideband_spectrum_mode = (modulation == ReceiverModel::Mode::SpectrumAnalysis);
+    receiver_model.set_modulation(modulation);
+
+    receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
+    receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
+
+    reset_sliding_frequency(modulation);
+
+    receiver_model.enable();
+
+    if (sliding_enabled) {
+        baseband::set_audio_ddc_frequency(0);
+    }
+
+    // TODO: This doesn't belong here! There's a better way.
+    size_t sampling_rate = 0;
+    switch (modulation) {
+        case ReceiverModel::Mode::AMAudio:
+            sampling_rate = 12000;
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            sampling_rate = 24000;
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            sampling_rate = 48000;
+            break;
+        case ReceiverModel::Mode::WFMAudioAMApt:
+            sampling_rate = 12000;
+            break;
+        case ReceiverModel::Mode::AMAudioFMApt:
+            sampling_rate = 12000;
+            break;
+        default:
+            break;
+    }
+    record_view.set_sampling_rate(sampling_rate);
+
+    if (!is_wideband_spectrum_mode) {
+        audio::output::unmute();
+    }
+}
+
+void AudioVoxRxView::handle_channel_statistics(const ChannelStatistics& statistics) {
+    if (!check_vox_rec.value() || receiver_model.modulation() != ReceiverModel::Mode::AMAudio) {
+        vox_open_timer = 0;
+        vox_hang_timer = 0;
+        return;
+    }
+
+    // Require two consecutive level updates to avoid keying on a single peak.
+    if (statistics.count && statistics.max_db >= vox_threshold_dbfs) {
+        vox_hang_timer = 0;
+        if (vox_open_timer < vox_open_ticks)
+            ++vox_open_timer;
+        if (!vox_recording && vox_open_timer >= vox_open_ticks && !record_view.is_active()) {
+            record_view.start();
+            vox_recording = true;
+        }
+        return;
+    }
+
+    vox_open_timer = 0;
+    if (vox_recording && ++vox_hang_timer >= vox_hang_ticks) {
+        record_view.stop();
+        vox_recording = false;
+        vox_hang_timer = 0;
+    }
+}
+
+void AudioVoxRxView::handle_coded_squelch(uint32_t value) {
+    text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
+}
+
+void AudioVoxRxView::on_freqchg(int64_t freq) {
+    set_frequency_absolute(freq);
+}
+
+void AudioVoxRxView::set_frequency_absolute(rf::Frequency frequency) {
+    if (!sliding_enabled) {
+        field_frequency.set_value(frequency);
+        return;
+    }
+
+    sliding_center_frequency = frequency;
+
+    /* set_value() does not call on_change when the displayed frequency is
+     * already equal, so reset the hardware and DDC explicitly in that case. */
+    if (field_frequency.value() == frequency) {
+        receiver_model.set_target_frequency_with_hidden_offset(frequency, 0);
+        baseband::set_audio_ddc_frequency(0);
+    } else {
+        field_frequency.set_value(frequency);
+    }
+}
+
+int32_t AudioVoxRxView::sliding_limit() const {
+    if (receiver_model.modulation() != ReceiverModel::Mode::AMAudio)
+        return sliding_limit_zoom_x1;
+
+    switch (previous_zoom) {
+        case (int)AudioVoxAMSpectrumZoomOption::X2:
+            return sliding_limit_zoom_x2;
+        case (int)AudioVoxAMSpectrumZoomOption::X3:
+            return sliding_limit_zoom_x3;
+        case (int)AudioVoxAMSpectrumZoomOption::X4:
+            return sliding_limit_zoom_x4;
+        default:
+            return sliding_limit_zoom_x1;
+    }
+}
+
+void AudioVoxRxView::reset_sliding_frequency(ReceiverModel::Mode modulation) {
+    sliding_enabled =
+        modulation == ReceiverModel::Mode::AMAudio ||
+        modulation == ReceiverModel::Mode::NarrowbandFMAudio;
+    sliding_center_frequency = receiver_model.target_frequency();
+
+    /* AMFM keeps its existing Wefax offset; sliding applies to AM and NFM. */
+    receiver_model.set_hidden_offset(
+        modulation == ReceiverModel::Mode::AMAudioFMApt ? -2200 : 0);
+}
+
+bool AudioVoxRxView::on_frequency_changed(rf::Frequency frequency) {
+    if (!sliding_enabled)
+        return false;
+
+    const auto limit = sliding_limit();
+    int64_t offset = frequency - sliding_center_frequency;
+    if (offset > limit) {
+        sliding_center_frequency = frequency - limit;
+        offset = limit;
+    } else if (offset < -limit) {
+        sliding_center_frequency = frequency + limit;
+        offset = -limit;
+    }
+
+    /* Store the displayed frequency and retune the hardware centre atomically. */
+    receiver_model.set_target_frequency_with_hidden_offset(
+        frequency, sliding_center_frequency - frequency);
+    baseband::set_audio_ddc_frequency(static_cast<int32_t>(offset));
+    return true;
+}
+
+#ifdef PRALINE
+void AudioVoxRxView::on_show_options_praline() {
+    set_options_widget(std::make_unique<PralineOptionsView>(options_view_rect, Theme::getInstance()->option_active));
+}
+#endif
+
+} /* namespace ui */
