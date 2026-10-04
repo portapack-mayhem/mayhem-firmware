@@ -174,6 +174,7 @@ class Message {
         RxFs4Config = 116,
         FT8Packet = 117,
         FT8RxStatus = 118,
+        AudioPlayConfig = 119,
         MAX
     };
 
@@ -483,6 +484,23 @@ class FT8RxStatusMessage : public Message {
 
     SyncState state;
     uint8_t decode_count;
+};
+
+/* Music app -> audio_play baseband. */
+class AudioPlayConfigMessage : public Message {
+   public:
+    static constexpr size_t eq_bands = 5;
+
+    constexpr AudioPlayConfigMessage(
+        const uint8_t channels,
+        const std::array<int8_t, eq_bands>& eq_gain_db)
+        : Message{ID::AudioPlayConfig},
+          channels{channels},
+          eq_gain_db{eq_gain_db} {
+    }
+
+    const uint8_t channels;                         // 1 = mono, 2 = stereo
+    const std::array<int8_t, eq_bands> eq_gain_db;  // -12..+12 dB per band
 };
 
 class TPMSPacketMessage : public Message {

@@ -416,6 +416,10 @@ set(EXTCPPSRC
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
 
+	#music player 296 bytes
+	external/music/main.cpp
+	external/music/ui_music.cpp
+
 )
 
 set(EXTAPPLIST
@@ -516,4 +520,5 @@ set(EXTAPPLIST
 	aprs_tx
 	ft8_rx
 	sdusb
+	music
 )

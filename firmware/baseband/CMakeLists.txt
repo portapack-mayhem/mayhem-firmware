@@ -546,6 +546,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PVRX vor_rx)
 
+### Audio play (Music app)
+
+set(MODE_CPPSRC
+	proc_audio_play.cpp
+)
+DeclareTargets(PAPL audio_play)
+
 ### FLEX RX
 
 set(MODE_CPPSRC

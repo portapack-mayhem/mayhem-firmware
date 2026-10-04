@@ -372,6 +372,11 @@ void set_vor_config(bool enabled) {
     send_message(&message);
 }
 
+void set_audio_play_config(uint8_t channels, const std::array<int8_t, AudioPlayConfigMessage::eq_bands>& eq_gain_db) {
+    const AudioPlayConfigMessage message{channels, eq_gain_db};
+    send_message(&message);
+}
+
 void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled, const std::string& ident, bool enabled) {
     const VorTxConfigureMessage message{radial_deg, ident_enabled, ident.c_str(), enabled};
     send_message(&message);
