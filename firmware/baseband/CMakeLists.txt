@@ -493,6 +493,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
+### Spectrum Analyzer
+
+set(MODE_CPPSRC
+	proc_spec_an.cpp
+)
+DeclareTargets(PSAN spec_an)
+
 
 ### WFM Audio
 

@@ -313,6 +313,7 @@ set(CPPSRC
 	apps/ui_freqman.cpp
 	apps/ui_iq_trim.cpp
 	apps/ui_looking_glass_app.cpp
+	apps/ui_spec_an.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_playlist.cpp

@@ -141,6 +141,8 @@ void shutdown();
 void spectrum_streaming_start();
 void spectrum_streaming_stop();
 
+void set_spec_an_config(const SpecAnConfigMessage& message);
+
 /* NB: sample_rate should be desired rate. Don't pre-scale. */
 void set_sample_rate(uint32_t sample_rate, OversampleRate oversample_rate = OversampleRate::None);
 void capture_start(CaptureConfig* const config);
