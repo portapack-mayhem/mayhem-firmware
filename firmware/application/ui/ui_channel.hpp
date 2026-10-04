@@ -36,6 +36,8 @@ namespace ui {
 
 class Channel : public Widget {
    public:
+    std::function<void(const ChannelStatistics&)> on_stats{};
+
     Channel(
         const Rect parent_rect)
         : Widget{parent_rect},

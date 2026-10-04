@@ -59,6 +59,8 @@ void Channel::paint(Painter& painter) {
 void Channel::on_statistics_update(const ChannelStatistics& statistics) {
     max_db_ = statistics.max_db;
     set_dirty();
+    if (on_stats)
+        on_stats(statistics);
 }
 
 } /* namespace ui */
