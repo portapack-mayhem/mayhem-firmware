@@ -295,6 +295,7 @@ set(CPPSRC
 	ui/ui_transmitter.cpp
 	ui/ui_bmpview.cpp
 	apps/analog_audio_app.cpp
+	apps/audiovox_rx_app.cpp
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp

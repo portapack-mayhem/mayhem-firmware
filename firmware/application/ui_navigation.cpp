@@ -58,6 +58,7 @@
 #include "ui_external_items_menu_loader.hpp"
 
 #include "analog_audio_app.hpp"
+#include "audiovox_rx_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
@@ -96,6 +97,7 @@ const NavigationView::AppList NavigationView::appList = {
     {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
     /* RX ********************************************************************/
     {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
+    {"audiovox", "AudioVox RX", RX, Color::green(), &bitmap_icon_speaker_vox, new ViewFactory<AudioVoxRxView>()},
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
