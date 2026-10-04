@@ -410,6 +410,7 @@ set(EXTCPPSRC
 	#ft8 rx
 	external/ft8_rx/main.cpp
 	external/ft8_rx/ui_ft8_rx.cpp
+	external/ft8_rx/ui_ft8_map.cpp
 
 	#sd over usb
 	external/sdusb/main.cpp

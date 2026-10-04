@@ -2,6 +2,9 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2026 Dmytro Onyshko
+ * Copyright (C) 2026 Khanfar
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -358,6 +361,7 @@ class GeoMap : public Widget {
 
     bool on_touch(const TouchEvent event) override;
     bool on_encoder(const EncoderEvent delta) override;
+    bool on_key(const KeyEvent key) override;  // arrow keys pan the view (when the map has focus)
     bool on_keyboard(const KeyboardEvent event) override;
 
     void update_my_position(float lat, float lon, int32_t altitude);
@@ -384,12 +388,61 @@ class GeoMap : public Widget {
     }
     bool hide_center_marker() { return hide_center_marker_; }
 
+    /* Pan the view by a screen-pixel delta (drag the map following the finger). */
+    void pan(int dx, int dy);
+
+    /* The followed item's real position. Normally it sits under the centre marker, but
+     * while the user free-pans (manual_panning) the centre marker is replaced by the pan
+     * crosshair, so this is drawn at its geo position instead - otherwise the followed
+     * station/aircraft/sonde would vanish the moment you pan away from centre. */
+    void set_tracked_marker(float lat, float lon, uint16_t angle) {
+        // While free-panning the marker is drawn at its geo position; if it moves or its
+        // label changes (e.g. ADS-B sets the callsign via update_tag() first), the map
+        // under its old pixels must be repainted or it leaves a trail (paint() only clears
+        // the background when redraw_map is set).
+        if (manual_panning_ && has_tracked_marker_ &&
+            (tracked_marker_.lat != lat || tracked_marker_.lon != lon ||
+             tracked_marker_.angle != angle || tracked_marker_.tag != tag_))
+            redraw_map = true;
+        tracked_marker_.lat = lat;
+        tracked_marker_.lon = lon;
+        tracked_marker_.angle = angle;
+        tracked_marker_.tag = tag_;
+        tracked_marker_.color = Color::red();
+        has_tracked_marker_ = true;
+    }
+
     static const int NumMarkerListElements = 30;
 
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
+    /* Reads the given .bin map instead of /ADSB/world_map.bin. Call before init(). An
+     * app that picks its own map wants that map, so this also turns the OSM tiles off. */
+    void set_map_file(const std::filesystem::path& path);
+
+    /* Screen position of a coordinate, relative to the widget's top-left corner. May be
+     * outside the widget when the coordinate is off the visible part of the map. */
+    ui::Point geo_to_pixel(float lat, float lon);
+
+    /* Redraws the whole map on the next paint, for callers that draw over it. */
+    void refresh();
+
+    /* Zoom level as used by on_encoder(): 1 is one map pixel per screen pixel, n > 1
+     * magnifies n times and -n shows n map pixels per screen pixel (0 and -1 are not
+     * used). set_zoom() takes any value on that scale. */
+    int16_t zoom() const { return map_zoom; }
+    void set_zoom(int16_t zoom);
+
+    /* Moves the map by a drag of (dx, dy) screen pixels, following the finger. */
+    void pan(int dx, int dy);
+
+    float center_lat() const { return lat_; }
+    float center_lon() const { return lon_; }
+
    private:
+    void update_zoom();
+    void read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width);
     void draw_scale(Painter& painter);
     ui::Point item_rect_pixel(GeoMarker& item);
     GeoPoint lat_lon_to_map_pixel(float lat, float lon);
@@ -423,6 +476,7 @@ class GeoMap : public Widget {
     bool hide_center_marker_{false};
     GeoMapMode mode_{};
     File map_file{};
+    std::filesystem::path map_file_path{};
     BMPFileCache bmp_cache{};
     bool map_opened{};
     bool map_visible{};
@@ -442,6 +496,10 @@ class GeoMap : public Widget {
     float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};
+
+    // The followed item, drawn at its geo position while free-panning (see set_tracked_marker).
+    GeoMarker tracked_marker_{};
+    bool has_tracked_marker_{false};
 
     // the portapack's position data ( for example injected from serial )
     GeoMarker my_pos{INVALID_LAT_LON, INVALID_LAT_LON, INVALID_ANGLE, ""};  // lat, lon, angle, tag
