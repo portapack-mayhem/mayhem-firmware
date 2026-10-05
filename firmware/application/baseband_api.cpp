@@ -469,6 +469,12 @@ void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start) {
     send_message(&message);
 }
 
+void set_wmbus_config(uint8_t mode) {
+    WMBusPacketMessage message;
+    message.length = mode;  // hacky? yes. ugly? yes. practical? YES (don't waste another message type on it..)
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 static bool rx_fs4_supported = false;
 

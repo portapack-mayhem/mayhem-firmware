@@ -175,6 +175,7 @@ class Message {
         FT8Packet = 117,
         FT8RxStatus = 118,
         RdsData = 119,
+        WMBusPacketMessageID = 120,
         MAX
     };
 
@@ -2157,5 +2158,13 @@ struct TetraDnbMessage : public Message {
 
     // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
     std::array<uint8_t, 54> payload;
+};
+
+struct WMBusPacketMessage : public Message {
+    constexpr WMBusPacketMessage()
+        : Message{ID::WMBusPacketMessageID} {}
+
+    uint16_t length = 0;
+    uint8_t data[500] = {0};
 };
 #endif /*__MESSAGE_H__*/
