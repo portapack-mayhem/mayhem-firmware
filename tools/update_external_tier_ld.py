@@ -16,6 +16,12 @@ Only the three .ld files are modified. Region layout matches the existing files:
 comment header is preserved. App order follows the existing MEMORY order (tier0 first); new
 apps are appended alphabetically.
 
+It also verifies firmware/application/ui_navigation.cpp: an app marked tier T
+(< 2) must be #included from "external/<dir>/" inside a "#if FLASH_TIER >= T+1"
+block (it is internal only from that tier up), and an app marked 2 (external in
+every tier) must not be included at all. Any mismatch is reported and the script
+exits with status 1 (the .ld files are still written unless --check is given).
+
 Usage: tools/update_external_tier_ld.py [--check]
 """
 import argparse
@@ -116,6 +122,43 @@ def generate(tier, order, apps, wildcard):
     return "".join(out), len(sel)
 
 
+NAV_FILE = EXT_DIR.parent / "ui_navigation.cpp"
+IF_TIER_RE = re.compile(r'#\s*if\s+FLASH_TIER\s*>=\s*(\d+)')
+INCLUDE_RE = re.compile(r'#\s*include\s+"external/([^/"]+)/')
+
+
+def check_navigation(apps):
+    """Return a list of error strings for includes that don't match the tier markers."""
+    by_dir = {a["dir"]: (n, a["tier"]) for n, a in apps.items()}
+    stack, guards = [], {}
+    for lineno, line in enumerate(NAV_FILE.read_text().splitlines(), 1):
+        stripped = line.strip()
+        if re.match(r'#\s*if', stripped):
+            m = IF_TIER_RE.match(stripped)
+            stack.append(int(m.group(1)) if m else 0)
+        elif re.match(r'#\s*(else|elif)', stripped) and stack:
+            stack[-1] = 0  # the opposite branch is not tier-guarded
+        elif re.match(r'#\s*endif', stripped) and stack:
+            stack.pop()
+        m = INCLUDE_RE.match(stripped)
+        if m:
+            guards.setdefault(m.group(1), []).append((max(stack, default=0), lineno))
+    errors = []
+    for d, (name, tier) in sorted(by_dir.items()):
+        found = guards.get(d, [])
+        if tier >= 2:
+            for g, ln in found:
+                errors.append(f"{NAV_FILE.name}:{ln}: {d} is marked tier {tier} (external in all tiers) but is included")
+            continue
+        want = tier + 1
+        if not found:
+            errors.append(f"{NAV_FILE.name}: {d} is marked tier {tier} but has no #include \"external/{d}/...\" under #if FLASH_TIER >= {want}")
+        for g, ln in found:
+            if g != want:
+                errors.append(f"{NAV_FILE.name}:{ln}: {d} is marked tier {tier}, include must be under '#if FLASH_TIER >= {want}' (found {g or 'no guard'})")
+    return errors
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="don't write, exit 1 if files are out of date")
@@ -134,8 +177,12 @@ def main():
                 p.write_text(text)
         print(f"tier {tier}: {count} apps, last region ends at 0x{BASE + count * STEP - STEP + LEN_K * 1024:08X}")
     print(f"total apps: {len(apps)} (limit external_apps_address_end must be >= 0x{BASE + (len(order) - 1) * STEP + LEN_K * 1024:08X})")
+    errors = check_navigation(apps)
+    for e in errors:
+        print("ERROR:", e, file=sys.stderr)
     if args.check and stale:
         print("out of date")
+    if errors or (args.check and stale):
         sys.exit(1)
 
 
