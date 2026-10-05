@@ -174,7 +174,9 @@ class Message {
         RxFs4Config = 116,
         FT8Packet = 117,
         FT8RxStatus = 118,
-        AudioPlayConfig = 119,
+        RdsData = 119,
+        WMBusPacketMessageID = 120,
+        AudioPlayConfig = 121,
         MAX
     };
 
@@ -2110,6 +2112,29 @@ class HunterStopMessage : public Message {
         : Message{ID::HunterStop} {}
 };
 
+struct RDSGroupMessage : public Message {
+    constexpr RDSGroupMessage(
+        uint16_t a,
+        uint16_t b,
+        uint16_t c,
+        uint16_t d,
+        bool c_prime,
+        bool is_debug,
+        uint32_t dbg_1,
+        uint32_t dbg_2)
+        : Message{ID::RdsData}, block_a{a}, block_b{b}, block_c{c}, block_d{d}, is_c_prime{c_prime}, is_debug{is_debug}, debug_1{dbg_1}, debug_2{dbg_2} {}
+
+    uint16_t block_a;
+    uint16_t block_b;
+    uint16_t block_c;
+    uint16_t block_d;
+    bool is_c_prime;
+
+    bool is_debug;
+    uint32_t debug_1;
+    uint32_t debug_2;
+};
+
 struct TetraBurstMessage : public Message {
     constexpr TetraBurstMessage(
         const uint8_t* bits,
@@ -2151,5 +2176,13 @@ struct TetraDnbMessage : public Message {
 
     // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
     std::array<uint8_t, 54> payload;
+};
+
+struct WMBusPacketMessage : public Message {
+    constexpr WMBusPacketMessage()
+        : Message{ID::WMBusPacketMessageID} {}
+
+    uint16_t length = 0;
+    uint8_t data[500] = {0};
 };
 #endif /*__MESSAGE_H__*/

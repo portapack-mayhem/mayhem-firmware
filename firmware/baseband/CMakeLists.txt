@@ -792,6 +792,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(HUNT signal_hunter)
 
+### RDSRX
+
+set(MODE_CPPSRC
+    proc_rds_rx.cpp
+)
+DeclareTargets(PRRD rds_rx)
+
 
 
 ### Time Sink
@@ -838,6 +845,14 @@ set(MODE_INCDIR
 	${HACKRF_PATH}/firmware/hackrf_usb
 	sd_over_usb/
 )
+
+### WMBUS Rx
+
+set(MODE_CPPSRC
+	proc_wmbus.cpp
+)
+DeclareTargets(PWMB wmbus_rx)
+
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp

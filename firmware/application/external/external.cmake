@@ -416,6 +416,16 @@ set(EXTCPPSRC
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
 
+
+  	#rds_rx
+    external/rds_rx/main.cpp
+  	external/rds_rx/ui_rds_rx.cpp
+
+
+	#wmbus
+	external/wmbus_rx/main.cpp
+	external/wmbus_rx/ui_wmbus_rx.cpp
+
 	#music player 296 bytes
 	external/music/main.cpp
 	external/music/ui_music.cpp
@@ -512,7 +522,8 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
-  signal_hunter
+    signal_hunter
+    signal_hunter
 	tetra_rx
 	adsbrx
 	ais_rx
@@ -520,5 +531,8 @@ set(EXTAPPLIST
 	aprs_tx
 	ft8_rx
 	sdusb
+  	rds_rx
+	wmbus_rx
 	music
 )
+
