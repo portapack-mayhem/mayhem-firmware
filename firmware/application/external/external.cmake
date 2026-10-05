@@ -1,4 +1,7 @@
 set(EXTCPPSRC
+	external/audiovox_rx/main.cpp
+	external/audiovox_rx/ui_audiovox_rx.cpp
+
 	#afsk_rx   16 byte
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -436,6 +439,7 @@ set(EXTAPPLIST
 	extsensors
 	foxhunt_rx
 	audio_test
+	audiovox_rx
 	wardrivemap
 	tpmsrx
 	tpmstx
