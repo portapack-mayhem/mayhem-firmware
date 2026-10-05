@@ -99,7 +99,9 @@ constexpr Item menu_mkr[] = {Item::MkrSel, Item::MkrMode, Item::PeakSearch, Item
 constexpr Item menu_disp[] = {Item::Waterfall, Item::DispLine, Item::SweepMode, Item::SweepRun, Item::Flip};
 
 template <size_t N>
-constexpr uint8_t count_of(const Item (&)[N]) { return N; }
+constexpr uint8_t count_of(const Item (&)[N]) {
+    return N;
+}
 
 const char* const window_names[] = {"Rectangular", "Hann", "Blackman-Harris", "Flat top"};
 const char* const detector_names[] = {"Peak", "Average", "Sample", "Neg peak"};
@@ -267,14 +269,16 @@ uint64_t step_125(uint64_t v, int dir) {
         uint64_t p = 1;
         while (p * 10 <= f) p *= 10;
         const uint64_t m = f / p;
-        return (m == 1) ? 2 * p : (m == 2) ? 5 * p : 10 * p;
+        return (m == 1) ? 2 * p : (m == 2) ? 5 * p
+                                           : 10 * p;
     }
     const uint64_t f = nice_floor(v);
     if (f < v) return f;
     uint64_t p = 1;
     while (p * 10 <= f) p *= 10;
     const uint64_t m = f / p;
-    return (m == 5) ? 2 * p : (m == 2) ? p : p / 2;
+    return (m == 5) ? 2 * p : (m == 2) ? p
+                                       : p / 2;
 }
 
 int floor_log2(uint32_t v) {
