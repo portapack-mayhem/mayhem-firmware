@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2026 Dmytro Onyshko
+ * Copyright (C) 2026 Khanfar
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -28,6 +30,7 @@
 #include "receiver_model.hpp"
 #include "ui.hpp"
 #include "ui_channel.hpp"
+#include "ui_ft8_map.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
@@ -39,6 +42,9 @@ class FT8RxView : public View {
    public:
     FT8RxView(NavigationView& nav);
     ~FT8RxView();
+
+    FT8RxView(const FT8RxView&) = delete;
+    FT8RxView& operator=(const FT8RxView&) = delete;
 
     void focus() override;
     std::string title() const override { return "FT8 RX"; }
@@ -56,9 +62,21 @@ class FT8RxView : public View {
         baseband_bandwidth,
         sampling_rate};
 
+    /* Home locator for the map, 4 characters or empty. Declared before settings_, which
+     * loads it: a member declared after would be initialized over the loaded value. */
+    std::string qth_{};
+
     app_settings::SettingsManager settings_{
         "rx_ft8",
-        app_settings::Mode::RX};
+        app_settings::Mode::RX,
+        {{"qth", &qth_}}};
+
+    /* Stations heard with a locator, for the map. The map view is open while map_view_
+     * is set, and is told about new stations once per slot, after the slot's decodes:
+     * each redraw reads the map from the SD card. */
+    FT8Spots spots_{};
+    FT8MapView* map_view_{nullptr};
+    bool spots_changed_{false};
 
     void on_packet(const FT8PacketMessage* message);
     void on_status(const FT8RxStatusMessage* message);
@@ -115,12 +133,19 @@ class FT8RxView : public View {
     /* State on the left, count on the right with a gap between them: the count sits
      * directly above the decoded-message column, and run together they read as one line. */
     Text text_status{
-        {4 * 8, 1 * 16, 17 * 8, 16},
+        {4 * 8, 1 * 16, 16 * 8, 16},
         "Searching"};
 
     Text text_decodes{
-        {22 * 8, 1 * 16, 8 * 8, 16},
+        {20 * 8 + 4, 1 * 16, 7 * 8, 16},
         ""};
+
+    /* Opens the map of the stations heard. */
+    ImageButton button_map{
+        {screen_width - 16, 1 * 16, 16, 16},
+        &bitmap_globe,
+        Color::green(),
+        Color::dark_grey()};
 
     /* NavigationView sits below the 16 px system status bar, so a view's own y = 0 is
      * screen y = 16 and the last usable row is screen_height - 16. Console hands its

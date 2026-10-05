@@ -30,6 +30,15 @@ class FlexAppView : public View {
 
     RxRadioState radio_state_{};
 
+    // Persistent settings. Declared before the gain fields on purpose: RFAmpField,
+    // LNAGainField and VGAGainField read the receiver model when they are constructed,
+    // so the saved amp/LNA/VGA have to be loaded first or the fields show (and keep)
+    // the defaults.
+    app_settings::SettingsManager settings_{
+        "rx_flex",
+        app_settings::Mode::RX,
+        {{"frequency", &frequency_value}}};
+
     // Status bar state (updated from BIW packets)
     char status_time_[12]{};  // "HH:MM:SS"
     char status_tz_[12]{};    // "UTC+N"
@@ -67,12 +76,6 @@ class FlexAppView : public View {
     // Message display area (below status rows)
     Console console{
         {0, 3 * 16, screen_width, screen_height - 4 * 16}};
-
-    // Persistent settings manager
-    app_settings::SettingsManager settings_{
-        "rx_flex",
-        app_settings::Mode::RX,
-        {{"frequency", &frequency_value}}};
 
     // Message handlers
     void on_packet(const FlexPacketMessage* message);
