@@ -44,80 +44,79 @@ MEMORY
     ram_external_app_tpmsrx                (rwx) : org = 0xADC30000, len = 32k
     ram_external_app_protoview             (rwx) : org = 0xADC40000, len = 32k
     ram_external_app_adsbtx                (rwx) : org = 0xADC50000, len = 32k
-    ram_external_app_morse_tx              (rwx) : org = 0xADC60000, len = 32k
-    ram_external_app_sstvtx                (rwx) : org = 0xADC70000, len = 32k
-    ram_external_app_random_password       (rwx) : org = 0xADC80000, len = 32k
-    ram_external_app_acars_rx              (rwx) : org = 0xADC90000, len = 32k
-    ram_external_app_shoppingcart_lock     (rwx) : org = 0xADCA0000, len = 32k
-    ram_external_app_cvs_spam              (rwx) : org = 0xADCB0000, len = 32k
-    ram_external_app_ookbrute              (rwx) : org = 0xADCC0000, len = 32k
-    ram_external_app_ook_editor            (rwx) : org = 0xADCD0000, len = 32k
-    ram_external_app_remote                (rwx) : org = 0xADCE0000, len = 32k
-    ram_external_app_mcu_temperature       (rwx) : org = 0xADCF0000, len = 32k
-    ram_external_app_fmradio               (rwx) : org = 0xADD00000, len = 32k
-    ram_external_app_tuner                 (rwx) : org = 0xADD10000, len = 32k
-    ram_external_app_metronome             (rwx) : org = 0xADD20000, len = 32k
-    ram_external_app_app_manager           (rwx) : org = 0xADD30000, len = 32k
-    ram_external_app_hopper                (rwx) : org = 0xADD40000, len = 32k
-    ram_external_app_antenna_length        (rwx) : org = 0xADD50000, len = 32k
-    ram_external_app_view_wav              (rwx) : org = 0xADD60000, len = 32k
-    ram_external_app_sd_wipe               (rwx) : org = 0xADD70000, len = 32k
-    ram_external_app_playlist_editor       (rwx) : org = 0xADD80000, len = 32k
-    ram_external_app_snake                 (rwx) : org = 0xADD90000, len = 32k
-    ram_external_app_stopwatch             (rwx) : org = 0xADDA0000, len = 32k
-    ram_external_app_wefax_rx              (rwx) : org = 0xADDB0000, len = 32k
-    ram_external_app_breakout              (rwx) : org = 0xADDC0000, len = 32k
-    ram_external_app_doom                  (rwx) : org = 0xADDD0000, len = 32k
-    ram_external_app_debug_pmem            (rwx) : org = 0xADDE0000, len = 32k
-    ram_external_app_scanner               (rwx) : org = 0xADDF0000, len = 32k
-    ram_external_app_level                 (rwx) : org = 0xADE00000, len = 32k
-    ram_external_app_gfxeq                 (rwx) : org = 0xADE10000, len = 32k
-    ram_external_app_noaaapt_rx            (rwx) : org = 0xADE20000, len = 32k
-    ram_external_app_detector_rx           (rwx) : org = 0xADE30000, len = 32k
-    ram_external_app_dinogame              (rwx) : org = 0xADE40000, len = 32k
-    ram_external_app_spaceinv              (rwx) : org = 0xADE50000, len = 32k
-    ram_external_app_blackjack             (rwx) : org = 0xADE60000, len = 32k
-    ram_external_app_battleship            (rwx) : org = 0xADE70000, len = 32k
-    ram_external_app_ert                   (rwx) : org = 0xADE80000, len = 32k
-    ram_external_app_epirb_rx              (rwx) : org = 0xADE90000, len = 32k
-    ram_external_app_soundboard            (rwx) : org = 0xADEA0000, len = 32k
-    ram_external_app_game2048              (rwx) : org = 0xADEB0000, len = 32k
-    ram_external_app_bht_tx                (rwx) : org = 0xADEC0000, len = 32k
-    ram_external_app_morse_practice        (rwx) : org = 0xADED0000, len = 32k
-    ram_external_app_adult_toys_controller (rwx) : org = 0xADEE0000, len = 32k
-    ram_external_app_flex_rx               (rwx) : org = 0xADEF0000, len = 32k
-    ram_external_app_sstvrx                (rwx) : org = 0xADF00000, len = 32k
-    ram_external_app_subcarrx              (rwx) : org = 0xADF10000, len = 32k
-    ram_external_app_siggen                (rwx) : org = 0xADF20000, len = 32k
-    ram_external_app_sdusb                 (rwx) : org = 0xADF30000, len = 32k
-    ram_external_app_morse_radio           (rwx) : org = 0xADF40000, len = 32k
-    ram_external_app_waterfall_designer    (rwx) : org = 0xADF50000, len = 32k
-    ram_external_app_morseradiotx          (rwx) : org = 0xADF60000, len = 32k
-    ram_external_app_keeloqtx              (rwx) : org = 0xADF70000, len = 32k
-    ram_external_app_rtty_rx               (rwx) : org = 0xADF80000, len = 32k
-    ram_external_app_rtty_tx               (rwx) : org = 0xADF90000, len = 32k
-    ram_external_app_tpmstx                (rwx) : org = 0xADFA0000, len = 32k
-    ram_external_app_pocsag_tx             (rwx) : org = 0xADFB0000, len = 32k
-    ram_external_app_time_sink             (rwx) : org = 0xADFC0000, len = 32k
-    ram_external_app_same_tx               (rwx) : org = 0xADFD0000, len = 32k
-    ram_external_app_kiss_tnc              (rwx) : org = 0xADFE0000, len = 32k
-    ram_external_app_mdc_tx                (rwx) : org = 0xADFF0000, len = 32k
-    ram_external_app_epirb_tx              (rwx) : org = 0xAE000000, len = 32k
-    ram_external_app_fpv_detect            (rwx) : org = 0xAE010000, len = 32k
-    ram_external_app_p25_tx                (rwx) : org = 0xAE020000, len = 32k
-    ram_external_app_two_tone_pager        (rwx) : org = 0xAE030000, len = 32k
-    ram_external_app_two_tone_rx           (rwx) : org = 0xAE040000, len = 32k
-    ram_external_app_flex_tx               (rwx) : org = 0xAE050000, len = 32k
-    ram_external_app_hard_reset            (rwx) : org = 0xAE060000, len = 32k
-    ram_external_app_secplustx             (rwx) : org = 0xAE070000, len = 32k
-    ram_external_app_vor_rx                (rwx) : org = 0xAE080000, len = 32k
-    ram_external_app_vor_tx                (rwx) : org = 0xAE090000, len = 32k
-    ram_external_app_signal_hunter         (rwx) : org = 0xAE0A0000, len = 32k
-    ram_external_app_tetra_rx              (rwx) : org = 0xAE0B0000, len = 32k
-    ram_external_app_aprs_tx               (rwx) : org = 0xAE0C0000, len = 32k
-    ram_external_app_ft8_rx                (rwx) : org = 0xAE0D0000, len = 32k
-    ram_external_app_rds_rx                (rwx) : org = 0xAE0E0000, len = 32k
-    ram_external_app_wmbus_rx              (rwx) : org = 0xAE0F0000, len = 32k
+    ram_external_app_sstvtx                (rwx) : org = 0xADC60000, len = 32k
+    ram_external_app_random_password       (rwx) : org = 0xADC70000, len = 32k
+    ram_external_app_acars_rx              (rwx) : org = 0xADC80000, len = 32k
+    ram_external_app_shoppingcart_lock     (rwx) : org = 0xADC90000, len = 32k
+    ram_external_app_cvs_spam              (rwx) : org = 0xADCA0000, len = 32k
+    ram_external_app_ookbrute              (rwx) : org = 0xADCB0000, len = 32k
+    ram_external_app_ook_editor            (rwx) : org = 0xADCC0000, len = 32k
+    ram_external_app_remote                (rwx) : org = 0xADCD0000, len = 32k
+    ram_external_app_mcu_temperature       (rwx) : org = 0xADCE0000, len = 32k
+    ram_external_app_fmradio               (rwx) : org = 0xADCF0000, len = 32k
+    ram_external_app_tuner                 (rwx) : org = 0xADD00000, len = 32k
+    ram_external_app_metronome             (rwx) : org = 0xADD10000, len = 32k
+    ram_external_app_app_manager           (rwx) : org = 0xADD20000, len = 32k
+    ram_external_app_hopper                (rwx) : org = 0xADD30000, len = 32k
+    ram_external_app_antenna_length        (rwx) : org = 0xADD40000, len = 32k
+    ram_external_app_view_wav              (rwx) : org = 0xADD50000, len = 32k
+    ram_external_app_sd_wipe               (rwx) : org = 0xADD60000, len = 32k
+    ram_external_app_playlist_editor       (rwx) : org = 0xADD70000, len = 32k
+    ram_external_app_snake                 (rwx) : org = 0xADD80000, len = 32k
+    ram_external_app_stopwatch             (rwx) : org = 0xADD90000, len = 32k
+    ram_external_app_wefax_rx              (rwx) : org = 0xADDA0000, len = 32k
+    ram_external_app_breakout              (rwx) : org = 0xADDB0000, len = 32k
+    ram_external_app_doom                  (rwx) : org = 0xADDC0000, len = 32k
+    ram_external_app_debug_pmem            (rwx) : org = 0xADDD0000, len = 32k
+    ram_external_app_scanner               (rwx) : org = 0xADDE0000, len = 32k
+    ram_external_app_level                 (rwx) : org = 0xADDF0000, len = 32k
+    ram_external_app_gfxeq                 (rwx) : org = 0xADE00000, len = 32k
+    ram_external_app_noaaapt_rx            (rwx) : org = 0xADE10000, len = 32k
+    ram_external_app_detector_rx           (rwx) : org = 0xADE20000, len = 32k
+    ram_external_app_dinogame              (rwx) : org = 0xADE30000, len = 32k
+    ram_external_app_spaceinv              (rwx) : org = 0xADE40000, len = 32k
+    ram_external_app_blackjack             (rwx) : org = 0xADE50000, len = 32k
+    ram_external_app_battleship            (rwx) : org = 0xADE60000, len = 32k
+    ram_external_app_ert                   (rwx) : org = 0xADE70000, len = 32k
+    ram_external_app_epirb_rx              (rwx) : org = 0xADE80000, len = 32k
+    ram_external_app_soundboard            (rwx) : org = 0xADE90000, len = 32k
+    ram_external_app_game2048              (rwx) : org = 0xADEA0000, len = 32k
+    ram_external_app_bht_tx                (rwx) : org = 0xADEB0000, len = 32k
+    ram_external_app_morse_practice        (rwx) : org = 0xADEC0000, len = 32k
+    ram_external_app_adult_toys_controller (rwx) : org = 0xADED0000, len = 32k
+    ram_external_app_flex_rx               (rwx) : org = 0xADEE0000, len = 32k
+    ram_external_app_sstvrx                (rwx) : org = 0xADEF0000, len = 32k
+    ram_external_app_subcarrx              (rwx) : org = 0xADF00000, len = 32k
+    ram_external_app_siggen                (rwx) : org = 0xADF10000, len = 32k
+    ram_external_app_sdusb                 (rwx) : org = 0xADF20000, len = 32k
+    ram_external_app_morse_radio           (rwx) : org = 0xADF30000, len = 32k
+    ram_external_app_waterfall_designer    (rwx) : org = 0xADF40000, len = 32k
+    ram_external_app_morseradiotx          (rwx) : org = 0xADF50000, len = 32k
+    ram_external_app_keeloqtx              (rwx) : org = 0xADF60000, len = 32k
+    ram_external_app_rtty_rx               (rwx) : org = 0xADF70000, len = 32k
+    ram_external_app_rtty_tx               (rwx) : org = 0xADF80000, len = 32k
+    ram_external_app_tpmstx                (rwx) : org = 0xADF90000, len = 32k
+    ram_external_app_pocsag_tx             (rwx) : org = 0xADFA0000, len = 32k
+    ram_external_app_time_sink             (rwx) : org = 0xADFB0000, len = 32k
+    ram_external_app_same_tx               (rwx) : org = 0xADFC0000, len = 32k
+    ram_external_app_kiss_tnc              (rwx) : org = 0xADFD0000, len = 32k
+    ram_external_app_mdc_tx                (rwx) : org = 0xADFE0000, len = 32k
+    ram_external_app_epirb_tx              (rwx) : org = 0xADFF0000, len = 32k
+    ram_external_app_fpv_detect            (rwx) : org = 0xAE000000, len = 32k
+    ram_external_app_p25_tx                (rwx) : org = 0xAE010000, len = 32k
+    ram_external_app_two_tone_pager        (rwx) : org = 0xAE020000, len = 32k
+    ram_external_app_two_tone_rx           (rwx) : org = 0xAE030000, len = 32k
+    ram_external_app_flex_tx               (rwx) : org = 0xAE040000, len = 32k
+    ram_external_app_hard_reset            (rwx) : org = 0xAE050000, len = 32k
+    ram_external_app_secplustx             (rwx) : org = 0xAE060000, len = 32k
+    ram_external_app_vor_rx                (rwx) : org = 0xAE070000, len = 32k
+    ram_external_app_vor_tx                (rwx) : org = 0xAE080000, len = 32k
+    ram_external_app_signal_hunter         (rwx) : org = 0xAE090000, len = 32k
+    ram_external_app_tetra_rx              (rwx) : org = 0xAE0A0000, len = 32k
+    ram_external_app_aprs_tx               (rwx) : org = 0xAE0B0000, len = 32k
+    ram_external_app_ft8_rx                (rwx) : org = 0xAE0C0000, len = 32k
+    ram_external_app_rds_rx                (rwx) : org = 0xAE0D0000, len = 32k
+    ram_external_app_wmbus_rx              (rwx) : org = 0xAE0E0000, len = 32k
 }
 
 SECTIONS
@@ -247,12 +246,6 @@ SECTIONS
         KEEP(*(.external_app.app_adsbtx.application_information));
         */external/adsbtx/*(*ui*external_app*adsbtx*);
     } > ram_external_app_adsbtx
-
-    .external_app_morse_tx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_morse_tx.application_information));
-        */external/morse_tx/*(*ui*external_app*morse_tx*);
-    } > ram_external_app_morse_tx
 
     .external_app_sstvtx : ALIGN(4) SUBALIGN(4)
     {

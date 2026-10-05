@@ -4,6 +4,8 @@
 Each folder in firmware/application/external/ is an external app. An optional
 "tier.txt" in the folder holds a single integer (default 0 when missing):
 the highest flash tier in which the app is still built as an external app.
+The value -1 marks a disabled app: it is left out of every .ld file and is not
+checked against ui_navigation.cpp or external.cmake.
 An app with tier N is listed in external_tier0.ld .. external_tierN.ld, so
 tier 0 always contains every external app.
 
@@ -19,7 +21,8 @@ apps are appended alphabetically.
 It also verifies firmware/application/ui_navigation.cpp: an app marked tier T
 (< 2) must be #included from "external/<dir>/" inside a "#if FLASH_TIER >= T+1"
 block (it is internal only from that tier up), and an app marked 2 (external in
-every tier) must not be included at all. Any mismatch is reported and the script
+every tier) must not be included at all. Finally every app must be enabled in external.cmake: its main.cpp in EXTCPPSRC
+and its section name in EXTAPPLIST (commented-out entries don't count). Any mismatch is reported and the script
 exits with status 1 (the .ld files are still written unless --check is given).
 
 Usage: tools/update_external_tier_ld.py [--check]
@@ -49,8 +52,8 @@ def read_tier(app_dir):
     if not f.exists():
         return 0
     text = re.sub(r'(#|//).*', '', f.read_text()).strip()
-    if not re.fullmatch(r'\d+', text) or int(text) not in TIERS:
-        sys.exit(f"{f}: expected a single number in {TIERS}, got {text!r}")
+    if not re.fullmatch(r'-?\d+', text) or int(text) not in (-1, *TIERS):
+        sys.exit(f"{f}: expected a single number in {TIERS} or -1, got {text!r}")
     return int(text)
 
 
@@ -90,8 +93,8 @@ def parse_existing(apps):
         for name, body, _ in LD_SECTION_RE.findall(text):
             if f"*/external/" not in body:
                 wildcard.add(name)
-    order = [n for n in order if n in apps]
-    order += sorted(n for n in apps if n not in order)
+    order = [n for n in order if n in apps and apps[n]["tier"] >= 0]
+    order += sorted(n for n in apps if n not in order and apps[n]["tier"] >= 0)
     return order, wildcard
 
 
@@ -129,7 +132,7 @@ INCLUDE_RE = re.compile(r'#\s*include\s+"external/([^/"]+)/')
 
 def check_navigation(apps):
     """Return a list of error strings for includes that don't match the tier markers."""
-    by_dir = {a["dir"]: (n, a["tier"]) for n, a in apps.items()}
+    by_dir = {a["dir"]: (n, a["tier"]) for n, a in apps.items() if a["tier"] >= 0}
     stack, guards = [], {}
     for lineno, line in enumerate(NAV_FILE.read_text().splitlines(), 1):
         stripped = line.strip()
@@ -159,6 +162,28 @@ def check_navigation(apps):
     return errors
 
 
+def check_external_cmake(apps):
+    text = re.sub(r'#[^\n]*', '', (EXT_DIR / "external.cmake").read_text())
+
+    def block(var):
+        m = re.search(r'set\(\s*' + var + r'\b(.*?)\)', text, re.S)
+        if not m:
+            sys.exit(f"external.cmake: cannot find set({var} ...)")
+        return m.group(1)
+
+    srcs = set(re.findall(r'external/([^/\s]+)/main\.cpp', block("EXTCPPSRC")))
+    listed = set(block("EXTAPPLIST").split())
+    errors = []
+    for name, a in sorted(apps.items()):
+        if a["tier"] < 0:
+            continue
+        if a["dir"] not in srcs:
+            errors.append(f"external.cmake: {a['dir']}/main.cpp is not in EXTCPPSRC (or is commented out)")
+        if name not in listed:
+            errors.append(f"external.cmake: {name} is not in EXTAPPLIST (or is commented out)")
+    return errors
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="don't write, exit 1 if files are out of date")
@@ -176,8 +201,8 @@ def main():
             if not args.check:
                 p.write_text(text)
         print(f"tier {tier}: {count} apps, last region ends at 0x{BASE + count * STEP - STEP + LEN_K * 1024:08X}")
-    print(f"total apps: {len(apps)} (limit external_apps_address_end must be >= 0x{BASE + (len(order) - 1) * STEP + LEN_K * 1024:08X})")
-    errors = check_navigation(apps)
+    print(f"total apps: {len(order)} enabled, {len(apps) - len(order)} disabled (limit external_apps_address_end must be >= 0x{BASE + (len(order) - 1) * STEP + LEN_K * 1024:08X})")
+    errors = check_navigation(apps) + check_external_cmake(apps)
     for e in errors:
         print("ERROR:", e, file=sys.stderr)
     if args.check and stale:
