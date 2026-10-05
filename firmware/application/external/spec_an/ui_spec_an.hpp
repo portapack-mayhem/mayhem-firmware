@@ -303,6 +303,12 @@ class SpecAnView : public View {
     Item active_{Item::Center};
     bool keys_dirty_{true};
 
+    /* What the current touch went down on, acted on at End. */
+    enum class TouchTarget : uint8_t { None,
+                                       Softkey,
+                                       Keypad };
+    TouchTarget touch_target_{TouchTarget::None};
+
     std::array<std::array<char, 80>, 4> text_cache_{};
 
     /* Render scratch: members, not stack (4 KiB) nor static (permanent). */

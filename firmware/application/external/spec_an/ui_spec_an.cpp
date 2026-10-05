@@ -1164,7 +1164,22 @@ bool SpecAnView::on_encoder(const EncoderEvent delta) {
 }
 
 bool SpecAnView::on_touch(const TouchEvent event) {
-    if (event.type == TouchEvent::Type::End) return true;
+    /* The dispatcher delivers Start twice (hit test, then capture), so
+     * Start only selects and the action fires once, on End. */
+    if (event.type == TouchEvent::Type::End) {
+        const TouchTarget target = touch_target_;
+        touch_target_ = TouchTarget::None;
+        if (target == TouchTarget::Softkey && cursor_ <= menu_len_) {
+            if (cursor_ == 0)
+                go_back();
+            else
+                activate(menu_[cursor_ - 1]);
+        } else if (target == TouchTarget::Keypad) {
+            open_keypad(active_);
+        }
+        return true;
+    }
+    if (event.type == TouchEvent::Type::Start) touch_target_ = TouchTarget::None;
     const Point p = remap_touch(event.point);
 
     if (p.y() >= kSoftY) {
@@ -1173,10 +1188,7 @@ bool SpecAnView::on_touch(const TouchEvent event) {
         if (idx > menu_len_) return true;
         cursor_ = idx;
         keys_dirty_ = true;
-        if (idx == 0)
-            go_back();
-        else
-            activate(menu_[idx - 1]);
+        touch_target_ = TouchTarget::Softkey;
         return true;
     }
 
@@ -1194,7 +1206,7 @@ bool SpecAnView::on_touch(const TouchEvent event) {
 
     if (event.type == TouchEvent::Type::Start && p.y() >= kActiveY && p.y() < kSoftY) {
         if (active_ == Item::Center || active_ == Item::Start || active_ == Item::Stop || active_ == Item::Span)
-            open_keypad(active_);
+            touch_target_ = TouchTarget::Keypad;
     }
     return true;
 }
