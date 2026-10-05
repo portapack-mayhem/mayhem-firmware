@@ -542,6 +542,14 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAIS ais)
 
+### Binary Timed stream TX
+
+set(MODE_CPPSRC
+       proc_bint_stream_tx.cpp
+)
+DeclareTargets(POSK bintstream)
+
+
 
 ###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 0, 1, but will be internal on T2
 if(FLASH_TIER EQUAL 1)
@@ -555,6 +563,14 @@ set(MODE_CPPSRC
 	proc_am_tv.cpp
 )
 DeclareTargets(PAMT am_tv)
+
+
+### ProtoView
+
+set(MODE_CPPSRC
+	proc_protoview.cpp
+)
+DeclareTargets(PPVW protoview)
 
 
 
@@ -668,12 +684,6 @@ set(MODE_CPPSRC
 DeclareTargets(PABP audio_beep)
 
 
-### ProtoView
-
-set(MODE_CPPSRC
-	proc_protoview.cpp
-)
-DeclareTargets(PPVW protoview)
 
 
 ### SSTV TX
@@ -698,13 +708,6 @@ set(MODE_CPPSRC
 DeclareTargets(PTPM tpms)
 
 
-
-### Binary Timed stream TX
-
-set(MODE_CPPSRC
-       proc_bint_stream_tx.cpp
-)
-DeclareTargets(POSK bintstream)
 
 
 ### Signal generator
