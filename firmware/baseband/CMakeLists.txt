@@ -493,13 +493,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSPE wideband_spectrum)
 
-### Spectrum Analyzer
-
-set(MODE_CPPSRC
-	proc_spec_an.cpp
-)
-DeclareTargets(PSAN spec_an)
-
 
 ### WFM Audio
 
@@ -800,6 +793,13 @@ set(MODE_CPPSRC
 	proc_time_sink.cpp
 )
 DeclareTargets(PTSK time_sink)
+
+### Spectrum Analyzer
+
+set(MODE_CPPSRC
+	proc_spec_an.cpp
+)
+DeclareTargets(PSAN spec_an)
 
 
 ### Tetra Rx

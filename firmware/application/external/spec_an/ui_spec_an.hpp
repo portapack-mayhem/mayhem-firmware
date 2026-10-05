@@ -52,7 +52,7 @@
 #include <array>
 #include <cstdint>
 
-namespace ui {
+namespace ui::external_app::spec_an {
 
 class SpecAnView : public View {
    public:
@@ -141,7 +141,7 @@ class SpecAnView : public View {
     };
 
    private:
-    static constexpr size_t kPoints = spec_an::kPoints;
+    static constexpr size_t kPoints = ::spec_an::kPoints;
     static constexpr size_t kTraces = 3;
     static constexpr size_t kMarkers = 4;
     static constexpr int kPlotRows = 171; /* spectrum + waterfall */
@@ -182,8 +182,8 @@ class SpecAnView : public View {
     int32_t ref_offset_cdb_{0};
     uint8_t rbw_idx_{0}; /* 0 auto, else N = 128 << idx */
     uint8_t vbw_idx_{0}; /* averages = 1 << idx */
-    uint8_t window_{static_cast<uint8_t>(spec_an::Window::BlackmanHarris)};
-    uint8_t detector_{static_cast<uint8_t>(spec_an::Detector::Peak)};
+    uint8_t window_{static_cast<uint8_t>(::spec_an::Window::BlackmanHarris)};
+    uint8_t detector_{static_cast<uint8_t>(::spec_an::Detector::Peak)};
     uint8_t layout_{0};
     uint32_t settle_us_{200};
     uint8_t avg_log2_{3};
@@ -244,7 +244,7 @@ class SpecAnView : public View {
         }};
 
     /* Sweep engine. */
-    spec_an::Shared shared_{};
+    ::spec_an::Shared shared_{};
     Plan plan_{};
     uint32_t cur_fs_{0};
     uint32_t cur_filter_{0};
@@ -372,6 +372,6 @@ class SpecAnView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::spec_an */
 
 #endif /*__UI_SPEC_AN_H__*/

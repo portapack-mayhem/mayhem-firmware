@@ -411,6 +411,10 @@ set(EXTCPPSRC
 	external/ft8_rx/main.cpp
 	external/ft8_rx/ui_ft8_rx.cpp
 
+	#spectrum analyzer
+	external/spec_an/main.cpp
+	external/spec_an/ui_spec_an.cpp
+
 	#sd over usb
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
@@ -514,5 +518,6 @@ set(EXTAPPLIST
 	aprs_rx
 	aprs_tx
 	ft8_rx
+	spec_an
 	sdusb
 )

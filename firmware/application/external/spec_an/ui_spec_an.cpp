@@ -35,11 +35,11 @@
 #include <cstring>
 
 using namespace portapack;
-using namespace spec_an;
+using namespace ::spec_an;
 
 extern ui::SystemView* system_view_ptr;
 
-namespace ui {
+namespace ui::external_app::spec_an {
 
 namespace {
 
@@ -336,7 +336,7 @@ SpecAnView::SpecAnView(NavigationView& nav)
     drawn_top_.fill(255);
     drawn_bot_.fill(0);
 
-    baseband::run_image(spi_flash::image_tag_spec_an);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
     radio::set_fast_retune(true);
 
     receiver_model.set_sampling_rate(kSampleRates[3]);
@@ -1725,4 +1725,4 @@ void SpecAnView::next_peak() {
     mark_marker_dirty(m);
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::spec_an */
