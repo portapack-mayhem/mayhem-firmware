@@ -122,8 +122,6 @@ MEMORY
     ram_external_app_ft8_rx                (rwx) : org = 0xAE110000, len = 32k
     ram_external_app_rds_rx                (rwx) : org = 0xAE120000, len = 32k
     ram_external_app_wmbus_rx              (rwx) : org = 0xAE130000, len = 32k
-
-
 }
 
 SECTIONS
@@ -242,12 +240,6 @@ SECTIONS
         */external/tpmsrx/*(*ui*external_app*tpmsrx*);
     } > ram_external_app_tpmsrx
 
-    .external_app_tpmstx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_tpmstx.application_information));
-        */external/tpmstx/*(*ui*external_app*tpmstx*);
-    } > ram_external_app_tpmstx
-
     .external_app_protoview : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_protoview.application_information));
@@ -302,17 +294,17 @@ SECTIONS
         */external/ookbrute/*(*ui*external_app*ookbrute*);
     } > ram_external_app_ookbrute
 
-    .external_app_ook_editor : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_ook_editor.application_information));
-        */external/ook_editor/*(*ui*external_app*ook_editor*);
-    } > ram_external_app_ook_editor
-
     .external_app_flippertx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_flippertx.application_information));
         */external/flippertx/*(*ui*external_app*flippertx*);
     } > ram_external_app_flippertx
+
+    .external_app_ook_editor : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_ook_editor.application_information));
+        */external/ook_editor/*(*ui*external_app*ook_editor*);
+    } > ram_external_app_ook_editor
 
     .external_app_remote : ALIGN(4) SUBALIGN(4)
     {
@@ -398,24 +390,6 @@ SECTIONS
         */external/wefax_rx/*(*ui*external_app*wefax_rx*);
     } > ram_external_app_wefax_rx
 
-    .external_app_noaaapt_rx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_noaaapt_rx.application_information));
-        */external/noaaapt_rx/*(*ui*external_app*noaaapt_rx*);
-    } > ram_external_app_noaaapt_rx
-
-    .external_app_vor_rx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_vor_rx.application_information));
-        */external/vor_rx/*(*ui*external_app*vor_rx*);
-    } > ram_external_app_vor_rx
-
-    .external_app_vor_tx : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_vor_tx.application_information));
-        */external/vor_tx/*(*ui*external_app*vor_tx*);
-    } > ram_external_app_vor_tx
-
     .external_app_breakout : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_breakout.application_information));
@@ -452,11 +426,11 @@ SECTIONS
         */external/gfxeq/*(*ui*external_app*gfxeq*);
     } > ram_external_app_gfxeq
 
-    .external_app_waterfall_designer : ALIGN(4) SUBALIGN(4)
+    .external_app_noaaapt_rx : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_waterfall_designer.application_information));
-        */external/waterfall_designer/*(*ui*external_app*waterfall_designer*);
-    } > ram_external_app_waterfall_designer
+        KEEP(*(.external_app.app_noaaapt_rx.application_information));
+        */external/noaaapt_rx/*(*ui*external_app*noaaapt_rx*);
+    } > ram_external_app_noaaapt_rx
 
     .external_app_detector_rx : ALIGN(4) SUBALIGN(4)
     {
@@ -566,6 +540,12 @@ SECTIONS
         */external/morse_radio/*(*ui*external_app*morse_radio*);
     } > ram_external_app_morse_radio
 
+    .external_app_waterfall_designer : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_waterfall_designer.application_information));
+        */external/waterfall_designer/*(*ui*external_app*waterfall_designer*);
+    } > ram_external_app_waterfall_designer
+
     .external_app_morseradiotx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_morseradiotx.application_information));
@@ -589,6 +569,12 @@ SECTIONS
         KEEP(*(.external_app.app_rtty_tx.application_information));
         */external/rtty_tx/*(*ui*external_app*rtty_tx*);
     } > ram_external_app_rtty_tx
+
+    .external_app_tpmstx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_tpmstx.application_information));
+        */external/tpmstx/*(*ui*external_app*tpmstx*);
+    } > ram_external_app_tpmstx
 
     .external_app_pocsag_tx : ALIGN(4) SUBALIGN(4)
     {
@@ -668,10 +654,22 @@ SECTIONS
         */external/secplustx/*(*ui*external_app*secplustx*);
     } > ram_external_app_secplustx
 
+    .external_app_vor_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_vor_rx.application_information));
+        */external/vor_rx/*(*ui*external_app*vor_rx*);
+    } > ram_external_app_vor_rx
+
+    .external_app_vor_tx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_vor_tx.application_information));
+        */external/vor_tx/*(*ui*external_app*vor_tx*);
+    } > ram_external_app_vor_tx
+
     .external_app_signal_hunter : ALIGN(4) SUBALIGN(4)
     {
-      KEEP(*(.external_app.app_signal_hunter.application_information));
-      */external/signal_hunter/*(*ui*external_app*signal_hunter*);
+        KEEP(*(.external_app.app_signal_hunter.application_information));
+        */external/signal_hunter/*(*ui*external_app*signal_hunter*);
     } > ram_external_app_signal_hunter
 
     .external_app_tetra_rx : ALIGN(4) SUBALIGN(4)
@@ -712,15 +710,13 @@ SECTIONS
 
     .external_app_rds_rx : ALIGN(4) SUBALIGN(4)
     {
-      KEEP(*(.external_app.app_rds_rx.application_information));
-      *(*ui*external_app*rds_rx*);
+        KEEP(*(.external_app.app_rds_rx.application_information));
+        *(*ui*external_app*rds_rx*);
     } > ram_external_app_rds_rx
+
     .external_app_wmbus_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_wmbus_rx.application_information));
         *(*ui*external_app*wmbus_rx*);
     } > ram_external_app_wmbus_rx
-
-
-
 }
