@@ -82,6 +82,7 @@ constexpr Color c_key_bg{30, 30, 40};
 constexpr Color c_key_active{0, 50, 110};
 constexpr Color c_key_cursor{255, 210, 0};
 constexpr Color c_key_lit{80, 255, 80};
+constexpr Color c_warn{255, 140, 0};
 
 constexpr Color c_trace[3] = {{255, 230, 0}, {0, 210, 255}, {255, 90, 210}};
 constexpr Color c_marker[4] = {{255, 70, 70}, {70, 255, 70}, {90, 140, 255}, {255, 160, 0}};
@@ -921,6 +922,7 @@ void SpecAnView::render_text() {
         TextBuf t;
         t.s("CF ").freq_compact(center_).s("Hz  Span ").freq_compact(span_).s("Hz  RBW ").freq_compact(plan_.rbw_hz).s("Hz  VBW ").freq_compact(plan_.rbw_hz / plan_.avg).s("Hz");
         TextBuf right;
+        if (settle_low() && plan_.slices > 1) right.s("SETTLE LOW  ");
         right.u(plan_.slices).s(plan_.slices == 1 ? "tune" : "tunes");
         t.pad(kSmallChars - right.size()).s(right.str());
         draw_text_line(2, {0, kAnnoY}, font::fixed_5x8, c_dim, c_bg, t.str(), kSmallChars);
@@ -929,6 +931,7 @@ void SpecAnView::render_text() {
     /* Active function: label left (cyan), value right (white). */
     TextBuf label;
     TextBuf value;
+    Color value_color = c_text;
     switch (active_) {
         case Item::Center:
             label.s("Center");
@@ -989,6 +992,10 @@ void SpecAnView::render_text() {
         case Item::Settle:
             label.s("Settle");
             value.u(settle_us_).s("us ").u(plan_.settle_bufs).s("buf");
+            if (settle_low()) {
+                value.s(" <").u(kSettleMinUs);
+                value_color = c_warn;
+            }
             break;
         case Item::TraceSel:
         case Item::TraceMode:
@@ -1037,7 +1044,7 @@ void SpecAnView::render_text() {
     lpad.s(label.str()).pad(lwidth);
     Painter painter;
     painter.draw_string({0, kActiveY}, font::fixed_8x16, c_label, c_bg, std::string_view{lpad.str(), lwidth});
-    painter.draw_string({static_cast<int>(lwidth * 8), kActiveY}, font::fixed_8x16, c_text, c_bg, std::string_view{value.str(), vlen});
+    painter.draw_string({static_cast<int>(lwidth * 8), kActiveY}, font::fixed_8x16, value_color, c_bg, std::string_view{value.str(), vlen});
 }
 
 void SpecAnView::render_softkeys() {

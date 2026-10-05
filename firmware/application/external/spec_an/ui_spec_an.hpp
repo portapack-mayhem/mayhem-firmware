@@ -185,7 +185,19 @@ class SpecAnView : public View {
     uint8_t window_{static_cast<uint8_t>(::spec_an::Window::BlackmanHarris)};
     uint8_t detector_{static_cast<uint8_t>(::spec_an::Detector::Peak)};
     uint8_t layout_{0};
-    uint32_t settle_us_{200};
+    /* Synthesizer settling after each retune. HackRF One moves both PLLs on
+     * every slice (its second LO tracks the RF, 2650 MHz - f/7) and smears
+     * a CW across the slice below ~350 us. PRALINE keeps the MAX2831 on a
+     * fixed IF across most bands and is clean even at 0. */
+#ifdef PRALINE
+    static constexpr uint32_t kSettleMinUs = 0;
+    static constexpr uint32_t kSettleDefaultUs = 100;
+#else
+    static constexpr uint32_t kSettleMinUs = 350;
+    static constexpr uint32_t kSettleDefaultUs = 400;
+#endif
+    uint32_t settle_us_{kSettleDefaultUs};
+    bool settle_low() const { return settle_us_ < kSettleMinUs; }
     uint8_t avg_log2_{3};
     bool fill_{true};
     bool waterfall_{true};
@@ -216,7 +228,7 @@ class SpecAnView : public View {
             {"window"sv, &window_},
             {"detector"sv, &detector_},
             {"layout"sv, &layout_},
-            {"settle_us"sv, &settle_us_},
+            {"settle_us2"sv, &settle_us_},
             {"avg_log2"sv, &avg_log2_},
             {"fill"sv, &fill_},
             {"waterfall"sv, &waterfall_},
