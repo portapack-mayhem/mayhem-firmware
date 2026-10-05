@@ -33,6 +33,8 @@
 #include "message.hpp"
 
 #include <array>
+#include <atomic>
+#include <type_traits>
 #include <memory>
 #include <tuple>
 #include <variant>
@@ -63,6 +65,16 @@ class MultiDecimator {
                 return arg.execute(src, dst);
             },
             decimator_);
+    }
+
+    // Reconfigure only the active first-stage variant; preserve its factor.
+    void configure_fs4(const std::array<int16_t, 24>& taps, RxFs4Direction direction) {
+        std::visit([&](auto& decimator) {
+            using Shift = typename std::decay_t<decltype(decimator)>::Shift;
+            decimator.configure(taps, dsp::decimate::c8_to_c32_sat_scalar,
+                                direction == RxFs4Direction::Up ? Shift::Up : Shift::Down);
+        },
+                   decimator_);
     }
 
     size_t decimation_factor() const {
@@ -124,6 +136,21 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
+
+    std::array<int16_t, 24> decim_0_taps_{};
+    std::atomic<RxFs4Direction> requested_fs4_direction_{RxFs4Direction::Down};
+    RxFs4Direction applied_fs4_direction_{RxFs4Direction::Down};
+
+    template <typename Decimator>
+    void configure_fs4(const std::array<int16_t, 24>& taps) {
+        // Variant selection, taps and direction must change together.
+        chSysLock();
+        decim_0.set<Decimator>();
+        decim_0_taps_ = taps;
+        applied_fs4_direction_ = requested_fs4_direction_.load(std::memory_order_relaxed);
+        decim_0.configure_fs4(decim_0_taps_, applied_fs4_direction_);
+        chSysUnlock();
+    }
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{

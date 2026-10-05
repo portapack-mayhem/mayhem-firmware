@@ -77,7 +77,8 @@ __attribute__((section(".external_app.app_fmradio.application_information"), use
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_wfm_audio */ {'P', 'W', 'F', 'M'},
+    // this has to be the biggest baseband used by the app. Radio is using AM,NFM,WFM and AM is the biggest
+    /*.m4_app_tag = portapack::spi_flash::image_tag_am_audio */ {'P', 'A', 'M', 'A'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

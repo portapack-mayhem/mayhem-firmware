@@ -41,9 +41,10 @@ struct AMConfig {
     const fir_taps_complex<64> channel;
     const AMConfigureMessage::Modulation modulation;
     const iir_biquad_config_t audio_12k_iir_filter_config;  // added to handle two var IIR filter types : 300 hpf(as before) , 1500Hz lpf for Wefax.
-    const size_t spectrum_decimation_factor;                // used to handle LCD AM waterfall zoom x1 / zoom x2.
+    const size_t spectrum_decimation_factor;
 
-    void apply() const;
+    void apply(uint8_t squelch_level = 0) const;
+    void apply(AMConfigureMessage::Zoom_waterfall spectrum_zoom, uint8_t squelch_level = 0) const;
 };
 
 struct NBFMConfig {
@@ -124,6 +125,7 @@ void set_epirb_tx_config(EPIRBTXDataMessage& message);
 void set_epirb_rx_config(EPIRBRXConfig& message);
 void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length);
 void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start);
+void set_wmbus_config(uint8_t mode = 0);
 
 void request_roger_beep();
 void request_rssi_beep();
@@ -131,8 +133,10 @@ void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);
 
 bool is_image_running();
+bool supports_rx_fs4();
+void set_rx_fs4_direction(RxFs4Direction direction);
 void run_image(const portapack::spi_flash::image_tag_t image_tag, bool enforce_core_sync = true);
-void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true);
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true, const portapack::spi_flash::image_tag_t prepared_image_tag = portapack::spi_flash::image_tag_none);
 void shutdown();
 
 void spectrum_streaming_start();

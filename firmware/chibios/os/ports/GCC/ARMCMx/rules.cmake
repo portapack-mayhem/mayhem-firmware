@@ -116,8 +116,12 @@ if(BOARD STREQUAL "PRALINE")
     set(M0_RAM_SIZE           "64k")         # AHB SRAM Bank 0 for M0 (stacks, data, bss)
     set(M0_LOCAL_HEAP_SIZE    "0")           # No Local SRAM, could be 32k heap for additional 16-bit IQ
     set(M0_LOCAL_HEAP_ORIGIN  "0x10020000")  # 0x10018000 if allocating 32k heap for M0 after M4's 96KB 
-    set(M4_RAM_SIZE           "128k")        # Local SRAM Bank 1 Fully allocated to M4 (HackRF One is 96k)
-    set(M4_FLASH_SIZE         "72k")         # Local SRAM Bank 2
+    set(M4_RAM_SIZE           "131072")      # 128k, Local SRAM Bank 1 fully allocated to M4
+    # Bank 2 is 72k. 64k is m4_code, shared by a baseband image and an external
+    # app's M0 code, and the top 8k holds the M0/M4 shared memory. A baseband
+    # image must stay within the 64k so it cannot reach the shared memory.
+    set(M4_FLASH_SIZE         "64k")         # Local SRAM Bank 2, below shared memory
+    set(M4_CODE_SIZE          "65536")       # must match m4_code in memory_map.hpp
     set(USB_RAM_SIZE          "32k")         # AHB SRAM shared with M0
     set(FLASH_SIZE            "4M")
 else() 
@@ -127,14 +131,33 @@ else()
     # original hackrf one settings intact. 
     # Recommend revisit by devs.
     # Local SRAM: 96KB (Bank 1) + 40KB (Bank 2)
+    # Bank 2 is only 40k, and all of it is m4_code, shared by a baseband image
+    # and an external app's M0 code. The M0/M4 shared memory does not fit above
+    # it, so it lives in the top 8k of Local SRAM Bank 1 and the M4 RAM is 88k
+    # instead of 96k. The 8k comes from the M4 heap rather than the M0 heap
+    # because the M4 has the slack: a capture allocates about 65k (16k DMA
+    # buffer plus 48k stream buffers) of the 86k it would otherwise have, while
+    # the M0 heap is down to about 15k free by the time an app opens.
+    # See memory_map.hpp.
     set(M0_RAM_SIZE           "64k")   # Standard AHB SRAM for M0
     set(M0_LOCAL_HEAP_SIZE    "0k")    # No local heap available
     set(M0_LOCAL_HEAP_ORIGIN  "0")     # Not used
-    set(M4_RAM_SIZE           "96k")   # Standard Local SRAM Bank 1
+    set(M4_RAM_SIZE           "90112") # 88k, Local SRAM Bank 1 below shared memory
+    # Below M4_CODE_SIZE on purpose: capping a baseband image at 32k leaves an
+    # external app a usable share of the 40k region.
     set(M4_FLASH_SIZE         "32752") # Standard Local SRAM Bank 2 (~32KB)
+    set(M4_CODE_SIZE          "40960") # must match m4_code in memory_map.hpp
     set(USB_RAM_SIZE          "32k")   # Standard 32k/32k split for AHB Bank 1
     set(FLASH_SIZE            "1M")    # Standard SPI Flash limit
 endif()
+
+# memory_map.hpp selects the matching layout from PORTAPACK_BOARD_PRALINE and
+# cross-checks M4_CODE_SIZE and M4_RAM_SIZE with static_assert.
+if(BOARD STREQUAL "PRALINE")
+    add_definitions(-DPORTAPACK_BOARD_PRALINE=1)
+endif()
+add_definitions(-DPORTAPACK_M4_CODE_SIZE=${M4_CODE_SIZE})
+add_definitions(-DPORTAPACK_M4_RAM_SIZE=${M4_RAM_SIZE})
 
 # Apply all symbols to the linker flags in one command
 # Build linker flags

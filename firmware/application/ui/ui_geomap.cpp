@@ -2,6 +2,9 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2026 Dmytro Onyshko
+ * Copyright (C) 2026 Khanfar
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -23,6 +26,7 @@
 
 #include "ui_geomap.hpp"
 #include "portapack.hpp"
+#include <algorithm>
 #include <cstring>
 #include <stdio.h>
 #include <string_view>
@@ -64,19 +68,11 @@ GeoPos::GeoPos(
     set_lon(0);
 
     const auto changed_fn = [this](int32_t) {
-        // Convert degrees/minutes/seconds fields to decimal (floating point) lat/lon degree
-        float lat_value = lat();
-        float lon_value = lon();
-
-        text_lat_decimal.set(to_string_decimal(lat_value, 5));
-        text_lon_decimal.set(to_string_decimal(lon_value, 5));
-
-        if (on_change && report_change)
-            on_change(altitude(), lat_value, lon_value, speed());
+        report_position();
     };
 
-    const auto changed_hemisphere_fn = [changed_fn](size_t, OptionsField::value_t) {
-        changed_fn(0);
+    const auto changed_hemisphere_fn = [this](size_t, OptionsField::value_t) {
+        report_position();
     };
 
     field_altitude.on_change = changed_fn;
@@ -90,44 +86,15 @@ GeoPos::GeoPos(
     field_lon_minutes.on_change = changed_fn;
     field_lon_seconds.on_change = changed_fn;
 
-    const auto wrapped_lat_seconds = [this](int32_t v) {
-        const auto old_minutes = field_lat_minutes.value();
-        field_lat_minutes.on_encoder(v);
-        if (field_lat_minutes.value() == old_minutes) {
-            field_lat_seconds.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    // Degrees now holds a magnitude, so a minutes wrap always carries in the
-    // same direction regardless of hemisphere.
-    const auto wrapped_lat_minutes = [this](int32_t v) {
-        const auto old_degrees = field_lat_degrees.value();
-        field_lat_degrees.on_encoder(v);
-        if (field_lat_degrees.value() == old_degrees) {
-            field_lat_minutes.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    const auto wrapped_lon_seconds = [this](int32_t v) {
-        const auto old_minutes = field_lon_minutes.value();
-        field_lon_minutes.on_encoder(v);
-        if (field_lon_minutes.value() == old_minutes) {
-            field_lon_seconds.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    const auto wrapped_lon_minutes = [this](int32_t v) {
-        const auto old_degrees = field_lon_degrees.value();
-        field_lon_degrees.on_encoder(v);
-        if (field_lon_degrees.value() == old_degrees) {
-            field_lon_minutes.set_value((v > 0) ? 59 : 0);
-        }
-    };
-
-    field_lat_seconds.on_wrap = wrapped_lat_seconds;
-    field_lat_minutes.on_wrap = wrapped_lat_minutes;
-    field_lon_seconds.on_wrap = wrapped_lon_seconds;
-    field_lon_minutes.on_wrap = wrapped_lon_minutes;
+    // Route each DMS field's encoder through the signed arcsecond model so a turn moves
+    // the coordinate along the number line and crosses 0 correctly (issue #3317). One
+    // second is the base unit; minutes and degrees step by 60 and 3600 of it.
+    field_lat_degrees.on_delta = [this](int32_t d) { adjust_lat(d * 3600); };
+    field_lat_minutes.on_delta = [this](int32_t d) { adjust_lat(d * 60); };
+    field_lat_seconds.on_delta = [this](int32_t d) { adjust_lat(d); };
+    field_lon_degrees.on_delta = [this](int32_t d) { adjust_lon(d * 3600); };
+    field_lon_minutes.on_delta = [this](int32_t d) { adjust_lon(d * 60); };
+    field_lon_seconds.on_delta = [this](int32_t d) { adjust_lon(d); };
 
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
     if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
@@ -199,6 +166,73 @@ float GeoPos::lon() {
     return (field_lon_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
 };
 
+int32_t GeoPos::lat_arcseconds() {
+    int32_t magnitude = field_lat_degrees.value() * 3600 + field_lat_minutes.value() * 60 + field_lat_seconds.value();
+    return (field_lat_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
+}
+
+int32_t GeoPos::lon_arcseconds() {
+    int32_t magnitude = field_lon_degrees.value() * 3600 + field_lon_minutes.value() * 60 + field_lon_seconds.value();
+    return (field_lon_hemisphere.selected_index_value() != 0) ? -magnitude : magnitude;
+}
+
+void GeoPos::set_lat_arcseconds(int32_t arcseconds) {
+    if (arcseconds > lat_arcsecond_limit) arcseconds = lat_arcsecond_limit;
+    if (arcseconds < -lat_arcsecond_limit) arcseconds = -lat_arcsecond_limit;
+    bool south = arcseconds < 0;
+    int32_t magnitude = south ? -arcseconds : arcseconds;
+    field_lat_hemisphere.set_by_value(south ? 1 : 0);
+    field_lat_degrees.set_value(magnitude / 3600);
+    field_lat_minutes.set_value((magnitude / 60) % 60);
+    field_lat_seconds.set_value(magnitude % 60);
+}
+
+void GeoPos::set_lon_arcseconds(int32_t arcseconds) {
+    if (arcseconds > lon_arcsecond_limit) arcseconds = lon_arcsecond_limit;
+    if (arcseconds < -lon_arcsecond_limit) arcseconds = -lon_arcsecond_limit;
+    bool west = arcseconds < 0;
+    int32_t magnitude = west ? -arcseconds : arcseconds;
+    field_lon_hemisphere.set_by_value(west ? 1 : 0);
+    field_lon_degrees.set_value(magnitude / 3600);
+    field_lon_minutes.set_value((magnitude / 60) % 60);
+    field_lon_seconds.set_value(magnitude % 60);
+}
+
+// Rewrite the fields from a single signed value so a hemisphere flip and the magnitude
+// reflection happen together. report_change is held off while the four fields settle,
+// then the final position is reported once.
+void GeoPos::adjust_lat(int32_t arcsecond_delta) {
+    const int32_t old_arcseconds = lat_arcseconds();
+    bool previous = report_change;
+    report_change = false;
+    set_lat_arcseconds(old_arcseconds + arcsecond_delta);
+    report_change = previous;
+    if (lat_arcseconds() != old_arcseconds)
+        report_position();
+}
+
+void GeoPos::adjust_lon(int32_t arcsecond_delta) {
+    const int32_t old_arcseconds = lon_arcseconds();
+    bool previous = report_change;
+    report_change = false;
+    set_lon_arcseconds(old_arcseconds + arcsecond_delta);
+    report_change = previous;
+    if (lon_arcseconds() != old_arcseconds)
+        report_position();
+}
+
+void GeoPos::report_position() {
+    // Convert degrees/minutes/seconds fields to decimal (floating point) lat/lon degree
+    float lat_value = lat();
+    float lon_value = lon();
+
+    text_lat_decimal.set(to_string_decimal(lat_value, 5));
+    text_lon_decimal.set(to_string_decimal(lon_value, 5));
+
+    if (on_change && report_change)
+        on_change(altitude(), lat_value, lon_value, speed());
+}
+
 int32_t GeoPos::altitude() {
     return field_altitude.value();
 };
@@ -243,6 +277,22 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
         return false;
     }
 
+    update_zoom();
+    return true;
+}
+
+void GeoMap::set_zoom(int16_t zoom) {
+    if (zoom == 0 || zoom == -1)
+        zoom = 1;
+    if (zoom > MAX_MAP_ZOOM_IN)
+        zoom = MAX_MAP_ZOOM_IN;
+    if (zoom < -MAX_MAP_ZOOM_OUT)
+        zoom = -MAX_MAP_ZOOM_OUT;
+    map_zoom = zoom;
+    update_zoom();
+}
+
+void GeoMap::update_zoom() {
     map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
     if (use_osm) {
         map_visible = true;
@@ -252,8 +302,78 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
     }
 
     // Trigger map redraw
+    refresh();
+}
+
+void GeoMap::refresh() {
     redraw_map = true;
     set_dirty();
+}
+
+void GeoMap::pan(int dx, int dy) {
+    float lat, lon;
+    if (use_osm) {
+        lon = tile_pixel_x_to_lon(lon_to_pixel_x_tile(lon_, map_osm_real_zoom) - dx, map_osm_real_zoom);
+        lat = tile_pixel_y_to_lat(lat_to_pixel_y_tile(lat_, map_osm_real_zoom) - dy, map_osm_real_zoom);
+    } else {
+        // Screen pixels to map file pixels at the current zoom.
+        float scale = 1.0f;
+        if (map_zoom > 1)
+            scale = 1.0f / map_zoom;
+        else if (map_zoom < 0)
+            scale = -map_zoom;
+        const GeoPoint p = lat_lon_to_map_pixel(lat_, lon_);
+        const float x = p.x - dx * scale;
+        const float y = p.y - dy * scale;
+        // Inverse of lat_lon_to_map_pixel().
+        lon = x * 360.0f / map_width - 180.0f;
+        lat = asin(tanh((map_height - y + map_offset) / map_world_lon)) * 180.0 / pi;
+    }
+    // OSM tiles run 0..2^zoom-1, and exactly +180 deg maps to tile 2^zoom, which move()
+    // cannot find; keep that bound just inside the dateline.
+    const float lon_max = use_osm ? 179.9999f : 180.0f;
+    if (lon > lon_max) lon = lon_max;
+    if (lon < -180.0f) lon = -180.0f;
+    if (lat > 85.0f) lat = 85.0f;
+    if (lat < -85.0f) lat = -85.0f;
+    move(lon, lat);
+    // Tell the owner where the centre went, as a touch in PROMPT mode does, so e.g.
+    // GeoMapView's coordinate fields follow and Wardrive reloads its markers for the
+    // new viewport.
+    if (on_move)
+        on_move(lon, lat, true);
+    redraw_map = true;
+    set_dirty();
+}
+
+/* Arrow keys pan the viewport (opposite sign to a touch drag, which grabs the map).
+ * PROMPT mode (the coordinate picker) leaves the arrows to the focus manager so they
+ * still move between its fields; panning there would trap focus on the map. */
+bool GeoMap::on_key(const KeyEvent key) {
+    if (mode_ == PROMPT)
+        return false;
+    constexpr int step = 40;  // screen pixels per press
+    int dx = 0, dy = 0;
+    switch (key) {
+        case KeyEvent::Right:
+            dx = -step;
+            break;
+        case KeyEvent::Left:
+            dx = step;
+            break;
+        case KeyEvent::Up:
+            dy = step;
+            break;
+        case KeyEvent::Down:
+            dy = -step;
+            break;
+        default:
+            return false;
+    }
+    // Free-look: stop following the centred marker, otherwise the tracked target
+    // stays pinned to the screen centre and appears to pan along with the map.
+    set_manual_panning(true);
+    pan(dx, dy);
     return true;
 }
 
@@ -330,6 +450,49 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
     }
 }
 
+// Fills map_line_buffer with one screen line whose first pixel is map pixel
+// (seek_x, seek_y). The view can reach past the map, when zoomed out further than
+// the map is wide or when centered near its edge, so the part of the line that falls
+// outside the map is drawn black rather than read from the wrong place in the file.
+void GeoMap::read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width) {
+    ui::Color* buffer = map_line_buffer.data();
+    int32_t first = 0;  // screen columns [first, last) come from inside the map
+    int32_t last = 0;
+    int32_t first_src = 0;
+
+    if (seek_y >= 0 && seek_y < map_height) {
+        if (map_zoom < 0) {
+            const int32_t skip = -map_zoom;
+            if (seek_x < 0)
+                first = (-seek_x + skip - 1) / skip;
+            last = (map_width - seek_x + skip - 1) / skip;
+            first_src = first * skip;
+        } else if (map_zoom > 1) {
+            // Start on a whole map pixel so the interpolation stays aligned.
+            if (seek_x < 0)
+                first = -seek_x * map_zoom;
+            last = (map_width - seek_x) * map_zoom;
+            first_src = first / map_zoom;
+        } else {
+            if (seek_x < 0)
+                first = -seek_x;
+            last = map_width - seek_x;
+            first_src = first;
+        }
+        if (last > width)
+            last = width;
+    }
+
+    if (last <= first) {
+        std::fill(buffer, buffer + width, Color::black());
+        return;
+    }
+    std::fill(buffer, buffer + first, Color::black());
+    std::fill(buffer + last, buffer + width, Color::black());
+    map_file.seek(4 + ((seek_x + first_src + (map_width * seek_y)) << 1));
+    map_read_line_bin(buffer + first, last - first);
+}
+
 void GeoMap::draw_markers(Painter& painter) {
     for (int i = 0; i < markerListLen; ++i) {
         draw_marker_item(painter, markerList[i], markerList[i].color, markerList[i].color, Color::magenta());
@@ -348,11 +511,15 @@ void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color col
 
 // Calculate screen position of item, adjusted for zoom factor.
 ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
+    return geo_to_pixel(item.lat, item.lon);
+}
+
+ui::Point GeoMap::geo_to_pixel(float lat, float lon) {
     if (!use_osm) {
         const auto r = screen_rect();
         const auto geomap_rect_half_width = r.width() / 2;
         const auto geomap_rect_half_height = r.height() / 2;
-        GeoPoint mapPoint = lat_lon_to_map_pixel(item.lat, item.lon);
+        GeoPoint mapPoint = lat_lon_to_map_pixel(lat, lon);
         float x = mapPoint.x - x_pos;
         float y = mapPoint.y - y_pos;
         if (map_zoom > 1) {
@@ -364,11 +531,22 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
         }
         x += geomap_rect_half_width;
         y += geomap_rect_half_height;
+        // Saturate to the int16 coordinate range: a far off-screen point (e.g. a station
+        // near the poles at high zoom) can exceed it and wrap to the wrong side before
+        // clip_line() gets to discard it.
+        if (x > 32767.0f)
+            x = 32767.0f;
+        else if (x < -32768.0f)
+            x = -32768.0f;
+        if (y > 32767.0f)
+            y = 32767.0f;
+        else if (y < -32768.0f)
+            y = -32768.0f;
         return {(int16_t)x, (int16_t)y};
     }
     // osm calculation
-    double y = lat_to_pixel_y_tile(item.lat, map_osm_real_zoom) - viewport_top_left_py;
-    double x = lon_to_pixel_x_tile(item.lon, map_osm_real_zoom) - viewport_top_left_px;
+    double y = lat_to_pixel_y_tile(lat, map_osm_real_zoom) - viewport_top_left_py;
+    double x = lon_to_pixel_x_tile(lon, map_osm_real_zoom) - viewport_top_left_px;
     return {(int16_t)x, (int16_t)y};
 }
 
@@ -548,7 +726,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
 
 void GeoMap::paint(Painter& painter) {
     const auto r = screen_rect();
-    int16_t zoom_seek_x, zoom_seek_y;
+    int32_t zoom_seek_x, zoom_seek_y;
 
     if (!use_osm) {
         map_line_buffer.resize(r.width());
@@ -591,9 +769,8 @@ void GeoMap::paint(Painter& painter) {
                 // Read from map file and display to zoomed scale
                 int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
                 for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
-                    uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
-                    map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
-                    map_read_line_bin(map_line_buffer.data(), r.width());
+                    int32_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
+                    read_map_line(zoom_seek_x, seek_line, r.width());
                     for (uint16_t j = 0; j < duplicate_lines; j++) {
                         display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
                     }
@@ -657,9 +834,12 @@ void GeoMap::paint(Painter& painter) {
         set_clean();
     }
 
-    // Draw the marker in the center
+    // Draw the followed item: centred while it is being tracked, or at its real geo
+    // position while free-panning (otherwise it would vanish behind the pan crosshair).
     if (!manual_panning_ && !hide_center_marker_) {
         draw_marker(painter, r.center() + Point(zoom_pixel_offset, zoom_pixel_offset), angle_, tag_, Color::red(), Color::white(), Color::black());
+    } else if (manual_panning_ && has_tracked_marker_) {
+        draw_marker_item(painter, tracked_marker_, Color::red(), Color::white(), Color::black());
     }
 }
 
@@ -712,17 +892,15 @@ void GeoMap::move(const float lon, const float lat) {
         // Calculate x_pos/y_pos in map file corresponding to CENTER pixel of screen rect
         // (Note there is a 1:1 correspondence between map file pixels and screen pixels when map_zoom=1)
         GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
+        // No cap at the map edge: read_map_line() draws whatever falls outside the map
+        // black, so the requested point really ends up in the centre (a cap in screen
+        // pixels was wrong at any zoom other than 1, and left pan() a dead zone).
         x_pos = mapPoint.x;
         y_pos = mapPoint.y;
-        // Cap position
-        if (x_pos > (map_width - r.width() / 2))
-            x_pos = map_width - r.width() / 2;
-        if (y_pos > (map_height + r.height() / 2))
-            y_pos = map_height - r.height() / 2;
 
         // Scale calculation
         float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
-        pixels_per_km = (r.width() / 2) / km_per_deg_lon;
+        pixels_per_km = (map_width / 360.0f) / km_per_deg_lon;
     } else {
         if (is_changed) {
             set_osm_max_zoom();
@@ -737,8 +915,13 @@ void GeoMap::move(const float lon, const float lat) {
     }
 }
 
+void GeoMap::set_map_file(const std::filesystem::path& path) {
+    map_file_path = path;
+    has_osm = use_osm = false;
+}
+
 bool GeoMap::init() {
-    auto result = map_file.open(adsb_dir / u"world_map.bin");
+    auto result = map_file.open(map_file_path.empty() ? adsb_dir / u"world_map.bin" : map_file_path);
     map_opened = !result.is_valid();
 
     if (map_opened) {
@@ -767,6 +950,12 @@ void GeoMap::set_mode(GeoMapMode mode) {
 }
 
 void GeoMap::set_manual_panning(bool v) {
+    // Entering free-look with no tracked marker yet (e.g. a static entry the app has not
+    // sent a position update for): seed it from the current centre so the followed item
+    // stays visible once the centre marker is suppressed. Maps that deliberately have no
+    // centre marker (hide_center_marker_) keep none.
+    if (v && !manual_panning_ && !has_tracked_marker_ && !hide_center_marker_)
+        set_tracked_marker(lat_, lon_, angle_);
     manual_panning_ = v;
 }
 
@@ -833,8 +1022,9 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
         display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
         display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
         tagOffset = 16;
-    } else if (angle_ < 360) {
-        // if we have a valid angle draw bearing
+    } else if (itemAngle < 360) {
+        // if the item has a valid angle draw bearing (the item's own angle, not the
+        // map's followed one, so e.g. an AIS target without heading gets a cross)
         draw_bearing(itemPoint, itemAngle, 10, color);
         tagOffset = 10;
     } else {
@@ -926,6 +1116,8 @@ void GeoMapView::update_my_orientation(uint16_t angle, bool refresh) {
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
+    // Keep the followed item drawable at its real position even while free-panning.
+    geomap.set_tracked_marker(lat, lon, angle);
     if (geomap.manual_panning()) {
         geomap.set_dirty();
         return;

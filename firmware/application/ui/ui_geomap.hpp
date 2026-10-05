@@ -2,6 +2,9 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2026 Dmytro Onyshko
+ * Copyright (C) 2026 Khanfar
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -172,6 +175,27 @@ class BMPFileCache {
     uint16_t stamp_{0};
 };
 
+// A degrees/minutes/seconds sub-field whose encoder turns are handed to the owning
+// GeoPos instead of being applied locally. GeoPos keeps the coordinate as a signed
+// arcsecond value, so panning stays continuous across 0 - including the (-1, 0) band
+// along the equator and the Greenwich meridian that a magnitude field cannot cross on
+// its own (see issue #3317). The field still displays an unsigned magnitude; the sign
+// lives in the hemisphere field next to it.
+class GeoPosField : public NumberField {
+   public:
+    using NumberField::NumberField;
+
+    std::function<void(int32_t)> on_delta{};
+
+    bool on_encoder(const EncoderEvent delta) override {
+        if (on_delta) {
+            on_delta(delta);
+            return true;
+        }
+        return NumberField::on_encoder(delta);
+    }
+};
+
 class GeoPos : public View {
    public:
     enum alt_unit {
@@ -206,6 +230,19 @@ class GeoPos : public View {
     void set_report_change(bool v);
 
    private:
+    // Signed arcsecond view of the DMS fields. The encoder handlers work on these so a
+    // turn moves the coordinate along the number line, flipping the hemisphere and
+    // reflecting the magnitude when it crosses 0 (issue #3317).
+    static constexpr int32_t lat_arcsecond_limit = 90 * 3600;
+    static constexpr int32_t lon_arcsecond_limit = 180 * 3600;
+    int32_t lat_arcseconds();
+    int32_t lon_arcseconds();
+    void set_lat_arcseconds(int32_t arcseconds);
+    void set_lon_arcseconds(int32_t arcseconds);
+    void adjust_lat(int32_t arcsecond_delta);
+    void adjust_lon(int32_t arcsecond_delta);
+    void report_position();
+
     bool read_only{false};
     bool report_change{true};
     alt_unit altitude_unit_{};
@@ -247,21 +284,21 @@ class GeoPos : public View {
         1,
         {{"N", 0},
          {"S", 1}}};
-    NumberField field_lat_degrees{
+    GeoPosField field_lat_degrees{
         {6 * 8, 1 * 16},
         3,
         {0, 90},
         1,
         ' ',
         false};
-    NumberField field_lat_minutes{
+    GeoPosField field_lat_minutes{
         {10 * 8, 1 * 16},
         2,
         {0, 59},
         1,
         ' ',
         true};
-    NumberField field_lat_seconds{
+    GeoPosField field_lat_seconds{
         {13 * 8, 1 * 16},
         2,
         {0, 59},
@@ -277,21 +314,21 @@ class GeoPos : public View {
         1,
         {{"E", 0},
          {"W", 1}}};
-    NumberField field_lon_degrees{
+    GeoPosField field_lon_degrees{
         {6 * 8, 2 * 16},
         3,
         {0, 180},
         1,
         ' ',
         false};
-    NumberField field_lon_minutes{
+    GeoPosField field_lon_minutes{
         {10 * 8, 2 * 16},
         2,
         {0, 59},
         1,
         ' ',
         true};
-    NumberField field_lon_seconds{
+    GeoPosField field_lon_seconds{
         {13 * 8, 2 * 16},
         2,
         {0, 59},
@@ -324,6 +361,7 @@ class GeoMap : public Widget {
 
     bool on_touch(const TouchEvent event) override;
     bool on_encoder(const EncoderEvent delta) override;
+    bool on_key(const KeyEvent key) override;  // arrow keys pan the view (when the map has focus)
     bool on_keyboard(const KeyboardEvent event) override;
 
     void update_my_position(float lat, float lon, int32_t altitude);
@@ -350,12 +388,58 @@ class GeoMap : public Widget {
     }
     bool hide_center_marker() { return hide_center_marker_; }
 
+    /* Pan the view by a screen-pixel delta (drag the map following the finger). */
+    void pan(int dx, int dy);
+
+    /* The followed item's real position. Normally it sits under the centre marker, but
+     * while the user free-pans (manual_panning) the centre marker is replaced by the pan
+     * crosshair, so this is drawn at its geo position instead - otherwise the followed
+     * station/aircraft/sonde would vanish the moment you pan away from centre. */
+    void set_tracked_marker(float lat, float lon, uint16_t angle) {
+        // While free-panning the marker is drawn at its geo position; if it moves or its
+        // label changes (e.g. ADS-B sets the callsign via update_tag() first), the map
+        // under its old pixels must be repainted or it leaves a trail (paint() only clears
+        // the background when redraw_map is set).
+        if (manual_panning_ && has_tracked_marker_ &&
+            (tracked_marker_.lat != lat || tracked_marker_.lon != lon ||
+             tracked_marker_.angle != angle || tracked_marker_.tag != tag_))
+            redraw_map = true;
+        tracked_marker_.lat = lat;
+        tracked_marker_.lon = lon;
+        tracked_marker_.angle = angle;
+        tracked_marker_.tag = tag_;
+        tracked_marker_.color = Color::red();
+        has_tracked_marker_ = true;
+    }
+
     static const int NumMarkerListElements = 30;
 
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
+    /* Reads the given .bin map instead of /ADSB/world_map.bin. Call before init(). An
+     * app that picks its own map wants that map, so this also turns the OSM tiles off. */
+    void set_map_file(const std::filesystem::path& path);
+
+    /* Screen position of a coordinate, relative to the widget's top-left corner. May be
+     * outside the widget when the coordinate is off the visible part of the map. */
+    ui::Point geo_to_pixel(float lat, float lon);
+
+    /* Redraws the whole map on the next paint, for callers that draw over it. */
+    void refresh();
+
+    /* Zoom level as used by on_encoder(): 1 is one map pixel per screen pixel, n > 1
+     * magnifies n times and -n shows n map pixels per screen pixel (0 and -1 are not
+     * used). set_zoom() takes any value on that scale. */
+    int16_t zoom() const { return map_zoom; }
+    void set_zoom(int16_t zoom);
+
+    float center_lat() const { return lat_; }
+    float center_lon() const { return lon_; }
+
    private:
+    void update_zoom();
+    void read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width);
     void draw_scale(Painter& painter);
     ui::Point item_rect_pixel(GeoMarker& item);
     GeoPoint lat_lon_to_map_pixel(float lat, float lon);
@@ -389,6 +473,7 @@ class GeoMap : public Widget {
     bool hide_center_marker_{false};
     GeoMapMode mode_{};
     File map_file{};
+    std::filesystem::path map_file_path{};
     BMPFileCache bmp_cache{};
     bool map_opened{};
     bool map_visible{};
@@ -408,6 +493,10 @@ class GeoMap : public Widget {
     float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};
+
+    // The followed item, drawn at its geo position while free-panning (see set_tracked_marker).
+    GeoMarker tracked_marker_{};
+    bool has_tracked_marker_{false};
 
     // the portapack's position data ( for example injected from serial )
     GeoMarker my_pos{INVALID_LAT_LON, INVALID_LAT_LON, INVALID_ANGLE, ""};  // lat, lon, angle, tag

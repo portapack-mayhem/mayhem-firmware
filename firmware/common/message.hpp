@@ -171,6 +171,11 @@ class Message {
         TetraBsch = 113,
         TetraDnb = 114,
         AudioDDCConfig = 115,
+        RxFs4Config = 116,
+        FT8Packet = 117,
+        FT8RxStatus = 118,
+        RdsData = 119,
+        WMBusPacketMessageID = 120,
         MAX
     };
 
@@ -311,6 +316,18 @@ class SpectrumStreamingConfigMessage : public Message {
     Mode mode{Mode::Stopped};
 };
 
+// Application sample-rate translation, independent of PRALINE's AFE shift.
+enum class RxFs4Direction : uint8_t { Down,
+                                      Up };
+
+class RxFs4ConfigMessage : public Message {
+   public:
+    constexpr RxFs4ConfigMessage(RxFs4Direction direction)
+        : Message{ID::RxFs4Config}, direction{direction} {}
+
+    const RxFs4Direction direction;
+};
+
 class AudioDDCConfigMessage : public Message {
    public:
     constexpr AudioDDCConfigMessage(int32_t frequency)
@@ -419,6 +436,55 @@ class EPIRBRXConfig : public Message {
     bool spectrum_on = false;
     bool audio_on = true;
     uint8_t squelch{50};
+};
+
+/* One decoded FT8 transmission, already unpacked to text by the baseband. */
+class FT8PacketMessage : public Message {
+   public:
+    /* Longest text an FT8 payload unpacks to: callsign[13], space, callsign[13], space,
+     * report[6], terminator. */
+    static constexpr size_t text_length = 35;
+
+    constexpr FT8PacketMessage(
+        const char* message_text,
+        int16_t audio_frequency)
+        : Message{ID::FT8Packet},
+          text{},
+          frequency{audio_frequency} {
+        size_t i = 0;
+        for (; i < text_length - 1 && message_text[i] != '\0'; i++)
+            text[i] = message_text[i];
+        text[i] = '\0';
+    }
+
+    char text[text_length];
+    /* Audio frequency inside the 200-2500 Hz passband. Every station on the band shares
+     * one dial and picks its own slot, so this is what places a decode in the passband. */
+    int16_t frequency;
+};
+
+/* Sent once per 15 s slot so the UI can tell the user whether the receiver has found
+ * the slot boundary; an unsynchronised FT8 receiver decodes nothing and looks identical
+ * to a dead band. */
+class FT8RxStatusMessage : public Message {
+   public:
+    enum class SyncState : uint8_t {
+        Searching = 0,  // Nothing above the noise; hunting for the slot boundary
+        Heard = 1,      // An FT8 transmission is in the passband but has not decoded
+        Syncing = 2,    // Boundary found, walking the sub-symbol phase
+        Locked = 3,     // Tracking the slot
+    };
+
+    constexpr FT8RxStatusMessage(
+        SyncState sync_state,
+        uint8_t decodes)
+        : Message{ID::FT8RxStatus},
+          state{sync_state},
+          decode_count{decodes} {
+    }
+
+    SyncState state;
+    uint8_t decode_count;
 };
 
 class TPMSPacketMessage : public Message {
@@ -728,6 +794,8 @@ class AMConfigureMessage : public Message {
     enum class Zoom_waterfall : size_t {
         ZOOM_x_1 = 1,
         ZOOM_x_2 = 2,
+        ZOOM_x_3 = 4,
+        ZOOM_x_4 = 8,
     };
 
     constexpr AMConfigureMessage(
@@ -737,7 +805,8 @@ class AMConfigureMessage : public Message {
         const fir_taps_complex<64> channel_filter,
         const Modulation modulation,
         const iir_biquad_config_t audio_hpf_lpf_config,
-        const size_t channel_spectrum_decimation_factor)
+        const size_t channel_spectrum_decimation_factor,
+        const uint8_t squelch_level = 0)
 
         : Message{ID::AMConfigure},
           decim_0_filter(decim_0_filter),
@@ -746,7 +815,8 @@ class AMConfigureMessage : public Message {
           channel_filter(channel_filter),
           modulation{modulation},
           audio_hpf_lpf_config(audio_hpf_lpf_config),
-          channel_spectrum_decimation_factor(channel_spectrum_decimation_factor) {
+          channel_spectrum_decimation_factor(channel_spectrum_decimation_factor),
+          squelch_level(squelch_level) {
     }
 
     const fir_taps_real<24> decim_0_filter;
@@ -756,6 +826,7 @@ class AMConfigureMessage : public Message {
     const Modulation modulation;
     const iir_biquad_config_t audio_hpf_lpf_config;
     const size_t channel_spectrum_decimation_factor;
+    const uint8_t squelch_level;  // AM channel-power squelch threshold (0 = off)
 };
 
 // TODO: Put this somewhere else, or at least the implementation part.
@@ -2023,6 +2094,29 @@ class HunterStopMessage : public Message {
         : Message{ID::HunterStop} {}
 };
 
+struct RDSGroupMessage : public Message {
+    constexpr RDSGroupMessage(
+        uint16_t a,
+        uint16_t b,
+        uint16_t c,
+        uint16_t d,
+        bool c_prime,
+        bool is_debug,
+        uint32_t dbg_1,
+        uint32_t dbg_2)
+        : Message{ID::RdsData}, block_a{a}, block_b{b}, block_c{c}, block_d{d}, is_c_prime{c_prime}, is_debug{is_debug}, debug_1{dbg_1}, debug_2{dbg_2} {}
+
+    uint16_t block_a;
+    uint16_t block_b;
+    uint16_t block_c;
+    uint16_t block_d;
+    bool is_c_prime;
+
+    bool is_debug;
+    uint32_t debug_1;
+    uint32_t debug_2;
+};
+
 struct TetraBurstMessage : public Message {
     constexpr TetraBurstMessage(
         const uint8_t* bits,
@@ -2064,5 +2158,13 @@ struct TetraDnbMessage : public Message {
 
     // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
     std::array<uint8_t, 54> payload;
+};
+
+struct WMBusPacketMessage : public Message {
+    constexpr WMBusPacketMessage()
+        : Message{ID::WMBusPacketMessageID} {}
+
+    uint16_t length = 0;
+    uint8_t data[500] = {0};
 };
 #endif /*__MESSAGE_H__*/

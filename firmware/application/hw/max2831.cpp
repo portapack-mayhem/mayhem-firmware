@@ -358,15 +358,18 @@ uint32_t MAX2831::set_lpf_bandwidth_internal(const uint32_t bandwidth_hz) {
 }
 
 void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
+    set_lpf_rf_bandwidth_rx(bandwidth_minimum, rx_afe::NarrowbandPolicy::Auto);
+}
+
+void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum, const rx_afe::NarrowbandPolicy policy) {
     _desired_lpf_bw = bandwidth_minimum;
 #ifdef PRALINE
     uint32_t actual_bw = bandwidth_minimum;
 
-    /* The MAX2831 internal analog low-pass filter cannot go below 1.75 MHz.
-     * For narrow-band signals (bandwidth < 1.75 MHz), we enable the custom
-     * external Anti-Aliasing (AA) filter on pin P1_14 to prevent aliasing.
-     */
-    if (actual_bw <= 1750000) {
+    // External-filter selection does not change internal LPF programming.
+    const bool narrow = policy == rx_afe::NarrowbandPolicy::ForceNarrow ||
+                        (policy == rx_afe::NarrowbandPolicy::Auto && actual_bw <= rx_afe::narrowband_max_requested_bandwidth_hz);
+    if (narrow) {
         gpio_control::aa_en.setActive();  // Enable external narrow AA filter
     } else {
         gpio_control::aa_en.setInactive();  // Disable external AA filter for wideband operations
@@ -377,6 +380,7 @@ void MAX2831::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
         set_lpf_bandwidth_internal(actual_bw);
     }
 #else
+    (void)policy;
     if (_mode == Mode::Receive || _mode == Mode::Rx_Calibration) {
         set_lpf_bandwidth_internal(bandwidth_minimum);
     }
