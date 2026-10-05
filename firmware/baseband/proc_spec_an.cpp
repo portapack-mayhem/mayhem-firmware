@@ -202,11 +202,10 @@ void SpecAnProcessor::process_pending() {
 }
 
 void SpecAnProcessor::finish_slice(uint16_t slice, uint8_t sweep) {
-    const uint8_t buf = sweep & 1;
-    detector.run(pow_acc, bins_per_slice, slice, sweep, shared->pix[buf]);
+    detector.run(pow_acc, bins_per_slice, slice, sweep, shared->pix[sweep & 1]);
 
     const bool last = (slice + 1u) >= slices;
-    const SpecAnSliceMessage message{gen, slice, buf, last, detector.px_begin(), detector.px_end()};
+    const SpecAnSliceMessage message{gen, slice, sweep, last, detector.px_begin(), detector.px_end()};
 
     /* execute() cannot hold the queue mutex while this lower priority thread
      * runs, so a failure here means the queue is full: retry briefly, then

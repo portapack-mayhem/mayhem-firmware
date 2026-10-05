@@ -2224,20 +2224,20 @@ class SpecAnCapturedMessage : public Message {
     uint32_t seq;
 };
 
-/* M4 -> M0: display points [px_begin, px_end) of pix[buf] are final. */
+/* M4 -> M0: display points [px_begin, px_end) of pix[sweep & 1] are final. */
 class SpecAnSliceMessage : public Message {
    public:
     constexpr SpecAnSliceMessage(
         uint16_t gen,
         uint16_t slice,
-        uint8_t buf,
+        uint8_t sweep,
         bool last,
         uint16_t px_begin,
         uint16_t px_end)
         : Message{ID::SpecAnSlice},
           gen{gen},
           slice{slice},
-          buf{buf},
+          sweep{sweep},
           last{last},
           px_begin{px_begin},
           px_end{px_end} {
@@ -2245,7 +2245,7 @@ class SpecAnSliceMessage : public Message {
 
     uint16_t gen;
     uint16_t slice;
-    uint8_t buf;
+    uint8_t sweep; /* req_sweep of the capture; pix[sweep & 1] holds the points */
     bool last;
     uint16_t px_begin;
     uint16_t px_end;

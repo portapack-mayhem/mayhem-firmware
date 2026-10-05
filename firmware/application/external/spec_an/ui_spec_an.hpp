@@ -254,6 +254,7 @@ class SpecAnView : public View {
     uint16_t slice_{0};
     bool sweeping_{false};
     systime_t issued_at_{0};
+    uint32_t last_reply_{UINT32_MAX}; /* (sweep << 16) | slice of the last SpecAnSlice taken */
 
     /* Sweep timing, averaged over a short window. */
     systime_t rate_t0_{0};

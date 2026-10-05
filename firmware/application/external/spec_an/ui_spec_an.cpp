@@ -517,8 +517,15 @@ void SpecAnView::on_captured(const SpecAnCapturedMessage& message) {
 
 void SpecAnView::on_slice(const SpecAnSliceMessage& message) {
     if (message.gen != gen_) return;
+
+    /* A timed out request that the M4 had in fact captured gets answered
+     * twice; the M4 replays the same points, so drop the repeat. */
+    const uint32_t id = (static_cast<uint32_t>(message.sweep) << 16) | message.slice;
+    if (id == last_reply_) return;
+    last_reply_ = id;
+
     if (message.px_end > message.px_begin && message.px_end <= kPoints) {
-        ingest(shared_.pix[message.buf & 1], message.px_begin, message.px_end);
+        ingest(shared_.pix[message.sweep & 1], message.px_begin, message.px_end);
     }
     if (message.last) on_sweep_done();
 }
