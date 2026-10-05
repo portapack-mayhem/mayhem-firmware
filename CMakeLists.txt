@@ -76,6 +76,28 @@ endif()
 # Pass FLASH_TIER to the C++ preprocessor
 add_compile_definitions(FLASH_TIER=${FLASH_TIER})
 
+# Regenerate external_tier{0,1,2}.ld from the apps' tier.txt markers and verify
+# ui_navigation.cpp; abort configuration on any error. This has to run before
+# the selected .ld file is copied below.
+find_program(PYTHON_EXECUTABLE NAMES python3 python REQUIRED)
+message(STATUS "Running external app tier check/update (tools/update_external_tier_ld.py)")
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/update_external_tier_ld.py
+    RESULT_VARIABLE EXT_TIER_RESULT
+    OUTPUT_VARIABLE EXT_TIER_OUTPUT
+    ERROR_VARIABLE EXT_TIER_ERROR
+)
+if(NOT EXT_TIER_RESULT EQUAL 0)
+    message(FATAL_ERROR "External app tier check failed:\n${EXT_TIER_OUTPUT}${EXT_TIER_ERROR}")
+endif()
+message(STATUS "External app tier check passed, tier .ld files are up to date")
+# Re-run CMake (and so the script) when markers or the navigation file change
+file(GLOB EXT_TIER_MARKERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/firmware/application/external/*/tier.txt)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${EXT_TIER_MARKERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/firmware/application/ui_navigation.cpp
+)
+
 # Copy the selected file to the build directory as the generic "external.ld"
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/${EXT_LD_FILE}
