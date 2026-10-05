@@ -434,9 +434,6 @@ class GeoMap : public Widget {
     int16_t zoom() const { return map_zoom; }
     void set_zoom(int16_t zoom);
 
-    /* Moves the map by a drag of (dx, dy) screen pixels, following the finger. */
-    void pan(int dx, int dy);
-
     float center_lat() const { return lat_; }
     float center_lon() const { return lon_; }
 
