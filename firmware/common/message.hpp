@@ -179,6 +179,7 @@ class Message {
         SpecAnConfig = 120,
         SpecAnCaptured = 121,
         SpecAnSlice = 122,
+        WMBusPacketMessageID = 123,
         MAX
     };
 
@@ -2250,4 +2251,11 @@ class SpecAnSliceMessage : public Message {
     uint16_t px_end;
 };
 
+struct WMBusPacketMessage : public Message {
+    constexpr WMBusPacketMessage()
+        : Message{ID::WMBusPacketMessageID} {}
+
+    uint16_t length = 0;
+    uint8_t data[500] = {0};
+};
 #endif /*__MESSAGE_H__*/
