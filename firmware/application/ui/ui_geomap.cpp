@@ -920,33 +920,6 @@ void GeoMap::set_map_file(const std::filesystem::path& path) {
     has_osm = use_osm = false;
 }
 
-void GeoMap::pan(int dx, int dy) {
-    float lat, lon;
-    if (use_osm) {
-        lon = tile_pixel_x_to_lon(lon_to_pixel_x_tile(lon_, map_osm_real_zoom) - dx, map_osm_real_zoom);
-        lat = tile_pixel_y_to_lat(lat_to_pixel_y_tile(lat_, map_osm_real_zoom) - dy, map_osm_real_zoom);
-    } else {
-        // Screen pixels to map file pixels at the current zoom.
-        float scale = 1.0f;
-        if (map_zoom > 1)
-            scale = 1.0f / map_zoom;
-        else if (map_zoom < 0)
-            scale = -map_zoom;
-        const GeoPoint p = lat_lon_to_map_pixel(lat_, lon_);
-        const float x = p.x - dx * scale;
-        const float y = p.y - dy * scale;
-        // Inverse of lat_lon_to_map_pixel().
-        lon = x * 360.0f / map_width - 180.0f;
-        lat = asin(tanh((map_height - y + map_offset) / map_world_lon)) * 180.0 / pi;
-    }
-    if (lon > 180.0f) lon = 180.0f;
-    if (lon < -180.0f) lon = -180.0f;
-    if (lat > 85.0f) lat = 85.0f;
-    if (lat < -85.0f) lat = -85.0f;
-    move(lon, lat);
-    refresh();
-}
-
 bool GeoMap::init() {
     auto result = map_file.open(map_file_path.empty() ? adsb_dir / u"world_map.bin" : map_file_path);
     map_opened = !result.is_valid();
