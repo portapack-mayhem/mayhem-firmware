@@ -26,7 +26,7 @@ import sys
 import subprocess
 from external_app_info import maximum_application_size
 from external_app_info import external_apps_address_start
-from external_app_info import read_external_apps_address_end
+from external_app_info import read_external_apps_address_end, read_external_app_sections
 from elf_info import external_app_section_prefix
 from elf_info import read_relocations
 from elf_info import read_section_addresses
@@ -97,6 +97,7 @@ binary_dir = sys.argv[1]           #/portapack-mayhem/build/firmware/application
 # End of the external app regions of the tier being built, read from the
 # external.ld that the build copied into binary_dir.
 external_apps_address_end = read_external_apps_address_end(binary_dir)
+external_ld_sections = read_external_app_sections(binary_dir)
 cmake_objcopy = sys.argv[2]
 cmake_readelf = sys.argv[3]
 
@@ -137,6 +138,9 @@ if not abs32_offsets:
 
 for external_image_prefix in sys.argv[5:]:
 	section_name = external_app_section_prefix + external_image_prefix
+	if section_name not in external_ld_sections:
+		print("Skipping {}: not external in this tier (not in external.ld).".format(external_image_prefix))
+		continue
 	if section_name not in section_addresses:
 		print("no {} section in {}".format(section_name, application_elf))
 		sys.exit(-1)

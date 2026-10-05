@@ -58,3 +58,17 @@ def read_external_apps_address_end(application_binary_dir):
 	if not regions:
 		sys.exit("no external app regions found in " + ld_path)
 	return max(int(org, 16) + int(length) * 1024 for org, length in regions)
+
+
+def read_external_app_sections(application_binary_dir):
+	"""Output section names (".external_app_<name>") the build's external.ld defines.
+
+	An app that is internal in the tier being built is not in the list.
+	"""
+	ld_path = os.path.join(application_binary_dir, external_ld_relative_path)
+	try:
+		with open(ld_path) as f:
+			text = f.read()
+	except OSError as e:
+		sys.exit("cannot read the external app linker script {}: {}".format(ld_path, e))
+	return set(re.findall(r"^\s*(\.external_app_\w+)\s*:", text, re.MULTILINE))
