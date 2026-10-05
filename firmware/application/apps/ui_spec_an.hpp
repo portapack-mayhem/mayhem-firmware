@@ -164,13 +164,13 @@ class SpecAnView : public View {
     struct Marker {
         uint8_t mode{0}; /* 0 off, 1 normal, 2 delta to M1 */
         uint8_t trace{0};
-        int16_t x{160};
+        int32_t x{160}; /* int32 so it can be bound to a setting */
     };
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
 
-    /* Persisted settings. */
+    /* Persisted settings: declared before settings_, which loads into them. */
     uint64_t center_{433'920'000};
     uint64_t span_{20'000'000};
     uint64_t last_span_{20'000'000};
@@ -194,6 +194,9 @@ class SpecAnView : public View {
     bool continuous_{true};
     bool flip_{false};
     uint8_t trace_mode_raw_[kTraces]{0, 5, 5};
+    std::array<Marker, kMarkers> markers_{};
+    uint8_t mkr_sel_{0};
+    uint8_t trace_sel_{0};
 
     app_settings::SettingsManager settings_{
         "rx_specan",
@@ -201,6 +204,7 @@ class SpecAnView : public View {
         {
             {"center"sv, &center_},
             {"span"sv, &span_},
+            {"last_span"sv, &last_span_},
             {"ref_cdb"sv, &ref_cdb_},
             {"dbdiv"sv, &dbdiv_idx_},
             {"lna"sv, &lna_},
@@ -223,6 +227,20 @@ class SpecAnView : public View {
             {"t1"sv, &trace_mode_raw_[0]},
             {"t2"sv, &trace_mode_raw_[1]},
             {"t3"sv, &trace_mode_raw_[2]},
+            {"trace_sel"sv, &trace_sel_},
+            {"mkr_sel"sv, &mkr_sel_},
+            {"m1_mode"sv, &markers_[0].mode},
+            {"m1_trace"sv, &markers_[0].trace},
+            {"m1_x"sv, &markers_[0].x},
+            {"m2_mode"sv, &markers_[1].mode},
+            {"m2_trace"sv, &markers_[1].trace},
+            {"m2_x"sv, &markers_[1].x},
+            {"m3_mode"sv, &markers_[2].mode},
+            {"m3_trace"sv, &markers_[2].trace},
+            {"m3_x"sv, &markers_[2].x},
+            {"m4_mode"sv, &markers_[3].mode},
+            {"m4_trace"sv, &markers_[3].trace},
+            {"m4_x"sv, &markers_[3].x},
         }};
 
     /* Sweep engine. */
@@ -247,9 +265,6 @@ class SpecAnView : public View {
     std::array<std::array<int16_t, kPoints>, kTraces> trace_{};
     std::array<uint16_t, kTraces> avg_sweeps_{};
     std::array<int16_t, kPoints> wf_acc_{};
-    std::array<Marker, kMarkers> markers_{};
-    uint8_t mkr_sel_{0};
-    uint8_t trace_sel_{0};
 
     /* Display state. */
     bool landscape_{false};

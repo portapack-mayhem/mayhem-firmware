@@ -26,6 +26,8 @@ using namespace portapack;
 
 #include "utility.hpp"
 
+#include <algorithm>
+
 namespace touch {
 
 Metrics calculate_metrics(const Frame& frame) {
@@ -69,8 +71,11 @@ ui::Point Calibration::translate(const DigitizerPoint& p) const {
     // static constexpr range_t<int32_t> x_range{0, 240 - 1};
     // static constexpr range_t<int32_t> y_range{0, 320 - 1};
 
-    static range_t<int32_t> x_range{0, screen_width - 1};
-    static range_t<int32_t> y_range{0, screen_height - 1};
+    // Calibration maps to the panel's native portrait coordinates, even while an app
+    // has the LCD rotated to landscape (screen_width/height swapped), so clip in
+    // portrait terms. Every supported panel is taller than it is wide.
+    const range_t<int32_t> x_range{0, std::min(screen_width, screen_height) - 1};
+    const range_t<int32_t> y_range{0, std::max(screen_width, screen_height) - 1};
 
     const int32_t x = (a * p.x + b * p.y + c) / k;
     const int32_t y = (d * p.x + e * p.y + f) / k;

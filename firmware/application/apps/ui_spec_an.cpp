@@ -298,7 +298,7 @@ SpecAnView::SpecAnView(NavigationView& nav)
     /* Persisted values may be from another build: keep them in range. */
     span_ = std::clamp<uint64_t>(span_, kMinSpan, kMaxFreq);
     center_ = std::clamp<uint64_t>(center_, span_ / 2, kMaxFreq - span_ / 2);
-    last_span_ = span_;
+    last_span_ = std::clamp<uint64_t>(last_span_, kMinSpan, kMaxFreq);
     ref_cdb_ = std::clamp<int32_t>(ref_cdb_, -15000, 3000);
     dbdiv_idx_ = std::min<uint8_t>(dbdiv_idx_, kDbDivCount - 1);
     lna_ = std::min<uint8_t>(lna_ & ~7, 40);
@@ -320,6 +320,14 @@ SpecAnView::SpecAnView(NavigationView& nav)
     avg_log2_ = std::clamp<uint8_t>(avg_log2_, 1, 7);
     dline_cdb_ = std::clamp<int32_t>(dline_cdb_, -20000, 3000);
     for (auto& m : trace_mode_raw_) m = std::min<uint8_t>(m, static_cast<uint8_t>(TraceMode::Count) - 1);
+    trace_sel_ = std::min<uint8_t>(trace_sel_, kTraces - 1);
+    mkr_sel_ = std::min<uint8_t>(mkr_sel_, kMarkers - 1);
+    for (size_t i = 0; i < kMarkers; i++) {
+        Marker& m = markers_[i];
+        m.mode = std::min<uint8_t>(m.mode, i == 0 ? 1 : 2); /* M1 has no delta mode */
+        m.trace = std::min<uint8_t>(m.trace, kTraces - 1);
+        m.x = std::clamp<int32_t>(m.x, 0, kPoints - 1);
+    }
 
     build_palette(palette_);
     live_.fill(kNoData);
@@ -674,11 +682,19 @@ void SpecAnView::on_frame_sync() {
 }
 
 void SpecAnView::render_columns() {
+    /* Work from a snapshot: the pumped handlers below keep marking columns
+     * dirty, and with a single-tune sweep every slice dirties all of them.
+     * Looping on the live bitmap would never get past the first word. What
+     * they mark now is drawn next frame. */
+    const auto todo = dirty_;
+    dirty_.fill(0);
+
     size_t done = 0;
-    for (size_t w = 0; w < dirty_.size(); w++) {
-        while (dirty_[w]) {
-            const int bit = __builtin_ctz(dirty_[w]);
-            dirty_[w] &= ~(1u << bit);
+    for (size_t w = 0; w < todo.size(); w++) {
+        uint32_t bits = todo[w];
+        while (bits) {
+            const int bit = __builtin_ctz(bits);
+            bits &= bits - 1;
             render_column(static_cast<int>(w * 32 + bit));
             /* Let the sweep advance while we draw: retune requests wait in
              * the queue otherwise. Handlers only mark columns dirty. */
