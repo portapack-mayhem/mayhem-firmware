@@ -114,7 +114,7 @@ const NavigationView::AppList NavigationView::appList = {
 #if FLASH_TIER >= 1
     {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ui::external_app::adsbrx::ADSBRxView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<ui::external_app::aprs_rx::APRSRXView>()},
-    {"aprsrx", "AIS", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<ui::external_app::ais_rx::AISAppView>()},
+    {"aisrx", "AIS", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<ui::external_app::ais_rx::AISAppView>()},
 #endif
 #if FLASH_TIER >= 2
     {"analogtv", "Analog TV", RX, Color::yellow(), &bitmap_icon_sstv, new ViewFactory<ui::external_app::analogtv::AnalogTvView>()},

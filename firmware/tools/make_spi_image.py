@@ -183,7 +183,8 @@ cmake_readelf = sys.argv[6]
 
 # End of the external app regions of the tier being built, read from the
 # external.ld that the build copied next to application.elf.
-external_apps_address_end = read_external_apps_address_end(os.path.dirname(os.path.abspath(application_elf)))
+application_binary_dir = os.path.dirname(os.path.abspath(application_elf))
+external_apps_address_end = read_external_apps_address_end(application_binary_dir)
 
 print("\ncheck gcc versions from all elf target\n")
 application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
@@ -199,7 +200,7 @@ print("\n")
 
 ########external app linker script address check worker########
 
-ld_file_path = Path(build_dir) / "firmware" / "application" / "external" / "external.ld"
+ld_file_path = Path(application_binary_dir) / "external" / "external.ld"
 
 try:
     regions = parse_memory_regions(ld_file_path)
