@@ -206,7 +206,7 @@ def main():
             if not args.check:
                 p.write_text(text)
         print(f"tier {tier}: {count} apps, last region ends at 0x{BASE + count * STEP - STEP + LEN_K * 1024:08X}")
-    print(f"total apps: {len(order)} enabled, {len(apps) - len(order)} disabled (limit external_apps_address_end must be >= 0x{BASE + (len(order) - 1) * STEP + LEN_K * 1024:08X})")
+    print(f"total apps: {len(order)} enabled, {len(apps) - len(order)} disabled")
     errors = check_navigation(apps) + check_external_cmake(apps)
     for e in errors:
         print("ERROR:", e, file=sys.stderr)

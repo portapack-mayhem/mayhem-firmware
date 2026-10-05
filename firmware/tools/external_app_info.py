@@ -21,8 +21,11 @@
 # Boston, MA 02110-1301, USA.
 #
 
-# External app address ranges below must match those in linker file "external.ld".
-# The end address is exclusive.
+# External app address ranges must match those in linker file "external.ld".
+# The start is fixed. The end (exclusive) depends on the tier's linker script
+# (external_tier{0,1,2}.ld), which the build copies to
+# <build>/firmware/application/external/external.ld, so it is read from there
+# with read_external_apps_address_end() instead of being kept here by hand.
 #
 # maximum_application_size is the size of one app's link region in
 # "external.ld", which is what makes an address belong to an app's own section.
@@ -32,4 +35,26 @@
 # "rules.cmake").
 maximum_application_size = 32*1024
 external_apps_address_start = 0xADB00000
-external_apps_address_end = 0xAE138000
+
+import os
+import re
+import sys
+
+external_ld_relative_path = os.path.join("external", "external.ld")
+
+
+def read_external_apps_address_end(application_binary_dir):
+	"""End (exclusive) of the highest external app region in the build's external.ld.
+
+	application_binary_dir is the build's firmware/application directory.
+	"""
+	ld_path = os.path.join(application_binary_dir, external_ld_relative_path)
+	try:
+		with open(ld_path) as f:
+			text = f.read()
+	except OSError as e:
+		sys.exit("cannot read the external app linker script {}: {}".format(ld_path, e))
+	regions = re.findall(r"ram_external_app_\w+\s*\(rwx\)\s*:\s*org\s*=\s*(0x[0-9A-Fa-f]+)\s*,\s*len\s*=\s*(\d+)k", text)
+	if not regions:
+		sys.exit("no external app regions found in " + ld_path)
+	return max(int(org, 16) + int(length) * 1024 for org, length in regions)

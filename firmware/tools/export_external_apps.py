@@ -26,7 +26,7 @@ import sys
 import subprocess
 from external_app_info import maximum_application_size
 from external_app_info import external_apps_address_start
-from external_app_info import external_apps_address_end
+from external_app_info import read_external_apps_address_end
 from elf_info import external_app_section_prefix
 from elf_info import read_relocations
 from elf_info import read_section_addresses
@@ -94,6 +94,9 @@ def patch_image(path, image_data, section_address, replace_address, reloc_addres
 	return external_application_image
 
 binary_dir = sys.argv[1]           #/portapack-mayhem/build/firmware/application
+# End of the external app regions of the tier being built, read from the
+# external.ld that the build copied into binary_dir.
+external_apps_address_end = read_external_apps_address_end(binary_dir)
 cmake_objcopy = sys.argv[2]
 cmake_readelf = sys.argv[3]
 

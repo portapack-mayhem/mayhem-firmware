@@ -26,7 +26,7 @@
 import sys
 import os
 from external_app_info import external_apps_address_start
-from external_app_info import external_apps_address_end
+from external_app_info import read_external_apps_address_end
 from elf_info import external_app_section_prefix
 from elf_info import read_loaded_sections
 from elf_info import read_relocations
@@ -180,6 +180,10 @@ output_path = sys.argv[3]
 spi_size = int(sys.argv[4], 0)
 application_elf = sys.argv[5]
 cmake_readelf = sys.argv[6]
+
+# End of the external app regions of the tier being built, read from the
+# external.ld that the build copied next to application.elf.
+external_apps_address_end = read_external_apps_address_end(os.path.dirname(os.path.abspath(application_elf)))
 
 print("\ncheck gcc versions from all elf target\n")
 application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
