@@ -78,3 +78,15 @@ Open `firmware/baseband/CMakeLists.txt` and read the instructions there. It has 
 ## Starting the baseband from an external app
 
 Don't use `baseband::run_prepared_image(portapack::memory::map::m4_code.base())`. It only works when the baseband is bundled with the external app. Use for example `baseband::run_image(portapack::spi_flash::image_tag_tpms);` instead. It falls back to loading the image from the external app on builds that don't have it in the firmware, so it works in every tier, even if the app's marking changes later.
+
+## `tools/list_baseband_images.py` (baseband checker)
+
+A test-only helper (not part of the build). Run it from the repository root:
+
+```
+python3 tools/list_baseband_images.py       # add -v to show every call site
+```
+
+It lists every baseband image with its tier section in `baseband/CMakeLists.txt`, and every internal and external app that starts it (all firmware sources are scanned, not only the external folder). It also lists the remaining `run_prepared_image` callers, marks external apps that use **MULTIPLE** basebands (their bundled image must be the biggest one they use), reports internal basebands that could safely be made external, and prints warnings, for example when an image's section does not match the tier of its users.
+
+**Please run it after adding or changing an app's baseband, or its `tier.txt`, and check that it reports no baseband related warnings or errors.**
