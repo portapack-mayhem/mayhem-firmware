@@ -21,7 +21,7 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
-
+import os
 import sys
 import subprocess
 from external_app_info import maximum_application_size
