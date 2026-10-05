@@ -420,6 +420,11 @@ set(EXTCPPSRC
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
 
+
+  	#rds_rx
+    external/rds_rx/main.cpp
+  	external/rds_rx/ui_rds_rx.cpp
+
 )
 
 set(EXTAPPLIST
@@ -512,7 +517,7 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
-  signal_hunter
+    signal_hunter
 	tetra_rx
 	adsbrx
 	ais_rx
@@ -521,4 +526,5 @@ set(EXTAPPLIST
 	ft8_rx
 	spec_an
 	sdusb
+  	rds_rx
 )
