@@ -48,8 +48,6 @@ constexpr int kLine1Y = 0;
 constexpr int kLine2Y = 9;
 constexpr int kGridTop = 18;
 constexpr int kAnnoY = 191;
-constexpr int kActiveY = 201;
-constexpr int kSoftY = 220;
 constexpr int kSoftH = 20;
 constexpr int kBackW = 20;
 constexpr int kKeyW = 42;
@@ -300,6 +298,10 @@ SpecAnView::SpecAnView(NavigationView& nav)
     : nav_{nav} {
     set_focusable(true);
 
+    enter_landscape();
+    kSoftY = screen_height - kSoftH;
+    kActiveY = screen_height - kSoftH - 16 - 3;  // font - paddings
+    kSpecRowsSplit = (screen_height > 300) ? 171 : 91;
     /* Persisted values may be from another build: keep them in range. */
     span_ = std::clamp<uint64_t>(span_, kMinSpan, kMaxFreq);
     center_ = std::clamp<uint64_t>(center_, span_ / 2, kMaxFreq - span_ / 2);
@@ -631,7 +633,7 @@ void SpecAnView::update_geometry() {
     spec_rows_ = waterfall_ ? kSpecRowsSplit : kSpecRowsFull;
     div_rows_ = (spec_rows_ - 1) / 10;
     wf_top_ = kGridTop + spec_rows_ + 1;
-    wf_rows_ = waterfall_ ? std::min<int>(kGridTop + kPlotRows - wf_top_, kWaterfallRows) : 0;
+    wf_rows_ = waterfall_ ? std::min<int>(kActiveY - kGridTop - wf_top_, kWaterfallRows) : 0;
 
     const int32_t range = 10 * kDbDiv[dbdiv_idx_];
     ymul_ = ((spec_rows_ - 1) << 16) / range;
