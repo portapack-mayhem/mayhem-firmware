@@ -74,7 +74,6 @@
 #if FLASH_TIER >= 2
 // For hackrf PRO
 #include "external/analogtv/analog_tv_app.hpp"
-#include "external/spainter/ui_spectrum_painter.hpp"
 #include "external/protoview/ui_protoview.hpp"
 #endif
 
@@ -136,7 +135,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"flippertx", "FlipperTx", TX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::flippertx::FlipperTxView>()},
 #endif
 #if FLASH_TIER >= 2
-    {"spainter", "SPainter", TX, Color::yellow(), &bitmap_icon_paint, new ViewFactory<ui::external_app::spainter::SpectrumPainterView>()},
+
 #endif
     /* TRX ********************************************************************/
     {"microphone", "Mic", TRX, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},

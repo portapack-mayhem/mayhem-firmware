@@ -361,13 +361,6 @@ set(add_to_firmware TRUE)
 set(MODE_FLAGS "-O3")
 
 
-### ADS-B RX
-
-set(MODE_CPPSRC
-	proc_adsbrx.cpp
-)
-DeclareTargets(PADR adsbrx)
-
 
 ### AFSK TX
 
@@ -522,6 +515,13 @@ set(MODE_FLAGS "-O3")
 if(FLASH_TIER EQUAL 0)
 	set(add_to_firmware FALSE)
 endif()
+
+### ADS-B RX
+
+set(MODE_CPPSRC
+	proc_adsbrx.cpp
+)
+DeclareTargets(PADR adsbrx)
 
 
 ### ADS-B TX - t0 external

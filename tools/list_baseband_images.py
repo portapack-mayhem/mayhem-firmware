@@ -31,6 +31,9 @@ one baseband are marked MULTI (the bundled one must then be the biggest image).
 Warnings: m4_app_tag comment not matching the 4 letters, bundled tag not among
 the used ones, and run_prepared_image still in use.
 
+It also lists the internal images that could safely be made external: used only
+by external apps that each use just that one image.
+
 Usage: tools/list_baseband_images.py [-v]
 """
 import argparse
@@ -146,10 +149,7 @@ def external_app_report(tags, warnings):
                 bundled = letters_to_sym.get("".join(re.findall(r"'(.)'", body)), "UNKNOWN")
             if m.group(1) != bundled:
                 warnings.append(f"{d.name}/main.cpp: m4_app_tag comment says {m.group(1)!r} but the letters are {bundled!r}")
-        used = set()
-        for f in d.rglob("*"):
-            if f.suffix in (".cpp", ".hpp", ".h") and f.name != "main.cpp":
-                used.update(x for x in re.findall(r'\bimage_tag_(\w+)', strip_comments(f.read_text(errors="ignore"))) if x in tags)
+        used = app_used_tags(d, tags)
         multi = len(used) > 1
         mark = "  <== MULTI" if multi else ""
         print(f"    {d.name:<22} tier.txt={tier:<2} bundled={bundled or '(positional)':<16} uses: {', '.join(sorted(used)) or '-'}{mark}")
@@ -157,6 +157,38 @@ def external_app_report(tags, warnings):
             warnings.append(f"{d.name}: bundled baseband {bundled} is not started by the app (uses {sorted(used)})")
         if used and bundled == "none":
             warnings.append(f"{d.name}: starts {sorted(used)} but bundles no baseband (m4_app_tag is none)")
+
+
+def app_used_tags(app_dir, tags):
+    used = set()
+    for f in app_dir.rglob("*"):
+        if f.suffix in (".cpp", ".hpp", ".h") and f.name != "main.cpp":
+            used.update(x for x in re.findall(r'\bimage_tag_(\w+)', strip_comments(f.read_text(errors="ignore"))) if x in tags)
+    return used
+
+
+def externalizable_report(images, tags, by_sym):
+    """List internal images that could safely be moved to an external section:
+    every user is an external app, and each of those apps uses only this one image."""
+    chunk_to_sym = {c: s for s, c in tags.items()}
+    print("\nInternal baseband images that can be made external safely")
+    print("(used only by external apps that use no other baseband image):")
+    found = 0
+    for img in images:
+        if img["section"] != 0:
+            continue
+        sym = chunk_to_sym.get(img["chunk"])
+        users = by_sym.get(sym, []) if sym else []
+        if not users or any(ext_dir is None for _, ext_dir, _ in users):
+            continue
+        apps = sorted({ext_dir for _, ext_dir, _ in users})
+        if any(app_used_tags(EXT / d, tags) != {sym} for d in apps):
+            continue
+        found += 1
+        info = ", ".join(f"{d}(tier.txt={read_tier(d)})" for d in apps)
+        print(f"    {img['name']:<20} {img['chunk']}  image_tag_{sym}  <- {info}")
+    if not found:
+        print("    (none)")
 
 
 def main():
@@ -209,6 +241,7 @@ def main():
                             f"makes it internal in builds {sorted(internal_builds(ext_dir))}; use run_image(image_tag_...)")
 
     external_app_report(tags, warnings)
+    externalizable_report(images, tags, by_sym)
 
     unknown = sorted(set(by_sym) - set(chunk_to_sym.get(img["chunk"]) for img in images))
     if unknown:
