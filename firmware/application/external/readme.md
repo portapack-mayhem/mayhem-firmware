@@ -1,22 +1,65 @@
-# External apps description
-External apps has 3 tiers.
-Tier 0 is external in all builds.
-Tier 1 is internal in PortaRf AND HackRf Pro
-Tier 2 is internal only for HackRf Pro.
+# External apps developer guide
 
-Put all joke or not necesarry apps to T0. Also Harmful apps (like jammer)
-Put The most important and most interesting apps to T1.
-Put other apps to T2.
+External apps are built into the same ELF as the firmware, but linked into their own 32k regions and exported as separate `.ppma` images that are loaded from the SD card. Depending on the flash size of the build, some of them are instead compiled **into** the firmware ("internal").
 
-# external_tierN.ld files
-If you include anything in these files, those will be external for that tier. So if you want the given app to be external for the given tier, add it to the .ld file.
+## Flash tiers (builds)
 
-# ui_navigation.cpp
-Include the tier specific headers in there, and add it to the corresponding menu entry. These will be INTERNAL for the given tier. 
+The root `CMakeLists.txt` picks the build's `FLASH_TIER` from the flash size and uses the matching linker script:
 
-# baseband iamges
-Open the baseband/CmakeLists.txt and read the instructions there. There will be multi tiered places too. Put the baseband image to the right place in it. 
-If you can make the baseband image external for the given tier if the app is external too. If multiple apps uses the same baseband, set the baseband to the correct tier. Like It is used ba a T1 and a T2 app, then the baseband must be T1!
+| `FLASH_TIER` | Flash | Typical device | Linker script | Internal apps (`tier.txt` value) |
+|---|---|---|---|---|
+| 0 | <= 1 MB | everything external | `external_tier0.ld` | none |
+| 1 | <= 2 MB | PortaRF | `external_tier1.ld` | 1 |
+| 2 | > 2 MB | HackRF Pro | `external_tier2.ld` | 1 and 2 |
 
-# baseband::run_prepared_image(portapack::memory::map::m4_code.base());
-Don't use this. This is for T0 tiers only. But since tiers can be changed, and devs may forget to change it, just use the baseband::run_image(portapack::spi_flash::image_tag_tpms);  It'll fall back for tiers that doesn't include it, so it'll be loaded from the ext app then.
+## Marking an app: `tier.txt`
+
+Every app folder has a `tier.txt` containing a single number: **the first build tier in which the app is compiled into the firmware (internal)**. The tier 0 build (<= 1 MB) has no room for internal apps, so every app is external there. A missing file means `0`.
+
+| `tier.txt` | Behaviour | External in builds | Internal in builds | Use for |
+|---|---|---|---|---|
+| `-1` | not compiled at all | - | - | retired apps whose code is kept in the repo |
+| `0` | never internal | 0, 1, 2 | - | joke, unnecessary or harmful apps (like jammer) |
+| `1` | internal in PortaRF (2 MB) and HackRF Pro | 0 | 1, 2 | the most important / most interesting apps |
+| `2` | internal in HackRF Pro only | 0, 1 | 2 | other useful apps |
+
+A bigger number means "stays external longer" (except `0`, which is external everywhere). `external_tierT.ld` lists the apps whose `tier.txt` is `0` or greater than `T`.
+
+## Adding a new external app
+
+1. Create `external/<app>/` with a `main.cpp` and your sources. `main.cpp` defines `initialize_app` and the `application_information` struct in the section `.external_app.app_<name>.application_information`. `<name>` is the app's *section name*: usually the folder name, but not always (folder `foxhunt` -> `foxhunt_rx`). It must be unique, and there must be exactly one such section in the folder.
+2. Add the sources to `EXTCPPSRC` in `external.cmake` (`main.cpp` is required, and every other file that needs to be compiled too) and the section name to `EXTAPPLIST` in the same file.
+3. Create `external/<app>/tier.txt` (see above).
+4. Run `python3 tools/update_external_tier_ld.py` (see below). Never edit the `external_tier*.ld` files by hand.
+5. If `tier.txt` is `1` or `2`, make the app internal for the bigger builds in `ui_navigation.cpp` (see below).
+6. Handle the baseband image (see below).
+
+## `tools/update_external_tier_ld.py`
+
+Regenerates `external_tier0.ld`, `external_tier1.ld` and `external_tier2.ld` from the `tier.txt` files and verifies that the rest of the tree is consistent. It only ever writes those three files.
+
+- Regions are 32k, contiguous, in 0x10000 steps from `0xADB10000`. Apps keep their current order in the files and new apps are appended alphabetically. Addresses shift when an app is added or removed; this is expected, because the exporter patches the addresses after the build.
+- Checks (any failure exits with status 1 and prints `ERROR: ...`):
+  - **`ui_navigation.cpp`**: an app with `tier.txt` = `N` (>= 1) must be `#include`d from `external/<dir>/...` under `#if FLASH_TIER >= N`. An app with `0` must not be included at all.
+  - **`external.cmake`**: the app's `main.cpp` must be in `EXTCPPSRC` and its section name in `EXTAPPLIST` (commented-out entries don't count).
+  - Apps with `-1` are left out of the `.ld` files and skip both checks.
+- `--check` writes nothing and exits with 1 if the `.ld` files are out of date.
+
+The script runs automatically on every CMake configure, **before** the selected `.ld` file is copied to the build directory as `external.ld`, and a failure aborts the build. The `tier.txt` files and `ui_navigation.cpp` are configure dependencies, so editing them re-runs it. Commit the regenerated `.ld` files together with your change. Changing an app's sources or section name does not retrigger CMake by itself, so re-run CMake (or the script) manually in that case.
+
+## `ui_navigation.cpp`
+
+Apps with `tier.txt` = `N` >= 1 are compiled into the firmware from build tier `N` up, so:
+
+- Include the app header in the `#if FLASH_TIER >= N` block at the top of the file.
+- Add the menu entry inside a matching `#if FLASH_TIER >= N` block in `appList`.
+
+Apps with `0` or `-1` must have neither; they are started from the external app menu.
+
+## Baseband images
+
+Open `firmware/baseband/CMakeLists.txt` and read the instructions there. It has tiered sections ("EXTERNAL ON TIER 0", "TIER 0, 1", "TIER 2, so external on all tiers"). Put the baseband image in the section that matches the app's `tier.txt`, so it is external exactly when the app is: `1` -> "external on tier 0", `2` -> "external on tier 0, 1", `0` -> "external on all tiers". If several apps share one baseband image, use the section of the app that stays external the *longest*, because the image must be external in every build where any of its users is. Example: used by a `1` app and a `0` app, so it goes in the "external on all tiers" section.
+
+## Starting the baseband from an external app
+
+Don't use `baseband::run_prepared_image(portapack::memory::map::m4_code.base())`. It only works when the baseband is bundled with the external app. Use for example `baseband::run_image(portapack::spi_flash::image_tag_tpms);` instead. It falls back to loading the image from the external app on builds that don't have it in the firmware, so it works in every tier, even if the app's marking changes later.

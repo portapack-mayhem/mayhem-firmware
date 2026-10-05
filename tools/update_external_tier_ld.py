@@ -2,12 +2,16 @@
 """Regenerate external_tier{0,1,2}.ld from the per-app "tier.txt" markers.
 
 Each folder in firmware/application/external/ is an external app. An optional
-"tier.txt" in the folder holds a single integer (default 0 when missing):
-the highest flash tier in which the app is still built as an external app.
-The value -1 marks a disabled app: it is left out of every .ld file and is not
-checked against ui_navigation.cpp or external.cmake.
-An app with tier N is listed in external_tier0.ld .. external_tierN.ld, so
-tier 0 always contains every external app.
+"tier.txt" in the folder holds a single integer (default 0 when missing): the
+first build tier in which the app is compiled INTO the firmware (internal).
+   0  never internal: external in all builds
+   1  internal in tier 1 (2 MB, PortaRF) and tier 2 (HackRF Pro)
+   2  internal in tier 2 only
+  -1  disabled: left out of every .ld file and not checked against
+      ui_navigation.cpp or external.cmake
+The tier 0 build (<= 1 MB) is always all-external, so external_tier0.ld
+contains every enabled app; external_tierT.ld contains the apps with value 0
+or > T.
 
 The app's section name (app_<name>) is read from the
 ".external_app.app_<name>.application_information" attribute in its sources
@@ -18,12 +22,13 @@ Only the three .ld files are modified. Region layout matches the existing files:
 comment header is preserved. App order follows the existing MEMORY order (tier0 first); new
 apps are appended alphabetically.
 
-It also verifies firmware/application/ui_navigation.cpp: an app marked tier T
-(< 2) must be #included from "external/<dir>/" inside a "#if FLASH_TIER >= T+1"
-block (it is internal only from that tier up), and an app marked 2 (external in
-every tier) must not be included at all. Finally every app must be enabled in external.cmake: its main.cpp in EXTCPPSRC
-and its section name in EXTAPPLIST (commented-out entries don't count). Any mismatch is reported and the script
-exits with status 1 (the .ld files are still written unless --check is given).
+It also verifies firmware/application/ui_navigation.cpp: an app with value N >= 1
+must be #included from "external/<dir>/" inside a "#if FLASH_TIER >= N" block,
+and an app with value 0 must not be included at all. Finally every enabled app
+must be in external.cmake: its main.cpp in EXTCPPSRC and its section name in
+EXTAPPLIST (commented-out entries don't count). Any mismatch is reported and
+the script exits with status 1 (the .ld files are still written unless --check
+is given).
 
 Usage: tools/update_external_tier_ld.py [--check]
 """
@@ -107,7 +112,7 @@ def header_of(tier):
 
 
 def generate(tier, order, apps, wildcard):
-    sel = [n for n in order if apps[n]["tier"] >= tier]
+    sel = [n for n in order if apps[n]["tier"] == 0 or apps[n]["tier"] > tier]
     out = [header_of(tier)]
     width = max((len(n) for n in sel), default=0)
     for i, n in enumerate(sel):
@@ -149,16 +154,16 @@ def check_navigation(apps):
     errors = []
     for d, (name, tier) in sorted(by_dir.items()):
         found = guards.get(d, [])
-        if tier >= 2:
+        if tier == 0:
             for g, ln in found:
-                errors.append(f"{NAV_FILE.name}:{ln}: {d} is marked tier {tier} (external in all tiers) but is included")
+                errors.append(f"{NAV_FILE.name}:{ln}: {d} is marked 0 (never internal) but is included")
             continue
-        want = tier + 1
+        want = tier
         if not found:
-            errors.append(f"{NAV_FILE.name}: {d} is marked tier {tier} but has no #include \"external/{d}/...\" under #if FLASH_TIER >= {want}")
+            errors.append(f"{NAV_FILE.name}: {d} is marked {tier} but has no #include \"external/{d}/...\" under #if FLASH_TIER >= {want}")
         for g, ln in found:
             if g != want:
-                errors.append(f"{NAV_FILE.name}:{ln}: {d} is marked tier {tier}, include must be under '#if FLASH_TIER >= {want}' (found {g or 'no guard'})")
+                errors.append(f"{NAV_FILE.name}:{ln}: {d} is marked {tier}, include must be under '#if FLASH_TIER >= {want}' (found {g or 'no guard'})")
     return errors
 
 
