@@ -25,6 +25,12 @@ that is external in that build (the image would be missing), and for chunk tags 
 spi_image.hpp. Images without any image_tag_ user are marked in the list; they
 are normally started by an external app with run_prepared_image.
 
+For every external app it also prints the baseband tag bundled in its main.cpp
+(m4_app_tag) and every image_tag_ used by its sources; apps that use more than
+one baseband are marked MULTI (the bundled one must then be the biggest image).
+Warnings: m4_app_tag comment not matching the 4 letters, bundled tag not among
+the used ones, and run_prepared_image still in use.
+
 Usage: tools/list_baseband_images.py [-v]
 """
 import argparse
@@ -118,6 +124,41 @@ def external_in(section):
     return {0: set(), 1: {0}, 2: {0, 1}, 3: {0, 1, 2}}[section]
 
 
+M4_TAG_RE = re.compile(r"/\*\.m4_app_tag\s*=\s*(?:portapack::spi_flash::image_tag_(\w+))?\s*\*/\s*\{([^}]*)\}")
+
+
+def external_app_report(tags, warnings):
+    """Print the baseband usage of every external app, marking the ones with several."""
+    letters_to_sym = {v: k for k, v in tags.items()}
+    print("\nExternal apps and the baseband images they use:")
+    for d in sorted(p for p in EXT.iterdir() if p.is_dir()):
+        tier = read_tier(d.name)
+        if tier < 0:
+            continue
+        main_text = (d / "main.cpp").read_text(errors="ignore")
+        m = M4_TAG_RE.search(main_text)
+        bundled = None
+        if m:
+            body = m.group(2).replace(" ", "")
+            if body == "0,0,0,0":
+                bundled = "none"
+            else:
+                bundled = letters_to_sym.get("".join(re.findall(r"'(.)'", body)), "UNKNOWN")
+            if m.group(1) != bundled:
+                warnings.append(f"{d.name}/main.cpp: m4_app_tag comment says {m.group(1)!r} but the letters are {bundled!r}")
+        used = set()
+        for f in d.rglob("*"):
+            if f.suffix in (".cpp", ".hpp", ".h") and f.name != "main.cpp":
+                used.update(x for x in re.findall(r'\bimage_tag_(\w+)', strip_comments(f.read_text(errors="ignore"))) if x in tags)
+        multi = len(used) > 1
+        mark = "  <== MULTI" if multi else ""
+        print(f"    {d.name:<22} tier.txt={tier:<2} bundled={bundled or '(positional)':<16} uses: {', '.join(sorted(used)) or '-'}{mark}")
+        if bundled and bundled != "none" and used and bundled not in used:
+            warnings.append(f"{d.name}: bundled baseband {bundled} is not started by the app (uses {sorted(used)})")
+        if used and bundled == "none":
+            warnings.append(f"{d.name}: starts {sorted(used)} but bundles no baseband (m4_app_tag is none)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-v", "--verbose", action="store_true", help="show every call site")
@@ -166,6 +207,8 @@ def main():
         elif internal_builds(ext_dir):
             warnings.append(f"{loc}: run_prepared_image only works while the app is external, but tier.txt={read_tier(ext_dir)} "
                             f"makes it internal in builds {sorted(internal_builds(ext_dir))}; use run_image(image_tag_...)")
+
+    external_app_report(tags, warnings)
 
     unknown = sorted(set(by_sym) - set(chunk_to_sym.get(img["chunk"]) for img in images))
     if unknown:

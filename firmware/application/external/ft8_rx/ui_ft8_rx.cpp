@@ -75,7 +75,7 @@ FT8RxView::FT8RxView(NavigationView& nav)
     };
     options_band.set_by_value(receiver_model.target_frequency());
 
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_ft8_rx);
 
     /* FT8 occupies 50 Hz per signal inside a 2.5 kHz sub-band, but the decoder needs the
      * whole sub-band at once, so the receiver runs wide and the channel filter narrows it.

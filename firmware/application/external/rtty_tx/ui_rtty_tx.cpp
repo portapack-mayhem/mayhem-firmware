@@ -87,7 +87,7 @@ RttyTxView::RttyTxView(NavigationView& nav)
             nav_.display_modal("Error", "Message is empty. Please set a message to transmit.");
             return;
         }
-        baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+        baseband::run_image(portapack::spi_flash::image_tag_rttytx);
         transmitter_model.set_baseband_bandwidth(2048000);
         baseband::set_sample_rate(2048000, OversampleRate::None);
         transmitter_model.set_sampling_rate(2048000);

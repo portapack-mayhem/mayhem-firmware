@@ -833,7 +833,7 @@ void FlexTXView::on_set_text(NavigationView& nav) {
 
 FlexTXView::FlexTXView(NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
     // Init random msg number from RTC
     {
