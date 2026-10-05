@@ -31,7 +31,7 @@ A bigger number means "stays external longer" (except `0`, which is external eve
 2. Add the sources to `EXTCPPSRC` in `external.cmake` (`main.cpp` is required, and every other file that needs to be compiled too) and the section name to `EXTAPPLIST` in the same file.
 3. Create `external/<app>/tier.txt` (see above).
 4. Run `python3 tools/update_external_tier_ld.py` (see below). Never edit the `external_tier*.ld` files by hand.
-5. If `tier.txt` is `1` or `2`, make the app internal for the bigger builds in `ui_navigation.cpp` (see below).
+5. If `tier.txt` is `1` or `2`, add the header include and the menu entry to `ui_navigation.cpp` (see below). Otherwise skip this step.
 6. Handle the baseband image (see below).
 
 ## `tools/update_external_tier_ld.py`
@@ -47,14 +47,29 @@ Regenerates `external_tier0.ld`, `external_tier1.ld` and `external_tier2.ld` fro
 
 The script runs automatically on every CMake configure, **before** the selected `.ld` file is copied to the build directory as `external.ld`, and a failure aborts the build. The `tier.txt` files and `ui_navigation.cpp` are configure dependencies, so editing them re-runs it. Commit the regenerated `.ld` files together with your change. Changing an app's sources or section name does not retrigger CMake by itself, so re-run CMake (or the script) manually in that case.
 
-## `ui_navigation.cpp`
+## `ui_navigation.cpp` (include and menu entry)
 
-Apps with `tier.txt` = `N` >= 1 are compiled into the firmware from build tier `N` up, so:
+Apps with `tier.txt` = `N` >= 1 are compiled into the firmware from build tier `N` up. Internal apps are started from the normal menus, so they need two things in [ui_navigation.cpp](../../ui_navigation.cpp), both guarded with `#if FLASH_TIER >= N` (use the app's own `N`):
 
-- Include the app header in the `#if FLASH_TIER >= N` block at the top of the file.
-- Add the menu entry inside a matching `#if FLASH_TIER >= N` block in `appList`.
+1. **Header include**, in the guarded block near the top of the file:
 
-Apps with `0` or `-1` must have neither; they are started from the external app menu.
+   ```cpp
+   #if FLASH_TIER >= 1
+   #include "external/adsbrx/ui_adsb_rx.hpp"
+   #endif
+   ```
+
+2. **Menu entry**, in the `appList` array, in the section of the menu where it should show up (`RX`, `TX`, `TRX`, `UTILITIES`, ...), wrapped in the same kind of guard:
+
+   ```cpp
+   #if FLASH_TIER >= 1
+       {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ui::external_app::adsbrx::ADSBRxView>()},
+   #endif
+   ```
+
+   The fields are: call name, displayed name, menu location, color, icon, and a `ViewFactory` of the app's main view class from namespace `ui::external_app::<name>`.
+
+If you put the include or the entry under the wrong `N`, the build stops with an error from `tools/update_external_tier_ld.py`. Only the include is checked, so keep the menu entry's guard identical to it. Apps with `0` or `-1` must have neither: they are listed by the external app loader instead, in every build where they are external.
 
 ## Baseband images
 
