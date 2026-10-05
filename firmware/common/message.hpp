@@ -174,6 +174,7 @@ class Message {
         RxFs4Config = 116,
         FT8Packet = 117,
         FT8RxStatus = 118,
+        RdsData = 119,
         MAX
     };
 
@@ -2090,6 +2091,29 @@ class HunterStopMessage : public Message {
    public:
     constexpr HunterStopMessage()
         : Message{ID::HunterStop} {}
+};
+
+struct RDSGroupMessage : public Message {
+    constexpr RDSGroupMessage(
+        uint16_t a,
+        uint16_t b,
+        uint16_t c,
+        uint16_t d,
+        bool c_prime,
+        bool is_debug,
+        uint32_t dbg_1,
+        uint32_t dbg_2)
+        : Message{ID::RdsData}, block_a{a}, block_b{b}, block_c{c}, block_d{d}, is_c_prime{c_prime}, is_debug{is_debug}, debug_1{dbg_1}, debug_2{dbg_2} {}
+
+    uint16_t block_a;
+    uint16_t block_b;
+    uint16_t block_c;
+    uint16_t block_d;
+    bool is_c_prime;
+
+    bool is_debug;
+    uint32_t debug_1;
+    uint32_t debug_2;
 };
 
 struct TetraBurstMessage : public Message {
