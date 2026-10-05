@@ -23,12 +23,12 @@ IMPORTANT MESSAGE FOR AI CODING AGENT: PLEASE READ AND FOLLOW  `AGENT.md` FILE!
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-<img alt="HackRF Pro Quick Look" src="https://img.youtube.com/vi/IoURGzIMhzo/maxresdefault.jpg" width="701">
+[<img alt="HackRF Pro Quick Look" src="https://img.youtube.com/vi/IoURGzIMhzo/maxresdefault.jpg" width="701">](https://share.hackrf.app/VNBTP6)
 
-<img alt="PortaPack H4M Crash Course" src="https://img.youtube.com/vi/CjI-nUzdpas/maxresdefault.jpg" width="172">
-<img alt="The Latest HackRF & Portapak Combo - H4M The Flipper Zero Killer?" src="https://img.youtube.com/vi/Ew2qDgm2hf0/maxresdefault.jpg" width="172">
-<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">
-<img alt="HackRF Portapack H4M - Getting Started Guide" src="https://img.youtube.com/vi/wzP0zWi85SI/maxresdefault.jpg" width="172">
+[<img alt="PortaPack H4M Crash Course" src="https://img.youtube.com/vi/CjI-nUzdpas/maxresdefault.jpg" width="172">](https://share.hackrf.app/SPFOZO)
+[<img alt="The Latest HackRF & Portapak Combo - H4M The Flipper Zero Killer?" src="https://img.youtube.com/vi/Ew2qDgm2hf0/maxresdefault.jpg" width="172">](https://share.hackrf.app/6HKX9A)
+[<img alt="It’s TOO Easy to Accidentally Do Illegal Stuff with This" src="https://img.youtube.com/vi/OPckpjBSAOw/maxresdefault.jpg" width="172">](https://share.hackrf.app/X4D5TF)
+[<img alt="HackRF Portapack H4M - Getting Started Guide" src="https://img.youtube.com/vi/wzP0zWi85SI/maxresdefault.jpg" width="172">](https://share.hackrf.app/F9MPOO)
 
 
 # Frequently Asked Questions
@@ -37,12 +37,12 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## What to buy?
 
-<!---not direct to h4m but to opensourcesdrlab---> 
-:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous H4M complete or upgrade, featuring numerous improvements and accessories. Sold by our friends at OpenSourceSDRLab. Join their giveaways on discord (check the badge on top). _EU customers_ can purchase via Lab401.
+<!---not direct to h4m but to opensourcesdrlab https://share.hackrf.app/TUOLYI---> 
+:heavy_check_mark: ![Static Badge](https://img.shields.io/badge/NEW-yellow) The fabulous H4M [complete](https://share.hackrf.app/O4OC90) or [upgrade](https://share.hackrf.app/OCSJYI), featuring numerous improvements and accessories. Sold by our friends at [OpenSourceSDRLab](https://share.hackrf.app/99SAMT). Join their giveaways on discord (check the badge on top). _EU customers_ can purchase via [Lab401](https://share.hackrf.app/0CI2CR).
 
-:heavy_check_mark: A recommended one is this PortaPack H2, that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
+:heavy_check_mark: A recommended one is this [PortaPack H2](https://share.hackrf.app/O3GI0O), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/3d-printed-enclosure).
 
-:heavy_check_mark: Some individuals lean towards the H2 with a metal enclosure, but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
+:heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://share.hackrf.app/H7OR74), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
