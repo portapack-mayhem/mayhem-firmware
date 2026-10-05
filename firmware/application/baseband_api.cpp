@@ -501,7 +501,6 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
 
-    m4_init(image_tag, memory::map::m4_code, false);
     rx_fs4_supported = image_tag == spi_flash::image_tag_am_audio ||
                        image_tag == spi_flash::image_tag_nfm_audio ||
                        image_tag == spi_flash::image_tag_wfm_audio ||
