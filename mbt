@@ -214,6 +214,9 @@ Benchmark options (in addition to -d/--device, -j/--jobs, --target, -B, --cmake-
                                    warm = ccache on, pre-populated cache (the ccache speedup)
                                  Each cell is a full clean build in a dedicated dir (default: ./build-bench),
                                  using an isolated CCACHE_DIR so your real ccache is never touched.
+                                 Disk writes per cell are measured from the kernel block stats of the
+                                 device(s) behind the build dir and source tree (system-wide; stay idle).
+  --bench-tbw <TB>               Drive's rated endurance in TB; adds each build's share of SSD life
 
 Examples:
   ./mbt
@@ -224,6 +227,7 @@ Examples:
   ./mbt benchmark --device hackrf-one --no-deps --no-submodule-sync
   ./mbt benchmark --device hackrf-one --bench-generators ninja --bench-ccache off,cold,warm
   ./mbt benchmark --device hackrf-one --bench-generators ninja,make --bench-ccache off
+  ./mbt benchmark --device hackrf-one --bench-generators ninja --bench-ccache off --bench-tbw 600
 EOF
 }
 
@@ -510,7 +514,52 @@ mbt_format_seconds() {
     }'
 }
 
-# Run one full clean build and print elapsed seconds on stdout.
+# Format a byte count as a human-friendly MiB/GiB string.
+mbt_format_bytes() {
+    awk -v b="$1" 'BEGIN {
+        if (b >= 1073741824) printf "%.2f GiB", b / 1073741824
+        else printf "%.1f MiB", b / 1048576
+    }'
+}
+
+# Print the /sys/class/block names (e.g. nvme0n1p2, dm-0) backing the given
+# paths, deduplicated. Paths on tmpfs/overlay/etc. have no block device and
+# are skipped, so a benchmark on tmpfs reports no disk writes.
+mbt_block_devices() {
+    local p src name
+    local -A seen=()
+
+    for p in "$@"; do
+        src="$(findmnt -no SOURCE --target "$p" 2>/dev/null | head -n1)" || continue
+        src="${src%%\[*}" # strip btrfs subvolume suffix: /dev/x[/@home]
+        [[ "$src" == /dev/* ]] || continue
+        src="$(readlink -f "$src")"
+        name="${src##*/}"
+        [[ -r "/sys/class/block/$name/stat" ]] || continue
+        [[ -n "${seen[$name]:-}" ]] && continue
+        seen[$name]=1
+        printf "%s\n" "$name"
+    done
+}
+
+# Sum of 512-byte sectors written (field 7 of the kernel block stat) across
+# the given /sys/class/block names. Counts all writes to the device, not just
+# this process, so keep the machine otherwise idle while benchmarking.
+mbt_sectors_written() {
+    local name total=0 s
+
+    for name in "$@"; do
+        s="$(awk '{ print $7 }' "/sys/class/block/$name/stat")"
+        total=$((total + s))
+    done
+    printf "%s" "$total"
+}
+
+# Block devices whose writes mbt_bench_cell measures; set by mbt_benchmark.
+MBT_BENCH_BLOCKDEVS=()
+
+# Run one full clean build and print "<elapsed seconds> <bytes written>" on
+# stdout. Bytes written is "-" when no block device is being measured.
 # All progress/logging goes to stderr; build output is captured to a per-cell log.
 # Args: cell_dir generator use_ccache device jobs target ccache_dir log_file  cmake_extra_array_name
 mbt_bench_cell() {
@@ -521,6 +570,7 @@ mbt_bench_cell() {
     local -a cmake_extra_args=("${cmake_extra_ref[@]}")
     local -a device_args cmake_args build_args
     local start end status=0
+    local sectors_start=0 sectors_end=0 written="-"
 
     rm -rf "$cell_dir"
     mkdir -p "$cell_dir"
@@ -546,6 +596,13 @@ mbt_bench_cell() {
         build_args+=(--target "$target")
     fi
 
+    # Flush the cleanup above (and any unrelated dirty pages) so they are not
+    # billed to this build.
+    if [[ "${#MBT_BENCH_BLOCKDEVS[@]}" -gt 0 ]]; then
+        sync
+        sectors_start="$(mbt_sectors_written "${MBT_BENCH_BLOCKDEVS[@]}")"
+    fi
+
     start="$(date +%s.%N)"
     (
         if [[ -n "$ccache_dir" ]]; then
@@ -560,7 +617,15 @@ mbt_bench_cell() {
         return "$status"
     fi
 
-    mbt_elapsed "$start" "$end"
+    # Timing stops before sync so writeback does not skew build time, but the
+    # write count waits for it so the build's dirty pages are fully counted.
+    if [[ "${#MBT_BENCH_BLOCKDEVS[@]}" -gt 0 ]]; then
+        sync
+        sectors_end="$(mbt_sectors_written "${MBT_BENCH_BLOCKDEVS[@]}")"
+        written=$(((sectors_end - sectors_start) * 512))
+    fi
+
+    printf "%s %s" "$(mbt_elapsed "$start" "$end")" "$written"
 }
 
 # Populate a ccache directory without timing (used when a warm run is requested
@@ -575,8 +640,8 @@ mbt_bench_populate() {
 
 mbt_benchmark() {
     local base_dir="$1" device="$2" jobs="$3" target="$4"
-    local generators_csv="$5" ccache_csv="$6"
-    shift 6
+    local generators_csv="$5" ccache_csv="$6" tbw="$7"
+    shift 7
     local -n bench_cmake_extra_ref="$1"
     local -a bench_extra_args=("${bench_cmake_extra_ref[@]}")
 
@@ -640,18 +705,30 @@ mbt_benchmark() {
         mbt_die "ccache modes requested but ccache is not installed. Install it or use --bench-ccache off."
     fi
 
+    if [[ -n "$tbw" ]] && ! awk -v t="$tbw" 'BEGIN { exit !(t + 0 > 0) }'; then
+        mbt_die "invalid --bench-tbw value: $tbw (expected terabytes, e.g. 600)"
+    fi
+
     mkdir -p "$base_dir"
     local log_dir="$base_dir/logs"
     mkdir -p "$log_dir"
+
+    # libopencm3 builds in-source, so measure the source tree's device too.
+    mapfile -t MBT_BENCH_BLOCKDEVS < <(mbt_block_devices "$base_dir" "$SCRIPT_PATH")
 
     mbt_log "benchmark: device=$device jobs=$jobs generators=[${generators[*]}] ccache=[${modes[*]}]"
     [[ -n "$target" ]] && mbt_log "benchmark: target=$target"
     mbt_log "benchmark: results and per-cell logs under $base_dir"
     mbt_log "benchmark: each cell is a full clean build; this can take a while."
+    if [[ "${#MBT_BENCH_BLOCKDEVS[@]}" -gt 0 ]]; then
+        mbt_log "benchmark: measuring disk writes on [${MBT_BENCH_BLOCKDEVS[*]}] (system-wide; keep the machine idle)"
+    else
+        mbt_log "benchmark: no block device behind build dir (tmpfs?); disk writes not measured"
+    fi
 
     # Parallel result arrays.
-    local -a r_gen=() r_mode=() r_secs=() r_ok=()
-    local cell_dir ccache_dir log_file secs cell_status label
+    local -a r_gen=() r_mode=() r_secs=() r_bytes=() r_ok=()
+    local cell_dir ccache_dir log_file result secs bytes cell_status label
 
     for g in "${generators[@]}"; do
         # Per-generator, isolated ccache dir so "cold" is truly cold and the
@@ -672,13 +749,13 @@ mbt_benchmark() {
             case "$mode" in
             off)
                 mbt_log "running: $label"
-                secs="$(mbt_bench_cell "$base_dir/cell" "$g" "OFF" "$device" \
+                result="$(mbt_bench_cell "$base_dir/cell" "$g" "OFF" "$device" \
                     "$jobs" "$target" "" "$log_file" bench_extra_args)" && cell_status=0 || cell_status=$?
                 ;;
             cold)
                 rm -rf "$ccache_dir" && mkdir -p "$ccache_dir"
                 mbt_log "running: $label (empty cache)"
-                secs="$(mbt_bench_cell "$base_dir/cell" "$g" "ON" "$device" \
+                result="$(mbt_bench_cell "$base_dir/cell" "$g" "ON" "$device" \
                     "$jobs" "$target" "$ccache_dir" "$log_file" bench_extra_args)" && cell_status=0 || cell_status=$?
                 [[ "$cell_status" -eq 0 ]] && cold_done=1
                 ;;
@@ -689,22 +766,27 @@ mbt_benchmark() {
                     if ! mbt_bench_populate "$base_dir/cell" "$g" "$device" \
                         "$jobs" "$target" "$ccache_dir" "$log_dir/$(printf "%s" "$g" | tr ' ' '-')-prime.log" bench_extra_args; then
                         mbt_error "cache priming failed for $label; skipping."
-                        r_gen+=("$g"); r_mode+=("$mode"); r_secs+=("0"); r_ok+=("0")
+                        r_gen+=("$g"); r_mode+=("$mode"); r_secs+=("0"); r_bytes+=("-"); r_ok+=("0")
                         continue
                     fi
                 fi
                 mbt_log "running: $label (populated cache)"
-                secs="$(mbt_bench_cell "$base_dir/cell" "$g" "ON" "$device" \
+                result="$(mbt_bench_cell "$base_dir/cell" "$g" "ON" "$device" \
                     "$jobs" "$target" "$ccache_dir" "$log_file" bench_extra_args)" && cell_status=0 || cell_status=$?
                 ;;
             esac
 
             if [[ "$cell_status" -ne 0 ]]; then
                 mbt_error "cell failed: $label (see $log_file)"
-                r_gen+=("$g"); r_mode+=("$mode"); r_secs+=("0"); r_ok+=("0")
+                r_gen+=("$g"); r_mode+=("$mode"); r_secs+=("0"); r_bytes+=("-"); r_ok+=("0")
             else
-                mbt_log "  -> $(mbt_format_seconds "$secs") ($secs s)"
-                r_gen+=("$g"); r_mode+=("$mode"); r_secs+=("$secs"); r_ok+=("1")
+                read -r secs bytes <<< "$result"
+                if [[ "$bytes" == "-" ]]; then
+                    mbt_log "  -> $(mbt_format_seconds "$secs") ($secs s)"
+                else
+                    mbt_log "  -> $(mbt_format_seconds "$secs") ($secs s), wrote $(mbt_format_bytes "$bytes")"
+                fi
+                r_gen+=("$g"); r_mode+=("$mode"); r_secs+=("$secs"); r_bytes+=("$bytes"); r_ok+=("1")
             fi
         done
     done
@@ -714,10 +796,10 @@ mbt_benchmark() {
     # Summary table.
     printf "\n"
     mbt_log "benchmark summary (device=$device, jobs=$jobs)"
-    printf "  %-16s %-8s %12s %10s\n" "generator" "ccache" "time" "vs off"
-    printf "  %-16s %-8s %12s %10s\n" "---------" "------" "----" "------"
+    printf "  %-16s %-8s %12s %10s %12s %12s\n" "generator" "ccache" "time" "vs off" "written" "of TBW"
+    printf "  %-16s %-8s %12s %10s %12s %12s\n" "---------" "------" "----" "------" "-------" "------"
 
-    local i baseline speedup
+    local i baseline speedup written_str tbw_str
     for ((i = 0; i < ${#r_gen[@]}; i++)); do
         # Find the "off" baseline for the same generator, if measured.
         baseline=""
@@ -730,7 +812,7 @@ mbt_benchmark() {
         done
 
         if [[ "${r_ok[$i]}" != "1" ]]; then
-            printf "  %-16s %-8s %12s %10s\n" "${r_gen[$i]}" "${r_mode[$i]}" "FAILED" "-"
+            printf "  %-16s %-8s %12s %10s %12s %12s\n" "${r_gen[$i]}" "${r_mode[$i]}" "FAILED" "-" "-" "-"
             continue
         fi
 
@@ -739,11 +821,28 @@ mbt_benchmark() {
         else
             speedup="-"
         fi
-        printf "  %-16s %-8s %12s %10s\n" "${r_gen[$i]}" "${r_mode[$i]}" "$(mbt_format_seconds "${r_secs[$i]}")" "$speedup"
+        written_str="n/a"
+        tbw_str="-"
+        if [[ "${r_bytes[$i]}" != "-" ]]; then
+            written_str="$(mbt_format_bytes "${r_bytes[$i]}")"
+            if [[ -n "$tbw" ]]; then
+                tbw_str="$(awk -v b="${r_bytes[$i]}" -v t="$tbw" 'BEGIN { printf "%.6f%%", b * 100 / (t * 1e12) }')"
+            fi
+        fi
+        printf "  %-16s %-8s %12s %10s %12s %12s\n" "${r_gen[$i]}" "${r_mode[$i]}" \
+            "$(mbt_format_seconds "${r_secs[$i]}")" "$speedup" "$written_str" "$tbw_str"
     done
     printf "\n"
     mbt_log "'vs off' > 1x means faster than the same generator's ccache=off build."
     mbt_log "cold = empty cache (populate cost); warm = pre-populated cache (the ccache win)."
+    if [[ "${#MBT_BENCH_BLOCKDEVS[@]}" -gt 0 ]]; then
+        mbt_log "'written' = host writes to [${MBT_BENCH_BLOCKDEVS[*]}] during the build (incl. fs metadata, excl. SSD-internal write amplification)."
+        if [[ -n "$tbw" ]]; then
+            mbt_log "'of TBW' = share of the drive's rated endurance ($tbw TB) one such build consumes."
+        else
+            mbt_log "pass --bench-tbw <TB> (the drive's rated endurance) to see the share of SSD life per build."
+        fi
+    fi
 }
 
 main() {
@@ -763,6 +862,7 @@ main() {
     local non_interactive=0
     local benchmark_generators=""
     local benchmark_ccache=""
+    local benchmark_tbw=""
     local -a cmake_extra_args=()
     local -a build_extra_args=()
 
@@ -853,6 +953,15 @@ main() {
             ;;
         --bench-ccache=*)
             benchmark_ccache="${1#*=}"
+            shift
+            ;;
+        --bench-tbw)
+            [[ "$#" -ge 2 ]] || mbt_die "$1 requires a value"
+            benchmark_tbw="$2"
+            shift 2
+            ;;
+        --bench-tbw=*)
+            benchmark_tbw="${1#*=}"
             shift
             ;;
         -G|--generator)
@@ -987,7 +1096,7 @@ main() {
 
     if [[ "$command" == "benchmark" ]]; then
         mbt_benchmark "$build_dir" "$device" "$jobs" "$target" \
-            "$benchmark_generators" "$benchmark_ccache" cmake_extra_args
+            "$benchmark_generators" "$benchmark_ccache" "$benchmark_tbw" cmake_extra_args
         exit $?
     fi
 

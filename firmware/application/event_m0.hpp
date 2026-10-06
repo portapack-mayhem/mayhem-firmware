@@ -65,6 +65,10 @@ class EventDispatcher {
 
     static void charge_deep_sleep(const bool sleep);
 
+    /* Deliver pending M4 messages now, from inside a long-running handler
+     * (e.g. a frame render) that would otherwise hold them up. */
+    static void pump_application_queue();
+
     static inline void check_fifo_isr() {
         if (!shared_memory.application_queue.is_empty()) {
             events_flag_isr(EVT_MASK_APPLICATION);
