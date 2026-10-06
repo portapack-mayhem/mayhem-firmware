@@ -43,6 +43,7 @@
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
+#include "spec_an_shared.hpp"
 
 #include "utility.hpp"
 
@@ -175,7 +176,10 @@ class Message {
         FT8Packet = 117,
         FT8RxStatus = 118,
         RdsData = 119,
-        WMBusPacketMessageID = 120,
+        SpecAnConfig = 120,
+        SpecAnCaptured = 121,
+        SpecAnSlice = 122,
+        WMBusPacketMessageID = 123,
         MAX
     };
 
@@ -2158,6 +2162,93 @@ struct TetraDnbMessage : public Message {
 
     // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
     std::array<uint8_t, 54> payload;
+};
+/* Spectrum Analyzer ******************************************************/
+
+/* M0 -> M4, once per plan change. See spec_an_shared.hpp for the protocol. */
+class SpecAnConfigMessage : public Message {
+   public:
+    constexpr SpecAnConfigMessage(
+        spec_an::Shared* shared,
+        uint32_t sampling_rate,
+        uint16_t gen,
+        uint8_t fft_log2n,
+        uint16_t avg_blocks,
+        int16_t bin_first,
+        uint16_t bins_per_slice,
+        uint16_t slices,
+        uint64_t px_per_bin_num,
+        uint64_t px_per_bin_den,
+        spec_an::Window window,
+        spec_an::Detector detector)
+        : Message{ID::SpecAnConfig},
+          shared{shared},
+          sampling_rate{sampling_rate},
+          gen{gen},
+          fft_log2n{fft_log2n},
+          avg_blocks{avg_blocks},
+          bin_first{bin_first},
+          bins_per_slice{bins_per_slice},
+          slices{slices},
+          px_per_bin_num{px_per_bin_num},
+          px_per_bin_den{px_per_bin_den},
+          window{window},
+          detector{detector} {
+    }
+
+    spec_an::Shared* shared;
+    uint32_t sampling_rate;
+    uint16_t gen;
+    uint8_t fft_log2n;
+    uint16_t avg_blocks;     /* FFTs power-averaged per slice */
+    int16_t bin_first;       /* natural FFT bin of a slice's first bin, mod N */
+    uint16_t bins_per_slice; /* K: slice s covers global bins [s*K, (s+1)*K) */
+    uint16_t slices;
+    /* Display pixels per FFT bin, as a ratio: fs * (points - 1) / (N * span). */
+    uint64_t px_per_bin_num;
+    uint64_t px_per_bin_den;
+    spec_an::Window window;
+    spec_an::Detector detector;
+};
+
+/* M4 -> M0: samples for request `seq` are in, the tuner is free. */
+class SpecAnCapturedMessage : public Message {
+   public:
+    constexpr SpecAnCapturedMessage(uint16_t gen, uint32_t seq)
+        : Message{ID::SpecAnCaptured},
+          gen{gen},
+          seq{seq} {
+    }
+
+    uint16_t gen;
+    uint32_t seq;
+};
+
+/* M4 -> M0: display points [px_begin, px_end) of pix[sweep & 1] are final. */
+class SpecAnSliceMessage : public Message {
+   public:
+    constexpr SpecAnSliceMessage(
+        uint16_t gen,
+        uint16_t slice,
+        uint8_t sweep,
+        bool last,
+        uint16_t px_begin,
+        uint16_t px_end)
+        : Message{ID::SpecAnSlice},
+          gen{gen},
+          slice{slice},
+          sweep{sweep},
+          last{last},
+          px_begin{px_begin},
+          px_end{px_end} {
+    }
+
+    uint16_t gen;
+    uint16_t slice;
+    uint8_t sweep; /* req_sweep of the capture; pix[sweep & 1] holds the points */
+    bool last;
+    uint16_t px_begin;
+    uint16_t px_end;
 };
 
 struct WMBusPacketMessage : public Message {

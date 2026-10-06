@@ -827,6 +827,53 @@ ui::Coord ILI9341::scroll_area_y(const ui::Coord y) const {
     return wrapped_y + scroll_state.top_area;
 }
 
+/* MADCTL: MY=0x80 MX=0x40 MV=0x20 ML=0x10 BGR=0x08. Portrait is MY|MX.
+ * With MV set, MX/MY mirror the physical columns/rows after the exchange;
+ * MV|MY and MV|MX are the two proper rotations of MY|MX. */
+static constexpr uint8_t madctl_pp_portrait = 0x80 | 0x40 | 0x10 | 0x08;
+static constexpr uint8_t madctl_pp_landscape = 0x20 | 0x80 | 0x10 | 0x08;
+static constexpr uint8_t madctl_pp_landscape_flip = 0x20 | 0x40 | 0x10 | 0x08;
+
+bool ILI9341::set_landscape(const bool landscape, const bool flip) {
+    if (device_type != DEV_PORTAPACK) return false;
+
+    /* The vertical scroll area is defined on the 320 physical rows, which
+     * become columns once rotated: any scroll offset would shear the image.
+     * scroll_disable() sizes it from height(), so do it in portrait terms. */
+    ui::screen_width = 240;
+    ui::screen_height = 320;
+    scroll_disable();
+
+    uint8_t madctl = madctl_pp_portrait;
+    if (landscape) madctl = flip ? madctl_pp_landscape_flip : madctl_pp_landscape;
+    io.lcd_data_write_command_and_data(0x36, {madctl});
+
+    landscape_ = landscape;
+    if (landscape) {
+        ui::screen_width = 320;
+        ui::screen_height = 240;
+    }
+    return true;
+}
+
+void ILI9341::start_pixels(const ui::Rect r) {
+    lcd_start_ram_write(r);
+}
+
+void ILI9341::stream_pixels(const ui::Color* const colors, const size_t count) {
+    io.lcd_write_pixels(colors, count);
+}
+
+void ILI9341::stream_pixels_lut(const uint8_t* const index, const ui::Color* const lut, const size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        io.lcd_write_pixel(lut[index[i]]);
+    }
+}
+
+void ILI9341::stream_fill(const ui::Color color, const size_t count) {
+    io.lcd_write_pixels(color, count);
+}
+
 void ILI9341::scroll_disable() {
     if (device_type == DEV_PORTAPACK) {
         lcd_vertical_scrolling_definition(0, height(), 0);
