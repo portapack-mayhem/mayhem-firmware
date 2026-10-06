@@ -144,9 +144,10 @@ class SpecAnView : public View {
     static constexpr size_t kPoints = ::spec_an::kPoints;
     static constexpr size_t kTraces = 3;
     static constexpr size_t kMarkers = 4;
-    static constexpr int kPlotRows = 171; /* spectrum + waterfall */
     static constexpr int kSpecRowsFull = 171;
-    static constexpr int kSpecRowsSplit = 91;
+    int kSpecRowsSplit = 91;
+    int kSoftY = 220;
+    int kActiveY = 201;
 
     struct Plan {
         uint32_t fs{20000000};
