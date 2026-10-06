@@ -227,6 +227,10 @@ class GeoPos : public View {
     float lat();
     float lon();
 
+    void set_custom_labels(const std::string& alt_label, const std::string& spd_label);
+    void set_alt_unit(const std::string& unit_text);
+    void set_speed_unit(const std::string& unit_text);
+
     void set_report_change(bool v);
 
    private:
@@ -549,6 +553,10 @@ class GeoMapView : public View {
     MapMarkerStored store_marker(GeoMarker& marker);
 
     void update_tag(const std::string tag);
+
+    void set_custom_labels(const std::string& alt_label, const std::string& spd_label);
+    void set_alt_unit(const std::string& unit_text);
+    void set_speed_unit(const std::string& unit_text);
 
    private:
     NavigationView& nav_;
