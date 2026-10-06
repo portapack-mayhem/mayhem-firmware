@@ -42,6 +42,8 @@ using namespace portapack;
 
 namespace baseband {
 
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true, const portapack::spi_flash::image_tag_t prepared_image_tag = portapack::spi_flash::image_tag_none);
+
 static void send_message(const Message* const message) {
     // If message is only sent by this function via one thread, no need to check if
     // another message is present before setting new message.
