@@ -52,6 +52,7 @@ inline const char* parse_wav(const uint8_t* p, size_t size, uint32_t file_size, 
     const auto u16 = [p](size_t at) { return (uint16_t)(p[at] | (p[at + 1] << 8)); };
     const auto u32 = [p](size_t at) { return (uint32_t)(p[at] | (p[at + 1] << 8) | (p[at + 2] << 16) | ((uint32_t)p[at + 3] << 24)); };
 
+    info = WavInfo{};
     if (size < 12 || memcmp(p, "RIFF", 4) != 0 || memcmp(p + 8, "WAVE", 4) != 0)
         return "NOT A WAV FILE";
 
@@ -70,6 +71,7 @@ inline const char* parse_wav(const uint8_t* p, size_t size, uint32_t file_size, 
             data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
             break;
         }
+        if (length > size - at - 8) break;  // the next chunk starts outside what was read
         at += 8 + length + (length & 1);
     }
 
@@ -80,8 +82,10 @@ inline const char* parse_wav(const uint8_t* p, size_t size, uint32_t file_size, 
         info.block_align = info.channels * sizeof(int16_t);
         info.frames = data_size / info.block_align;
     } else if (info.format == WavInfo::IMA_ADPCM && bits == 4 &&
-               info.block_align > 4 * info.channels && info.block_align <= WavInfo::max_block_align) {
-        // Per channel a 4 byte header holding the first sample, then 4 bit codes.
+               info.block_align > 4 * info.channels && info.block_align <= WavInfo::max_block_align &&
+               (info.block_align - 4 * info.channels) % (4 * info.channels) == 0) {
+        // Per channel a 4 byte header holding the first sample, then 4 bit codes in whole
+        // groups of 4 bytes per channel.
         info.block_frames = 1 + (info.block_align - 4 * info.channels) * 2 / info.channels;
         // NB: a short last block is dropped (under 50 ms of the track's end).
         info.frames = data_size / info.block_align * info.block_frames;

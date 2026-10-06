@@ -43,23 +43,30 @@ class AudioPlayProcessor : public BasebandProcessor {
     // receivers feed the codec with.
     static constexpr size_t baseband_fs = 3072000;
     static constexpr size_t audio_block = 32;
-    static constexpr uint16_t progress_blocks = 48000 / audio_block / 4;  // 4 updates per second
     static constexpr size_t eq_bands = AudioPlayConfigMessage::eq_bands;
 
     std::unique_ptr<StreamOutput> stream{};
 
     uint8_t channels{1};
     bool configured{false};
-    uint32_t samples_read{0};
-    uint16_t blocks{0};
 
     IIRBiquadFilter eq[2][eq_bands]{};  // [channel][band]
     bool eq_flat{true};                 // all bands at 0 dB: samples pass through untouched
-    float preamp{1.0f};                 // makes room for the largest boost, so it can't clip
+    float preamp{1.0f};                 // brings the peak of the whole EQ curve down to 0 dB
 
-    void configure(const AudioPlayConfigMessage& message);
+    // A new setting is worked out by the message thread and taken over by execute()
+    // between two blocks, so no block is filtered with half of it.
+    struct Setting {
+        iir_biquad_config_t band[eq_bands];
+        float preamp;
+        uint8_t channels;
+        bool flat;
+    };
+    Setting wanted{};
+    volatile bool wanted_ready{false};
 
-    TXProgressMessage txprogress_message{};
+    void prepare(const AudioPlayConfigMessage& message);
+
     RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 
     /* NB: Threads should be the last members in the class definition. */

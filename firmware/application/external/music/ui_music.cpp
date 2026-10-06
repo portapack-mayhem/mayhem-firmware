@@ -84,13 +84,25 @@ void MusicView::open_playlist(const std::filesystem::path& file) {
     dir_ = file.parent_path();
     count_ = 0;
     slot_ = 0;
+    bool found = false;
     for (const auto& entry : std::filesystem::directory_iterator(dir_, u"*.WAV")) {
         if (count_ == max_tracks) break;
-        if (entry.path() == file.filename()) slot_ = count_;
+        if (entry.path() == file.filename()) {
+            slot_ = count_;
+            found = true;
+        }
         order_[count_] = count_;
         count_++;
     }
     if (!count_) return;
+    if (!found) {
+        // The picked file lies beyond what a playlist can hold.
+        stop();
+        count_ = 0;
+        error_ = "FOLDER > 255 TRACKS";
+        redraw();
+        return;
+    }
     set_shuffle(shuffle_);
     load(slot_);
 }
@@ -131,8 +143,9 @@ void MusicView::load(uint16_t slot) {
 
 /* Deck *******************************************************************/
 
+constexpr size_t header_bytes = 512;  // how much of a WAV file is searched for its chunks
+
 // Feel of the "record". The encoder is coarse, so these want tuning on the device.
-constexpr size_t header_bytes = 512;        // how much of a WAV file is searched for its chunks
 constexpr int32_t chase_frames = 4800;      // time constant the playhead follows the hand with (100 ms)
 constexpr int32_t settle_frames = 96;       // this close to the hand counts as arrived
 constexpr int32_t jump_frames = 36000;      // further behind than this (0.75 s): seek, don't play the way
@@ -151,10 +164,9 @@ DeckReader::DeckReader(File&& file, const WavInfo& info, Deck& deck, size_t max_
         block_ = std::make_unique<uint8_t[]>(info_.block_align + 3);  // + room to line it up, see read_at()
 }
 
-// The SD card driver's DMA only writes to word addresses, and for whole sectors FatFs
-// hands it the caller's buffer directly. Unless the buffer lines up with the file
-// position, the sectors read that way arrive shifted. So when it doesn't line up, keep
-// every request short enough to go through FatFs's own sector buffer instead.
+// Workaround: the SD card driver corrupts whole sectors read into a buffer that is not
+// word aligned relative to the file position. Such reads are split so they go through
+// FatFs's own aligned sector buffer instead.
 File::Result<File::Size> DeckReader::read_at(uint32_t position, void* out, uint32_t bytes) {
     constexpr uint32_t sector = 512;
     auto p = static_cast<uint8_t*>(out);
@@ -228,6 +240,7 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
         head_ = clip<int32_t>((int32_t)head_ + pending, 0, total_);
         done_ += pending;
         pending = 0;
+        deck_.head = head_;
     }
 
     if (std::abs(pending) >= settle_frames) {
@@ -271,9 +284,16 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
         return File::Size{bytes};
     }
 
-    // Normal playback. Returning 0 ends the track.
+    // Normal playback. Returning 0 ends the track, but only once the blocks still queued
+    // in the stream have had time to play; until then it is fed silence.
     const uint32_t count = std::min<uint32_t>(frames, total_ - head_);
-    if (count == 0) return File::Size{0};
+    if (count == 0) {
+        if (drained_ >= stream_buffers * max_read_) return File::Size{0};
+        drained_ += bytes;
+        memset(buffer, 0, bytes);
+        return File::Size{bytes};
+    }
+    drained_ = 0;
     const auto result = fetch(head_, count, static_cast<int16_t*>(buffer));
     if (result.is_error()) return result;
     memset(static_cast<uint8_t*>(buffer) + count * frame_bytes, 0, bytes - count * frame_bytes);
@@ -285,6 +305,7 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
 /* Playback ***************************************************************/
 
 void MusicView::stop() {
+    generation_++;  // whatever the old thread still reports no longer counts
     // A thread still waiting for the baseband to get ready only ends once it is let
     // through; without this, restarting twice in a row would wait on it forever.
     ready_signal = true;
@@ -325,10 +346,10 @@ void MusicView::play_from(uint32_t sample) {
     const size_t read_size = 2048 * channels;
     replay_thread = std::make_unique<ReplayThread>(
         std::make_unique<DeckReader>(std::move(file), info, deck_, read_size),
-        read_size, 3,
+        read_size, stream_buffers,
         &ready_signal,
-        [](uint32_t return_code) {
-            ReplayThreadDoneMessage message{return_code};
+        [generation = generation_](uint32_t return_code) {
+            ReplayThreadDoneMessage message{return_code | (generation << 8)};
             EventDispatcher::send_message(message);
         });
 
@@ -343,14 +364,19 @@ void MusicView::step(int dir, bool automatic) {
     // Like any player: "previous" first goes back to the start of the track.
     if (dir < 0 && pos_ > 3 * rate_) return play_from(0);
 
-    const uint16_t next = (slot_ + count_ + dir) % count_;
-    if (automatic && repeat_ == 0 && next == 0) {
-        stop();
-        pos_ = 0;
-        redraw();
-        return;
+    // When the playlist advances by itself, a file it can't play is skipped over.
+    uint16_t next = (slot_ + count_ + dir) % count_;
+    for (uint16_t tries = 0; tries < count_; tries++) {
+        if (automatic && repeat_ == 0 && next == 0) {
+            stop();
+            pos_ = 0;
+            redraw();
+            return;
+        }
+        load(next);
+        if (!automatic || !error_) return;
+        next = (next + 1) % count_;
     }
-    load(next);
 }
 
 // Turning the encoder moves the record. Slow turns and flicks scratch; a sustained fast
@@ -373,7 +399,8 @@ void MusicView::turn(int32_t delta) {
 }
 
 void MusicView::set_volume(int32_t v) {
-    // Same dB mapping as AudioVolumeField.
+    // Not receiver_model.set_normalized_headphone_volume(): that only reaches the codec
+    // while the receiver is enabled, which it never is here.
     volume_ = clip<int32_t>(v, 0, 99);
     auto new_volume = volume_t::decibel(volume_ - 99) + audio::headphone::volume_range().max;
     persistent_memory::set_headphone_volume(new_volume);
@@ -577,20 +604,17 @@ void MusicView::paint(Painter& painter) {
     paint_ = 0;
 
     if (all) {
-        // Header: playlist and position in it.
         dots(painter, {x0 + UI_POS_X(1), y0 + UI_POS_Y(0) + 4}, "PLAYLIST", 8, Color::light_grey(), 1);
         dots(painter, {right - 7 * glyph_width, y0 + UI_POS_Y(0) + 4},
              to_string_dec_uint(count_ ? slot_ + 1 : 0, 3, '0') + "/" + to_string_dec_uint(count_, 3, '0'),
              7, Color::light_grey(), 1);
         dots(painter, {x0 + UI_POS_X(1), y0 + UI_POS_Y(1)}, count_ ? dir_.filename().string() : "NO PLAYLIST", l.columns, Color::white(), 2);
 
-        // Track title.
         dots(painter, {x0 + UI_POS_X(1), y0 + l.title_y},
              error_ ? error_ : count_ ? file_.stem().string()
                                       : "PRESS SELECT",
              l.columns, error_ ? Color::red() : Color::white(), 2);
 
-        // Previous / next, beside the dial.
         dots(painter, {x0 + UI_POS_X(1), y0 + l.cy - glyph_height}, "<<", 2, Color::light_grey(), 2);
         dots(painter, {right - 2 * glyph_width * 2, y0 + l.cy - glyph_height}, ">>", 2, Color::light_grey(), 2);
 
@@ -648,8 +672,11 @@ EqView::EqView(NavigationView& nav, uint8_t* gains, std::function<void()> on_cha
 
 void EqView::set(int band, int value) {
     band_ = clip<int>(band, 0, eq_bands - 1);
-    gains_[band_] = clip<int>(value, 0, 2 * eq_max_db);
-    on_change_();
+    const uint8_t gain = clip<int>(value, 0, 2 * eq_max_db);
+    if (gain != gains_[band_]) {
+        gains_[band_] = gain;
+        on_change_();
+    }
     set_dirty();
 }
 

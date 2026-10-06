@@ -64,6 +64,7 @@ class DeckReader : public stream::Reader {
     uint32_t head_;                        // frame the next output starts at
     int32_t done_;                         // part of deck_.turned already played
     uint32_t seek_seen_;                   // last deck_.seek_seq acted on
+    uint32_t drained_{0};                  // silence fed after the end of the track, bytes
     std::unique_ptr<int16_t[]> window_{};  // source audio for one scratched block
 
     // Source access: `count` frames from `frame` on, as 16 bit PCM.
@@ -75,9 +76,8 @@ class DeckReader : public stream::Reader {
     ImaBlock ima_{};                      // ...and how far into it the decoder is
 };
 
-/* The resistive panel reports junk while a finger lifts: the End point is unusable, the
- * last moves before it drift, and it can bounce into a second "touch". So a move is only
- * trusted once a later one confirms it, and a touch right after a release is ignored. */
+/* Workaround: the touch panel reports wrong positions while a finger lifts. The End point
+ * is ignored, and a move only counts once the next one confirms it. */
 class Touch {
    public:
     enum Kind { None,
@@ -133,6 +133,7 @@ class Touch {
 
 constexpr size_t eq_bands = AudioPlayConfigMessage::eq_bands;
 constexpr uint8_t eq_max_db = 12;
+constexpr size_t stream_buffers = 3;  // blocks queued between the reader and the baseband
 
 // font::fixed_5x8, which all the dot matrix text is drawn from.
 constexpr int glyph_width = 5;
@@ -214,7 +215,7 @@ class MusicView : public View {
     uint16_t slot_{0};  // position in order_
 
     uint32_t rate_{0};
-    uint32_t total_{0};  // samples
+    uint32_t total_{0};  // frames
     uint32_t pos_{0};    // current frame
     Deck deck_{};
     systime_t last_turn_{0};
@@ -244,6 +245,7 @@ class MusicView : public View {
     Touch touch_{};
     bool ring_drag_{false};  // the current touch started on the ring
     uint8_t retries_{0};     // read errors on the current track
+    uint8_t generation_{0};  // of the replay thread, to tell its messages from an older one's
     bool clear_{true};       // view was just (re)shown: wipe before painting
     const char* error_{nullptr};
 
@@ -290,9 +292,11 @@ class MusicView : public View {
         Message::ID::ReplayThreadDone,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-            if (message.return_code == ReplayThread::END_OF_FILE)
+            if ((message.return_code >> 8) != generation_) return;  // from a thread already replaced
+            const uint32_t return_code = message.return_code & 0xFF;
+            if (return_code == ReplayThread::END_OF_FILE)
                 step(1, true);
-            else if (message.return_code == ReplayThread::READ_ERROR) {
+            else if (return_code == ReplayThread::READ_ERROR) {
                 // Seen when leaving the file picker, cause unknown: pick the track up
                 // again where it was instead of giving up on the first failed read.
                 const bool was_playing = playing_;

@@ -473,6 +473,19 @@ TEST_CASE("parse_wav should reject what the player can't play.") {
     wrong_rate[24] = 0x44;  // 44100 Hz
     wrong_rate[25] = 0xAC;
     CHECK(parse_wav(wrong_rate, sizeof(wrong_rate), sizeof(wrong_rate), info) != nullptr);
+
+    // A stereo block has to hold whole groups of 4 code bytes per channel.
+    uint8_t odd_block[sizeof(adpcm_wav)];
+    memcpy(odd_block, adpcm_wav, sizeof(adpcm_wav));
+    odd_block[32] = 12;
+    CHECK(parse_wav(odd_block, sizeof(odd_block), sizeof(odd_block), info) != nullptr);
+
+    // A chunk claiming to be larger than the file ends the search instead of derailing it.
+    uint8_t huge_chunk[sizeof(adpcm_wav)];
+    memcpy(huge_chunk, adpcm_wav, sizeof(adpcm_wav));
+    memset(&huge_chunk[16], 0xFF, 4);
+    huge_chunk[16] = 0xF8;
+    CHECK(parse_wav(huge_chunk, sizeof(huge_chunk), sizeof(huge_chunk), info) != nullptr);
 }
 
 TEST_CASE("ImaBlock should decode the same samples as ffmpeg.") {
