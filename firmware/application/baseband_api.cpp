@@ -571,6 +571,10 @@ void shutdown() {
     baseband_image_running = false;
 }
 
+void set_spec_an_config(const SpecAnConfigMessage& message) {
+    send_message(&message);
+}
+
 void spectrum_streaming_start() {
     SpectrumStreamingConfigMessage message{
         SpectrumStreamingConfigMessage::Mode::Running};
