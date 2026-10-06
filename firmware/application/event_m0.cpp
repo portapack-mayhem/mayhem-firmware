@@ -391,6 +391,12 @@ void EventDispatcher::handle_application_queue() {
     });
 }
 
+void EventDispatcher::pump_application_queue() {
+    shared_memory.application_queue.handle([](Message* const message) {
+        message_map.send(message);
+    });
+}
+
 void EventDispatcher::handle_local_queue() {
     shared_memory.app_local_queue.handle([](Message* const message) {
         message_map.send(message);
