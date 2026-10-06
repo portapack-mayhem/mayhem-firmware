@@ -38,7 +38,7 @@ __attribute__((section(".external_app.app_spec_an.application_information"), use
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "Spectrum An",
+    /*.app_name = */ "Spectrum",
     /*.bitmap_data = */ {
         0xF8,
         0x01,
