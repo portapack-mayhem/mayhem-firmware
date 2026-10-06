@@ -145,6 +145,7 @@ void MusicView::load(uint16_t slot) {
 /* Deck *******************************************************************/
 
 constexpr uint32_t output_rate = 48000;  // what the audio_play baseband plays
+constexpr uint32_t min_rate = 4000;      // below this the scratch maths runs out of resolution
 
 // Feel of the "record". The encoder is coarse, so these want tuning on the device.
 constexpr uint32_t chase_ms = 100;          // time constant the playhead follows the hand with
@@ -249,7 +250,7 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
     }
     drained_ = 0;
 
-    if (step == 65536) {
+    if (step == 65536 && !scratching) {
         // Same rate as the output: straight from the file.
         window_.reset();
         const auto result = fetch(head_, count, out);
@@ -312,6 +313,8 @@ void MusicView::play_from(uint32_t sample) {
     if (!wav->open(file_))
         error_ = "NOT A PLAYABLE WAV";
     else if (wav->channels() > 2 || (wav->bits_per_sample() != 8 && wav->bits_per_sample() != 16))
+        error_ = "UNSUPPORTED WAV FORMAT";
+    else if (wav->sample_rate() < min_rate)
         error_ = "UNSUPPORTED WAV FORMAT";
     else if (wav->sample_rate() > output_rate)
         error_ = "MAX 48 KHZ";

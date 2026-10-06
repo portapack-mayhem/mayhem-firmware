@@ -303,7 +303,7 @@ class MusicView : public View {
                 // again where it was instead of giving up on the first failed read.
                 const bool was_playing = playing_;
                 if (retries_++ < 3) {
-                    play_from(pos_);
+                    play_from(deck_.head);
                     if (!was_playing && replay_thread) {
                         playing_ = false;
                         deck_.paused = true;

@@ -35,22 +35,36 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
         return true;
     }
 
-    // Reinitialize to avoid old data when switching files
-    title_string = "";
-    info_ = wav::Info{};
-    bytes_per_sample = 0;
-    block_.reset();
-    block_number_ = UINT32_MAX;
-    last_path = std::filesystem::path{};
-
-    if (file_.open(path).is_valid())
+    // Look at the new file on the side: if it turns out not to be usable, the reader
+    // stays on the file it had, for callers that carry on with it.
+    File file;
+    if (file.open(path).is_valid())
         return false;
 
     auto header = std::make_unique<uint8_t[]>(wav_header_bytes);
-    const auto result = file_.read(header.get(), wav_header_bytes);
-    if (result.is_error() || !wav::parse(header.get(), result.value(), file_.size(), info_))
+    const auto result = file.read(header.get(), wav_header_bytes);
+    wav::Info info;
+    if (result.is_error() || !wav::parse_start(header.get(), result.value(), file.size(), info))
         return false;
 
+    // The data chunk may lie beyond what was read (big tag chunks in front): go on
+    // from chunk to chunk in the file.
+    for (int chunks = 0; !info.data_start && info.next_chunk && chunks < 64; chunks++) {
+        uint8_t chunk[8];
+        const uint32_t at = info.next_chunk;
+        if (file.seek(at).is_error()) return false;
+        const auto chunk_result = file.read(chunk, sizeof(chunk));
+        if (chunk_result.is_error() || chunk_result.value() < sizeof(chunk)) return false;
+        wav::take_chunk(chunk, sizeof(chunk), at, file.size(), info);
+    }
+    if (!wav::parse_finish(info))
+        return false;
+
+    file_ = std::move(file);
+    info_ = info;
+    title_string = "";
+    block_.reset();
+    block_number_ = UINT32_MAX;
     if (is_adpcm()) {
         bytes_per_sample = sizeof(int16_t);
         block_ = std::make_unique<uint8_t[]>(info_.block_align + 3);  // + room to line it up, see read_at()
@@ -148,7 +162,10 @@ File::Result<File::Size> WAVFileReader::read(void* const buffer, const File::Siz
 
     if (is_adpcm()) {
         const auto result = read_adpcm(static_cast<int16_t*>(buffer), samples / info_.channels);
-        if (result.is_ok()) position_ += result.value() / bytes_per_sample;
+        if (result.is_ok()) {
+            position_ += result.value() / bytes_per_sample;
+            bytes_read_ += result.value();
+        }
         return result;
     }
 
@@ -175,10 +192,14 @@ LOCATE_IN_RAM __attribute__((noinline)) File::Result<File::Size> WAVFileReader::
             // Placed in the buffer so that it lines up with its position in the file.
             const uint32_t position = info_.data_start + number * info_.block_align;
             uint8_t* const block = block_.get() + (position & 3);
+            block_number_ = UINT32_MAX;  // until the new block is really there
             const auto seek_result = file_.seek(position);
             if (seek_result.is_error()) return seek_result.error();
             const auto result = read_at(position, block, info_.block_align);
             if (result.is_error()) return result;
+            // A short read (truncated file) decodes as a held sample, not as old data.
+            if (result.value() < info_.block_align)
+                memset(block + result.value(), 0, info_.block_align - result.value());
             block_number_ = number;
             ima_.start(block, info_.channels);
             checkpoints_ = 0;

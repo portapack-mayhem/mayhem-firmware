@@ -45,48 +45,65 @@ struct Info {
     uint16_t block_align{0};   // bytes: one frame (PCM) or one compressed block (ADPCM)
     uint16_t block_frames{0};  // frames in an ADPCM block
     uint32_t riff_size{0};     // of the whole RIFF chunk, header included
+    uint32_t next_chunk{0};    // where the chunk walk has to go on, 0 once it is over
     uint32_t data_start{0};
     uint32_t data_size{0};  // bytes of the data chunk that are really in the file
     uint32_t frames{0};     // one frame is one sample for every channel
 };
 
-/* Walks the chunks at the start of a WAV file, in whatever order they come. Returns
- * false if this is not a WAV file the reader can handle.
- * NB: the "data" chunk has to start within `size` bytes; read more of the file if WAVs
- * with big tag chunks in front (cover art) ever need to open. */
-inline bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
-    const auto u16 = [p](size_t at) { return (uint16_t)(p[at] | (p[at + 1] << 8)); };
-    const auto u32 = [p](size_t at) { return (uint32_t)(p[at] | (p[at + 1] << 8) | (p[at + 2] << 16) | ((uint32_t)p[at + 3] << 24)); };
+/* Takes one chunk whose 8 byte header `p` sits at `at` in the file, the rest of `size`
+ * bytes following it. Sets data_start for the data chunk; otherwise leaves in next_chunk
+ * where the following chunk starts, or 0 if there is none. */
+inline void take_chunk(const uint8_t* p, size_t size, uint32_t at, uint32_t file_size, Info& info) {
+    const auto u16 = [p](size_t i) { return (uint16_t)(p[i] | (p[i + 1] << 8)); };
+    const auto u32 = [p](size_t i) { return (uint32_t)(p[i] | (p[i + 1] << 8) | (p[i + 2] << 16) | ((uint32_t)p[i + 3] << 24)); };
 
-    info = Info{};
-    if (size < 12 || memcmp(p, "RIFF", 4) != 0 || memcmp(p + 8, "WAVE", 4) != 0)
-        return false;
-    info.riff_size = 8 + u32(4);
-
-    for (size_t at = 12; at + 8 <= size;) {
-        const uint32_t length = u32(at + 4);
-        if (memcmp(p + at, "fmt ", 4) == 0 && at + 24 <= size) {
-            info.format = u16(at + 8);
-            info.channels = u16(at + 10);
-            info.rate = u32(at + 12);
-            info.block_align = u16(at + 20);
-            info.bits = u16(at + 22);
-            // WAVE_FORMAT_EXTENSIBLE: the real format leads the sub format GUID.
-            if (info.format == Info::EXTENSIBLE && length >= 40 && at + 34 <= size)
-                info.format = u16(at + 32);
-        } else if (memcmp(p + at, "data", 4) == 0) {
-            info.data_start = at + 8;
-            info.data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
-            break;
-        }
-        if (length > size - at - 8) break;  // the next chunk starts outside what was read
-        at += 8 + length + (length & 1);
+    const uint32_t length = u32(4);
+    info.next_chunk = 0;
+    if (memcmp(p, "data", 4) == 0) {
+        info.data_start = at + 8;
+        info.data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
+        return;
     }
+    if (memcmp(p, "fmt ", 4) == 0 && size >= 24) {
+        info.format = u16(8);
+        info.channels = u16(10);
+        info.rate = u32(12);
+        info.block_align = u16(20);
+        info.bits = u16(22);
+        // WAVE_FORMAT_EXTENSIBLE: the real format leads the sub format GUID.
+        if (info.format == Info::EXTENSIBLE && length >= 40 && size >= 34)
+            info.format = u16(32);
+    }
+    // A chunk that claims to reach past the end of the file ends the walk.
+    if ((uint64_t)length + (length & 1) + 8 <= file_size - at - 8)
+        info.next_chunk = at + 8 + length + (length & 1);
+}
 
+/* Walks the chunks in the first `size` bytes of a WAV file, in whatever order they come.
+ * Returns false if it is not one. If the data chunk lies further in, data_start stays 0
+ * and next_chunk says where in the file the walk has to go on (see WAVFileReader::open). */
+inline bool parse_start(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
+    info = Info{};
+    if (size < 12 || file_size < 12 || memcmp(p, "RIFF", 4) != 0 || memcmp(p + 8, "WAVE", 4) != 0)
+        return false;
+    info.riff_size = 8 + (uint32_t)(p[4] | (p[5] << 8) | (p[6] << 16) | ((uint32_t)p[7] << 24));
+
+    info.next_chunk = 12;
+    while (!info.data_start && info.next_chunk && info.next_chunk + 8 <= size) {
+        const uint32_t at = info.next_chunk;
+        take_chunk(p + at, size - at, at, file_size, info);
+    }
+    return true;
+}
+
+/* Checks what the chunks said and works out the frame count. Returns false if this is
+ * not a WAV file the reader can handle. */
+inline bool parse_finish(Info& info) {
     if (!info.data_start || !info.channels || !info.rate)
         return false;
 
-    if (info.format == Info::PCM && info.bits >= 8 && info.bits % 8 == 0) {
+    if (info.format == Info::PCM && info.bits >= 8 && info.bits <= 32 && info.bits % 8 == 0 && info.channels <= 8) {
         info.block_align = info.channels * (info.bits / 8);
         info.frames = info.data_size / info.block_align;
     } else if (info.format == Info::IMA_ADPCM && info.bits == 4 && info.channels <= 2 &&
@@ -101,6 +118,11 @@ inline bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info)
         return false;
     }
     return true;
+}
+
+/* Both steps, for a file whose data chunk starts within the first `size` bytes. */
+inline bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
+    return parse_start(p, size, file_size, info) && parse_finish(info);
 }
 
 /* Decodes one IMA ADPCM block of a WAV file, frame by frame, front to back. */

@@ -553,6 +553,41 @@ TEST_CASE("parse should read the real format of a WAVE_FORMAT_EXTENSIBLE file.")
     CHECK_EQ(info.frames, 1000);
 }
 
+TEST_CASE("the chunk walk should go on in the file when data lies beyond what was read.") {
+    // fmt, then a 600 byte LIST chunk, then data: only the first 64 bytes are "read".
+    uint8_t file[44 + 608 + 8]{};
+    pcm_header(file, 1, 48000, 16, 0);
+    memcpy(&file[36], "LIST", 4);
+    file[40] = 0x58;  // 600
+    file[41] = 0x02;
+    memcpy(&file[44 + 600], "data", 4);
+    file[44 + 604] = 0xA0;  // 4000 bytes
+    file[44 + 605] = 0x0F;
+    const uint32_t file_size = 44 + 608 + 4000;
+
+    Info info;
+    REQUIRE(parse_start(file, 64, file_size, info));
+    CHECK_EQ(info.data_start, 0);
+    REQUIRE_EQ(info.next_chunk, 644);
+    take_chunk(&file[info.next_chunk], 8, info.next_chunk, file_size, info);
+    REQUIRE(parse_finish(info));
+    CHECK_EQ(info.data_start, 652);
+    CHECK_EQ(info.frames, 2000);
+}
+
+TEST_CASE("parse should reject channel counts and widths that make no sense.") {
+    uint8_t header[44];
+    Info info;
+    pcm_header(header, 2, 48000, 16, 4000);
+    header[22] = 0x00;  // 32768 channels
+    header[23] = 0x80;
+    CHECK_FALSE(parse(header, sizeof(header), 44 + 4000, info));
+
+    pcm_header(header, 2, 48000, 16, 4000);
+    header[34] = 64;  // bits
+    CHECK_FALSE(parse(header, sizeof(header), 44 + 4000, info));
+}
+
 TEST_CASE("parse should not count data the file does not hold.") {
     uint8_t header[44];
     Info info;
