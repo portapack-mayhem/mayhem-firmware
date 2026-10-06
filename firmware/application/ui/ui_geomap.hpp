@@ -242,6 +242,7 @@ class GeoPos : public View {
     void adjust_lat(int32_t arcsecond_delta);
     void adjust_lon(int32_t arcsecond_delta);
     void report_position();
+    void set_alt_speed_labels(const char* alt, const char* spd, const char* alt_unit = nullptr);
 
     bool read_only{false};
     bool report_change{true};
@@ -540,6 +541,7 @@ class GeoMapView : public View {
     void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed = 0);
     void update_my_position(float lat, float lon, int32_t altitude);
     void update_my_orientation(uint16_t angle, bool refresh = false);
+    void set_alt_speed_labels(const char* alt, const char* spd, const char* alt_unit = nullptr);
 
     MapType get_map_type();
 

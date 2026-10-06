@@ -138,6 +138,20 @@ void GeoPos::set_speed(int32_t speed) {
     field_speed.set_value(speed);
 }
 
+void GeoPos::set_alt_speed_labels(const char* alt, const char* spd, const char* alt_unit) {
+    labels_position.set_labels({
+        {{1 * 8, UI_POS_Y(0)}, alt, Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},
+    });
+    label_spd_position.set_labels({
+        {{15 * 8, UI_POS_Y(0)}, spd, Theme::getInstance()->fg_light->foreground},
+    });
+    if (alt_unit) {
+        text_alt_unit.set(alt_unit);
+    }
+}
+
 void GeoPos::set_lat(float lat) {
     bool south = lat < 0;
     float magnitude = south ? -lat : lat;
@@ -1113,6 +1127,10 @@ void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {
 }
 void GeoMapView::update_my_orientation(uint16_t angle, bool refresh) {
     geomap.update_my_orientation(angle, refresh);
+}
+
+void GeoMapView::set_alt_speed_labels(const char* alt, const char* spd, const char* alt_unit) {
+    geopos.set_alt_speed_labels(alt, spd, alt_unit);
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
