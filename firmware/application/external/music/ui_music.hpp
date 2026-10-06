@@ -75,7 +75,18 @@ class DeckReader : public stream::Reader {
     uint32_t next_frame_{UINT32_MAX};      // where the file is positioned, to skip needless seeks
     std::unique_ptr<int16_t[]> window_{};  // source audio for one resampled block
 
-    File::Result<File::Size> fetch(uint32_t frame, uint32_t count, int16_t* out);
+    bool fetch(uint32_t frame, uint32_t count, int16_t* out);
+    Optional<File::Error> error_{};  // what made fetch() fail
+
+    struct Plan {
+        enum : int32_t { finished = -1,
+                         silence = 0 };
+        int32_t step;   // file frames per output frame, Q16
+        int32_t count;  // output frames to produce, or one of the above
+        bool scratching;
+    };
+    Plan plan(int32_t frames, uint32_t bytes);
+    void resample(const Plan& plan, int32_t lo, int32_t hi, int16_t* out);
 };
 
 /* Workaround: the touch panel reports wrong positions while a finger lifts. The End point

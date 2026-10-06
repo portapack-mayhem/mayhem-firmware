@@ -22,7 +22,6 @@
  */
 
 #include "io_wave.hpp"
-#include "utility.hpp"
 
 #include <algorithm>
 
@@ -39,21 +38,13 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
     if (file.open(path).is_valid())
         return false;
 
-    // Walk from chunk to chunk, wherever in the file they are. Each one is read with
-    // enough of its content for the fields of "fmt ".
-    uint8_t chunk[8 + 34];
     wav::Info info;
-    auto result = file.read(chunk, 12);
-    if (result.is_error() || result.value() < 12 || !wav::parse_riff(chunk, info))
-        return false;
-    for (int chunks = 0; !info.data_start && info.next_chunk && chunks < 64; chunks++) {
-        const uint32_t at = info.next_chunk;
-        if (file.seek(at).is_error()) return false;
-        result = file.read(chunk, sizeof(chunk));
-        if (result.is_error() || result.value() < 8) return false;
-        wav::take_chunk(chunk, result.value(), at, file.size(), info);
-    }
-    if (!wav::parse_finish(info))
+    const bool ok = wav::parse_file(file.size(), info, [&file](uint32_t position, uint8_t* dest, uint32_t bytes) -> int32_t {
+        if (file.seek(position).is_error()) return -1;
+        const auto result = file.read(dest, bytes);
+        return result.is_ok() ? (int32_t)result.value() : -1;
+    });
+    if (!ok)
         return false;
 
     file_ = std::move(file);
@@ -87,7 +78,8 @@ void WAVFileReader::find_title() {
             if (memcmp(&window[i], "INAM", 4) != 0) continue;
             // The length field, capped at 32 characters and at the first terminator.
             const char* const text = reinterpret_cast<const char*>(&window[i + 8]);
-            const size_t limit = std::min<size_t>(std::min<size_t>(window[i + 4], 32), result.value() - i - 8);
+            const size_t stored = window[i + 4] | (window[i + 5] << 8);
+            const size_t limit = std::min<size_t>(std::min<size_t>(stored, 32), result.value() - i - 8);
             size_t length = 0;
             while (length < limit && text[length]) length++;
             title_string.assign(text, length);
@@ -120,19 +112,27 @@ void WAVFileReader::data_seek(const uint64_t Offset) {
 // The SD card driver corrupts whole sectors read into a buffer that is not word aligned
 // relative to the file position, and for whole sectors FatFs hands it the caller's buffer.
 // Such reads are split so that they go through FatFs's own aligned sector buffer instead.
-File::Result<File::Size> WAVFileReader::read_at(uint32_t position, void* out, uint32_t bytes) {
+//
+// Like read_adpcm() this returns the number of bytes read, or -1 with the cause in
+// error_: plain numbers instead of Result objects keep the stack frames small, which
+// matters to callers on a small thread stack (ReplayThread).
+int32_t WAVFileReader::read_at(uint32_t position, void* out, uint32_t bytes) {
     constexpr uint32_t sector = 512;
     auto p = static_cast<uint8_t*>(out);
+    const bool lined_up = ((reinterpret_cast<uintptr_t>(p) - position) & 3) == 0;
 
-    if (((reinterpret_cast<uintptr_t>(p) - position) & 3) == 0)
-        return file_.read(p, bytes);
-
-    File::Size total = 0;
+    int32_t total = 0;
     while (bytes) {
-        uint32_t n = std::min<uint32_t>(bytes, sector - position % sector);
-        if (n == sector) n = sector / 2;
+        uint32_t n = bytes;
+        if (!lined_up) {
+            n = std::min<uint32_t>(bytes, sector - position % sector);
+            if (n == sector) n = sector / 2;
+        }
         const auto result = file_.read(p, n);
-        if (result.is_error()) return result;
+        if (result.is_error()) {
+            error_ = result.error();
+            return -1;
+        }
         total += result.value();
         if (result.value() < n) break;
         p += n;
@@ -150,33 +150,31 @@ File::Result<File::Size> WAVFileReader::read(void* const buffer, const File::Siz
     const uint32_t wanted = std::min<File::Size>(bytes, UINT32_MAX);
     const uint32_t samples = std::min<uint32_t>(wanted / bytes_per_sample, sample_count() - position_);
 
-    const auto result = is_adpcm()
+    const int32_t got = is_adpcm()
                             ? read_adpcm(static_cast<int16_t*>(buffer), samples / info_.channels)
                             : read_at(info_.data_start + position_ * bytes_per_sample, buffer, samples * bytes_per_sample);
-    if (result.is_ok()) {
-        position_ += result.value() / bytes_per_sample;
-        bytes_read_ += result.value();
-    }
-    return result;
+    if (got < 0) return error_.value();
+    position_ += got / bytes_per_sample;
+    bytes_read_ += got;
+    return File::Size{(File::Size)got};
 }
 
-File::Result<File::Size> WAVFileReader::read_adpcm(int16_t* out, uint32_t frames) {
+int32_t WAVFileReader::read_adpcm(int16_t* out, uint32_t frames) {
     if (!block_) {
         block_ = std::make_unique<uint8_t[]>(wav::AdpcmFrames::buffer_bytes(info_));
         adpcm_.start(info_, block_.get());
     }
 
-    Optional<File::Error> error{};
     const bool ok = adpcm_.read(position_ / info_.channels, frames, out,
-                                [this, &error](uint32_t position, uint8_t* dest, uint32_t bytes) -> int32_t {
-                                    auto result = file_.seek(position);
-                                    if (result.is_ok()) result = read_at(position, dest, bytes);
-                                    if (result.is_ok()) return result.value();
-                                    error = result.error();
-                                    return -1;
+                                [this](uint32_t position, uint8_t* dest, uint32_t bytes) -> int32_t {
+                                    const auto result = file_.seek(position);
+                                    if (result.is_error()) {
+                                        error_ = result.error();
+                                        return -1;
+                                    }
+                                    return read_at(position, dest, bytes);
                                 });
-    if (!ok) return error.value();
-    return File::Size{frames * info_.channels * sizeof(int16_t)};
+    return ok ? (int32_t)(frames * info_.channels * sizeof(int16_t)) : -1;
 }
 
 uint16_t WAVFileReader::channels() {
@@ -185,10 +183,6 @@ uint16_t WAVFileReader::channels() {
 
 uint32_t WAVFileReader::sample_rate() {
     return info_.rate;
-}
-
-uint32_t WAVFileReader::data_size() {
-    return sample_count() * bytes_per_sample;
 }
 
 uint32_t WAVFileReader::sample_count() {

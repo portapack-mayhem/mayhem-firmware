@@ -315,6 +315,8 @@ ViewWavView::ViewWavView(
                 }
                 if ((wav_reader->channels() != 1) || ((wav_reader->bits_per_sample() != 8) && (wav_reader->bits_per_sample() != 16))) {
                     nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n8 or 16-bit mono files.");
+                    // Back to the file still on display, so that the controls keep matching it.
+                    wav_reader->open(wav_file_path);
                     return;
                 }
                 load_wav(file_path);

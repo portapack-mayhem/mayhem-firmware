@@ -169,28 +169,32 @@ DeckReader::DeckReader(std::unique_ptr<WAVFileReader> wav, Deck& deck, size_t ma
       seek_seen_{deck.seek_seq} {
 }
 
-// `count` frames from `frame` on, as 16 bit samples whatever the file holds.
-File::Result<File::Size> DeckReader::fetch(uint32_t frame, uint32_t count, int16_t* out) {
+// `count` frames from `frame` on, as 16 bit samples whatever the file holds. Returns
+// false on a read error, which is then in error_.
+bool DeckReader::fetch(uint32_t frame, uint32_t count, int16_t* out) {
     if (frame != next_frame_) wav_->data_seek(frame * channels_);
     next_frame_ = frame + count;
 
     const uint32_t samples = count * channels_;
-    if (wav_->bits_per_sample() == 16)
-        return wav_->read(out, samples * sizeof(int16_t));
-
-    // 8 bit samples are unsigned; widen them in place, last one first.
-    const auto result = wav_->read(out, samples);
-    if (result.is_error()) return result;
-    const auto bytes = reinterpret_cast<const uint8_t*>(out);
-    for (uint32_t i = samples; i-- > 0;)
-        out[i] = (bytes[i] - 0x80) << 8;
-    return result;
+    const bool wide = (wav_->bits_per_sample() == 16);
+    const auto result = wav_->read(out, wide ? samples * sizeof(int16_t) : samples);
+    if (result.is_error()) {
+        error_ = result.error();
+        return false;
+    }
+    if (!wide) {
+        // 8 bit samples are unsigned; widen them in place, last one first.
+        const auto bytes = reinterpret_cast<const uint8_t*>(out);
+        for (uint32_t i = samples; i-- > 0;)
+            out[i] = (bytes[i] - 0x80) << 8;
+    }
+    return true;
 }
 
-File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size bytes) {
-    const size_t frame_bytes = channels_ * sizeof(int16_t);
-    const int32_t frames = bytes / frame_bytes;
-    const auto out = static_cast<int16_t*>(buffer);
+// Works out what the next block is going to do. A function of its own, so that none of
+// this arithmetic is still on the stack while the SD card is read: the stream thread
+// that calls read() only has a small one.
+__attribute__((noinline)) DeckReader::Plan DeckReader::plan(int32_t frames, uint32_t bytes) {
     int32_t pending = deck_.turned - done_;
 
     // An absolute seek from the UI (dragging the dial) overrides any turning.
@@ -228,14 +232,13 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
         done_ += pending;
         if (deck_.paused) {
             window_.reset();
-            memset(buffer, 0, bytes);
-            return File::Size{bytes};
+            return {step, Plan::silence, false};
         }
     }
 
     // How many output frames the rest of the track is good for. Past its end the stream
     // is fed silence until the blocks still queued have had time to play; only then does
-    // returning 0 end the track.
+    // the track end.
     int32_t count = frames;
     if (step > 0) {
         const uint64_t left = ((uint64_t)(total_ - head_) << 16) - fraction_;
@@ -243,50 +246,65 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
         if (head_ >= total_) count = 0;
     }
     if (count == 0) {
-        if (drained_ >= stream_buffers * max_read_) return File::Size{0};
+        if (drained_ >= stream_buffers * max_read_) return {step, Plan::finished, false};
         drained_ += bytes;
+        return {step, Plan::silence, false};
+    }
+    drained_ = 0;
+    return {step, count, scratching};
+}
+
+// Picks `count` output frames out of the stretch of the file in window_ (frames lo..hi),
+// with linear interpolation, and moves the playhead on. Apart from read() for the same
+// reason as plan(): its loop variables stay off the stack while the file is read.
+__attribute__((noinline)) void DeckReader::resample(const Plan& plan, int32_t lo, int32_t hi, int16_t* out) {
+    int32_t offset = fraction_;
+    for (int32_t i = 0; i < plan.count; i++, offset += plan.step) {
+        const int32_t at = (int32_t)head_ + (offset >> 16);
+        const int16_t* a = &window_[(clip<int32_t>(at, lo, hi) - lo) * channels_];
+        const int16_t* b = &window_[(clip<int32_t>(at + 1, lo, hi) - lo) * channels_];
+        const int32_t weight = (offset & 0xFFFF) >> 1;  // Q15
+        for (uint32_t c = 0; c < channels_; c++)
+            *out++ = a[c] + ((b[c] - a[c]) * weight >> 15);
+    }
+
+    head_ = clip<int32_t>((int32_t)head_ + (offset >> 16), 0, total_);
+    fraction_ = plan.scratching ? 0 : (offset & 0xFFFF);
+    if (plan.scratching) done_ += offset >> 16;
+}
+
+File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size bytes) {
+    const size_t frame_bytes = channels_ * sizeof(int16_t);
+    const int32_t frames = bytes / frame_bytes;
+    const auto out = static_cast<int16_t*>(buffer);
+
+    const Plan plan = this->plan(frames, bytes);
+    if (plan.count == Plan::finished) return File::Size{0};  // returning 0 ends the track
+    if (plan.count == Plan::silence) {
         memset(buffer, 0, bytes);
         return File::Size{bytes};
     }
-    drained_ = 0;
 
-    if (step == 65536 && !scratching) {
+    if (plan.step == 65536 && !plan.scratching) {
         // Same rate as the output: straight from the file.
         window_.reset();
-        const auto result = fetch(head_, count, out);
-        if (result.is_error()) return result;
-        head_ += count;
+        if (!fetch(head_, plan.count, out)) return error_.value();
+        head_ += plan.count;
     } else {
-        // Resample: read the stretch of the file this block covers, then pick from it
-        // with linear interpolation.
+        // Resample: read the stretch of the file this block covers, then pick from it.
         // NB: going backwards means a seek per block. Without a FatFs cluster map that
         // walks the FAT from the start of the file; if reverse stutters deep into big
         // files, set up fast seek (cltbl) for the file.
-        const int32_t span = (int32_t)(((int64_t)step * count + fraction_) >> 16);
+        const int32_t span = (int32_t)(((int64_t)plan.step * plan.count + fraction_) >> 16);
         const int32_t last = total_ ? total_ - 1 : 0;
         const int32_t lo = clip<int32_t>(std::min<int32_t>(head_, head_ + span), 0, last);
         const int32_t hi = clip<int32_t>(std::max<int32_t>(head_, head_ + span) + 1, 0, last);
         if (!window_) window_ = std::make_unique<int16_t[]>((2 * max_read_ / frame_bytes + 4) * channels_);
-        const auto result = fetch(lo, hi - lo + 1, window_.get());
-        if (result.is_error()) return result;
-
-        int32_t offset = fraction_;
-        int16_t* p = out;
-        for (int32_t i = 0; i < count; i++, offset += step) {
-            const int32_t at = (int32_t)head_ + (offset >> 16);
-            const int16_t* a = &window_[(clip<int32_t>(at, lo, hi) - lo) * channels_];
-            const int16_t* b = &window_[(clip<int32_t>(at + 1, lo, hi) - lo) * channels_];
-            const int32_t weight = (offset & 0xFFFF) >> 1;  // Q15
-            for (uint32_t c = 0; c < channels_; c++)
-                *p++ = a[c] + ((b[c] - a[c]) * weight >> 15);
-        }
-
-        head_ = clip<int32_t>((int32_t)head_ + (offset >> 16), 0, total_);
-        fraction_ = scratching ? 0 : (offset & 0xFFFF);
-        if (scratching) done_ += offset >> 16;
+        if (!fetch(lo, hi - lo + 1, window_.get())) return error_.value();
+        resample(plan, lo, hi, out);
     }
 
-    memset(out + count * channels_, 0, (frames - count) * frame_bytes);
+    memset(out + plan.count * channels_, 0, (frames - plan.count) * frame_bytes);
     deck_.head = head_;
     return File::Size{bytes};
 }

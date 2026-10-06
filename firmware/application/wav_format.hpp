@@ -97,19 +97,6 @@ inline bool parse_riff(const uint8_t* p, Info& info) {
     return true;
 }
 
-/* Walks the chunks in the first `size` bytes of a WAV file, in whatever order they come.
- * Returns false if it is not one. If the data chunk lies further in, data_start stays 0
- * and next_chunk says where in the file the walk has to go on. */
-inline bool parse_start(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
-    if (size < 12 || file_size < 12 || !parse_riff(p, info))
-        return false;
-    while (!info.data_start && info.next_chunk && info.next_chunk + 8 <= size) {
-        const uint32_t at = info.next_chunk;
-        take_chunk(p + at, size - at, at, file_size, info);
-    }
-    return true;
-}
-
 /* Checks what the chunks said and works out the frame count. Returns false if this is
  * not a WAV file the reader can handle. */
 inline bool parse_finish(Info& info) {
@@ -130,12 +117,26 @@ inline bool parse_finish(Info& info) {
     } else {
         return false;
     }
-    return true;
+    return info.frames != 0;  // nothing to play is not a file to open
 }
 
-/* Both steps, for a file whose data chunk starts within the first `size` bytes. */
-inline bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
-    return parse_start(p, size, file_size, info) && parse_finish(info);
+/* Reads the header of a WAV file: walks from chunk to chunk, in whatever order they come
+ * and wherever in the file they are, until the data chunk. `read(position, dest, bytes)`
+ * reads raw bytes at a position in the file and returns how many it got, or a negative
+ * number on error. Returns false if this is not a WAV file the reader can handle. */
+template <typename Read>
+bool parse_file(uint32_t file_size, Info& info, Read&& read) {
+    // Each chunk is read with enough of its content for the fields of "fmt ".
+    uint8_t chunk[8 + 34];
+    if (read(0u, chunk, 12u) < 12 || !parse_riff(chunk, info))
+        return false;
+    for (int chunks = 0; !info.data_start && info.next_chunk && chunks < 64; chunks++) {
+        const uint32_t at = info.next_chunk;
+        const int32_t got = read(at, chunk, (uint32_t)sizeof(chunk));
+        if (got < 8) return false;
+        take_chunk(chunk, got, at, file_size, info);
+    }
+    return parse_finish(info);
 }
 
 /* Step sizes of the IMA ADPCM decoder. Kept in RAM on purpose: a lookup in the SPI flash
@@ -265,9 +266,10 @@ class AdpcmFrames {
     template <typename Load>
     bool read(uint32_t frame, uint32_t frames, int16_t* out, Load&& load) {
         const uint32_t channels = info_->channels;
+        // Divide once, not per run: on this CPU a division is a library call.
+        uint32_t number = frame / info_->block_frames;
+        uint32_t offset = frame % info_->block_frames;
         while (frames) {
-            const uint32_t number = frame / info_->block_frames;
-            const uint32_t offset = frame % info_->block_frames;
             if (number != block_number_) {
                 // Placed in the buffer so that it lines up with its position in the file
                 // (see WAVFileReader::read_at).
@@ -301,7 +303,11 @@ class AdpcmFrames {
             if (n > frames) n = frames;
             memcpy(out, &run_[(offset - run_start_) * channels], n * channels * sizeof(int16_t));
             out += n * channels;
-            frame += n;
+            offset += n;
+            if (offset == info_->block_frames) {
+                offset = 0;
+                number++;
+            }
             frames -= n;
         }
         return true;

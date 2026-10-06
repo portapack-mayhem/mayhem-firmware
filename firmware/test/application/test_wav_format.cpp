@@ -450,6 +450,17 @@ static const int16_t adpcm_decoded[] = {
     -9941,
 };
 
+/* parse_file() on a file of which only the first `size` bytes exist in memory; the rest
+ * (audio data nobody looks at) is made up from `file_size`. */
+static bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
+    return parse_file(file_size, info, [p, size](uint32_t position, uint8_t* dest, uint32_t bytes) -> int32_t {
+        if (position >= size) return 0;
+        const uint32_t n = (bytes < size - position) ? bytes : size - position;
+        memcpy(dest, p + position, n);
+        return n;
+    });
+}
+
 TEST_SUITE_BEGIN("wav_format");
 
 TEST_CASE("parse should find the format and data of an ADPCM file.") {
@@ -487,7 +498,7 @@ TEST_CASE("parse should reject what the reader can't handle.") {
     CHECK_FALSE(parse(huge_chunk, sizeof(huge_chunk), sizeof(huge_chunk), info));
 }
 
-/* A canonical 44 byte PCM header; the data itself is never looked at by parse(). */
+/* A canonical 44 byte PCM header; the data itself is never looked at by parse_file(). */
 static void pcm_header(uint8_t* p, uint16_t channels, uint32_t rate, uint16_t bits, uint32_t data_size) {
     const auto u16 = [p](size_t at, uint16_t v) { p[at] = v; p[at + 1] = v >> 8; };
     const auto u32 = [p](size_t at, uint32_t v) { p[at] = v; p[at + 1] = v >> 8; p[at + 2] = v >> 16; p[at + 3] = v >> 24; };
@@ -553,8 +564,8 @@ TEST_CASE("parse should read the real format of a WAVE_FORMAT_EXTENSIBLE file.")
     CHECK_EQ(info.frames, 1000);
 }
 
-TEST_CASE("the chunk walk should go on in the file when data lies beyond what was read.") {
-    // fmt, then a 600 byte LIST chunk, then data: only the first 64 bytes are "read".
+TEST_CASE("parse_file should find a data chunk that lies far into the file.") {
+    // fmt, then a 600 byte LIST chunk, then data.
     uint8_t file[44 + 608 + 8]{};
     pcm_header(file, 1, 48000, 16, 0);
     memcpy(&file[36], "LIST", 4);
@@ -566,11 +577,7 @@ TEST_CASE("the chunk walk should go on in the file when data lies beyond what wa
     const uint32_t file_size = 44 + 608 + 4000;
 
     Info info;
-    REQUIRE(parse_start(file, 64, file_size, info));
-    CHECK_EQ(info.data_start, 0);
-    REQUIRE_EQ(info.next_chunk, 644);
-    take_chunk(&file[info.next_chunk], 8, info.next_chunk, file_size, info);
-    REQUIRE(parse_finish(info));
+    REQUIRE(parse(file, sizeof(file), file_size, info));
     CHECK_EQ(info.data_start, 652);
     CHECK_EQ(info.frames, 2000);
 }
@@ -586,6 +593,16 @@ TEST_CASE("parse should reject channel counts and widths that make no sense.") {
     pcm_header(header, 2, 48000, 16, 4000);
     header[34] = 64;  // bits
     CHECK_FALSE(parse(header, sizeof(header), 44 + 4000, info));
+}
+
+TEST_CASE("parse should reject a file with nothing to play.") {
+    uint8_t header[44];
+    Info info;
+    pcm_header(header, 1, 48000, 16, 0);
+    CHECK_FALSE(parse(header, sizeof(header), 44, info));
+
+    // An ADPCM file cut off inside its first block.
+    CHECK_FALSE(parse(adpcm_wav, 60 + 40, 60 + 40, info));
 }
 
 TEST_CASE("parse should not count data the file does not hold.") {

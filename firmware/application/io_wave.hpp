@@ -30,7 +30,6 @@
 #include "wav_format.hpp"
 
 #include <string.h>
-#include <climits>
 #include <memory>
 
 struct fmt_pcm_t {
@@ -115,13 +114,13 @@ class WAVFileReader : public FileReader {
     virtual ~WAVFileReader() = default;
 
     bool open(const std::filesystem::path& path);
+    // Reads whole samples only, and for ADPCM whole frames: a request for less returns 0.
     File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
     void data_seek(const uint64_t Offset);  // in samples, counting every channel
     void rewind();
     uint32_t ms_duration();
     uint16_t channels();
     uint32_t sample_rate();
-    uint32_t data_size();
     uint32_t sample_count();  // counting every channel
     uint32_t frame_count();   // one frame is one sample for every channel
     uint16_t bits_per_sample();
@@ -133,6 +132,7 @@ class WAVFileReader : public FileReader {
     uint32_t bytes_per_sample{};  // of what read() returns
     uint32_t position_{0};        // next sample read() returns, counting every channel
     Optional<File::Error> seek_error_{};
+    Optional<File::Error> error_{};  // what made read_at() or read_adpcm() fail
     std::string title_string{};
     std::filesystem::path last_path{};
 
@@ -140,8 +140,8 @@ class WAVFileReader : public FileReader {
     std::unique_ptr<uint8_t[]> block_{};
     wav::AdpcmFrames adpcm_;
 
-    File::Result<File::Size> read_at(uint32_t position, void* out, uint32_t bytes);
-    File::Result<File::Size> read_adpcm(int16_t* out, uint32_t frames);
+    int32_t read_at(uint32_t position, void* out, uint32_t bytes);
+    int32_t read_adpcm(int16_t* out, uint32_t frames);
     void find_title();
 };
 
