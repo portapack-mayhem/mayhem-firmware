@@ -136,19 +136,13 @@ class WAVFileReader : public FileReader {
     std::string title_string{};
     std::filesystem::path last_path{};
 
-    // ADPCM: the compressed block being decoded, which one it is, and the decoder.
+    // ADPCM: one raw block and the decoder working on it, set up on the first read.
     std::unique_ptr<uint8_t[]> block_{};
-    uint32_t block_number_{UINT32_MAX};
-    wav::ImaBlock ima_{};
-
-    // The decoder as it stood every checkpoint_frames frames into the current block.
-    static constexpr uint32_t checkpoint_frames = 512;
-    wav::ImaBlock checkpoint_[wav::Info::max_adpcm_frames / checkpoint_frames + 1]{};
-    uint32_t checkpoints_{0};
+    wav::AdpcmFrames adpcm_;
 
     File::Result<File::Size> read_at(uint32_t position, void* out, uint32_t bytes);
     File::Result<File::Size> read_adpcm(int16_t* out, uint32_t frames);
-    void find_title(const uint8_t* header, size_t size);
+    void find_title();
 };
 
 class WAVFileWriter : public FileWriter {

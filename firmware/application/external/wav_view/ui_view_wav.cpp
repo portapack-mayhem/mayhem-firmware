@@ -131,7 +131,19 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
     uint64_t skip = wav_reader->sample_count() / (screen_width * subsampling_factor);
     uint8_t bits_per_sample = wav_reader->bits_per_sample();
 
+    // An ADPCM file has to be decoded for this, which can take seconds, and the screen
+    // is not repainted meanwhile: show the progress by drawing straight to the display.
+    const bool show_progress = wav_reader->is_adpcm();
+    const Rect notice{0, screen_height / 2 - 16, screen_width, 32};
+    if (show_progress) {
+        Painter painter;
+        display.fill_rectangle(notice, Theme::getInstance()->bg_darkest->background);
+        painter.draw_string({UI_POS_X_CENTER(10), notice.top() + 4}, *Theme::getInstance()->bg_darkest, "Loading...");
+    }
+
     for (size_t i = 0; i < screen_width; i++) {
+        if (show_progress && (i % 8) == 0)
+            display.fill_rectangle({0, notice.top() + 24, (Dim)(i + 8), 4}, Theme::getInstance()->bg_darkest->foreground);
         average = 0;
 
         for (size_t s = 0; s < subsampling_factor; s++) {

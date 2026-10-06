@@ -601,26 +601,59 @@ TEST_CASE("ImaBlock should decode the same samples as ffmpeg.") {
     Info info;
     REQUIRE(parse(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info));
 
-    ImaBlock block;
-    for (uint32_t frame = 0; frame < info.frames; frame++) {
-        if (frame % info.block_frames == 0)
-            block.start(&adpcm_wav[info.data_start + frame / info.block_frames * info.block_align], info.channels);
-        int16_t got[2];
-        block.next(got);
-        CHECK_EQ(got[0], adpcm_decoded[frame * 2]);
-        CHECK_EQ(got[1], adpcm_decoded[frame * 2 + 1]);
+    // Run by run: the header frame, then 8 frames per group of codes.
+    for (uint32_t number = 0; number < 2; number++) {
+        ImaBlock block;
+        block.start(&adpcm_wav[info.data_start + number * info.block_align], info.channels);
+        const int16_t* want = &adpcm_decoded[number * info.block_frames * 2];
+        uint32_t frame = 0;
+        while (frame < info.block_frames) {
+            CHECK_EQ(block.position(), frame);
+            int16_t run[ImaBlock::run_frames * 2];
+            const uint32_t n = block.next_run(run);
+            REQUIRE_EQ(n, frame == 0 ? 1 : ImaBlock::run_frames);
+            for (uint32_t i = 0; i < n * 2; i++)
+                CHECK_EQ(run[i], want[frame * 2 + i]);
+            frame += n;
+        }
+        CHECK_EQ(frame, info.block_frames);
     }
 }
 
-TEST_CASE("ImaBlock should give the same sample after skipping to it.") {
-    ImaBlock block;
-    block.start(&adpcm_wav[60 + 64], 2);
-    while (block.position() < 30)
-        block.next(nullptr);
-    int16_t got[2];
-    block.next(got);
-    CHECK_EQ(got[0], adpcm_decoded[(57 + 30) * 2]);
-    CHECK_EQ(got[1], adpcm_decoded[(57 + 30) * 2 + 1]);
+TEST_CASE("AdpcmFrames should give the same frames in any order.") {
+    Info info;
+    REQUIRE(parse(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info));
+
+    alignas(4) uint8_t buffer[64 + 3];
+    REQUIRE(AdpcmFrames::buffer_bytes(info) <= sizeof(buffer));
+    AdpcmFrames frames;
+    frames.start(info, buffer);
+    int loads = 0;
+    const auto load = [&loads](uint32_t position, uint8_t* dest, uint32_t bytes) -> int32_t {
+        memcpy(dest, &adpcm_wav[position], bytes);
+        loads++;
+        return bytes;
+    };
+
+    // Everything at once, across the block boundary.
+    int16_t all[2 * 57 * 2];
+    REQUIRE(frames.read(0, 2 * 57, all, load));
+    CHECK_EQ(memcmp(all, adpcm_decoded, sizeof(all)), 0);
+    CHECK_EQ(loads, 2);
+
+    // Backwards a frame at a time, as reverse playback does: every frame still matches,
+    // and going back inside a block does not fetch it again.
+    loads = 0;
+    for (int frame = 2 * 57 - 1; frame >= 0; frame--) {
+        int16_t got[2];
+        REQUIRE(frames.read(frame, 1, got, load));
+        CHECK_EQ(got[0], adpcm_decoded[frame * 2]);
+        CHECK_EQ(got[1], adpcm_decoded[frame * 2 + 1]);
+    }
+    CHECK_EQ(loads, 1);
+
+    // A failed load is reported.
+    CHECK_FALSE(frames.read(60, 1, all, [](uint32_t, uint8_t*, uint32_t) -> int32_t { return -1; }));
 }
 
 TEST_SUITE_END();

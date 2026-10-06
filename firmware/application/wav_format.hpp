@@ -51,6 +51,11 @@ struct Info {
     uint32_t frames{0};     // one frame is one sample for every channel
 };
 
+// Chunk tags as the little endian numbers they read as: comparing those is smaller than
+// calling memcmp.
+constexpr uint32_t tag_data = 0x61746164;
+constexpr uint32_t tag_fmt = 0x20746D66;
+
 /* Takes one chunk whose 8 byte header `p` sits at `at` in the file, the rest of `size`
  * bytes following it. Sets data_start for the data chunk; otherwise leaves in next_chunk
  * where the following chunk starts, or 0 if there is none. */
@@ -60,12 +65,13 @@ inline void take_chunk(const uint8_t* p, size_t size, uint32_t at, uint32_t file
 
     const uint32_t length = u32(4);
     info.next_chunk = 0;
-    if (memcmp(p, "data", 4) == 0) {
+    const uint32_t tag = u32(0);
+    if (tag == tag_data) {
         info.data_start = at + 8;
         info.data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
         return;
     }
-    if (memcmp(p, "fmt ", 4) == 0 && size >= 24) {
+    if (tag == tag_fmt && size >= 24) {
         info.format = u16(8);
         info.channels = u16(10);
         info.rate = u32(12);
@@ -80,16 +86,23 @@ inline void take_chunk(const uint8_t* p, size_t size, uint32_t at, uint32_t file
         info.next_chunk = at + 8 + length + (length & 1);
 }
 
-/* Walks the chunks in the first `size` bytes of a WAV file, in whatever order they come.
- * Returns false if it is not one. If the data chunk lies further in, data_start stays 0
- * and next_chunk says where in the file the walk has to go on (see WAVFileReader::open). */
-inline bool parse_start(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
+/* Takes the 12 bytes a WAV file starts with. Returns false if it is not one; otherwise
+ * next_chunk says where the first chunk is. */
+inline bool parse_riff(const uint8_t* p, Info& info) {
     info = Info{};
-    if (size < 12 || file_size < 12 || memcmp(p, "RIFF", 4) != 0 || memcmp(p + 8, "WAVE", 4) != 0)
+    if (memcmp(p, "RIFF", 4) != 0 || memcmp(p + 8, "WAVE", 4) != 0)
         return false;
     info.riff_size = 8 + (uint32_t)(p[4] | (p[5] << 8) | (p[6] << 16) | ((uint32_t)p[7] << 24));
-
     info.next_chunk = 12;
+    return true;
+}
+
+/* Walks the chunks in the first `size` bytes of a WAV file, in whatever order they come.
+ * Returns false if it is not one. If the data chunk lies further in, data_start stays 0
+ * and next_chunk says where in the file the walk has to go on. */
+inline bool parse_start(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
+    if (size < 12 || file_size < 12 || !parse_riff(p, info))
+        return false;
     while (!info.data_start && info.next_chunk && info.next_chunk + 8 <= size) {
         const uint32_t at = info.next_chunk;
         take_chunk(p + at, size - at, at, file_size, info);
@@ -125,9 +138,30 @@ inline bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info)
     return parse_start(p, size, file_size, info) && parse_finish(info);
 }
 
-/* Decodes one IMA ADPCM block of a WAV file, frame by frame, front to back. */
+/* Step sizes of the IMA ADPCM decoder. Kept in RAM on purpose: a lookup in the SPI flash
+ * is as slow as a jump there (see ImaBlock). The section name is one the linker scripts
+ * place in RAM, "used" and "volatile" keep the compiler from noticing that it is never
+ * written and moving it into the flash after all. */
+__attribute__((used, section(".data.ima_step_size"))) inline volatile uint16_t ima_step_size[89] = {
+    7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+    50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230,
+    253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963,
+    1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327,
+    3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442,
+    11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794,
+    32767};
+
+/* Decodes one IMA ADPCM block of a WAV file, front to back, a run of frames at a time:
+ * first the frame stored in the block header, then 8 frames per group of codes.
+ *
+ * Written for code that executes from the SPI flash, where every jump and every table
+ * lookup in the flash stalls the CPU for about as long as a hundred instructions. So a
+ * group is decoded in one straight line: no data dependent branches, no loop the
+ * compiler cannot unroll, and the one table in RAM. */
 class ImaBlock {
    public:
+    static constexpr uint32_t run_frames = 8;
+
     void start(const uint8_t* block, uint16_t channels) {
         block_ = block;
         channels_ = channels;
@@ -138,58 +172,156 @@ class ImaBlock {
         }
     }
 
-    // Number of the frame next() produces.
-    uint16_t position() const { return position_; }
+    // Number of the first frame the next run holds.
+    uint32_t position() const { return position_; }
 
-    // Decodes the next frame; `out` may be null to skip over it. Always inlined, so that
-    // it runs wherever its caller was placed.
-    __attribute__((always_inline)) void next(int16_t* out) {
-        static const int8_t index_step[8] = {-1, -1, -1, -1, 2, 4, 6, 8};
-        static const uint16_t step_size[89] = {
-            7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
-            50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230,
-            253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963,
-            1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327,
-            3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493, 10442,
-            11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794,
-            32767};
-
-        // Frame 0 is the header sample. After it the codes come 8 per channel at a time
-        // (4 bytes of the left channel, 4 of the right, ...), low nibble first.
-        if (position_ > 0) {
-            const uint32_t code_number = position_ - 1;
-            const uint8_t* group = block_ + 4 * channels_ + (code_number / 8) * 4 * channels_;
-            for (uint16_t c = 0; c < channels_; c++) {
-                const uint8_t byte = group[4 * c + (code_number % 8) / 2];
-                const uint8_t code = (code_number & 1) ? (byte >> 4) : (byte & 0x0F);
-
-                const int32_t step = step_size[index_[c]];
-                int32_t delta = step >> 3;
-                if (code & 4) delta += step;
-                if (code & 2) delta += step >> 1;
-                if (code & 1) delta += step >> 2;
-                int32_t value = predictor_[c] + ((code & 8) ? -delta : delta);
-                if (value > 32767) value = 32767;
-                if (value < -32768) value = -32768;
-                predictor_[c] = value;
-
-                int32_t index = index_[c] + index_step[code & 7];
-                index_[c] = (index < 0) ? 0 : (index > 88) ? 88
-                                                           : index;
-            }
+    // Decodes the next run into `frames` (room for run_frames frames) and returns how
+    // many frames it holds. Always inlined, so that it runs wherever its caller does.
+    __attribute__((always_inline)) uint32_t next_run(int16_t* frames) {
+        if (position_ == 0) {
+            frames[0] = predictor_[0];
+            frames[channels_ - 1] = predictor_[channels_ - 1];
+            position_ = 1;
+            return 1;
         }
-        if (out)
-            for (uint16_t c = 0; c < channels_; c++)
-                out[c] = predictor_[c];
-        position_++;
+
+        // The codes come 8 per channel at a time: 4 bytes of the left channel, 4 of the
+        // right, and so on.
+        const uint8_t* group = block_ + 4 * channels_ + ((position_ - 1) / run_frames) * 4 * channels_;
+        for (uint32_t c = 0; c < channels_; c++)
+            decode_group(group + 4 * c, c, frames + c);
+        position_ += run_frames;
+        return run_frames;
     }
 
    private:
-    const uint8_t* block_{nullptr};
-    uint16_t channels_{0};
-    uint16_t position_{0};
-    int16_t predictor_[2]{};
-    uint8_t index_[2]{};
+    // One copy for both channels, not inlined: it is the bulk of the decoder. Built for
+    // speed so that the 8 samples are unrolled into one straight line.
+    __attribute__((noinline, optimize("O3"))) void decode_group(const uint8_t* bytes, uint32_t channel, int16_t* out) {
+        int32_t predictor = predictor_[channel];
+        int32_t index = index_[channel];
+        const uint32_t stride = channels_;
+        uint32_t codes = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | ((uint32_t)bytes[3] << 24);
+
+        // Low nibble first. Every "if" of the textbook decoder is a mask here:
+        // -(bit) is all ones when the bit is set, x >> 31 is all ones when x is negative.
+        for (uint32_t i = 0; i < run_frames; i++, codes >>= 4) {
+            const int32_t step = ima_step_size[index];
+            int32_t delta = step >> 3;
+            delta += step & -(int32_t)((codes >> 2) & 1);
+            delta += (step >> 1) & -(int32_t)((codes >> 1) & 1);
+            delta += (step >> 2) & -(int32_t)(codes & 1);
+            const int32_t sign = -(int32_t)((codes >> 3) & 1);
+            predictor += (delta ^ sign) - sign;
+
+            // Clamp to 16 bits.
+            const int32_t over = (32767 - predictor) >> 31;
+            predictor = (predictor & ~over) | (32767 & over);
+            const int32_t under = (predictor + 32768) >> 31;
+            predictor = (predictor & ~under) | (-32768 & under);
+            out[i * stride] = predictor;
+
+            // The index moves by -1 for codes 0..3 and by 2, 4, 6, 8 for codes 4..7,
+            // and stays within 0..88.
+            const int32_t magnitude = codes & 7;
+            const int32_t big = -(magnitude >> 2);
+            index += (((magnitude - 3) * 2) & big) | (-1 & ~big);
+            index &= ~(index >> 31);
+            const int32_t above = index - 88;
+            index = 88 + (above & (above >> 31));
+        }
+
+        predictor_[channel] = predictor;
+        index_[channel] = index;
+    }
+
+    // No initializers: start() sets them all, and AdpcmFrames holds an array of these.
+    const uint8_t* block_;
+    uint16_t channels_;
+    uint16_t position_;
+    int16_t predictor_[2];
+    uint8_t index_[2];
+};
+
+/* Random access to the frames of an IMA ADPCM file.
+ *
+ * ADPCM only decodes forwards. To go back inside a block (reverse playback, or re-reading
+ * the last frames) the decoder resumes from a checkpoint taken on the way through it,
+ * instead of decoding the block again from its start. */
+class AdpcmFrames {
+   public:
+    static constexpr size_t buffer_bytes(const Info& info) { return info.block_align + 3; }
+
+    // `buffer` holds one raw block and has to be buffer_bytes() long and word aligned.
+    void start(const Info& info, uint8_t* buffer) {
+        info_ = &info;
+        buffer_ = buffer;
+        block_number_ = UINT32_MAX;
+    }
+
+    // Decodes `frames` frames from `frame` on into `out`. `load(position, dest, bytes)`
+    // reads raw bytes at a position in the file and returns how many it got, or a
+    // negative number on error, which makes this return false.
+    template <typename Load>
+    bool read(uint32_t frame, uint32_t frames, int16_t* out, Load&& load) {
+        const uint32_t channels = info_->channels;
+        while (frames) {
+            const uint32_t number = frame / info_->block_frames;
+            const uint32_t offset = frame % info_->block_frames;
+            if (number != block_number_) {
+                // Placed in the buffer so that it lines up with its position in the file
+                // (see WAVFileReader::read_at).
+                const uint32_t position = info_->data_start + number * info_->block_align;
+                uint8_t* const block = buffer_ + (position & 3);
+                block_number_ = UINT32_MAX;  // until the new block is really there
+                const int32_t got = load(position, block, (uint32_t)info_->block_align);
+                if (got < 0) return false;
+                // A short read (truncated file) decodes as a held sample, not as old data.
+                if (got < info_->block_align)
+                    memset(block + got, 0, info_->block_align - got);
+                block_number_ = number;
+                ima_.start(block, info_->channels);
+                checkpoints_ = 0;
+                run_length_ = 0;
+            } else if (offset < run_start_) {
+                ima_ = checkpoint_[checkpoint_of(offset)];
+                run_length_ = 0;
+            }
+
+            // Runs up to the one holding the frame wanted, then copy what it holds.
+            while (run_length_ == 0 || offset >= run_start_ + run_length_) {
+                run_start_ = ima_.position();
+                if (run_start_ <= 1 || (run_start_ - 1) % checkpoint_frames == 0) {
+                    const uint32_t slot = checkpoint_of(run_start_);
+                    if (slot == checkpoints_) checkpoint_[checkpoints_++] = ima_;
+                }
+                run_length_ = ima_.next_run(run_);
+            }
+            uint32_t n = run_start_ + run_length_ - offset;
+            if (n > frames) n = frames;
+            memcpy(out, &run_[(offset - run_start_) * channels], n * channels * sizeof(int16_t));
+            out += n * channels;
+            frame += n;
+            frames -= n;
+        }
+        return true;
+    }
+
+   private:
+    // Checkpoints sit at frame 0 and then every checkpoint_frames frames from frame 1 on,
+    // which is where the runs of 8 start.
+    static constexpr uint32_t checkpoint_frames = 512;
+    static constexpr uint32_t checkpoint_of(uint32_t frame) { return frame ? 1 + (frame - 1) / checkpoint_frames : 0; }
+
+    const Info* info_{nullptr};
+    uint8_t* buffer_{nullptr};
+    uint32_t block_number_{UINT32_MAX};
+    ImaBlock ima_;
+    ImaBlock checkpoint_[2 + Info::max_adpcm_frames / checkpoint_frames];
+    uint32_t checkpoints_{0};
+    int16_t run_[ImaBlock::run_frames * 2];  // the run decoded last...
+    uint32_t run_start_{0};                  // ...the frame it starts at...
+    uint32_t run_length_{0};                 // ...and how many frames it holds
 };
 
 }  // namespace wav

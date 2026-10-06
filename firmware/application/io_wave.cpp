@@ -26,8 +26,6 @@
 
 #include <algorithm>
 
-constexpr size_t wav_header_bytes = 512;  // how much of a file is searched for its chunks
-
 bool WAVFileReader::open(const std::filesystem::path& path) {
     // Already open ?
     if (path.string() == last_path.string()) {
@@ -41,70 +39,61 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
     if (file.open(path).is_valid())
         return false;
 
-    auto header = std::make_unique<uint8_t[]>(wav_header_bytes);
-    const auto result = file.read(header.get(), wav_header_bytes);
+    // Walk from chunk to chunk, wherever in the file they are. Each one is read with
+    // enough of its content for the fields of "fmt ".
+    uint8_t chunk[8 + 34];
     wav::Info info;
-    if (result.is_error() || !wav::parse_start(header.get(), result.value(), file.size(), info))
+    auto result = file.read(chunk, 12);
+    if (result.is_error() || result.value() < 12 || !wav::parse_riff(chunk, info))
         return false;
-
-    // The data chunk may lie beyond what was read (big tag chunks in front): go on
-    // from chunk to chunk in the file.
     for (int chunks = 0; !info.data_start && info.next_chunk && chunks < 64; chunks++) {
-        uint8_t chunk[8];
         const uint32_t at = info.next_chunk;
         if (file.seek(at).is_error()) return false;
-        const auto chunk_result = file.read(chunk, sizeof(chunk));
-        if (chunk_result.is_error() || chunk_result.value() < sizeof(chunk)) return false;
-        wav::take_chunk(chunk, sizeof(chunk), at, file.size(), info);
+        result = file.read(chunk, sizeof(chunk));
+        if (result.is_error() || result.value() < 8) return false;
+        wav::take_chunk(chunk, result.value(), at, file.size(), info);
     }
     if (!wav::parse_finish(info))
         return false;
 
     file_ = std::move(file);
     info_ = info;
-    title_string = "";
     block_.reset();
-    block_number_ = UINT32_MAX;
-    if (is_adpcm()) {
-        bytes_per_sample = sizeof(int16_t);
-        block_ = std::make_unique<uint8_t[]>(info_.block_align + 3);  // + room to line it up, see read_at()
-    } else {
-        bytes_per_sample = info_.bits / 8;
-    }
+    bytes_per_sample = is_adpcm() ? sizeof(int16_t) : info_.bits / 8;
 
-    find_title(header.get(), result.value());
+    find_title();
     rewind();
 
     last_path = path;
     return true;
 }
 
-// Looks for the INAM (title) tag, in a LIST chunk before the data or right after it.
-void WAVFileReader::find_title(const uint8_t* header, size_t size) {
-    const auto extract = [this](const uint8_t* p, size_t length) {
-        for (size_t i = 0; i + 8 <= length; i++) {
-            if (memcmp(&p[i], "INAM", 4) != 0) continue;
-            size_t title_size = p[i + 4] | (p[i + 5] << 8);
-            title_size = std::min<size_t>({title_size, 32, length - i - 8});
-            title_string.assign(reinterpret_cast<const char*>(&p[i + 8]), title_size);
-            title_string = title_string.c_str();  // cut at the first terminator
-            return true;
-        }
-        return false;
-    };
+// Looks for the INAM (title) tag: in the chunks before the data in most files, right
+// after the data in the ones this firmware records.
+void WAVFileReader::find_title() {
+    title_string = "";
 
-    if (extract(header, std::min<size_t>(size, info_.data_start)))
-        return;
-
+    uint8_t window[256];
     const uint32_t data_end = info_.data_start + info_.data_size;
-    if (data_end >= info_.riff_size)
-        return;
+    const uint32_t from[2] = {12, data_end};
+    const uint32_t to[2] = {info_.data_start, info_.riff_size};
+    for (int part = 0; part < 2; part++) {
+        if (from[part] >= to[part]) continue;
+        file_.seek(from[part]);
+        const auto result = file_.read(window, std::min<uint32_t>(sizeof(window), to[part] - from[part]));
+        if (result.is_error()) return;
 
-    uint8_t tail[256];
-    file_.seek(data_end);
-    const auto result = file_.read(tail, sizeof(tail));
-    if (result.is_ok())
-        extract(tail, result.value());
+        for (size_t i = 0; i + 8 <= result.value(); i++) {
+            if (memcmp(&window[i], "INAM", 4) != 0) continue;
+            // The length field, capped at 32 characters and at the first terminator.
+            const char* const text = reinterpret_cast<const char*>(&window[i + 8]);
+            const size_t limit = std::min<size_t>(std::min<size_t>(window[i + 4], 32), result.value() - i - 8);
+            size_t length = 0;
+            while (length < limit && text[length]) length++;
+            title_string.assign(text, length);
+            return;
+        }
+    }
 }
 
 void WAVFileReader::rewind() {
@@ -158,18 +147,12 @@ File::Result<File::Size> WAVFileReader::read(void* const buffer, const File::Siz
     if (!bytes_per_sample) return File::Size{0};
 
     // Never past the end of the audio: other chunks may follow it in the file.
-    const uint32_t samples = std::min<uint64_t>(bytes / bytes_per_sample, sample_count() - position_);
+    const uint32_t wanted = std::min<File::Size>(bytes, UINT32_MAX);
+    const uint32_t samples = std::min<uint32_t>(wanted / bytes_per_sample, sample_count() - position_);
 
-    if (is_adpcm()) {
-        const auto result = read_adpcm(static_cast<int16_t*>(buffer), samples / info_.channels);
-        if (result.is_ok()) {
-            position_ += result.value() / bytes_per_sample;
-            bytes_read_ += result.value();
-        }
-        return result;
-    }
-
-    const auto result = read_at(info_.data_start + position_ * bytes_per_sample, buffer, samples * bytes_per_sample);
+    const auto result = is_adpcm()
+                            ? read_adpcm(static_cast<int16_t*>(buffer), samples / info_.channels)
+                            : read_at(info_.data_start + position_ * bytes_per_sample, buffer, samples * bytes_per_sample);
     if (result.is_ok()) {
         position_ += result.value() / bytes_per_sample;
         bytes_read_ += result.value();
@@ -177,51 +160,23 @@ File::Result<File::Size> WAVFileReader::read(void* const buffer, const File::Siz
     return result;
 }
 
-// ADPCM only decodes forwards. To go back inside a block (reverse playback, or re-reading
-// the last frames) the decoder resumes from a checkpoint taken on the way through it,
-// instead of decoding the block again from its start.
-// Runs from RAM: code in the SPI flash is too slow to decode at more than normal speed.
-LOCATE_IN_RAM __attribute__((noinline)) File::Result<File::Size> WAVFileReader::read_adpcm(int16_t* out, uint32_t frames) {
-    uint32_t frame = position_ / info_.channels;
-    File::Size total = 0;
-
-    while (frames) {
-        const uint32_t number = frame / info_.block_frames;
-        const uint32_t offset = frame % info_.block_frames;
-        if (number != block_number_) {
-            // Placed in the buffer so that it lines up with its position in the file.
-            const uint32_t position = info_.data_start + number * info_.block_align;
-            uint8_t* const block = block_.get() + (position & 3);
-            block_number_ = UINT32_MAX;  // until the new block is really there
-            const auto seek_result = file_.seek(position);
-            if (seek_result.is_error()) return seek_result.error();
-            const auto result = read_at(position, block, info_.block_align);
-            if (result.is_error()) return result;
-            // A short read (truncated file) decodes as a held sample, not as old data.
-            if (result.value() < info_.block_align)
-                memset(block + result.value(), 0, info_.block_align - result.value());
-            block_number_ = number;
-            ima_.start(block, info_.channels);
-            checkpoints_ = 0;
-        } else if (offset < ima_.position()) {
-            ima_ = checkpoint_[offset / checkpoint_frames];
-        }
-
-        uint32_t n = std::min<uint32_t>(frames, info_.block_frames - offset);
-        total += n * info_.channels * sizeof(int16_t);
-        frame += n;
-        frames -= n;
-        for (n += offset - ima_.position(); n > 0; n--) {
-            const uint32_t at = ima_.position();
-            if (at % checkpoint_frames == 0 && at / checkpoint_frames == checkpoints_)
-                checkpoint_[checkpoints_++] = ima_;
-            // One call, so the decoder is only inlined once into this RAM resident function.
-            const bool wanted = (at >= offset);
-            ima_.next(wanted ? out : nullptr);
-            if (wanted) out += info_.channels;
-        }
+File::Result<File::Size> WAVFileReader::read_adpcm(int16_t* out, uint32_t frames) {
+    if (!block_) {
+        block_ = std::make_unique<uint8_t[]>(wav::AdpcmFrames::buffer_bytes(info_));
+        adpcm_.start(info_, block_.get());
     }
-    return total;
+
+    Optional<File::Error> error{};
+    const bool ok = adpcm_.read(position_ / info_.channels, frames, out,
+                                [this, &error](uint32_t position, uint8_t* dest, uint32_t bytes) -> int32_t {
+                                    auto result = file_.seek(position);
+                                    if (result.is_ok()) result = read_at(position, dest, bytes);
+                                    if (result.is_ok()) return result.value();
+                                    error = result.error();
+                                    return -1;
+                                });
+    if (!ok) return error.value();
+    return File::Size{frames * info_.channels * sizeof(int16_t)};
 }
 
 uint16_t WAVFileReader::channels() {
