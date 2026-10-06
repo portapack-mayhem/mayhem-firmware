@@ -808,6 +808,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTSK time_sink)
 
+### Spectrum Analyzer
+
+set(MODE_CPPSRC
+	proc_spec_an.cpp
+)
+DeclareTargets(PSAN spec_an)
+
 
 ### Tetra Rx
 
