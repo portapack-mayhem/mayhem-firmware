@@ -112,12 +112,18 @@ void AudioPlayProcessor::execute(const buffer_c8_t& buffer) {
 
     if (wanted_ready) {
         wanted_ready = false;
+        // While flat the filters are bypassed, so their history is stale: start them afresh.
+        const bool restart = eq_flat;
         channels = wanted.channels;
         preamp = wanted.preamp;
         eq_flat = wanted.flat;
         for (size_t b = 0; b < eq_bands; b++) {
-            eq[0][b].configure(wanted.band[b]);
-            eq[1][b].configure(wanted.band[b]);
+            for (auto& channel : eq) {
+                if (restart)
+                    channel[b] = IIRBiquadFilter{wanted.band[b]};
+                else
+                    channel[b].configure(wanted.band[b]);
+            }
         }
     }
 

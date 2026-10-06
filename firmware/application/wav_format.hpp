@@ -19,45 +19,50 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MUSIC_WAV_SOURCE_H__
-#define __MUSIC_WAV_SOURCE_H__
+#ifndef __WAV_FORMAT_H__
+#define __WAV_FORMAT_H__
 
-/* WAV header parsing and IMA ADPCM decoding for the Music app. No firmware dependencies,
- * so test/application/test_music_wav_source.cpp can check it on a PC. */
+/* WAV header parsing and IMA ADPCM decoding, used by WAVFileReader (io_wave.cpp). No
+ * firmware dependencies, so test/application/test_wav_format.cpp can check it on a PC. */
 
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 
-namespace ui::external_app::music {
+namespace wav {
 
-struct WavInfo {
+struct Info {
     enum : uint16_t { PCM = 0x01,
+                      EXTENSIBLE = 0xFFFE,
                       IMA_ADPCM = 0x11 };
-    static constexpr uint16_t max_block_align = 2048;
+    static constexpr uint16_t max_adpcm_block = 2048;
+    static constexpr uint16_t max_adpcm_frames = 1 + (max_adpcm_block - 4) * 2;  // in a mono block
 
     uint16_t format{0};
     uint16_t channels{0};
     uint32_t rate{0};
+    uint16_t bits{0};          // per sample in the file: 8 or 16 for PCM, 4 for ADPCM
     uint16_t block_align{0};   // bytes: one frame (PCM) or one compressed block (ADPCM)
     uint16_t block_frames{0};  // frames in an ADPCM block
+    uint32_t riff_size{0};     // of the whole RIFF chunk, header included
     uint32_t data_start{0};
-    uint32_t frames{0};
+    uint32_t data_size{0};  // bytes of the data chunk that are really in the file
+    uint32_t frames{0};     // one frame is one sample for every channel
 };
 
-/* Walks the chunks at the start of a WAV file. Returns nullptr, or what is wrong with it.
- * NB: the "data" chunk has to start within `size` bytes; read more of the file if
- * WAVs with big tag chunks in front (cover art) ever need to play. */
-inline const char* parse_wav(const uint8_t* p, size_t size, uint32_t file_size, WavInfo& info) {
+/* Walks the chunks at the start of a WAV file, in whatever order they come. Returns
+ * false if this is not a WAV file the reader can handle.
+ * NB: the "data" chunk has to start within `size` bytes; read more of the file if WAVs
+ * with big tag chunks in front (cover art) ever need to open. */
+inline bool parse(const uint8_t* p, size_t size, uint32_t file_size, Info& info) {
     const auto u16 = [p](size_t at) { return (uint16_t)(p[at] | (p[at + 1] << 8)); };
     const auto u32 = [p](size_t at) { return (uint32_t)(p[at] | (p[at + 1] << 8) | (p[at + 2] << 16) | ((uint32_t)p[at + 3] << 24)); };
 
-    info = WavInfo{};
+    info = Info{};
     if (size < 12 || memcmp(p, "RIFF", 4) != 0 || memcmp(p + 8, "WAVE", 4) != 0)
-        return "NOT A WAV FILE";
+        return false;
+    info.riff_size = 8 + u32(4);
 
-    uint16_t bits = 0;
-    uint32_t data_size = 0;
     for (size_t at = 12; at + 8 <= size;) {
         const uint32_t length = u32(at + 4);
         if (memcmp(p + at, "fmt ", 4) == 0 && at + 24 <= size) {
@@ -65,34 +70,37 @@ inline const char* parse_wav(const uint8_t* p, size_t size, uint32_t file_size, 
             info.channels = u16(at + 10);
             info.rate = u32(at + 12);
             info.block_align = u16(at + 20);
-            bits = u16(at + 22);
+            info.bits = u16(at + 22);
+            // WAVE_FORMAT_EXTENSIBLE: the real format leads the sub format GUID.
+            if (info.format == Info::EXTENSIBLE && length >= 40 && at + 34 <= size)
+                info.format = u16(at + 32);
         } else if (memcmp(p + at, "data", 4) == 0) {
             info.data_start = at + 8;
-            data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
+            info.data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
             break;
         }
         if (length > size - at - 8) break;  // the next chunk starts outside what was read
         at += 8 + length + (length & 1);
     }
 
-    if (!info.data_start || info.channels < 1 || info.channels > 2 || info.rate != 48000)
-        return "NEED 48K WAV";
+    if (!info.data_start || !info.channels || !info.rate)
+        return false;
 
-    if (info.format == WavInfo::PCM && bits == 16) {
-        info.block_align = info.channels * sizeof(int16_t);
-        info.frames = data_size / info.block_align;
-    } else if (info.format == WavInfo::IMA_ADPCM && bits == 4 &&
-               info.block_align > 4 * info.channels && info.block_align <= WavInfo::max_block_align &&
+    if (info.format == Info::PCM && info.bits >= 8 && info.bits % 8 == 0) {
+        info.block_align = info.channels * (info.bits / 8);
+        info.frames = info.data_size / info.block_align;
+    } else if (info.format == Info::IMA_ADPCM && info.bits == 4 && info.channels <= 2 &&
+               info.block_align > 4 * info.channels && info.block_align <= Info::max_adpcm_block &&
                (info.block_align - 4 * info.channels) % (4 * info.channels) == 0) {
         // Per channel a 4 byte header holding the first sample, then 4 bit codes in whole
         // groups of 4 bytes per channel.
         info.block_frames = 1 + (info.block_align - 4 * info.channels) * 2 / info.channels;
-        // NB: a short last block is dropped (under 50 ms of the track's end).
-        info.frames = data_size / info.block_align * info.block_frames;
+        // NB: a short last block is dropped (under 50 ms of the end).
+        info.frames = info.data_size / info.block_align * info.block_frames;
     } else {
-        return "NEED PCM16 OR ADPCM";
+        return false;
     }
-    return nullptr;
+    return true;
 }
 
 /* Decodes one IMA ADPCM block of a WAV file, frame by frame, front to back. */
@@ -111,8 +119,9 @@ class ImaBlock {
     // Number of the frame next() produces.
     uint16_t position() const { return position_; }
 
-    // Decodes the next frame; `out` may be null to skip over it.
-    void next(int16_t* out) {
+    // Decodes the next frame; `out` may be null to skip over it. Always inlined, so that
+    // it runs wherever its caller was placed.
+    __attribute__((always_inline)) void next(int16_t* out) {
         static const int8_t index_step[8] = {-1, -1, -1, -1, 2, 4, 6, 8};
         static const uint16_t step_size[89] = {
             7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
@@ -161,6 +170,6 @@ class ImaBlock {
     uint8_t index_[2]{};
 };
 
-}  // namespace ui::external_app::music
+}  // namespace wav
 
-#endif /*__MUSIC_WAV_SOURCE_H__*/
+#endif /*__WAV_FORMAT_H__*/

@@ -41,7 +41,8 @@ namespace ui::external_app::music {
 static void dots(Painter& painter, Point at, std::string text, size_t width, Color color, uint8_t zoom);
 
 static std::string mmss(uint32_t seconds) {
-    return to_string_dec_uint(seconds / 60 % 100, 2, '0') + ":" + to_string_dec_uint(seconds % 60, 2, '0');
+    seconds = std::min<uint32_t>(seconds, 99 * 60 + 59);  // all the clock has room for
+    return to_string_dec_uint(seconds / 60, 2, '0') + ":" + to_string_dec_uint(seconds % 60, 2, '0');
 }
 
 MusicView::MusicView(NavigationView& nav)
@@ -143,87 +144,52 @@ void MusicView::load(uint16_t slot) {
 
 /* Deck *******************************************************************/
 
-constexpr size_t header_bytes = 512;  // how much of a WAV file is searched for its chunks
+constexpr uint32_t output_rate = 48000;  // what the audio_play baseband plays
 
 // Feel of the "record". The encoder is coarse, so these want tuning on the device.
-constexpr int32_t chase_frames = 4800;      // time constant the playhead follows the hand with (100 ms)
-constexpr int32_t settle_frames = 96;       // this close to the hand counts as arrived
-constexpr int32_t jump_frames = 36000;      // further behind than this (0.75 s): seek, don't play the way
+constexpr uint32_t chase_ms = 100;          // time constant the playhead follows the hand with
+constexpr uint32_t settle_ms = 2;           // this close to the hand counts as arrived
+constexpr uint32_t jump_ms = 750;           // further behind than this: seek, don't play the way
 constexpr int32_t max_speed = 2 * 256 - 8;  // Q8, just under 2x so a block's source fits the window
 constexpr int32_t min_speed = 26;           // Q8, 0.1x: don't crawl forever on the last few frames
 
-DeckReader::DeckReader(File&& file, const WavInfo& info, Deck& deck, size_t max_read)
-    : file_{std::move(file)},
-      info_{info},
+DeckReader::DeckReader(std::unique_ptr<WAVFileReader> wav, Deck& deck, size_t max_read)
+    : wav_{std::move(wav)},
       deck_{deck},
+      channels_{wav_->channels()},
+      total_{wav_->frame_count()},
       max_read_{max_read},
+      normal_step_{(int32_t)((uint64_t)wav_->sample_rate() * 65536 / output_rate)},
+      chase_frames_{(int32_t)(wav_->sample_rate() * chase_ms / 1000)},
+      settle_frames_{(int32_t)(wav_->sample_rate() * settle_ms / 1000) + 1},
+      jump_frames_{(int32_t)(wav_->sample_rate() * jump_ms / 1000)},
       head_{deck.head},
       done_{deck.turned},
       seek_seen_{deck.seek_seq} {
-    if (info_.format == WavInfo::IMA_ADPCM)
-        block_ = std::make_unique<uint8_t[]>(info_.block_align + 3);  // + room to line it up, see read_at()
 }
 
-// Workaround: the SD card driver corrupts whole sectors read into a buffer that is not
-// word aligned relative to the file position. Such reads are split so they go through
-// FatFs's own aligned sector buffer instead.
-File::Result<File::Size> DeckReader::read_at(uint32_t position, void* out, uint32_t bytes) {
-    constexpr uint32_t sector = 512;
-    auto p = static_cast<uint8_t*>(out);
-
-    if (position != file_position_) file_.seek(position);
-    file_position_ = position + bytes;
-
-    if (((reinterpret_cast<uintptr_t>(p) - position) & 3) == 0)
-        return file_.read(p, bytes);
-
-    while (bytes) {
-        uint32_t n = std::min<uint32_t>(bytes, sector - position % sector);
-        if (n == sector) n = sector / 2;
-        const auto result = file_.read(p, n);
-        if (result.is_error()) return result;
-        p += n;
-        position += n;
-        bytes -= n;
-    }
-    return File::Size{0};
-}
-
+// `count` frames from `frame` on, as 16 bit samples whatever the file holds.
 File::Result<File::Size> DeckReader::fetch(uint32_t frame, uint32_t count, int16_t* out) {
-    if (info_.format == WavInfo::PCM)
-        return read_at(info_.data_start + frame * info_.block_align, out, count * info_.block_align);
+    if (frame != next_frame_) wav_->data_seek(frame * channels_);
+    next_frame_ = frame + count;
 
-    // ADPCM only decodes forwards from the start of a block, so going back inside a
-    // block (reverse scratching) decodes that block again up to the wanted frame.
-    while (count) {
-        const uint32_t number = frame / info_.block_frames;
-        const uint32_t offset = frame % info_.block_frames;
-        if (number != block_number_ || offset < ima_.position()) {
-            // Placed in the buffer so that it lines up with its position in the file.
-            const uint32_t position = info_.data_start + number * info_.block_align;
-            uint8_t* const block = block_.get() + (position & 3);
-            const auto result = read_at(position, block, info_.block_align);
-            if (result.is_error()) return result;
-            block_number_ = number;
-            ima_.start(block, info_.channels);
-        }
-        while (ima_.position() < offset)
-            ima_.next(nullptr);
+    const uint32_t samples = count * channels_;
+    if (wav_->bits_per_sample() == 16)
+        return wav_->read(out, samples * sizeof(int16_t));
 
-        const uint32_t n = std::min<uint32_t>(count, info_.block_frames - offset);
-        for (uint32_t i = 0; i < n; i++, out += info_.channels)
-            ima_.next(out);
-        frame += n;
-        count -= n;
-    }
-    return File::Size{0};
+    // 8 bit samples are unsigned; widen them in place, last one first.
+    const auto result = wav_->read(out, samples);
+    if (result.is_error()) return result;
+    const auto bytes = reinterpret_cast<const uint8_t*>(out);
+    for (uint32_t i = samples; i-- > 0;)
+        out[i] = (bytes[i] - 0x80) << 8;
+    return result;
 }
 
 File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size bytes) {
-    const uint32_t channels_ = info_.channels;
-    const uint32_t total_ = info_.frames;
     const size_t frame_bytes = channels_ * sizeof(int16_t);
     const int32_t frames = bytes / frame_bytes;
+    const auto out = static_cast<int16_t*>(buffer);
     int32_t pending = deck_.turned - done_;
 
     // An absolute seek from the UI (dragging the dial) overrides any turning.
@@ -231,62 +197,50 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
         seek_seen_ = deck_.seek_seq;
         const uint32_t seek_to = deck_.seek_to;
         head_ = std::min(seek_to, total_);
+        fraction_ = 0;
         done_ = deck_.turned;
         pending = 0;
         deck_.head = head_;
     }
 
-    if (std::abs(pending) > jump_frames) {
+    if (std::abs(pending) > jump_frames_) {
         head_ = clip<int32_t>((int32_t)head_ + pending, 0, total_);
+        fraction_ = 0;
         done_ += pending;
         pending = 0;
         deck_.head = head_;
     }
 
-    if (std::abs(pending) >= settle_frames) {
-        // Scratch: speed is proportional to the distance still to go, either direction,
-        // so the sound follows the hand and slows to a stop like a record being held.
-        int32_t speed = clip<int32_t>(pending * 256 / chase_frames, -max_speed, max_speed);
+    // Source frames per output frame, Q16. Scratching makes it follow the hand: the
+    // speed is proportional to the distance still to go, either direction, so the sound
+    // slows to a stop like a record being held.
+    const bool scratching = std::abs(pending) >= settle_frames_;
+    int32_t step = normal_step_;
+    if (scratching) {
+        int32_t speed = clip<int32_t>(pending * 256 / chase_frames_, -max_speed, max_speed);
         if (std::abs(speed) < min_speed) speed = (pending > 0) ? min_speed : -min_speed;
-        int32_t advance = speed * frames / 256;
-        if (std::abs(advance) > std::abs(pending)) advance = pending;
-
-        // NB: one seek + read per block. Without a FatFs cluster map a backward seek
-        // walks the FAT from the start of the file; if reverse stutters deep into big
-        // files, set up fast seek (cltbl) for the file.
-        const int32_t last = total_ ? total_ - 1 : 0;
-        const int32_t lo = clip<int32_t>(std::min<int32_t>(head_, head_ + advance), 0, last);
-        const int32_t hi = clip<int32_t>(std::max<int32_t>(head_, head_ + advance), 0, last);
-        if (!window_) window_ = std::make_unique<int16_t[]>(2 * max_read_ / sizeof(int16_t));
-        const auto result = fetch(lo, hi - lo + 1, window_.get());
-        if (result.is_error()) return result;
-
-        auto out = static_cast<int16_t*>(buffer);
-        const int32_t step = advance * 65536 / frames;  // Q16 source frames per output frame
-        int32_t offset = 0;
-        for (int32_t i = 0; i < frames; i++, offset += step) {
-            const int32_t at = clip<int32_t>((int32_t)head_ + (offset >> 16), lo, hi) - lo;
-            for (uint32_t c = 0; c < channels_; c++)
-                *out++ = window_[at * channels_ + c];
+        step = normal_step_ / 256 * speed;
+        if (std::abs((int64_t)step * frames >> 16) > std::abs(pending))
+            step = pending * 65536 / frames;
+        fraction_ = 0;
+    } else {
+        done_ += pending;
+        if (deck_.paused) {
+            window_.reset();
+            memset(buffer, 0, bytes);
+            return File::Size{bytes};
         }
-
-        head_ = clip<int32_t>((int32_t)head_ + advance, 0, total_);
-        done_ += advance;
-        deck_.head = head_;
-        return File::Size{bytes};
     }
 
-    done_ += pending;
-    window_.reset();
-
-    if (deck_.paused) {
-        memset(buffer, 0, bytes);
-        return File::Size{bytes};
+    // How many output frames the rest of the track is good for. Past its end the stream
+    // is fed silence until the blocks still queued have had time to play; only then does
+    // returning 0 end the track.
+    int32_t count = frames;
+    if (step > 0) {
+        const uint64_t left = ((uint64_t)(total_ - head_) << 16) - fraction_;
+        count = std::min<uint64_t>(frames, (left + step - 1) / step);
+        if (head_ >= total_) count = 0;
     }
-
-    // Normal playback. Returning 0 ends the track, but only once the blocks still queued
-    // in the stream have had time to play; until then it is fed silence.
-    const uint32_t count = std::min<uint32_t>(frames, total_ - head_);
     if (count == 0) {
         if (drained_ >= stream_buffers * max_read_) return File::Size{0};
         drained_ += bytes;
@@ -294,10 +248,44 @@ File::Result<File::Size> DeckReader::read(void* const buffer, const File::Size b
         return File::Size{bytes};
     }
     drained_ = 0;
-    const auto result = fetch(head_, count, static_cast<int16_t*>(buffer));
-    if (result.is_error()) return result;
-    memset(static_cast<uint8_t*>(buffer) + count * frame_bytes, 0, bytes - count * frame_bytes);
-    head_ += count;
+
+    if (step == 65536) {
+        // Same rate as the output: straight from the file.
+        window_.reset();
+        const auto result = fetch(head_, count, out);
+        if (result.is_error()) return result;
+        head_ += count;
+    } else {
+        // Resample: read the stretch of the file this block covers, then pick from it
+        // with linear interpolation.
+        // NB: going backwards means a seek per block. Without a FatFs cluster map that
+        // walks the FAT from the start of the file; if reverse stutters deep into big
+        // files, set up fast seek (cltbl) for the file.
+        const int32_t span = (int32_t)(((int64_t)step * count + fraction_) >> 16);
+        const int32_t last = total_ ? total_ - 1 : 0;
+        const int32_t lo = clip<int32_t>(std::min<int32_t>(head_, head_ + span), 0, last);
+        const int32_t hi = clip<int32_t>(std::max<int32_t>(head_, head_ + span) + 1, 0, last);
+        if (!window_) window_ = std::make_unique<int16_t[]>((2 * max_read_ / frame_bytes + 4) * channels_);
+        const auto result = fetch(lo, hi - lo + 1, window_.get());
+        if (result.is_error()) return result;
+
+        int32_t offset = fraction_;
+        int16_t* p = out;
+        for (int32_t i = 0; i < count; i++, offset += step) {
+            const int32_t at = (int32_t)head_ + (offset >> 16);
+            const int16_t* a = &window_[(clip<int32_t>(at, lo, hi) - lo) * channels_];
+            const int16_t* b = &window_[(clip<int32_t>(at + 1, lo, hi) - lo) * channels_];
+            const int32_t weight = (offset & 0xFFFF) >> 1;  // Q15
+            for (uint32_t c = 0; c < channels_; c++)
+                *p++ = a[c] + ((b[c] - a[c]) * weight >> 15);
+        }
+
+        head_ = clip<int32_t>((int32_t)head_ + (offset >> 16), 0, total_);
+        fraction_ = scratching ? 0 : (offset & 0xFFFF);
+        if (scratching) done_ += offset >> 16;
+    }
+
+    memset(out + count * channels_, 0, (frames - count) * frame_bytes);
     deck_.head = head_;
     return File::Size{bytes};
 }
@@ -317,16 +305,16 @@ void MusicView::stop() {
 void MusicView::play_from(uint32_t sample) {
     stop();
 
-    File file;
-    WavInfo info;
+    // Whatever the reader opens plays, as long as the baseband can take it: mono or
+    // stereo, and no faster than its own rate (slower files are resampled).
+    auto wav = std::make_unique<WAVFileReader>();
     error_ = nullptr;
-    if (file.open(file_).is_valid()) {
-        error_ = "CAN'T OPEN FILE";
-    } else {
-        auto header = std::make_unique<uint8_t[]>(header_bytes);
-        const auto result = file.read(header.get(), header_bytes);
-        error_ = parse_wav(header.get(), result.is_ok() ? result.value() : 0, file.size(), info);
-    }
+    if (!wav->open(file_))
+        error_ = "NOT A PLAYABLE WAV";
+    else if (wav->channels() > 2 || (wav->bits_per_sample() != 8 && wav->bits_per_sample() != 16))
+        error_ = "UNSUPPORTED WAV FORMAT";
+    else if (wav->sample_rate() > output_rate)
+        error_ = "MAX 48 KHZ";
 
     if (error_) {
         rate_ = total_ = pos_ = 0;
@@ -334,9 +322,9 @@ void MusicView::play_from(uint32_t sample) {
         return;
     }
 
-    rate_ = info.rate;
-    const uint32_t channels = info.channels;
-    total_ = info.frames;
+    rate_ = wav->sample_rate();
+    const uint32_t channels = wav->channels();
+    total_ = wav->frame_count();
     deck_.head = pos_ = (sample < total_) ? sample : 0;
     deck_.paused = false;
     channels_ = channels;
@@ -345,7 +333,7 @@ void MusicView::play_from(uint32_t sample) {
     // ~21 ms blocks: small enough for the deck to follow the encoder closely.
     const size_t read_size = 2048 * channels;
     replay_thread = std::make_unique<ReplayThread>(
-        std::make_unique<DeckReader>(std::move(file), info, deck_, read_size),
+        std::make_unique<DeckReader>(std::move(wav), deck_, read_size),
         read_size, stream_buffers,
         &ready_signal,
         [generation = generation_](uint32_t return_code) {
@@ -395,7 +383,9 @@ void MusicView::turn(int32_t delta) {
     spin_forward_ = forward;
 
     const int32_t boost = (spin_ > spin_start) ? std::min<int32_t>((spin_ - spin_start) / 6, 6) : 0;
-    deck_.turned = deck_.turned + delta * (boost ? seek_frames << boost : frames_per_detent);
+    // The steps are times, so they are the same on the dial whatever the file's rate.
+    const int32_t step_ms = boost ? seek_ms << boost : detent_ms;
+    deck_.turned = deck_.turned + delta * (int32_t)(rate_ * step_ms / 1000);
 }
 
 void MusicView::set_volume(int32_t v) {

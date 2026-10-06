@@ -25,7 +25,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_widget.hpp"
-#include "wav_source.hpp"
+#include "io_wave.hpp"
 #include "replay_thread.hpp"
 #include "baseband_api.hpp"
 #include "audio.hpp"
@@ -48,32 +48,34 @@ struct Deck {
     volatile uint32_t seek_seq{0};  // ...requested by bumping this (UI)
 };
 
-/* Feeds the replay stream from a WAV file. Normally it just reads on; when the encoder is
+/* Feeds the replay stream from a WAV file, as 16 bit samples at the output rate. Normally
+ * it just plays on (resampling files of another rate); when the encoder is
  * turned it plays the file at the speed and in the direction of the turning instead. */
 class DeckReader : public stream::Reader {
    public:
-    DeckReader(File&& file, const WavInfo& info, Deck& deck, size_t max_read);
+    DeckReader(std::unique_ptr<WAVFileReader> wav, Deck& deck, size_t max_read);
 
     File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
 
    private:
-    File file_;
-    const WavInfo info_;
+    std::unique_ptr<WAVFileReader> wav_;
     Deck& deck_;
-    const size_t max_read_;                // largest read() the stream will ask for, bytes
-    uint32_t head_;                        // frame the next output starts at
+    const uint32_t channels_;
+    const uint32_t total_;        // frames
+    const size_t max_read_;       // largest read() the stream will ask for, bytes
+    const int32_t normal_step_;   // file frames per output frame at normal speed, Q16
+    const int32_t chase_frames_;  // the scratch constants, in frames of this file
+    const int32_t settle_frames_;
+    const int32_t jump_frames_;
+    uint32_t head_;                        // frame the next output starts at...
+    uint32_t fraction_{0};                 // ...and how far past it, Q16
     int32_t done_;                         // part of deck_.turned already played
     uint32_t seek_seen_;                   // last deck_.seek_seq acted on
     uint32_t drained_{0};                  // silence fed after the end of the track, bytes
-    std::unique_ptr<int16_t[]> window_{};  // source audio for one scratched block
+    uint32_t next_frame_{UINT32_MAX};      // where the file is positioned, to skip needless seeks
+    std::unique_ptr<int16_t[]> window_{};  // source audio for one resampled block
 
-    // Source access: `count` frames from `frame` on, as 16 bit PCM.
     File::Result<File::Size> fetch(uint32_t frame, uint32_t count, int16_t* out);
-    File::Result<File::Size> read_at(uint32_t position, void* out, uint32_t bytes);
-    uint32_t file_position_{UINT32_MAX};  // where the file is positioned, to skip needless seeks
-    std::unique_ptr<uint8_t[]> block_{};  // ADPCM: the compressed block being decoded...
-    uint32_t block_number_{UINT32_MAX};   // ...which one it is...
-    ImaBlock ima_{};                      // ...and how far into it the decoder is
 };
 
 /* Workaround: the touch panel reports wrong positions while a finger lifts. The End point
@@ -170,7 +172,7 @@ class EqView : public View {
     void set(int band, int value);
 };
 
-/* WAV player. A playlist is simply a folder of 48 kHz WAV files (16 bit PCM or IMA ADPCM, mono or stereo) below /MUSIC. */
+/* WAV player. A playlist is simply a folder of WAV files below /MUSIC. */
 class MusicView : public View {
    public:
     MusicView(NavigationView& nav);
@@ -201,10 +203,10 @@ class MusicView : public View {
     // NB: the uint8_t order table caps a playlist at 255 tracks; widen it if a folder ever holds more.
     static constexpr size_t max_tracks = 255;
     // Encoder feel, to be tuned on the device.
-    static constexpr int32_t frames_per_detent = 3840;  // scratching: one detent moves the record 80 ms
-    static constexpr int32_t seek_frames = 2880;        // seeking: base step (60 ms), doubled as the spin goes on
-    static constexpr uint32_t spin_gap_ms = 40;         // detents closer than this count as spinning
-    static constexpr int32_t spin_start = 12;           // spinning detents before a turn becomes a seek
+    static constexpr uint32_t detent_ms = 80;    // scratching: one detent moves the record this far
+    static constexpr uint32_t seek_ms = 60;      // seeking: base step, doubled as the spin goes on
+    static constexpr uint32_t spin_gap_ms = 40;  // detents closer than this count as spinning
+    static constexpr int32_t spin_start = 12;    // spinning detents before a turn becomes a seek
 
     NavigationView& nav_;
 

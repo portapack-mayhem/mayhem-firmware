@@ -41,7 +41,7 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/test_file_wrapper.cpp
 	${PROJECT_SOURCE_DIR}/test_freqman_db.cpp
 	${PROJECT_SOURCE_DIR}/test_mock_file.cpp
-	${PROJECT_SOURCE_DIR}/test_music_wav_source.cpp
+	${PROJECT_SOURCE_DIR}/test_wav_format.cpp
 	${PROJECT_SOURCE_DIR}/test_optional.cpp
 	${PROJECT_SOURCE_DIR}/test_string_format.cpp
 	${PROJECT_SOURCE_DIR}/test_utility.cpp

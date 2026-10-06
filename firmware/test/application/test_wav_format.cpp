@@ -20,9 +20,9 @@
  */
 
 #include "doctest.h"
-#include "external/music/wav_source.hpp"
+#include "wav_format.hpp"
 
-using namespace ui::external_app::music;
+using namespace wav;
 
 /* A 48 kHz stereo IMA ADPCM WAV with 64 byte blocks, cut after its first two blocks:
  *   ffmpeg -f lavfi -i "aevalsrc=0.6*sin(2*PI*700*t)|0.4*sin(2*PI*1900*t+1):s=48000:d=0.01" \
@@ -450,12 +450,12 @@ static const int16_t adpcm_decoded[] = {
     -9941,
 };
 
-TEST_SUITE_BEGIN("music_wav_source");
+TEST_SUITE_BEGIN("wav_format");
 
-TEST_CASE("parse_wav should find the format and data of an ADPCM file.") {
-    WavInfo info;
-    REQUIRE(parse_wav(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info) == nullptr);
-    CHECK_EQ(info.format, WavInfo::IMA_ADPCM);
+TEST_CASE("parse should find the format and data of an ADPCM file.") {
+    Info info;
+    REQUIRE(parse(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info));
+    CHECK_EQ(info.format, Info::IMA_ADPCM);
     CHECK_EQ(info.channels, 2);
     CHECK_EQ(info.rate, 48000);
     CHECK_EQ(info.block_align, 64);
@@ -464,33 +464,107 @@ TEST_CASE("parse_wav should find the format and data of an ADPCM file.") {
     CHECK_EQ(info.frames, 2 * 57);  // the data chunk is cut short by the end of the file
 }
 
-TEST_CASE("parse_wav should reject what the player can't play.") {
-    WavInfo info;
-    CHECK(parse_wav(adpcm_wav, 8, sizeof(adpcm_wav), info) != nullptr);
+TEST_CASE("parse should reject what the reader can't handle.") {
+    Info info;
+    CHECK_FALSE(parse(adpcm_wav, 8, sizeof(adpcm_wav), info));
 
-    uint8_t wrong_rate[sizeof(adpcm_wav)];
-    memcpy(wrong_rate, adpcm_wav, sizeof(adpcm_wav));
-    wrong_rate[24] = 0x44;  // 44100 Hz
-    wrong_rate[25] = 0xAC;
-    CHECK(parse_wav(wrong_rate, sizeof(wrong_rate), sizeof(wrong_rate), info) != nullptr);
+    uint8_t no_rate[sizeof(adpcm_wav)];
+    memcpy(no_rate, adpcm_wav, sizeof(adpcm_wav));
+    memset(&no_rate[24], 0, 4);
+    CHECK_FALSE(parse(no_rate, sizeof(no_rate), sizeof(no_rate), info));
 
     // A stereo block has to hold whole groups of 4 code bytes per channel.
     uint8_t odd_block[sizeof(adpcm_wav)];
     memcpy(odd_block, adpcm_wav, sizeof(adpcm_wav));
     odd_block[32] = 12;
-    CHECK(parse_wav(odd_block, sizeof(odd_block), sizeof(odd_block), info) != nullptr);
+    CHECK_FALSE(parse(odd_block, sizeof(odd_block), sizeof(odd_block), info));
 
     // A chunk claiming to be larger than the file ends the search instead of derailing it.
     uint8_t huge_chunk[sizeof(adpcm_wav)];
     memcpy(huge_chunk, adpcm_wav, sizeof(adpcm_wav));
     memset(&huge_chunk[16], 0xFF, 4);
     huge_chunk[16] = 0xF8;
-    CHECK(parse_wav(huge_chunk, sizeof(huge_chunk), sizeof(huge_chunk), info) != nullptr);
+    CHECK_FALSE(parse(huge_chunk, sizeof(huge_chunk), sizeof(huge_chunk), info));
+}
+
+/* A canonical 44 byte PCM header; the data itself is never looked at by parse(). */
+static void pcm_header(uint8_t* p, uint16_t channels, uint32_t rate, uint16_t bits, uint32_t data_size) {
+    const auto u16 = [p](size_t at, uint16_t v) { p[at] = v; p[at + 1] = v >> 8; };
+    const auto u32 = [p](size_t at, uint32_t v) { p[at] = v; p[at + 1] = v >> 8; p[at + 2] = v >> 16; p[at + 3] = v >> 24; };
+    memcpy(p, "RIFF", 4);
+    u32(4, 36 + data_size);
+    memcpy(p + 8, "WAVEfmt ", 8);
+    u32(16, 16);
+    u16(20, Info::PCM);
+    u16(22, channels);
+    u32(24, rate);
+    u32(28, rate * channels * bits / 8);
+    u16(32, channels * bits / 8);
+    u16(34, bits);
+    memcpy(p + 36, "data", 4);
+    u32(40, data_size);
+}
+
+TEST_CASE("parse should count the frames of PCM files of any rate and width.") {
+    uint8_t header[44];
+    Info info;
+
+    pcm_header(header, 2, 48000, 16, 4000);
+    REQUIRE(parse(header, sizeof(header), 44 + 4000, info));
+    CHECK_EQ(info.format, Info::PCM);
+    CHECK_EQ(info.channels, 2);
+    CHECK_EQ(info.rate, 48000);
+    CHECK_EQ(info.bits, 16);
+    CHECK_EQ(info.block_align, 4);
+    CHECK_EQ(info.data_start, 44);
+    CHECK_EQ(info.frames, 1000);
+
+    pcm_header(header, 1, 8000, 8, 4000);
+    REQUIRE(parse(header, sizeof(header), 44 + 4000, info));
+    CHECK_EQ(info.rate, 8000);
+    CHECK_EQ(info.bits, 8);
+    CHECK_EQ(info.block_align, 1);
+    CHECK_EQ(info.frames, 4000);
+
+    pcm_header(header, 1, 44100, 16, 4000);
+    REQUIRE(parse(header, sizeof(header), 44 + 4000, info));
+    CHECK_EQ(info.frames, 2000);
+}
+
+TEST_CASE("parse should read the real format of a WAVE_FORMAT_EXTENSIBLE file.") {
+    // What ffmpeg writes for 24 bit or for more than 48 kHz: a 40 byte fmt chunk whose
+    // format tag is 0xFFFE, with the PCM tag at the start of the sub format GUID.
+    uint8_t header[68]{};
+    pcm_header(header, 2, 96000, 16, 0);
+    header[16] = 40;
+    header[20] = 0xFE;
+    header[21] = 0xFF;
+    header[36] = 22;  // cbSize
+    header[44] = Info::PCM;
+    memcpy(&header[60], "data", 4);
+    header[64] = 0xA0;  // 4000 bytes
+    header[65] = 0x0F;
+
+    Info info;
+    REQUIRE(parse(header, sizeof(header), 68 + 4000, info));
+    CHECK_EQ(info.format, Info::PCM);
+    CHECK_EQ(info.rate, 96000);
+    CHECK_EQ(info.data_start, 68);
+    CHECK_EQ(info.frames, 1000);
+}
+
+TEST_CASE("parse should not count data the file does not hold.") {
+    uint8_t header[44];
+    Info info;
+    pcm_header(header, 1, 48000, 16, 4000);
+    REQUIRE(parse(header, sizeof(header), 44 + 1000, info));
+    CHECK_EQ(info.data_size, 1000);
+    CHECK_EQ(info.frames, 500);
 }
 
 TEST_CASE("ImaBlock should decode the same samples as ffmpeg.") {
-    WavInfo info;
-    REQUIRE(parse_wav(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info) == nullptr);
+    Info info;
+    REQUIRE(parse(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info));
 
     ImaBlock block;
     for (uint32_t frame = 0; frame < info.frames; frame++) {
