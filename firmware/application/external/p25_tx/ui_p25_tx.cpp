@@ -259,7 +259,7 @@ P25TxView::P25TxView(NavigationView& nav)
     field_siteid.set_value(1);
     field_tg.set_value(1);
     field_vch.set_value(1);
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_p25_tx);
     tx_view.on_start = [this]() { start_tx(); };
     tx_view.on_stop = [this]() { stop_tx(); };
     tx_view.on_edit_frequency = [this, &nav]() {

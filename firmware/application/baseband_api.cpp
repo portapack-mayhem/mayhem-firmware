@@ -42,6 +42,8 @@ using namespace portapack;
 
 namespace baseband {
 
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true, const portapack::spi_flash::image_tag_t prepared_image_tag = portapack::spi_flash::image_tag_none);
+
 static void send_message(const Message* const message) {
     // If message is only sent by this function via one thread, no need to check if
     // another message is present before setting new message.
@@ -501,11 +503,14 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
 
-    m4_init(image_tag, memory::map::m4_code, false);
     rx_fs4_supported = image_tag == spi_flash::image_tag_am_audio ||
                        image_tag == spi_flash::image_tag_nfm_audio ||
                        image_tag == spi_flash::image_tag_wfm_audio ||
                        image_tag == spi_flash::image_tag_capture;
+    if (!m4_init(image_tag, memory::map::m4_code, false)) {
+        m4_restore_bundled();
+        m4_init_prepared(portapack::memory::map::m4_code.base(), false);
+    }
     baseband_image_running = true;
 
     creg::m4txevent::enable();

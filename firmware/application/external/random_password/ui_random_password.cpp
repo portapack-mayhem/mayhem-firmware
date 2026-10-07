@@ -60,7 +60,7 @@ void RandomPasswordView::focus() {
 
 RandomPasswordView::RandomPasswordView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_afsk_rx);
 
     add_children({&rssi,
                   &channel,
