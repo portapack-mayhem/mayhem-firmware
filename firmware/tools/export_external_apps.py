@@ -21,12 +21,12 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 #
-
+import os
 import sys
 import subprocess
 from external_app_info import maximum_application_size
 from external_app_info import external_apps_address_start
-from external_app_info import external_apps_address_end
+from external_app_info import read_external_apps_address_end, read_external_app_sections
 from elf_info import external_app_section_prefix
 from elf_info import read_relocations
 from elf_info import read_section_addresses
@@ -94,6 +94,10 @@ def patch_image(path, image_data, section_address, replace_address, reloc_addres
 	return external_application_image
 
 binary_dir = sys.argv[1]           #/portapack-mayhem/build/firmware/application
+# End of the external app regions of the tier being built, read from the
+# external.ld that the build copied into binary_dir.
+external_apps_address_end = read_external_apps_address_end(binary_dir)
+external_ld_sections = read_external_app_sections(binary_dir)
 cmake_objcopy = sys.argv[2]
 cmake_readelf = sys.argv[3]
 
@@ -134,6 +138,9 @@ if not abs32_offsets:
 
 for external_image_prefix in sys.argv[5:]:
 	section_name = external_app_section_prefix + external_image_prefix
+	if section_name not in external_ld_sections:
+		print("Skipping {}: not external in this tier (not in external.ld).".format(external_image_prefix))
+		continue
 	if section_name not in section_addresses:
 		print("no {} section in {}".format(section_name, application_elf))
 		sys.exit(-1)
@@ -144,8 +151,13 @@ for external_image_prefix in sys.argv[5:]:
 	himg = "{}/external_app_{}.himg".format(binary_dir, external_image_prefix)
 	print("Creating external application image for {}".format(external_image_prefix))
 	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)])
+	if not os.path.exists(himg) or os.path.getsize(himg) == 0:
+		print("Skipping {}: ext may became internal.".format(external_image_prefix))
+		continue
 
 	external_application_image = read_image(himg)
+	# The loader sums the app and its baseband as separate runs of 32 bit words
+	external_application_image += bytes(-len(external_application_image) % 4)
 
 	#m4 image @ 0x44
 	chunk_data = external_application_image[m4_app_tag_header_position:m4_app_tag_header_position+4]

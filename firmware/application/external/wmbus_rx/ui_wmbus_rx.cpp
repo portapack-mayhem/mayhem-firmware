@@ -10,7 +10,7 @@ namespace ui::external_app::wmbus_rx {
 
 WMBusRxView::WMBusRxView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_wmbus_rx);
 
     add_children({&options_mode, &rssi, &channel, &field_rf_amp, &field_lna, &field_vga,
                   &field_frequency, &text_debug_err, &console});

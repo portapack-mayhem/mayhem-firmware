@@ -6,7 +6,7 @@ namespace ui::external_app::morse_practice {
 
 MorsePracticeView::MorsePracticeView(ui::NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_audio_beep);
     add_children({&btn_tt,
                   &txt_last,
                   &btn_clear,

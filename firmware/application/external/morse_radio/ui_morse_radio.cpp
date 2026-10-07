@@ -7,7 +7,7 @@ namespace ui::external_app::morse_radio {
 
 MorseRadioView::MorseRadioView(ui::NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_morse);
     add_children({&rssi,
                   &field_rf_amp,
                   &field_lna,

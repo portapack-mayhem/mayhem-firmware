@@ -183,7 +183,7 @@ void VorRxView::focus() {
 }
 
 void VorRxView::start_receiver() {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_vor_rx);
     baseband::set_vor_config(true);
 
     radial_filter_valid_ = false;

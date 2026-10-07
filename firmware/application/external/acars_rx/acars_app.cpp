@@ -109,7 +109,7 @@ void ACARSLogger::log_str(std::string msg) {
 
 ACARSAppView::ACARSAppView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_acars);
 
     add_children({&rssi,
                   &channel,

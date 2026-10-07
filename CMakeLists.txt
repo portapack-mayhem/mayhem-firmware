@@ -58,6 +58,54 @@ else()
     math(EXPR FLASH_BYTES_LIMIT_SIZE "${FLASH_MB_LIMIT_SIZE} * 1024 * 1024")
 endif()
 
+
+if(FLASH_MB_LIMIT_SIZE LESS_EQUAL 1)
+    set(FLASH_TIER 0) # <= 1MB: All external
+	set(EXT_LD_FILE "firmware/application/external/external_tier0.ld")
+	message("Tier 0 ext apps used")
+elseif(FLASH_MB_LIMIT_SIZE LESS_EQUAL 2)
+    set(FLASH_TIER 1) # <= 2MB: Some internal
+	set(EXT_LD_FILE "firmware/application/external/external_tier1.ld")
+	message("Tier 1 ext apps used")
+else()
+    set(FLASH_TIER 2) # > 2MB: Most internal
+	set(EXT_LD_FILE "firmware/application/external/external_tier2.ld")
+	message("Tier 2 ext apps used")
+endif()
+
+# Pass FLASH_TIER to the C++ preprocessor
+add_compile_definitions(FLASH_TIER=${FLASH_TIER})
+
+# Regenerate external_tier{0,1,2}.ld from the apps' tier.txt markers and verify
+# ui_navigation.cpp; abort configuration on any error. This has to run before
+# the selected .ld file is copied below.
+find_program(PYTHON_EXECUTABLE NAMES python3 python REQUIRED)
+message(STATUS "Running external app tier check/update (tools/update_external_tier_ld.py)")
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/update_external_tier_ld.py
+    RESULT_VARIABLE EXT_TIER_RESULT
+    OUTPUT_VARIABLE EXT_TIER_OUTPUT
+    ERROR_VARIABLE EXT_TIER_ERROR
+)
+if(NOT EXT_TIER_RESULT EQUAL 0)
+    message(FATAL_ERROR "External app tier check failed:\n${EXT_TIER_OUTPUT}${EXT_TIER_ERROR}")
+endif()
+message(STATUS "External app tier check passed, tier .ld files are up to date")
+# Re-run CMake (and so the script) when markers or the navigation file change
+file(GLOB EXT_TIER_MARKERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/firmware/application/external/*/tier.txt)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${EXT_TIER_MARKERS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/firmware/application/ui_navigation.cpp
+)
+
+# Copy the selected file to the build directory as the generic "external.ld"
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${EXT_LD_FILE}
+    ${CMAKE_CURRENT_BINARY_DIR}/firmware/application/external/external.ld
+    COPYONLY
+)
+
+
 option(USE_CCACHE "Enable ccache, please keep an eye on this because sometimes it's not quite stable and generated unusable binary" OFF)
 
 project(portapack-h1)

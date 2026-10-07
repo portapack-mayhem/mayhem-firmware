@@ -251,7 +251,7 @@ HopperView::HopperView(
     NavigationView& nav)
     : nav_{nav} {
     // baseband::run_image(portapack::spi_flash::image_tag_jammer);
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_jammer);
 
     add_children({&menu_freq_list,
                   &button_load_list,

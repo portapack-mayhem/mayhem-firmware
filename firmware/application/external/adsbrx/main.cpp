@@ -78,7 +78,7 @@ __attribute__((section(".external_app.app_adsbrx.application_information"), used
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_adsbrx */ {'P', 'A', 'D', 'R'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_adsb_rx */ {'P', 'A', 'D', 'R'},
     /*.m4_app_offset = */ 0x00000000,
 };
 

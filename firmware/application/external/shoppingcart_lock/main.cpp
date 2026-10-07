@@ -10,7 +10,7 @@
 
 namespace ui::external_app::shoppingcart_lock {
 void initialize_app(NavigationView& nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
     nav.push<ShoppingCartLock>();
 }
 }  // namespace ui::external_app::shoppingcart_lock

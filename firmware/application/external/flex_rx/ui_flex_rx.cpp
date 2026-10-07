@@ -16,7 +16,7 @@ static const int flex_tz_table[] = {0, 60, 120, 180, 240, 300, 360, 420, 480, 54
 FlexAppView::FlexAppView(NavigationView& nav)
     : nav_{nav} {
     // Load baseband image for FLEX decoding
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_flex);
 
     add_children({&field_frequency,
                   &field_rf_amp,

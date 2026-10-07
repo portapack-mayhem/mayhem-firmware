@@ -361,13 +361,6 @@ set(add_to_firmware TRUE)
 set(MODE_FLAGS "-O3")
 
 
-### ADS-B RX
-
-set(MODE_CPPSRC
-	proc_adsbrx.cpp
-)
-DeclareTargets(PADR adsbrx)
-
 
 ### AFSK TX
 
@@ -376,12 +369,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAFT afsktx)
 
-### APRS RX
-
-set(MODE_CPPSRC
-	proc_aprsrx.cpp
-)
-DeclareTargets(PAPR aprsrx)
 
 
 ### BTLE RX
@@ -397,13 +384,6 @@ set(MODE_CPPSRC
 	proc_ble_tx.cpp
 )
 DeclareTargets(PBTT btletx)
-
-### AIS
-
-set(MODE_CPPSRC
-	proc_ais.cpp
-)
-DeclareTargets(PAIS ais)
 
 ### AM Audio
 
@@ -528,9 +508,78 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFUT flash_utility)
 
-### Place external app and disabled images below so they don't get added to the firmware
-set(add_to_firmware FALSE)
+### Place external app and disabled images below so they don't get added to the firmware, but to the corresponding tier!
 set(MODE_FLAGS "-O3")
+
+###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 0, but will be internal on T1, T2
+if(FLASH_TIER EQUAL 0)
+	set(add_to_firmware FALSE)
+endif()
+
+### ADS-B RX
+
+set(MODE_CPPSRC
+	proc_adsbrx.cpp
+)
+DeclareTargets(PADR adsbrx)
+
+
+### ADS-B TX - t0 external
+set(MODE_CPPSRC
+	proc_adsbtx.cpp
+)
+DeclareTargets(PADT adsbtx)
+
+### APRS RX - t0 external
+set(MODE_CPPSRC
+	proc_aprsrx.cpp
+)
+DeclareTargets(PAPR aprsrx)
+
+### AIS - t 0 external
+set(MODE_CPPSRC
+	proc_ais.cpp
+)
+DeclareTargets(PAIS ais)
+
+### Binary Timed stream TX
+
+set(MODE_CPPSRC
+       proc_bint_stream_tx.cpp
+)
+DeclareTargets(POSK bintstream)
+
+
+
+###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 0, 1, but will be internal on T2
+if(FLASH_TIER EQUAL 1)
+	set(add_to_firmware FALSE)
+endif()
+
+
+
+### AM TV
+set(MODE_CPPSRC
+	proc_am_tv.cpp
+)
+DeclareTargets(PAMT am_tv)
+
+
+### ProtoView
+
+set(MODE_CPPSRC
+	proc_protoview.cpp
+)
+DeclareTargets(PPVW protoview)
+
+
+
+
+###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 2, so it'll be external on all tiers
+if(FLASH_TIER GREATER_EQUAL 2)
+	set(add_to_firmware FALSE)
+endif()
+
 
 ### VOR TX
 
@@ -612,12 +661,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PJAM jammer)
 
-### AM TV
-
-set(MODE_CPPSRC
-	proc_am_tv.cpp
-)
-DeclareTargets(PAMT am_tv)
 
 ### GPS Simulator
 
@@ -648,12 +691,6 @@ set(MODE_CPPSRC
 DeclareTargets(PABP audio_beep)
 
 
-### ProtoView
-
-set(MODE_CPPSRC
-	proc_protoview.cpp
-)
-DeclareTargets(PPVW protoview)
 
 
 ### SSTV TX
@@ -678,19 +715,6 @@ set(MODE_CPPSRC
 DeclareTargets(PTPM tpms)
 
 
-### ADS-B TX
-
-set(MODE_CPPSRC
-	proc_adsbtx.cpp
-)
-DeclareTargets(PADT adsbtx)
-
-### Binary Timed stream TX
-
-set(MODE_CPPSRC
-       proc_bint_stream_tx.cpp
-)
-DeclareTargets(POSK bintstream)
 
 
 ### Signal generator

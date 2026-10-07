@@ -26,7 +26,7 @@
 
 namespace ui::external_app::music {
 void initialize_app(ui::NavigationView& nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_audio_play);
     nav.push<MusicView>();
 }
 }  // namespace ui::external_app::music
@@ -78,7 +78,7 @@ __attribute__((section(".external_app.app_music.application_information"), used)
     /*.menu_location = */ app_location_t::UTILITIES,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = audio_play (baseband/proc_audio_play.cpp) */ {'P', 'A', 'P', 'L'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_audio_play */ {'P', 'A', 'P', 'L'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

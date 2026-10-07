@@ -343,7 +343,7 @@ SpecAnView::SpecAnView(NavigationView& nav)
     drawn_top_.fill(255);
     drawn_bot_.fill(0);
 
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_spec_an);
     radio::set_fast_retune(true);
 
     receiver_model.set_sampling_rate(kSampleRates[3]);
