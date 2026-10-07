@@ -42,7 +42,7 @@ namespace ui::external_app::music {
 /* The "record": shared between the UI and the reader thread. Each field has one writer. */
 struct Deck {
     volatile uint32_t head{0};      // frame being played (reader)
-    volatile int32_t turned{0};     // total frames the encoder asked the record to move (UI)
+    volatile uint32_t turned{0};    // total frames the encoder asked the record to move, wrapping (UI)
     volatile bool paused{false};    // (UI)
     volatile uint32_t seek_to{0};   // frame to jump to... (UI)
     volatile uint32_t seek_seq{0};  // ...requested by bumping this (UI)
@@ -69,7 +69,7 @@ class DeckReader : public stream::Reader {
     const int32_t jump_frames_;
     uint32_t head_;                        // frame the next output starts at...
     uint32_t fraction_{0};                 // ...and how far past it, Q16
-    int32_t done_;                         // part of deck_.turned already played
+    uint32_t done_;                        // part of deck_.turned already played, wrapping too
     uint32_t seek_seen_;                   // last deck_.seek_seq acted on
     uint32_t drained_{0};                  // silence fed after the end of the track, bytes
     uint32_t next_frame_{UINT32_MAX};      // where the file is positioned, to skip needless seeks

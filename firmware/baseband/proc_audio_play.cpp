@@ -112,8 +112,9 @@ void AudioPlayProcessor::execute(const buffer_c8_t& buffer) {
 
     if (wanted_ready) {
         wanted_ready = false;
-        // While flat the filters are bypassed, so their history is stale: start them afresh.
-        const bool restart = eq_flat;
+        // While flat the filters are bypassed, and in mono the right channel's stand
+        // still, so their history is stale: start them afresh.
+        const bool restart = eq_flat || channels != wanted.channels;
         channels = wanted.channels;
         preamp = wanted.preamp;
         eq_flat = wanted.flat;

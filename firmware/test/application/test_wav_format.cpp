@@ -605,6 +605,15 @@ TEST_CASE("parse should reject a file with nothing to play.") {
     CHECK_FALSE(parse(adpcm_wav, 60 + 40, 60 + 40, info));
 }
 
+TEST_CASE("parse should take the frame count of an ADPCM file from its fact chunk.") {
+    // The whole file has 9 blocks of 57 frames, but the encoder padded the last one:
+    // the fact chunk says 480 frames are audio.
+    Info info;
+    REQUIRE(parse(adpcm_wav, sizeof(adpcm_wav), 60 + 9 * 64, info));
+    CHECK_EQ(info.fact_frames, 480);
+    CHECK_EQ(info.frames, 480);
+}
+
 TEST_CASE("parse should not count data the file does not hold.") {
     uint8_t header[44];
     Info info;
@@ -621,7 +630,7 @@ TEST_CASE("ImaBlock should decode the same samples as ffmpeg.") {
     // Run by run: the header frame, then 8 frames per group of codes.
     for (uint32_t number = 0; number < 2; number++) {
         ImaBlock block;
-        block.start(&adpcm_wav[info.data_start + number * info.block_align], info.channels);
+        block.start(&adpcm_wav[info.data_start + number * info.block_align], info.channels, ima_step_size);
         const int16_t* want = &adpcm_decoded[number * info.block_frames * 2];
         uint32_t frame = 0;
         while (frame < info.block_frames) {
@@ -641,7 +650,7 @@ TEST_CASE("AdpcmFrames should give the same frames in any order.") {
     Info info;
     REQUIRE(parse(adpcm_wav, sizeof(adpcm_wav), sizeof(adpcm_wav), info));
 
-    alignas(4) uint8_t buffer[64 + 3];
+    alignas(4) uint8_t buffer[AdpcmFrames::table_bytes + 64 + 3];
     REQUIRE(AdpcmFrames::buffer_bytes(info) <= sizeof(buffer));
     AdpcmFrames frames;
     frames.start(info, buffer);

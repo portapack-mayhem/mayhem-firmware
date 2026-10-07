@@ -47,14 +47,16 @@ struct Info {
     uint32_t riff_size{0};     // of the whole RIFF chunk, header included
     uint32_t next_chunk{0};    // where the chunk walk has to go on, 0 once it is over
     uint32_t data_start{0};
-    uint32_t data_size{0};  // bytes of the data chunk that are really in the file
-    uint32_t frames{0};     // one frame is one sample for every channel
+    uint32_t data_size{0};    // bytes of the data chunk that are really in the file
+    uint32_t fact_frames{0};  // frame count from the "fact" chunk, 0 if there is none
+    uint32_t frames{0};       // one frame is one sample for every channel
 };
 
 // Chunk tags as the little endian numbers they read as: comparing those is smaller than
 // calling memcmp.
 constexpr uint32_t tag_data = 0x61746164;
 constexpr uint32_t tag_fmt = 0x20746D66;
+constexpr uint32_t tag_fact = 0x74636166;
 
 /* Takes one chunk whose 8 byte header `p` sits at `at` in the file, the rest of `size`
  * bytes following it. Sets data_start for the data chunk; otherwise leaves in next_chunk
@@ -71,6 +73,7 @@ inline void take_chunk(const uint8_t* p, size_t size, uint32_t at, uint32_t file
         info.data_size = (file_size - info.data_start < length) ? file_size - info.data_start : length;
         return;
     }
+    if (tag == tag_fact && size >= 12) info.fact_frames = u32(8);
     if (tag == tag_fmt && size >= 24) {
         info.format = u16(8);
         info.channels = u16(10);
@@ -112,8 +115,10 @@ inline bool parse_finish(Info& info) {
         // Per channel a 4 byte header holding the first sample, then 4 bit codes in whole
         // groups of 4 bytes per channel.
         info.block_frames = 1 + (info.block_align - 4 * info.channels) * 2 / info.channels;
-        // NB: a short last block is dropped (under 50 ms of the end).
+        // NB: a short last block is dropped (under 50 ms of the end). The encoder pads the
+        // last block it writes; the "fact" chunk says how many frames are really audio.
         info.frames = info.data_size / info.block_align * info.block_frames;
+        if (info.fact_frames && info.fact_frames < info.frames) info.frames = info.fact_frames;
     } else {
         return false;
     }
@@ -139,11 +144,10 @@ bool parse_file(uint32_t file_size, Info& info, Read&& read) {
     return parse_finish(info);
 }
 
-/* Step sizes of the IMA ADPCM decoder. Kept in RAM on purpose: a lookup in the SPI flash
- * is as slow as a jump there (see ImaBlock). The section name is one the linker scripts
- * place in RAM, "used" and "volatile" keep the compiler from noticing that it is never
- * written and moving it into the flash after all. */
-__attribute__((used, section(".data.ima_step_size"))) inline volatile uint16_t ima_step_size[89] = {
+/* Step sizes of the IMA ADPCM decoder. The decoder does not look them up here: a lookup
+ * in the SPI flash is as slow as a jump there (see ImaBlock). AdpcmFrames copies the
+ * table into the buffer it is given, so it only takes up RAM while a file is decoded. */
+constexpr uint16_t ima_step_size[89] = {
     7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
     50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230,
     253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963,
@@ -163,7 +167,9 @@ class ImaBlock {
    public:
     static constexpr uint32_t run_frames = 8;
 
-    void start(const uint8_t* block, uint16_t channels) {
+    // `steps` is the copy of ima_step_size to look the step sizes up in.
+    void start(const uint8_t* block, uint16_t channels, const uint16_t* steps) {
+        steps_ = steps;
         block_ = block;
         channels_ = channels;
         position_ = 0;
@@ -207,7 +213,7 @@ class ImaBlock {
         // Low nibble first. Every "if" of the textbook decoder is a mask here:
         // -(bit) is all ones when the bit is set, x >> 31 is all ones when x is negative.
         for (uint32_t i = 0; i < run_frames; i++, codes >>= 4) {
-            const int32_t step = ima_step_size[index];
+            const int32_t step = steps_[index];
             int32_t delta = step >> 3;
             delta += step & -(int32_t)((codes >> 2) & 1);
             delta += (step >> 1) & -(int32_t)((codes >> 1) & 1);
@@ -237,6 +243,7 @@ class ImaBlock {
     }
 
     // No initializers: start() sets them all, and AdpcmFrames holds an array of these.
+    const uint16_t* steps_;
     const uint8_t* block_;
     uint16_t channels_;
     uint16_t position_;
@@ -251,12 +258,16 @@ class ImaBlock {
  * instead of decoding the block again from its start. */
 class AdpcmFrames {
    public:
-    static constexpr size_t buffer_bytes(const Info& info) { return info.block_align + 3; }
+    // Room for the step table, then one raw block.
+    static constexpr size_t table_bytes = (sizeof(ima_step_size) + 3) & ~size_t{3};
+    static constexpr size_t buffer_bytes(const Info& info) { return table_bytes + info.block_align + 3; }
 
-    // `buffer` holds one raw block and has to be buffer_bytes() long and word aligned.
+    // `buffer` has to be buffer_bytes() long and word aligned.
     void start(const Info& info, uint8_t* buffer) {
         info_ = &info;
-        buffer_ = buffer;
+        steps_ = reinterpret_cast<uint16_t*>(buffer);
+        memcpy(steps_, ima_step_size, sizeof(ima_step_size));
+        buffer_ = buffer + table_bytes;
         block_number_ = UINT32_MAX;
     }
 
@@ -282,7 +293,7 @@ class AdpcmFrames {
                 if (got < info_->block_align)
                     memset(block + got, 0, info_->block_align - got);
                 block_number_ = number;
-                ima_.start(block, info_->channels);
+                ima_.start(block, info_->channels, steps_);
                 checkpoints_ = 0;
                 run_length_ = 0;
             } else if (offset < run_start_) {
@@ -320,7 +331,8 @@ class AdpcmFrames {
     static constexpr uint32_t checkpoint_of(uint32_t frame) { return frame ? 1 + (frame - 1) / checkpoint_frames : 0; }
 
     const Info* info_{nullptr};
-    uint8_t* buffer_{nullptr};
+    uint16_t* steps_{nullptr};  // the step table, at the start of the buffer given to start()
+    uint8_t* buffer_{nullptr};  // one raw block, after it
     uint32_t block_number_{UINT32_MAX};
     ImaBlock ima_;
     ImaBlock checkpoint_[2 + Info::max_adpcm_frames / checkpoint_frames];

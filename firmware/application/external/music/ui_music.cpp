@@ -195,7 +195,8 @@ bool DeckReader::fetch(uint32_t frame, uint32_t count, int16_t* out) {
 // this arithmetic is still on the stack while the SD card is read: the stream thread
 // that calls read() only has a small one.
 __attribute__((noinline)) DeckReader::Plan DeckReader::plan(int32_t frames, uint32_t bytes) {
-    int32_t pending = deck_.turned - done_;
+    // Both counters wrap; their difference is what matters and stays small.
+    int32_t pending = (int32_t)(deck_.turned - done_);
 
     // An absolute seek from the UI (dragging the dial) overrides any turning.
     if (deck_.seek_seq != seek_seen_) {
@@ -406,7 +407,7 @@ void MusicView::turn(int32_t delta) {
     const int32_t boost = (spin_ > spin_start) ? std::min<int32_t>((spin_ - spin_start) / 6, 6) : 0;
     // The steps are times, so they are the same on the dial whatever the file's rate.
     const int32_t step_ms = boost ? seek_ms << boost : detent_ms;
-    deck_.turned = deck_.turned + delta * (int32_t)(rate_ * step_ms / 1000);
+    deck_.turned = deck_.turned + (uint32_t)(delta * (int32_t)(rate_ * step_ms / 1000));
 }
 
 void MusicView::set_volume(int32_t v) {
