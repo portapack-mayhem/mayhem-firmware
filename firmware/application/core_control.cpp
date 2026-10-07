@@ -32,6 +32,20 @@
 using namespace lpc43xx;
 using namespace portapack;
 
+static bool (*bundled_reloader)() = nullptr;
+static bool bundled_intact = false;
+
+void m4_set_bundled_reloader(bool (*reload)()) {
+    bundled_reloader = reload;
+    bundled_intact = reload != nullptr;
+}
+
+void m4_restore_bundled() {
+    if (bundled_reloader && !bundled_intact) {
+        bundled_intact = bundled_reloader();
+    }
+}
+
 bool m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, const bool full_reset) {
     const spi_flash::chunk_t* chunk = reinterpret_cast<const spi_flash::chunk_t*>(spi_flash::images.base());
     while (chunk->tag) {
@@ -41,6 +55,7 @@ bool m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, 
 
             /* extract and initialize M4 code RAM */
             unlz4_len(src, dst, chunk->compressed_data_size);
+            bundled_intact = false;
 
             /* M4 core is assumed to be sleeping with interrupts off, so we can mess
              * with its address space and RAM without concern.

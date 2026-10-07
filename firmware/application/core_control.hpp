@@ -29,6 +29,11 @@
 
 bool m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to, const bool full_reset);
 void m4_init_prepared(const uint32_t m4_code, const bool full_reset);
+
+// Registers how to re-copy the external app's bundled baseband into m4_code (marks it as loaded).
+void m4_set_bundled_reloader(bool (*reload)());
+// Re-copies the bundled baseband only if another image has overwritten it since.
+void m4_restore_bundled();
 void m4_request_shutdown();
 
 void m0_halt();

@@ -508,6 +508,7 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
                        image_tag == spi_flash::image_tag_wfm_audio ||
                        image_tag == spi_flash::image_tag_capture;
     if (!m4_init(image_tag, memory::map::m4_code, false)) {
+        m4_restore_bundled();
         m4_init_prepared(portapack::memory::map::m4_code.base(), false);
     }
     baseband_image_running = true;
