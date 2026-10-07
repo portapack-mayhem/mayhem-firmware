@@ -576,23 +576,30 @@ void EventDispatcher::handle_switches() {
 
     // Global chord gestures, recognised on the physical key state. Returns true when one
     // fired; it then owns the keys until they are physically released (see above).
-    //   Up + Down    -> Home  (jump straight back to the main menu from any app)
-    //   Left + Right -> Back
-    //   Left + Up    -> Back  (legacy chord, kept for backwards compatibility)
+    // Diagonals only: the PortaPack d-pad is a rocker that tilts cleanly into a corner,
+    // while opposite directions (Left+Right, Up+Down) also close the keys in between.
+    //   Left + Up    -> Back  (the existing chord)
+    //   Left + Down  -> Home  (straight back to the main menu from any app)
     const auto fire_chord = [this, &pressed]() {
-        if (pressed[(size_t)ui::KeyEvent::Up] && pressed[(size_t)ui::KeyEvent::Down]) {
-            auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
-            if (nav) nav->home(true);
-        } else if ((pressed[(size_t)ui::KeyEvent::Left] && pressed[(size_t)ui::KeyEvent::Right]) ||
-                   (pressed[(size_t)ui::KeyEvent::Left] && pressed[(size_t)ui::KeyEvent::Up])) {
-            // Dispatch Back like a normal key press: let the focused view handle it
-            // (pop, or leave a sub-mode) and only fall back to focusing the back
-            // button. focus_manager().update() alone just moves focus to that button.
-            const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
-            if (!event_bubble_key(event))
-                context.focus_manager().update(top_widget, event);
-        } else {
+        const bool left = pressed[(size_t)ui::KeyEvent::Left];
+        const bool up = pressed[(size_t)ui::KeyEvent::Up];
+        const bool down = pressed[(size_t)ui::KeyEvent::Down];
+        if (!left || up == down)  // needs Left and exactly one of Up / Down
             return false;
+
+        // Like the status bar's back button: keep the settings when they live on the
+        // card, then leave the app.
+        if (portapack::persistent_memory::should_use_sdcard_for_pmem())
+            portapack::persistent_memory::save_persistent_settings_to_file();
+
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+        if (down) {
+            if (nav) nav->home(true);
+        } else {
+            // A view that handles Back itself (e.g. to leave a sub-mode) gets it first;
+            // otherwise go back a screen, as the back button does.
+            if (!event_bubble_key(ui::KeyEvent::Back) && nav)
+                nav->pop();
         }
         combo_fired_ = true;
         in_key_event = true;
