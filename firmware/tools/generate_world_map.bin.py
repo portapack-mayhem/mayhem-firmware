@@ -18,38 +18,63 @@
 # Boston, MA 02110-1301, USA.
 #
 
-from __future__ import print_function
-import sys
+import argparse
+from pathlib import Path
 import struct
+
+import numpy as np
 from PIL import Image
 
-outfile = open('../../sdcard/ADSB/world_map.bin', 'wb')
 
-# Allow for bigger images
-Image.MAX_IMAGE_PIXELS = None
-im = Image.open("../../sdcard/ADSB/world_map.jpg")
-pix = im.load()
-# Write as unsigned short (2 bytes) as little endian
-outfile.write(struct.pack('<H', im.size[0]))
-outfile.write(struct.pack('<H', im.size[1]))
-print("image \t size[0]=" + str(im.size[0]) + "\tsize[1]=" + str(im.size[1]) + " pixels");
-print("Generating: \t" + outfile.name + "\n from\t\t" + im.filename + "\n please wait...");
+def convert_map(input_path, output_path, chunk_rows=64):
+    """Write the dimensions and row-major RGB565 pixels, all little-endian.
 
-for y in range (0, im.size[1]):
-	line = b''
-	for x in range (0, im.size[0]):
-		# RRRRRGGGGGGBBBBB
-		pixel_lcd = (pix[x, y][0] >> 3) << 11
-		pixel_lcd |= (pix[x, y][1] >> 2) << 5
-		pixel_lcd |= (pix[x, y][2] >> 3)
-		#         RRRGGGBB to
-		# RRR00GGG000BB000
-		# pixel_lcd = (pix[x, y][0] >> 5) << 5
-		# pixel_lcd |= (pix[x, y][1] >> 5) << 2
-		# pixel_lcd |= (pix[x, y][2] >> 6)
-		line += struct.pack('<H', pixel_lcd)
-	outfile.write(line)
-	print(str(y) + '/' + str(im.size[1]) + '\r', end="")
+    NumPy temporaries are limited to chunk_rows rows. Pillow still decodes
+    the full source image, as in the original converter.
+    """
+    if chunk_rows <= 0:
+        raise ValueError("chunk_rows must be positive")
+    input_path, output_path = Path(input_path), Path(output_path)
+    if (input_path.resolve() == output_path.resolve()
+            or (output_path.exists() and input_path.samefile(output_path))):
+        raise ValueError("Input and output must be different files")
 
-outfile.close();
-print("Ready.");
+    # The supplied world map deliberately exceeds Pillow's image-size limit.
+    Image.MAX_IMAGE_PIXELS = None
+    with Image.open(input_path) as im:
+        width, height = im.size
+        header = struct.pack('<HH', width, height)
+        if im.mode not in ('RGB', 'RGBA'):
+            raise ValueError("Expected an RGB or RGBA source image")
+        im.load()
+        print(f"image size[0]={width} size[1]={height} pixels")
+        print(f"Generating: {output_path}\n from {input_path}")
+        with open(output_path, 'wb') as outfile:
+            outfile.write(header)
+            for y in range(0, height, chunk_rows):
+                end = min(y + chunk_rows, height)
+                # Promote before shifting: uint8 arithmetic would lose bits.
+                rgb = np.asarray(im.crop((0, y, width, end)), dtype=np.uint16)
+                pixels = (rgb[:, :, 0] >> 3) << 11
+                pixels |= (rgb[:, :, 1] >> 2) << 5
+                pixels |= rgb[:, :, 2] >> 3
+                # Explicit byte order also works on big-endian hosts.
+                outfile.write(pixels.astype('<u2', copy=False).tobytes(order='C'))
+                print(f"{end}/{height}\r", end='', flush=True)
+        print("\nReady.")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Convert a world map to RGB565 (requires Pillow and NumPy).")
+    parser.add_argument('--input', type=Path,
+                        default=Path('../../sdcard/ADSB/world_map.jpg'))
+    parser.add_argument('--output', type=Path,
+                        default=Path('../../sdcard/ADSB/world_map.bin'),
+                        help="Use a different filename to compare with an existing map")
+    args = parser.parse_args()
+    convert_map(args.input, args.output)
+
+
+if __name__ == '__main__':
+    main()
