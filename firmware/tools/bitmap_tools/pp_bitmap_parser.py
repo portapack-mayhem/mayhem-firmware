@@ -9,7 +9,7 @@ from PIL import Image
 
 
 def parse_bitmaphpp(bitmaphpp_file, icon_name):
-    ico_pattern = re.compile(r"static constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\nstatic constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
+    ico_pattern = re.compile(r"(?:static|inline) constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\n(?:static|inline) constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
     ico_data = []
     
     # read file to buffer, to find multiline regex

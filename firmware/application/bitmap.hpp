@@ -29,7 +29,7 @@
 
 namespace ui {
 
-static constexpr uint8_t bitmap_arrow_left_data[] = {
+inline constexpr uint8_t bitmap_arrow_left_data[] = {
     0x00,
     0x00,
     0x00,
@@ -63,11 +63,11 @@ static constexpr uint8_t bitmap_arrow_left_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_arrow_left{
+inline constexpr Bitmap bitmap_arrow_left{
     {16, 16},
     bitmap_arrow_left_data};
 
-static constexpr uint8_t bitmap_arrow_right_data[] = {
+inline constexpr uint8_t bitmap_arrow_right_data[] = {
     0x00,
     0x00,
     0x00,
@@ -101,11 +101,11 @@ static constexpr uint8_t bitmap_arrow_right_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_arrow_right{
+inline constexpr Bitmap bitmap_arrow_right{
     {16, 16},
     bitmap_arrow_right_data};
 
-static constexpr uint8_t bitmap_bulb_ignore_data[] = {
+inline constexpr uint8_t bitmap_bulb_ignore_data[] = {
     0x00,
     0x3C,
     0x00,
@@ -179,11 +179,11 @@ static constexpr uint8_t bitmap_bulb_ignore_data[] = {
     0x3C,
     0x00,
 };
-static constexpr Bitmap bitmap_bulb_ignore{
+inline constexpr Bitmap bitmap_bulb_ignore{
     {24, 24},
     bitmap_bulb_ignore_data};
 
-static constexpr uint8_t bitmap_bulb_off_data[] = {
+inline constexpr uint8_t bitmap_bulb_off_data[] = {
     0x00,
     0x3C,
     0x00,
@@ -257,11 +257,11 @@ static constexpr uint8_t bitmap_bulb_off_data[] = {
     0x3C,
     0x00,
 };
-static constexpr Bitmap bitmap_bulb_off{
+inline constexpr Bitmap bitmap_bulb_off{
     {24, 24},
     bitmap_bulb_off_data};
 
-static constexpr uint8_t bitmap_bulb_on_data[] = {
+inline constexpr uint8_t bitmap_bulb_on_data[] = {
     0x04,
     0x3C,
     0x20,
@@ -335,11 +335,11 @@ static constexpr uint8_t bitmap_bulb_on_data[] = {
     0x3C,
     0x00,
 };
-static constexpr Bitmap bitmap_bulb_on{
+inline constexpr Bitmap bitmap_bulb_on{
     {24, 24},
     bitmap_bulb_on_data};
 
-static constexpr uint8_t bitmap_icon_add_data[] = {
+inline constexpr uint8_t bitmap_icon_add_data[] = {
     0x00,
     0x00,
     0x00,
@@ -373,11 +373,11 @@ static constexpr uint8_t bitmap_icon_add_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_add{
+inline constexpr Bitmap bitmap_icon_add{
     {16, 16},
     bitmap_icon_add_data};
 
-static constexpr uint8_t bitmap_icon_adsb_data[] = {
+inline constexpr uint8_t bitmap_icon_adsb_data[] = {
     0x80,
     0x01,
     0xC0,
@@ -411,11 +411,11 @@ static constexpr uint8_t bitmap_icon_adsb_data[] = {
     0xF8,
     0x1F,
 };
-static constexpr Bitmap bitmap_icon_adsb{
+inline constexpr Bitmap bitmap_icon_adsb{
     {16, 16},
     bitmap_icon_adsb_data};
 
-static constexpr uint8_t bitmap_icon_adulttoys_data[] = {
+inline constexpr uint8_t bitmap_icon_adulttoys_data[] = {
     0x00,
     0x00,
     0x30,
@@ -449,11 +449,11 @@ static constexpr uint8_t bitmap_icon_adulttoys_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_adulttoys{
+inline constexpr Bitmap bitmap_icon_adulttoys{
     {16, 16},
     bitmap_icon_adulttoys_data};
 
-static constexpr uint8_t bitmap_icon_ais_data[] = {
+inline constexpr uint8_t bitmap_icon_ais_data[] = {
     0x00,
     0x01,
     0x80,
@@ -487,11 +487,11 @@ static constexpr uint8_t bitmap_icon_ais_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_ais{
+inline constexpr Bitmap bitmap_icon_ais{
     {16, 16},
     bitmap_icon_ais_data};
 
-static constexpr uint8_t bitmap_icon_aprs_data[] = {
+inline constexpr uint8_t bitmap_icon_aprs_data[] = {
     0x00,
     0x00,
     0x00,
@@ -525,11 +525,11 @@ static constexpr uint8_t bitmap_icon_aprs_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_aprs{
+inline constexpr Bitmap bitmap_icon_aprs{
     {16, 16},
     bitmap_icon_aprs_data};
 
-static constexpr uint8_t bitmap_icon_back_data[] = {
+inline constexpr uint8_t bitmap_icon_back_data[] = {
     0x00,
     0x00,
     0x30,
@@ -563,11 +563,11 @@ static constexpr uint8_t bitmap_icon_back_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_back{
+inline constexpr Bitmap bitmap_icon_back{
     {16, 16},
     bitmap_icon_back_data};
 
-static constexpr uint8_t bitmap_icon_batt_icon_data[] = {
+inline constexpr uint8_t bitmap_icon_batt_icon_data[] = {
     0xC0,
     0x03,
     0xC0,
@@ -601,11 +601,11 @@ static constexpr uint8_t bitmap_icon_batt_icon_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_batt_icon{
+inline constexpr Bitmap bitmap_icon_batt_icon{
     {16, 16},
     bitmap_icon_batt_icon_data};
 
-static constexpr uint8_t bitmap_icon_batt_text_data[] = {
+inline constexpr uint8_t bitmap_icon_batt_text_data[] = {
     0x00,
     0x00,
     0x30,
@@ -639,11 +639,11 @@ static constexpr uint8_t bitmap_icon_batt_text_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_batt_text{
+inline constexpr Bitmap bitmap_icon_batt_text{
     {16, 16},
     bitmap_icon_batt_text_data};
 
-static constexpr uint8_t bitmap_icon_bht_data[] = {
+inline constexpr uint8_t bitmap_icon_bht_data[] = {
     0x00,
     0x00,
     0xE0,
@@ -677,11 +677,11 @@ static constexpr uint8_t bitmap_icon_bht_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_bht{
+inline constexpr Bitmap bitmap_icon_bht{
     {16, 16},
     bitmap_icon_bht_data};
 
-static constexpr uint8_t bitmap_icon_biast_off_data[] = {
+inline constexpr uint8_t bitmap_icon_biast_off_data[] = {
     0x00,
     0x00,
     0xFE,
@@ -715,11 +715,11 @@ static constexpr uint8_t bitmap_icon_biast_off_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_biast_off{
+inline constexpr Bitmap bitmap_icon_biast_off{
     {16, 16},
     bitmap_icon_biast_off_data};
 
-static constexpr uint8_t bitmap_icon_biast_on_data[] = {
+inline constexpr uint8_t bitmap_icon_biast_on_data[] = {
     0x00,
     0x00,
     0xFE,
@@ -753,11 +753,11 @@ static constexpr uint8_t bitmap_icon_biast_on_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_biast_on{
+inline constexpr Bitmap bitmap_icon_biast_on{
     {16, 16},
     bitmap_icon_biast_on_data};
 
-static constexpr uint8_t bitmap_icon_breakout_data[] = {
+inline constexpr uint8_t bitmap_icon_breakout_data[] = {
     0x00,
     0x00,
     0x7F,
@@ -791,11 +791,11 @@ static constexpr uint8_t bitmap_icon_breakout_data[] = {
     0xF7,
     0xF7,
 };
-static constexpr Bitmap bitmap_icon_breakout{
+inline constexpr Bitmap bitmap_icon_breakout{
     {16, 16},
     bitmap_icon_breakout_data};
 
-static constexpr uint8_t bitmap_icon_brightness_data[] = {
+inline constexpr uint8_t bitmap_icon_brightness_data[] = {
     0x00,
     0x00,
     0x80,
@@ -829,11 +829,11 @@ static constexpr uint8_t bitmap_icon_brightness_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_brightness{
+inline constexpr Bitmap bitmap_icon_brightness{
     {16, 16},
     bitmap_icon_brightness_data};
 
-static constexpr uint8_t bitmap_icon_btle_data[] = {
+inline constexpr uint8_t bitmap_icon_btle_data[] = {
     0xE0,
     0x03,
     0x30,
@@ -867,11 +867,11 @@ static constexpr uint8_t bitmap_icon_btle_data[] = {
     0xE0,
     0x03,
 };
-static constexpr Bitmap bitmap_icon_btle{
+inline constexpr Bitmap bitmap_icon_btle{
     {16, 16},
     bitmap_icon_btle_data};
 
-static constexpr uint8_t bitmap_icon_burger_data[] = {
+inline constexpr uint8_t bitmap_icon_burger_data[] = {
     0x00,
     0x00,
     0xE0,
@@ -905,11 +905,11 @@ static constexpr uint8_t bitmap_icon_burger_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_burger{
+inline constexpr Bitmap bitmap_icon_burger{
     {16, 16},
     bitmap_icon_burger_data};
 
-static constexpr uint8_t bitmap_icon_camera_data[] = {
+inline constexpr uint8_t bitmap_icon_camera_data[] = {
     0x00,
     0x00,
     0x00,
@@ -943,11 +943,11 @@ static constexpr uint8_t bitmap_icon_camera_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_camera{
+inline constexpr Bitmap bitmap_icon_camera{
     {16, 16},
     bitmap_icon_camera_data};
 
-static constexpr uint8_t bitmap_icon_capture_data[] = {
+inline constexpr uint8_t bitmap_icon_capture_data[] = {
     0xE0,
     0x07,
     0xF8,
@@ -981,11 +981,11 @@ static constexpr uint8_t bitmap_icon_capture_data[] = {
     0xE0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_capture{
+inline constexpr Bitmap bitmap_icon_capture{
     {16, 16},
     bitmap_icon_capture_data};
 
-static constexpr uint8_t bitmap_icon_clean_data[] = {
+inline constexpr uint8_t bitmap_icon_clean_data[] = {
     0x00,
     0x00,
     0xC0,
@@ -1019,11 +1019,11 @@ static constexpr uint8_t bitmap_icon_clean_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_clean{
+inline constexpr Bitmap bitmap_icon_clean{
     {16, 16},
     bitmap_icon_clean_data};
 
-static constexpr uint8_t bitmap_icon_clk_ext_data[] = {
+inline constexpr uint8_t bitmap_icon_clk_ext_data[] = {
     0x00,
     0x00,
     0xDC,
@@ -1041,11 +1041,11 @@ static constexpr uint8_t bitmap_icon_clk_ext_data[] = {
     0x10,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_clk_ext{
+inline constexpr Bitmap bitmap_icon_clk_ext{
     {8, 16},
     bitmap_icon_clk_ext_data};
 
-static constexpr uint8_t bitmap_icon_clk_int_data[] = {
+inline constexpr uint8_t bitmap_icon_clk_int_data[] = {
     0x00,
     0x00,
     0xDC,
@@ -1063,11 +1063,11 @@ static constexpr uint8_t bitmap_icon_clk_int_data[] = {
     0x44,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_clk_int{
+inline constexpr Bitmap bitmap_icon_clk_int{
     {8, 16},
     bitmap_icon_clk_int_data};
 
-static constexpr uint8_t bitmap_icon_codetx_data[] = {
+inline constexpr uint8_t bitmap_icon_codetx_data[] = {
     0x00,
     0x00,
     0xF0,
@@ -1101,11 +1101,11 @@ static constexpr uint8_t bitmap_icon_codetx_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_codetx{
+inline constexpr Bitmap bitmap_icon_codetx{
     {16, 16},
     bitmap_icon_codetx_data};
 
-static constexpr uint8_t bitmap_icon_controls_data[] = {
+inline constexpr uint8_t bitmap_icon_controls_data[] = {
     0x8C,
     0x31,
     0x5A,
@@ -1139,11 +1139,11 @@ static constexpr uint8_t bitmap_icon_controls_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_controls{
+inline constexpr Bitmap bitmap_icon_controls{
     {16, 16},
     bitmap_icon_controls_data};
 
-static constexpr uint8_t bitmap_icon_copy_data[] = {
+inline constexpr uint8_t bitmap_icon_copy_data[] = {
     0x00,
     0x00,
     0xFC,
@@ -1177,11 +1177,11 @@ static constexpr uint8_t bitmap_icon_copy_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_copy{
+inline constexpr Bitmap bitmap_icon_copy{
     {16, 16},
     bitmap_icon_copy_data};
 
-static constexpr uint8_t bitmap_icon_cut_data[] = {
+inline constexpr uint8_t bitmap_icon_cut_data[] = {
     0x00,
     0x00,
     0x10,
@@ -1215,11 +1215,11 @@ static constexpr uint8_t bitmap_icon_cut_data[] = {
     0x38,
     0x1C,
 };
-static constexpr Bitmap bitmap_icon_cut{
+inline constexpr Bitmap bitmap_icon_cut{
     {16, 16},
     bitmap_icon_cut_data};
 
-static constexpr uint8_t bitmap_icon_cwgen_data[] = {
+inline constexpr uint8_t bitmap_icon_cwgen_data[] = {
     0x18,
     0x00,
     0x24,
@@ -1253,11 +1253,11 @@ static constexpr uint8_t bitmap_icon_cwgen_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_cwgen{
+inline constexpr Bitmap bitmap_icon_cwgen{
     {16, 16},
     bitmap_icon_cwgen_data};
 
-static constexpr uint8_t bitmap_icon_debug_data[] = {
+inline constexpr uint8_t bitmap_icon_debug_data[] = {
     0xFE,
     0x03,
     0x02,
@@ -1291,11 +1291,11 @@ static constexpr uint8_t bitmap_icon_debug_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_debug{
+inline constexpr Bitmap bitmap_icon_debug{
     {16, 16},
     bitmap_icon_debug_data};
 
-static constexpr uint8_t bitmap_icon_delete_data[] = {
+inline constexpr uint8_t bitmap_icon_delete_data[] = {
     0x00,
     0x00,
     0x00,
@@ -1329,11 +1329,11 @@ static constexpr uint8_t bitmap_icon_delete_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_delete{
+inline constexpr Bitmap bitmap_icon_delete{
     {16, 16},
     bitmap_icon_delete_data};
 
-static constexpr uint8_t bitmap_icon_dir_data[] = {
+inline constexpr uint8_t bitmap_icon_dir_data[] = {
     0x00,
     0x00,
     0x3E,
@@ -1367,11 +1367,11 @@ static constexpr uint8_t bitmap_icon_dir_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_dir{
+inline constexpr Bitmap bitmap_icon_dir{
     {16, 16},
     bitmap_icon_dir_data};
 
-static constexpr uint8_t bitmap_icon_dmr_data[] = {
+inline constexpr uint8_t bitmap_icon_dmr_data[] = {
     0x00,
     0x00,
     0xFE,
@@ -1405,11 +1405,11 @@ static constexpr uint8_t bitmap_icon_dmr_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_dmr{
+inline constexpr Bitmap bitmap_icon_dmr{
     {16, 16},
     bitmap_icon_dmr_data};
 
-static constexpr uint8_t bitmap_icon_doom_data[] = {
+inline constexpr uint8_t bitmap_icon_doom_data[] = {
     0x00,
     0x00,
     0x00,
@@ -1443,11 +1443,11 @@ static constexpr uint8_t bitmap_icon_doom_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_doom{
+inline constexpr Bitmap bitmap_icon_doom{
     {16, 16},
     bitmap_icon_doom_data};
 
-static constexpr uint8_t bitmap_icon_downconvert_data[] = {
+inline constexpr uint8_t bitmap_icon_downconvert_data[] = {
     0x00,
     0x00,
     0x77,
@@ -1481,11 +1481,11 @@ static constexpr uint8_t bitmap_icon_downconvert_data[] = {
     0x80,
     0x01,
 };
-static constexpr Bitmap bitmap_icon_downconvert{
+inline constexpr Bitmap bitmap_icon_downconvert{
     {16, 16},
     bitmap_icon_downconvert_data};
 
-static constexpr uint8_t bitmap_icon_ert_data[] = {
+inline constexpr uint8_t bitmap_icon_ert_data[] = {
     0x00,
     0x00,
     0x00,
@@ -1519,11 +1519,11 @@ static constexpr uint8_t bitmap_icon_ert_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_ert{
+inline constexpr Bitmap bitmap_icon_ert{
     {16, 16},
     bitmap_icon_ert_data};
 
-static constexpr uint8_t bitmap_icon_file_data[] = {
+inline constexpr uint8_t bitmap_icon_file_data[] = {
     0xFC,
     0x03,
     0x04,
@@ -1557,11 +1557,11 @@ static constexpr uint8_t bitmap_icon_file_data[] = {
     0xFC,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_file{
+inline constexpr Bitmap bitmap_icon_file{
     {16, 16},
     bitmap_icon_file_data};
 
-static constexpr uint8_t bitmap_icon_file_image_data[] = {
+inline constexpr uint8_t bitmap_icon_file_image_data[] = {
     0x00,
     0x00,
     0xFF,
@@ -1595,11 +1595,11 @@ static constexpr uint8_t bitmap_icon_file_image_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_file_image{
+inline constexpr Bitmap bitmap_icon_file_image{
     {16, 16},
     bitmap_icon_file_image_data};
 
-static constexpr uint8_t bitmap_icon_file_iq_data[] = {
+inline constexpr uint8_t bitmap_icon_file_iq_data[] = {
     0xFC,
     0x03,
     0x04,
@@ -1633,11 +1633,11 @@ static constexpr uint8_t bitmap_icon_file_iq_data[] = {
     0xFC,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_file_iq{
+inline constexpr Bitmap bitmap_icon_file_iq{
     {16, 16},
     bitmap_icon_file_iq_data};
 
-static constexpr uint8_t bitmap_icon_file_text_data[] = {
+inline constexpr uint8_t bitmap_icon_file_text_data[] = {
     0xFC,
     0x03,
     0x04,
@@ -1671,11 +1671,11 @@ static constexpr uint8_t bitmap_icon_file_text_data[] = {
     0xFC,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_file_text{
+inline constexpr Bitmap bitmap_icon_file_text{
     {16, 16},
     bitmap_icon_file_text_data};
 
-static constexpr uint8_t bitmap_icon_file_wav_data[] = {
+inline constexpr uint8_t bitmap_icon_file_wav_data[] = {
     0xFC,
     0x03,
     0x04,
@@ -1709,11 +1709,11 @@ static constexpr uint8_t bitmap_icon_file_wav_data[] = {
     0xFC,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_file_wav{
+inline constexpr Bitmap bitmap_icon_file_wav{
     {16, 16},
     bitmap_icon_file_wav_data};
 
-static constexpr uint8_t bitmap_icon_font_viewer_data[] = {
+inline constexpr uint8_t bitmap_icon_font_viewer_data[] = {
     0x00,
     0x00,
     0x00,
@@ -1747,11 +1747,11 @@ static constexpr uint8_t bitmap_icon_font_viewer_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_font_viewer{
+inline constexpr Bitmap bitmap_icon_font_viewer{
     {16, 16},
     bitmap_icon_font_viewer_data};
 
-static constexpr uint8_t bitmap_icon_fox_data[] = {
+inline constexpr uint8_t bitmap_icon_fox_data[] = {
     0x18,
     0x18,
     0x28,
@@ -1785,11 +1785,11 @@ static constexpr uint8_t bitmap_icon_fox_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_fox{
+inline constexpr Bitmap bitmap_icon_fox{
     {16, 16},
     bitmap_icon_fox_data};
 
-static constexpr uint8_t bitmap_icon_freqman_data[] = {
+inline constexpr uint8_t bitmap_icon_freqman_data[] = {
     0x00,
     0x00,
     0x00,
@@ -1823,11 +1823,11 @@ static constexpr uint8_t bitmap_icon_freqman_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_freqman{
+inline constexpr Bitmap bitmap_icon_freqman{
     {16, 16},
     bitmap_icon_freqman_data};
 
-static constexpr uint8_t bitmap_icon_games_data[] = {
+inline constexpr uint8_t bitmap_icon_games_data[] = {
     0x00,
     0x01,
     0x00,
@@ -1861,11 +1861,11 @@ static constexpr uint8_t bitmap_icon_games_data[] = {
     0xFE,
     0x7F,
 };
-static constexpr Bitmap bitmap_icon_games{
+inline constexpr Bitmap bitmap_icon_games{
     {16, 16},
     bitmap_icon_games_data};
 
-static constexpr uint8_t bitmap_icon_gps_sim_data[] = {
+inline constexpr uint8_t bitmap_icon_gps_sim_data[] = {
     0xC0,
     0x07,
     0xE0,
@@ -1899,11 +1899,11 @@ static constexpr uint8_t bitmap_icon_gps_sim_data[] = {
     0x50,
     0x14,
 };
-static constexpr Bitmap bitmap_icon_gps_sim{
+inline constexpr Bitmap bitmap_icon_gps_sim{
     {16, 16},
     bitmap_icon_gps_sim_data};
 
-static constexpr uint8_t bitmap_icon_hackrf_data[] = {
+inline constexpr uint8_t bitmap_icon_hackrf_data[] = {
     0xF0,
     0x0F,
     0x10,
@@ -1937,11 +1937,11 @@ static constexpr uint8_t bitmap_icon_hackrf_data[] = {
     0x80,
     0x01,
 };
-static constexpr Bitmap bitmap_icon_hackrf{
+inline constexpr Bitmap bitmap_icon_hackrf{
     {16, 16},
     bitmap_icon_hackrf_data};
 
-static constexpr uint8_t bitmap_icon_hide_data[] = {
+inline constexpr uint8_t bitmap_icon_hide_data[] = {
     0x00,
     0x00,
     0x00,
@@ -1975,11 +1975,11 @@ static constexpr uint8_t bitmap_icon_hide_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_hide{
+inline constexpr Bitmap bitmap_icon_hide{
     {16, 16},
     bitmap_icon_hide_data};
 
-static constexpr uint8_t bitmap_icon_jammer_data[] = {
+inline constexpr uint8_t bitmap_icon_jammer_data[] = {
     0xE0,
     0x07,
     0xF8,
@@ -2013,11 +2013,11 @@ static constexpr uint8_t bitmap_icon_jammer_data[] = {
     0xE0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_jammer{
+inline constexpr Bitmap bitmap_icon_jammer{
     {16, 16},
     bitmap_icon_jammer_data};
 
-static constexpr uint8_t bitmap_icon_lcr_data[] = {
+inline constexpr uint8_t bitmap_icon_lcr_data[] = {
     0x0C,
     0x00,
     0xFF,
@@ -2051,11 +2051,11 @@ static constexpr uint8_t bitmap_icon_lcr_data[] = {
     0x0C,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_lcr{
+inline constexpr Bitmap bitmap_icon_lcr{
     {16, 16},
     bitmap_icon_lcr_data};
 
-static constexpr uint8_t bitmap_icon_lge_data[] = {
+inline constexpr uint8_t bitmap_icon_lge_data[] = {
     0x00,
     0x00,
     0x80,
@@ -2089,11 +2089,11 @@ static constexpr uint8_t bitmap_icon_lge_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_lge{
+inline constexpr Bitmap bitmap_icon_lge{
     {16, 16},
     bitmap_icon_lge_data};
 
-static constexpr uint8_t bitmap_icon_load_data[] = {
+inline constexpr uint8_t bitmap_icon_load_data[] = {
     0x00,
     0x01,
     0x80,
@@ -2127,11 +2127,11 @@ static constexpr uint8_t bitmap_icon_load_data[] = {
     0xFF,
     0x1F,
 };
-static constexpr Bitmap bitmap_icon_load{
+inline constexpr Bitmap bitmap_icon_load{
     {16, 16},
     bitmap_icon_load_data};
 
-static constexpr uint8_t bitmap_icon_looking_data[] = {
+inline constexpr uint8_t bitmap_icon_looking_data[] = {
     0xF8,
     0x01,
     0xFC,
@@ -2165,11 +2165,11 @@ static constexpr uint8_t bitmap_icon_looking_data[] = {
     0x00,
     0x60,
 };
-static constexpr Bitmap bitmap_icon_looking{
+inline constexpr Bitmap bitmap_icon_looking{
     {16, 16},
     bitmap_icon_looking_data};
 
-static constexpr uint8_t bitmap_icon_lora_data[] = {
+inline constexpr uint8_t bitmap_icon_lora_data[] = {
     0xC0,
     0x03,
     0x30,
@@ -2203,11 +2203,11 @@ static constexpr uint8_t bitmap_icon_lora_data[] = {
     0xC0,
     0x03,
 };
-static constexpr Bitmap bitmap_icon_lora{
+inline constexpr Bitmap bitmap_icon_lora{
     {16, 16},
     bitmap_icon_lora_data};
 
-static constexpr uint8_t bitmap_icon_memory_data[] = {
+inline constexpr uint8_t bitmap_icon_memory_data[] = {
     0x54,
     0x15,
     0x54,
@@ -2241,11 +2241,11 @@ static constexpr uint8_t bitmap_icon_memory_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_memory{
+inline constexpr Bitmap bitmap_icon_memory{
     {16, 16},
     bitmap_icon_memory_data};
 
-static constexpr uint8_t bitmap_icon_microphone_data[] = {
+inline constexpr uint8_t bitmap_icon_microphone_data[] = {
     0xC0,
     0x03,
     0xE0,
@@ -2279,11 +2279,11 @@ static constexpr uint8_t bitmap_icon_microphone_data[] = {
     0xE0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_microphone{
+inline constexpr Bitmap bitmap_icon_microphone{
     {16, 16},
     bitmap_icon_microphone_data};
 
-static constexpr uint8_t bitmap_icon_modem_data[] = {
+inline constexpr uint8_t bitmap_icon_modem_data[] = {
     0x00,
     0x00,
     0x00,
@@ -2317,11 +2317,11 @@ static constexpr uint8_t bitmap_icon_modem_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_modem{
+inline constexpr Bitmap bitmap_icon_modem{
     {16, 16},
     bitmap_icon_modem_data};
 
-static constexpr uint8_t bitmap_icon_morse_data[] = {
+inline constexpr uint8_t bitmap_icon_morse_data[] = {
     0x00,
     0x00,
     0xFE,
@@ -2355,11 +2355,11 @@ static constexpr uint8_t bitmap_icon_morse_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_morse{
+inline constexpr Bitmap bitmap_icon_morse{
     {16, 16},
     bitmap_icon_morse_data};
 
-static constexpr uint8_t bitmap_icon_new_category_data[] = {
+inline constexpr uint8_t bitmap_icon_new_category_data[] = {
     0x00,
     0x18,
     0x3E,
@@ -2393,11 +2393,11 @@ static constexpr uint8_t bitmap_icon_new_category_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_new_category{
+inline constexpr Bitmap bitmap_icon_new_category{
     {16, 16},
     bitmap_icon_new_category_data};
 
-static constexpr uint8_t bitmap_icon_new_dir_data[] = {
+inline constexpr uint8_t bitmap_icon_new_dir_data[] = {
     0x00,
     0x00,
     0x1E,
@@ -2431,11 +2431,11 @@ static constexpr uint8_t bitmap_icon_new_dir_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_new_dir{
+inline constexpr Bitmap bitmap_icon_new_dir{
     {16, 16},
     bitmap_icon_new_dir_data};
 
-static constexpr uint8_t bitmap_icon_new_file_data[] = {
+inline constexpr uint8_t bitmap_icon_new_file_data[] = {
     0x00,
     0x00,
     0xFC,
@@ -2469,11 +2469,11 @@ static constexpr uint8_t bitmap_icon_new_file_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_new_file{
+inline constexpr Bitmap bitmap_icon_new_file{
     {16, 16},
     bitmap_icon_new_file_data};
 
-static constexpr uint8_t bitmap_icon_noaa_data[] = {
+inline constexpr uint8_t bitmap_icon_noaa_data[] = {
     0x1C,
     0x80,
     0x3C,
@@ -2507,11 +2507,11 @@ static constexpr uint8_t bitmap_icon_noaa_data[] = {
     0x78,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_noaa{
+inline constexpr Bitmap bitmap_icon_noaa{
     {16, 16},
     bitmap_icon_noaa_data};
 
-static constexpr uint8_t bitmap_icon_notepad_data[] = {
+inline constexpr uint8_t bitmap_icon_notepad_data[] = {
     0x0C,
     0x00,
     0x1E,
@@ -2545,11 +2545,11 @@ static constexpr uint8_t bitmap_icon_notepad_data[] = {
     0x00,
     0xE0,
 };
-static constexpr Bitmap bitmap_icon_notepad{
+inline constexpr Bitmap bitmap_icon_notepad{
     {16, 16},
     bitmap_icon_notepad_data};
 
-static constexpr uint8_t bitmap_icon_nrf_data[] = {
+inline constexpr uint8_t bitmap_icon_nrf_data[] = {
     0x00,
     0x01,
     0x00,
@@ -2583,11 +2583,11 @@ static constexpr uint8_t bitmap_icon_nrf_data[] = {
     0xF8,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_nrf{
+inline constexpr Bitmap bitmap_icon_nrf{
     {16, 16},
     bitmap_icon_nrf_data};
 
-static constexpr uint8_t bitmap_icon_nuoptix_data[] = {
+inline constexpr uint8_t bitmap_icon_nuoptix_data[] = {
     0x80,
     0x01,
     0x80,
@@ -2621,11 +2621,11 @@ static constexpr uint8_t bitmap_icon_nuoptix_data[] = {
     0xFC,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_nuoptix{
+inline constexpr Bitmap bitmap_icon_nuoptix{
     {16, 16},
     bitmap_icon_nuoptix_data};
 
-static constexpr uint8_t bitmap_icon_options_datetime_data[] = {
+inline constexpr uint8_t bitmap_icon_options_datetime_data[] = {
     0x0C,
     0x06,
     0xFF,
@@ -2659,11 +2659,11 @@ static constexpr uint8_t bitmap_icon_options_datetime_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_options_datetime{
+inline constexpr Bitmap bitmap_icon_options_datetime{
     {16, 16},
     bitmap_icon_options_datetime_data};
 
-static constexpr uint8_t bitmap_icon_options_radio_data[] = {
+inline constexpr uint8_t bitmap_icon_options_radio_data[] = {
     0x00,
     0x00,
     0x00,
@@ -2697,11 +2697,11 @@ static constexpr uint8_t bitmap_icon_options_radio_data[] = {
     0xF0,
     0x0F,
 };
-static constexpr Bitmap bitmap_icon_options_radio{
+inline constexpr Bitmap bitmap_icon_options_radio{
     {16, 16},
     bitmap_icon_options_radio_data};
 
-static constexpr uint8_t bitmap_icon_options_touch_data[] = {
+inline constexpr uint8_t bitmap_icon_options_touch_data[] = {
     0xC7,
     0xF1,
     0x97,
@@ -2735,11 +2735,11 @@ static constexpr uint8_t bitmap_icon_options_touch_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_options_touch{
+inline constexpr Bitmap bitmap_icon_options_touch{
     {16, 16},
     bitmap_icon_options_touch_data};
 
-static constexpr uint8_t bitmap_icon_options_ui_data[] = {
+inline constexpr uint8_t bitmap_icon_options_ui_data[] = {
     0xFF,
     0x1F,
     0xFF,
@@ -2773,11 +2773,11 @@ static constexpr uint8_t bitmap_icon_options_ui_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_options_ui{
+inline constexpr Bitmap bitmap_icon_options_ui{
     {16, 16},
     bitmap_icon_options_ui_data};
 
-static constexpr uint8_t bitmap_icon_paint_data[] = {
+inline constexpr uint8_t bitmap_icon_paint_data[] = {
     0xFE,
     0x3F,
     0xFF,
@@ -2811,11 +2811,11 @@ static constexpr uint8_t bitmap_icon_paint_data[] = {
     0xC0,
     0x01,
 };
-static constexpr Bitmap bitmap_icon_paint{
+inline constexpr Bitmap bitmap_icon_paint{
     {16, 16},
     bitmap_icon_paint_data};
 
-static constexpr uint8_t bitmap_icon_paste_data[] = {
+inline constexpr uint8_t bitmap_icon_paste_data[] = {
     0x00,
     0x00,
     0xE0,
@@ -2849,11 +2849,11 @@ static constexpr uint8_t bitmap_icon_paste_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_paste{
+inline constexpr Bitmap bitmap_icon_paste{
     {16, 16},
     bitmap_icon_paste_data};
 
-static constexpr uint8_t bitmap_icon_peripherals_data[] = {
+inline constexpr uint8_t bitmap_icon_peripherals_data[] = {
     0x54,
     0x01,
     0x54,
@@ -2887,11 +2887,11 @@ static constexpr uint8_t bitmap_icon_peripherals_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_peripherals{
+inline constexpr Bitmap bitmap_icon_peripherals{
     {16, 16},
     bitmap_icon_peripherals_data};
 
-static constexpr uint8_t bitmap_icon_peripherals_details_data[] = {
+inline constexpr uint8_t bitmap_icon_peripherals_details_data[] = {
     0x54,
     0x01,
     0x54,
@@ -2925,11 +2925,11 @@ static constexpr uint8_t bitmap_icon_peripherals_details_data[] = {
     0x80,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_peripherals_details{
+inline constexpr Bitmap bitmap_icon_peripherals_details{
     {16, 16},
     bitmap_icon_peripherals_details_data};
 
-static constexpr uint8_t bitmap_icon_pocsag_data[] = {
+inline constexpr uint8_t bitmap_icon_pocsag_data[] = {
     0x00,
     0x00,
     0x00,
@@ -2963,11 +2963,11 @@ static constexpr uint8_t bitmap_icon_pocsag_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_pocsag{
+inline constexpr Bitmap bitmap_icon_pocsag{
     {16, 16},
     bitmap_icon_pocsag_data};
 
-static constexpr uint8_t bitmap_icon_previous_data[] = {
+inline constexpr uint8_t bitmap_icon_previous_data[] = {
     0x00,
     0x00,
     0xC0,
@@ -3001,11 +3001,11 @@ static constexpr uint8_t bitmap_icon_previous_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_previous{
+inline constexpr Bitmap bitmap_icon_previous{
     {16, 16},
     bitmap_icon_previous_data};
 
-static constexpr uint8_t bitmap_icon_protoview_data[] = {
+inline constexpr uint8_t bitmap_icon_protoview_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3039,11 +3039,11 @@ static constexpr uint8_t bitmap_icon_protoview_data[] = {
     0x07,
     0x1E,
 };
-static constexpr Bitmap bitmap_icon_protoview{
+inline constexpr Bitmap bitmap_icon_protoview{
     {16, 16},
     bitmap_icon_protoview_data};
 
-static constexpr uint8_t bitmap_icon_qr_code_data[] = {
+inline constexpr uint8_t bitmap_icon_qr_code_data[] = {
     0x00,
     0x00,
     0xFE,
@@ -3077,11 +3077,11 @@ static constexpr uint8_t bitmap_icon_qr_code_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_qr_code{
+inline constexpr Bitmap bitmap_icon_qr_code{
     {16, 16},
     bitmap_icon_qr_code_data};
 
-static constexpr uint8_t bitmap_icon_rds_data[] = {
+inline constexpr uint8_t bitmap_icon_rds_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3115,11 +3115,11 @@ static constexpr uint8_t bitmap_icon_rds_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_rds{
+inline constexpr Bitmap bitmap_icon_rds{
     {16, 16},
     bitmap_icon_rds_data};
 
-static constexpr uint8_t bitmap_icon_receivers_data[] = {
+inline constexpr uint8_t bitmap_icon_receivers_data[] = {
     0x80,
     0x01,
     0x80,
@@ -3153,11 +3153,11 @@ static constexpr uint8_t bitmap_icon_receivers_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_receivers{
+inline constexpr Bitmap bitmap_icon_receivers{
     {16, 16},
     bitmap_icon_receivers_data};
 
-static constexpr uint8_t bitmap_icon_remote_data[] = {
+inline constexpr uint8_t bitmap_icon_remote_data[] = {
     0x20,
     0x00,
     0x20,
@@ -3191,11 +3191,11 @@ static constexpr uint8_t bitmap_icon_remote_data[] = {
     0xE0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_remote{
+inline constexpr Bitmap bitmap_icon_remote{
     {16, 16},
     bitmap_icon_remote_data};
 
-static constexpr uint8_t bitmap_icon_rename_data[] = {
+inline constexpr uint8_t bitmap_icon_rename_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3229,11 +3229,11 @@ static constexpr uint8_t bitmap_icon_rename_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_rename{
+inline constexpr Bitmap bitmap_icon_rename{
     {16, 16},
     bitmap_icon_rename_data};
 
-static constexpr uint8_t bitmap_icon_rename_numeric_data[] = {
+inline constexpr uint8_t bitmap_icon_rename_numeric_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3267,11 +3267,11 @@ static constexpr uint8_t bitmap_icon_rename_numeric_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_rename_numeric{
+inline constexpr Bitmap bitmap_icon_rename_numeric{
     {16, 16},
     bitmap_icon_rename_numeric_data};
 
-static constexpr uint8_t bitmap_icon_replay_data[] = {
+inline constexpr uint8_t bitmap_icon_replay_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3305,11 +3305,11 @@ static constexpr uint8_t bitmap_icon_replay_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_replay{
+inline constexpr Bitmap bitmap_icon_replay{
     {16, 16},
     bitmap_icon_replay_data};
 
-static constexpr uint8_t bitmap_icon_save_data[] = {
+inline constexpr uint8_t bitmap_icon_save_data[] = {
     0xFC,
     0x07,
     0x0A,
@@ -3343,11 +3343,11 @@ static constexpr uint8_t bitmap_icon_save_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_save{
+inline constexpr Bitmap bitmap_icon_save{
     {16, 16},
     bitmap_icon_save_data};
 
-static constexpr uint8_t bitmap_icon_scanner_data[] = {
+inline constexpr uint8_t bitmap_icon_scanner_data[] = {
     0x03,
     0x00,
     0x00,
@@ -3381,11 +3381,11 @@ static constexpr uint8_t bitmap_icon_scanner_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_scanner{
+inline constexpr Bitmap bitmap_icon_scanner{
     {16, 16},
     bitmap_icon_scanner_data};
 
-static constexpr uint8_t bitmap_icon_script_data[] = {
+inline constexpr uint8_t bitmap_icon_script_data[] = {
     0xFC,
     0x07,
     0xFA,
@@ -3419,11 +3419,11 @@ static constexpr uint8_t bitmap_icon_script_data[] = {
     0xE0,
     0x3F,
 };
-static constexpr Bitmap bitmap_icon_script{
+inline constexpr Bitmap bitmap_icon_script{
     {16, 16},
     bitmap_icon_script_data};
 
-static constexpr uint8_t bitmap_icon_sd_data[] = {
+inline constexpr uint8_t bitmap_icon_sd_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3457,11 +3457,11 @@ static constexpr uint8_t bitmap_icon_sd_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_sd{
+inline constexpr Bitmap bitmap_icon_sd{
     {16, 16},
     bitmap_icon_sd_data};
 
-static constexpr uint8_t bitmap_icon_sdcard_data[] = {
+inline constexpr uint8_t bitmap_icon_sdcard_data[] = {
     0xF0,
     0x3F,
     0x58,
@@ -3495,11 +3495,11 @@ static constexpr uint8_t bitmap_icon_sdcard_data[] = {
     0xAC,
     0x3A,
 };
-static constexpr Bitmap bitmap_icon_sdcard{
+inline constexpr Bitmap bitmap_icon_sdcard{
     {16, 16},
     bitmap_icon_sdcard_data};
 
-static constexpr uint8_t bitmap_icon_search_data[] = {
+inline constexpr uint8_t bitmap_icon_search_data[] = {
     0xF8,
     0x01,
     0xFC,
@@ -3533,11 +3533,11 @@ static constexpr uint8_t bitmap_icon_search_data[] = {
     0x00,
     0x60,
 };
-static constexpr Bitmap bitmap_icon_search{
+inline constexpr Bitmap bitmap_icon_search{
     {16, 16},
     bitmap_icon_search_data};
 
-static constexpr uint8_t bitmap_icon_setup_data[] = {
+inline constexpr uint8_t bitmap_icon_setup_data[] = {
     0xC0,
     0x01,
     0xC0,
@@ -3571,11 +3571,11 @@ static constexpr uint8_t bitmap_icon_setup_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_setup{
+inline constexpr Bitmap bitmap_icon_setup{
     {16, 16},
     bitmap_icon_setup_data};
 
-static constexpr uint8_t bitmap_icon_shift_data[] = {
+inline constexpr uint8_t bitmap_icon_shift_data[] = {
     0x00,
     0x00,
     0x80,
@@ -3609,11 +3609,11 @@ static constexpr uint8_t bitmap_icon_shift_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_shift{
+inline constexpr Bitmap bitmap_icon_shift{
     {16, 16},
     bitmap_icon_shift_data};
 
-static constexpr uint8_t bitmap_icon_sleep_data[] = {
+inline constexpr uint8_t bitmap_icon_sleep_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3647,11 +3647,11 @@ static constexpr uint8_t bitmap_icon_sleep_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_sleep{
+inline constexpr Bitmap bitmap_icon_sleep{
     {16, 16},
     bitmap_icon_sleep_data};
 
-static constexpr uint8_t bitmap_icon_snake_data[] = {
+inline constexpr uint8_t bitmap_icon_snake_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3685,11 +3685,11 @@ static constexpr uint8_t bitmap_icon_snake_data[] = {
     0x80,
     0x7F,
 };
-static constexpr Bitmap bitmap_icon_snake{
+inline constexpr Bitmap bitmap_icon_snake{
     {16, 16},
     bitmap_icon_snake_data};
 
-static constexpr uint8_t bitmap_icon_sonde_data[] = {
+inline constexpr uint8_t bitmap_icon_sonde_data[] = {
     0x80,
     0x03,
     0xE0,
@@ -3723,11 +3723,11 @@ static constexpr uint8_t bitmap_icon_sonde_data[] = {
     0xC0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_sonde{
+inline constexpr Bitmap bitmap_icon_sonde{
     {16, 16},
     bitmap_icon_sonde_data};
 
-static constexpr uint8_t bitmap_icon_soundboard_data[] = {
+inline constexpr uint8_t bitmap_icon_soundboard_data[] = {
     0xF0,
     0x0F,
     0x1C,
@@ -3761,11 +3761,11 @@ static constexpr uint8_t bitmap_icon_soundboard_data[] = {
     0xF0,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_soundboard{
+inline constexpr Bitmap bitmap_icon_soundboard{
     {16, 16},
     bitmap_icon_soundboard_data};
 
-static constexpr uint8_t bitmap_icon_speaker_data[] = {
+inline constexpr uint8_t bitmap_icon_speaker_data[] = {
     0x00,
     0x00,
     0x40,
@@ -3799,11 +3799,11 @@ static constexpr uint8_t bitmap_icon_speaker_data[] = {
     0x40,
     0x10,
 };
-static constexpr Bitmap bitmap_icon_speaker{
+inline constexpr Bitmap bitmap_icon_speaker{
     {16, 16},
     bitmap_icon_speaker_data};
 
-static constexpr uint8_t bitmap_icon_speaker_and_headphones_data[] = {
+inline constexpr uint8_t bitmap_icon_speaker_and_headphones_data[] = {
     0x40,
     0x10,
     0x60,
@@ -3837,11 +3837,11 @@ static constexpr uint8_t bitmap_icon_speaker_and_headphones_data[] = {
     0x86,
     0x01,
 };
-static constexpr Bitmap bitmap_icon_speaker_and_headphones{
+inline constexpr Bitmap bitmap_icon_speaker_and_headphones{
     {16, 16},
     bitmap_icon_speaker_and_headphones_data};
 
-static constexpr uint8_t bitmap_icon_speaker_and_headphones_mute_data[] = {
+inline constexpr uint8_t bitmap_icon_speaker_and_headphones_mute_data[] = {
     0x40,
     0x00,
     0x60,
@@ -3875,11 +3875,11 @@ static constexpr uint8_t bitmap_icon_speaker_and_headphones_mute_data[] = {
     0x86,
     0x45,
 };
-static constexpr Bitmap bitmap_icon_speaker_and_headphones_mute{
+inline constexpr Bitmap bitmap_icon_speaker_and_headphones_mute{
     {16, 16},
     bitmap_icon_speaker_and_headphones_mute_data};
 
-static constexpr uint8_t bitmap_icon_speaker_mute_data[] = {
+inline constexpr uint8_t bitmap_icon_speaker_mute_data[] = {
     0x00,
     0x00,
     0x40,
@@ -3913,11 +3913,11 @@ static constexpr uint8_t bitmap_icon_speaker_mute_data[] = {
     0x40,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_speaker_mute{
+inline constexpr Bitmap bitmap_icon_speaker_mute{
     {16, 16},
     bitmap_icon_speaker_mute_data};
 
-static constexpr uint8_t bitmap_icon_sstv_data[] = {
+inline constexpr uint8_t bitmap_icon_sstv_data[] = {
     0x00,
     0x00,
     0x00,
@@ -3951,11 +3951,11 @@ static constexpr uint8_t bitmap_icon_sstv_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_sstv{
+inline constexpr Bitmap bitmap_icon_sstv{
     {16, 16},
     bitmap_icon_sstv_data};
 
-static constexpr uint8_t bitmap_icon_stealth_data[] = {
+inline constexpr uint8_t bitmap_icon_stealth_data[] = {
     0x00,
     0x00,
     0xC0,
@@ -3989,11 +3989,11 @@ static constexpr uint8_t bitmap_icon_stealth_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_stealth{
+inline constexpr Bitmap bitmap_icon_stealth{
     {16, 16},
     bitmap_icon_stealth_data};
 
-static constexpr uint8_t bitmap_icon_temperature_data[] = {
+inline constexpr uint8_t bitmap_icon_temperature_data[] = {
     0x00,
     0x01,
     0x80,
@@ -4027,11 +4027,11 @@ static constexpr uint8_t bitmap_icon_temperature_data[] = {
     0xC0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_temperature{
+inline constexpr Bitmap bitmap_icon_temperature{
     {16, 16},
     bitmap_icon_temperature_data};
 
-static constexpr uint8_t bitmap_icon_tetra_data[] = {
+inline constexpr uint8_t bitmap_icon_tetra_data[] = {
     0xE0,
     0x0F,
     0x18,
@@ -4065,11 +4065,11 @@ static constexpr uint8_t bitmap_icon_tetra_data[] = {
     0xF0,
     0x07,
 };
-static constexpr Bitmap bitmap_icon_tetra{
+inline constexpr Bitmap bitmap_icon_tetra{
     {16, 16},
     bitmap_icon_tetra_data};
 
-static constexpr uint8_t bitmap_icon_tetris_data[] = {
+inline constexpr uint8_t bitmap_icon_tetris_data[] = {
     0xF8,
     0xFF,
     0x88,
@@ -4103,11 +4103,11 @@ static constexpr uint8_t bitmap_icon_tetris_data[] = {
     0xFF,
     0xF1,
 };
-static constexpr Bitmap bitmap_icon_tetris{
+inline constexpr Bitmap bitmap_icon_tetris{
     {16, 16},
     bitmap_icon_tetris_data};
 
-static constexpr uint8_t bitmap_icon_thermometer_data[] = {
+inline constexpr uint8_t bitmap_icon_thermometer_data[] = {
     0xC0,
     0x00,
     0x20,
@@ -4141,11 +4141,11 @@ static constexpr uint8_t bitmap_icon_thermometer_data[] = {
     0xE0,
     0x01,
 };
-static constexpr Bitmap bitmap_icon_thermometer{
+inline constexpr Bitmap bitmap_icon_thermometer{
     {16, 16},
     bitmap_icon_thermometer_data};
 
-static constexpr uint8_t bitmap_icon_tools_antenna_data[] = {
+inline constexpr uint8_t bitmap_icon_tools_antenna_data[] = {
     0x38,
     0x3E,
     0x10,
@@ -4179,11 +4179,11 @@ static constexpr uint8_t bitmap_icon_tools_antenna_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_tools_antenna{
+inline constexpr Bitmap bitmap_icon_tools_antenna{
     {16, 16},
     bitmap_icon_tools_antenna_data};
 
-static constexpr uint8_t bitmap_icon_tools_wipesd_data[] = {
+inline constexpr uint8_t bitmap_icon_tools_wipesd_data[] = {
     0xF0,
     0x3F,
     0x58,
@@ -4217,11 +4217,11 @@ static constexpr uint8_t bitmap_icon_tools_wipesd_data[] = {
     0xAC,
     0xC1,
 };
-static constexpr Bitmap bitmap_icon_tools_wipesd{
+inline constexpr Bitmap bitmap_icon_tools_wipesd{
     {16, 16},
     bitmap_icon_tools_wipesd_data};
 
-static constexpr uint8_t bitmap_icon_touchtunes_data[] = {
+inline constexpr uint8_t bitmap_icon_touchtunes_data[] = {
     0xE0,
     0x07,
     0x30,
@@ -4255,11 +4255,11 @@ static constexpr uint8_t bitmap_icon_touchtunes_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_touchtunes{
+inline constexpr Bitmap bitmap_icon_touchtunes{
     {16, 16},
     bitmap_icon_touchtunes_data};
 
-static constexpr uint8_t bitmap_icon_tpms_data[] = {
+inline constexpr uint8_t bitmap_icon_tpms_data[] = {
     0xC0,
     0x03,
     0xF0,
@@ -4293,11 +4293,11 @@ static constexpr uint8_t bitmap_icon_tpms_data[] = {
     0xC0,
     0x03,
 };
-static constexpr Bitmap bitmap_icon_tpms{
+inline constexpr Bitmap bitmap_icon_tpms{
     {16, 16},
     bitmap_icon_tpms_data};
 
-static constexpr uint8_t bitmap_icon_transceivers_data[] = {
+inline constexpr uint8_t bitmap_icon_transceivers_data[] = {
     0x80,
     0x01,
     0xC0,
@@ -4331,11 +4331,11 @@ static constexpr uint8_t bitmap_icon_transceivers_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_transceivers{
+inline constexpr Bitmap bitmap_icon_transceivers{
     {16, 16},
     bitmap_icon_transceivers_data};
 
-static constexpr uint8_t bitmap_icon_transmit_data[] = {
+inline constexpr uint8_t bitmap_icon_transmit_data[] = {
     0x80,
     0x01,
     0xC0,
@@ -4369,11 +4369,11 @@ static constexpr uint8_t bitmap_icon_transmit_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_icon_transmit{
+inline constexpr Bitmap bitmap_icon_transmit{
     {16, 16},
     bitmap_icon_transmit_data};
 
-static constexpr uint8_t bitmap_icon_trash_data[] = {
+inline constexpr uint8_t bitmap_icon_trash_data[] = {
     0x00,
     0x00,
     0xC0,
@@ -4407,11 +4407,11 @@ static constexpr uint8_t bitmap_icon_trash_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_trash{
+inline constexpr Bitmap bitmap_icon_trash{
     {16, 16},
     bitmap_icon_trash_data};
 
-static constexpr uint8_t bitmap_icon_trim_data[] = {
+inline constexpr uint8_t bitmap_icon_trim_data[] = {
     0x10,
     0x10,
     0x30,
@@ -4445,11 +4445,11 @@ static constexpr uint8_t bitmap_icon_trim_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_trim{
+inline constexpr Bitmap bitmap_icon_trim{
     {16, 16},
     bitmap_icon_trim_data};
 
-static constexpr uint8_t bitmap_icon_tune_fork_data[] = {
+inline constexpr uint8_t bitmap_icon_tune_fork_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4483,11 +4483,11 @@ static constexpr uint8_t bitmap_icon_tune_fork_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_tune_fork{
+inline constexpr Bitmap bitmap_icon_tune_fork{
     {16, 16},
     bitmap_icon_tune_fork_data};
 
-static constexpr uint8_t bitmap_icon_upconvert_data[] = {
+inline constexpr uint8_t bitmap_icon_upconvert_data[] = {
     0x80,
     0x01,
     0xC0,
@@ -4521,11 +4521,11 @@ static constexpr uint8_t bitmap_icon_upconvert_data[] = {
     0x00,
     0x80,
 };
-static constexpr Bitmap bitmap_icon_upconvert{
+inline constexpr Bitmap bitmap_icon_upconvert{
     {16, 16},
     bitmap_icon_upconvert_data};
 
-static constexpr uint8_t bitmap_icon_utilities_data[] = {
+inline constexpr uint8_t bitmap_icon_utilities_data[] = {
     0x30,
     0x24,
     0x78,
@@ -4559,11 +4559,11 @@ static constexpr uint8_t bitmap_icon_utilities_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_icon_utilities{
+inline constexpr Bitmap bitmap_icon_utilities{
     {16, 16},
     bitmap_icon_utilities_data};
 
-static constexpr uint8_t bitmap_key_data[] = {
+inline constexpr uint8_t bitmap_key_data[] = {
     0xC0,
     0x03,
     0xE0,
@@ -4597,11 +4597,11 @@ static constexpr uint8_t bitmap_key_data[] = {
     0x80,
     0x01,
 };
-static constexpr Bitmap bitmap_key{
+inline constexpr Bitmap bitmap_key{
     {16, 16},
     bitmap_key_data};
 
-static constexpr uint8_t bitmap_more_data[] = {
+inline constexpr uint8_t bitmap_more_data[] = {
     0x10,
     0x10,
     0x10,
@@ -4611,11 +4611,11 @@ static constexpr uint8_t bitmap_more_data[] = {
     0x10,
     0x00,
 };
-static constexpr Bitmap bitmap_more{
+inline constexpr Bitmap bitmap_more{
     {8, 8},
     bitmap_more_data};
 
-static constexpr uint8_t bitmap_play_data[] = {
+inline constexpr uint8_t bitmap_play_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4649,11 +4649,11 @@ static constexpr uint8_t bitmap_play_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_play{
+inline constexpr Bitmap bitmap_play{
     {16, 16},
     bitmap_play_data};
 
-static constexpr uint8_t bitmap_record_data[] = {
+inline constexpr uint8_t bitmap_record_data[] = {
     0xC0,
     0x07,
     0xF0,
@@ -4687,11 +4687,11 @@ static constexpr uint8_t bitmap_record_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_record{
+inline constexpr Bitmap bitmap_record{
     {16, 16},
     bitmap_record_data};
 
-static constexpr uint8_t bitmap_rssipwm_data[] = {
+inline constexpr uint8_t bitmap_rssipwm_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4741,11 +4741,11 @@ static constexpr uint8_t bitmap_rssipwm_data[] = {
     0xF3,
     0x73,
 };
-static constexpr Bitmap bitmap_rssipwm{
+inline constexpr Bitmap bitmap_rssipwm{
     {24, 16},
     bitmap_rssipwm_data};
 
-static constexpr uint8_t bitmap_sd_card_error_data[] = {
+inline constexpr uint8_t bitmap_sd_card_error_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4779,11 +4779,11 @@ static constexpr uint8_t bitmap_sd_card_error_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sd_card_error{
+inline constexpr Bitmap bitmap_sd_card_error{
     {16, 16},
     bitmap_sd_card_error_data};
 
-static constexpr uint8_t bitmap_sd_card_ok_data[] = {
+inline constexpr uint8_t bitmap_sd_card_ok_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4817,11 +4817,11 @@ static constexpr uint8_t bitmap_sd_card_ok_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sd_card_ok{
+inline constexpr Bitmap bitmap_sd_card_ok{
     {16, 16},
     bitmap_sd_card_ok_data};
 
-static constexpr uint8_t bitmap_sd_card_unknown_data[] = {
+inline constexpr uint8_t bitmap_sd_card_unknown_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4855,11 +4855,11 @@ static constexpr uint8_t bitmap_sd_card_unknown_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sd_card_unknown{
+inline constexpr Bitmap bitmap_sd_card_unknown{
     {16, 16},
     bitmap_sd_card_unknown_data};
 
-static constexpr uint8_t bitmap_sig_cw_data[] = {
+inline constexpr uint8_t bitmap_sig_cw_data[] = {
     0x00,
     0x00,
     0x00,
@@ -4989,11 +4989,11 @@ static constexpr uint8_t bitmap_sig_cw_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_cw{
+inline constexpr Bitmap bitmap_sig_cw{
     {32, 32},
     bitmap_sig_cw_data};
 
-static constexpr uint8_t bitmap_sig_noise_data[] = {
+inline constexpr uint8_t bitmap_sig_noise_data[] = {
     0x00,
     0x00,
     0x00,
@@ -5123,11 +5123,11 @@ static constexpr uint8_t bitmap_sig_noise_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_noise{
+inline constexpr Bitmap bitmap_sig_noise{
     {32, 32},
     bitmap_sig_noise_data};
 
-static constexpr uint8_t bitmap_sig_saw_down_data[] = {
+inline constexpr uint8_t bitmap_sig_saw_down_data[] = {
     0x00,
     0x00,
     0x00,
@@ -5257,11 +5257,11 @@ static constexpr uint8_t bitmap_sig_saw_down_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_saw_down{
+inline constexpr Bitmap bitmap_sig_saw_down{
     {32, 32},
     bitmap_sig_saw_down_data};
 
-static constexpr uint8_t bitmap_sig_saw_up_data[] = {
+inline constexpr uint8_t bitmap_sig_saw_up_data[] = {
     0x00,
     0x00,
     0x00,
@@ -5391,11 +5391,11 @@ static constexpr uint8_t bitmap_sig_saw_up_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_saw_up{
+inline constexpr Bitmap bitmap_sig_saw_up{
     {32, 32},
     bitmap_sig_saw_up_data};
 
-static constexpr uint8_t bitmap_sig_sine_data[] = {
+inline constexpr uint8_t bitmap_sig_sine_data[] = {
     0x00,
     0x00,
     0x00,
@@ -5525,11 +5525,11 @@ static constexpr uint8_t bitmap_sig_sine_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_sine{
+inline constexpr Bitmap bitmap_sig_sine{
     {32, 32},
     bitmap_sig_sine_data};
 
-static constexpr uint8_t bitmap_sig_square_data[] = {
+inline constexpr uint8_t bitmap_sig_square_data[] = {
     0x00,
     0x00,
     0x00,
@@ -5659,11 +5659,11 @@ static constexpr uint8_t bitmap_sig_square_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_square{
+inline constexpr Bitmap bitmap_sig_square{
     {32, 32},
     bitmap_sig_square_data};
 
-static constexpr uint8_t bitmap_sig_tri_data[] = {
+inline constexpr uint8_t bitmap_sig_tri_data[] = {
     0x00,
     0x00,
     0x00,
@@ -5793,11 +5793,11 @@ static constexpr uint8_t bitmap_sig_tri_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_sig_tri{
+inline constexpr Bitmap bitmap_sig_tri{
     {32, 32},
     bitmap_sig_tri_data};
 
-static constexpr uint8_t bitmap_stop_data[] = {
+inline constexpr uint8_t bitmap_stop_data[] = {
     0xFF,
     0xFF,
     0xFF,
@@ -5831,11 +5831,11 @@ static constexpr uint8_t bitmap_stop_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_stop{
+inline constexpr Bitmap bitmap_stop{
     {16, 16},
     bitmap_stop_data};
 
-static constexpr uint8_t bitmap_stopwatch_data[] = {
+inline constexpr uint8_t bitmap_stopwatch_data[] = {
     0x00,
     0x00,
     0xC0,
@@ -5869,11 +5869,11 @@ static constexpr uint8_t bitmap_stopwatch_data[] = {
     0x80,
     0x00,
 };
-static constexpr Bitmap bitmap_stopwatch{
+inline constexpr Bitmap bitmap_stopwatch{
     {16, 16},
     bitmap_stopwatch_data};
 
-static constexpr uint8_t bitmap_stripes_data[] = {
+inline constexpr uint8_t bitmap_stripes_data[] = {
     0xFF,
     0x03,
     0xC0,
@@ -5899,11 +5899,11 @@ static constexpr uint8_t bitmap_stripes_data[] = {
     0x80,
     0xFF,
 };
-static constexpr Bitmap bitmap_stripes{
+inline constexpr Bitmap bitmap_stripes{
     {24, 8},
     bitmap_stripes_data};
 
-static constexpr uint8_t bitmap_tab_edge_data[] = {
+inline constexpr uint8_t bitmap_tab_edge_data[] = {
     0x00,
     0x01,
     0x01,
@@ -5929,11 +5929,11 @@ static constexpr uint8_t bitmap_tab_edge_data[] = {
     0xFF,
     0xFF,
 };
-static constexpr Bitmap bitmap_tab_edge{
+inline constexpr Bitmap bitmap_tab_edge{
     {8, 24},
     bitmap_tab_edge_data};
 
-static constexpr uint8_t bitmap_target_data[] = {
+inline constexpr uint8_t bitmap_target_data[] = {
     0x80,
     0x00,
     0x80,
@@ -5967,11 +5967,11 @@ static constexpr uint8_t bitmap_target_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_target{
+inline constexpr Bitmap bitmap_target{
     {16, 16},
     bitmap_target_data};
 
-static constexpr uint8_t bitmap_target_calibrate_data[] = {
+inline constexpr uint8_t bitmap_target_calibrate_data[] = {
     0x02,
     0x00,
     0x00,
@@ -6101,11 +6101,11 @@ static constexpr uint8_t bitmap_target_calibrate_data[] = {
     0x00,
     0x40,
 };
-static constexpr Bitmap bitmap_target_calibrate{
+inline constexpr Bitmap bitmap_target_calibrate{
     {32, 32},
     bitmap_target_calibrate_data};
 
-static constexpr uint8_t bitmap_target_verify_data[] = {
+inline constexpr uint8_t bitmap_target_verify_data[] = {
     0x00,
     0xE0,
     0x07,
@@ -6235,11 +6235,11 @@ static constexpr uint8_t bitmap_target_verify_data[] = {
     0x07,
     0x00,
 };
-static constexpr Bitmap bitmap_target_verify{
+inline constexpr Bitmap bitmap_target_verify{
     {32, 32},
     bitmap_target_verify_data};
 
-static constexpr uint8_t bitmap_temperature_data[] = {
+inline constexpr uint8_t bitmap_temperature_data[] = {
     0x00,
     0x00,
     0x20,
@@ -6273,11 +6273,11 @@ static constexpr uint8_t bitmap_temperature_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_temperature{
+inline constexpr Bitmap bitmap_temperature{
     {16, 16},
     bitmap_temperature_data};
 
-static constexpr uint8_t bitmap_titlebar_image_data[] = {
+inline constexpr uint8_t bitmap_titlebar_image_data[] = {
     0x00,
     0x00,
     0x00,
@@ -6439,7 +6439,7 @@ static constexpr uint8_t bitmap_titlebar_image_data[] = {
     0x00,
     0x00,
 };
-static constexpr Bitmap bitmap_titlebar_image{
+inline constexpr Bitmap bitmap_titlebar_image{
     {80, 16},
     bitmap_titlebar_image_data};
 
