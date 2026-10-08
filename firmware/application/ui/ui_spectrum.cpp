@@ -455,6 +455,7 @@ void WaterfallView::stop() {
     }
     this->channel_fifo = nullptr;
     this->audio_spectrum_data = nullptr;
+    this->audio_spectrum_update = false;
 }
 
 void WaterfallView::show_audio_spectrum_view(const bool show) {
@@ -504,6 +505,8 @@ void WaterfallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 }
 
 void WaterfallView::on_audio_spectrum() {
+    if (!audio_spectrum_view || !audio_spectrum_data)
+        return;
     audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
 }
 
