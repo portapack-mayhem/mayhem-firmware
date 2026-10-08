@@ -576,7 +576,7 @@ void shutdown() {
         chThdSleepMilliseconds(1);
 
     shared_memory.application_queue.reset();
-   
+
     baseband_image_running = false;
 }
 
