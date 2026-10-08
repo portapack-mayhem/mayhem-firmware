@@ -284,7 +284,7 @@ void JammerView::on_timer() {
 JammerView::JammerView(NavigationView& nav)
     : nav_{nav} {
     Rect view_rect = {0, 3 * 8, screen_width, 80};
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_jammer);
 
     add_children({&tab_view,
                   &view_range_a,
