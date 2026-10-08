@@ -549,6 +549,47 @@ set(MODE_CPPSRC
 )
 DeclareTargets(POSK bintstream)
 
+### RDSRX
+
+set(MODE_CPPSRC
+    proc_rds_rx.cpp
+)
+DeclareTargets(PRRD rds_rx)
+
+### Spectrum Analyzer
+
+set(MODE_CPPSRC
+	proc_spec_an.cpp
+)
+DeclareTargets(PSAN spec_an)
+
+### FT8 RX
+
+set(MODE_CPPSRC
+	proc_ft8_rx.cpp
+	ft8_lib/constants.c
+	ft8_lib/crc.c
+	ft8_lib/decode.c
+	ft8_portapack.c
+	ft8_lib/ldpc.c
+	ft8_lib/message.c
+	ft8_lib/text.c
+)
+# The decoder plus its tables sit close to the 32k external app ceiling, so this image is
+# built for size rather than speed. message.c sets LOG_LEVEL, which makes ft8_lib's
+# debug.h reach for fprintf; defining LOG_PRINTF empty keeps stdio out of the image and
+# leaves the vendored header byte-identical to upstream.
+set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
+DeclareTargets(PFT8 ft8_rx)
+set(MODE_FLAGS "-O3")
+
+
+### FLEX RX
+
+set(MODE_CPPSRC
+	proc_flex.cpp
+)
+DeclareTargets(PFLX flex)
 
 
 ###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 0, 1, but will be internal on T2
@@ -572,8 +613,44 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PPVW protoview)
 
+### EPIRB
+
+set(MODE_CPPSRC
+	proc_epirb.cpp
+)
+DeclareTargets(PEPI epirb_rx)
+
+### SSTV RX
+
+set(MODE_CPPSRC
+	proc_sstvrx.cpp
+)
+DeclareTargets(PSRX sstvrx)
 
 
+### WeFax Rx
+
+set(MODE_CPPSRC
+	proc_wefaxrx.cpp
+)
+DeclareTargets(PWFX wefaxrx)
+
+
+
+### RTTY RX
+
+set(MODE_CPPSRC
+    proc_rtty_rx.cpp
+)
+DeclareTargets(PRTR rtty_rx)
+
+
+### Tetra Rx
+
+set(MODE_CPPSRC
+	proc_tetra.cpp
+)
+DeclareTargets(PTET tetra_rx)
 
 ###### AFTER THIS LINE ALL LISTED BASEBANDS WILL BE EXTERNAL ON TIER 2, so it'll be external on all tiers
 if(FLASH_TIER GREATER_EQUAL 2)
@@ -595,12 +672,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PVRX vor_rx)
 
-### FLEX RX
 
-set(MODE_CPPSRC
-	proc_flex.cpp
-)
-DeclareTargets(PFLX flex)
 
 ### ACARS RX
 
@@ -617,12 +689,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAFR afskrx)
 
-### EPIRB
 
-set(MODE_CPPSRC
-	proc_epirb.cpp
-)
-DeclareTargets(PEPI epirb_rx)
 
 ### EPIRB TX
 
@@ -693,12 +760,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSTX sstvtx)
 
-### SSTV RX
 
-set(MODE_CPPSRC
-	proc_sstvrx.cpp
-)
-DeclareTargets(PSRX sstvrx)
 
 ### TPMS
 
@@ -717,13 +779,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSIG siggen)
 
-
-### WeFax Rx
-
-set(MODE_CPPSRC
-	proc_wefaxrx.cpp
-)
-DeclareTargets(PWFX wefaxrx)
 
 
 ### NoaaApt Rx
@@ -762,13 +817,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PMRS morse)
 
-
-### RTTY RX
-
-set(MODE_CPPSRC
-    proc_rtty_rx.cpp
-)
-DeclareTargets(PRTR rtty_rx)
 
 
 
@@ -809,12 +857,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(HUNT signal_hunter)
 
-### RDSRX
-
-set(MODE_CPPSRC
-    proc_rds_rx.cpp
-)
-DeclareTargets(PRRD rds_rx)
 
 
 
@@ -825,40 +867,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTSK time_sink)
 
-### Spectrum Analyzer
 
-set(MODE_CPPSRC
-	proc_spec_an.cpp
-)
-DeclareTargets(PSAN spec_an)
-
-
-### Tetra Rx
-
-set(MODE_CPPSRC
-	proc_tetra.cpp
-)
-DeclareTargets(PTET tetra_rx)
-
-### FT8 RX
-
-set(MODE_CPPSRC
-	proc_ft8_rx.cpp
-	ft8_lib/constants.c
-	ft8_lib/crc.c
-	ft8_lib/decode.c
-	ft8_portapack.c
-	ft8_lib/ldpc.c
-	ft8_lib/message.c
-	ft8_lib/text.c
-)
-# The decoder plus its tables sit close to the 32k external app ceiling, so this image is
-# built for size rather than speed. message.c sets LOG_LEVEL, which makes ft8_lib's
-# debug.h reach for fprintf; defining LOG_PRINTF empty keeps stdio out of the image and
-# leaves the vendored header byte-identical to upstream.
-set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
-DeclareTargets(PFT8 ft8_rx)
-set(MODE_FLAGS "-O3")
 
 ### SD over USB
 
