@@ -168,6 +168,10 @@ bool operator>(const path& lhs, const path& rhs);
 path operator+(const path& lhs, const path& rhs);
 path operator/(const path& lhs, const path& rhs);
 
+/* Decodes a UTF-8 string into a path (UTF-16). Replaces std::wstring_convert,
+ * whose codecvt facets cost ~3KB of flash. Malformed input becomes U+FFFD. */
+path path_from_utf8(const char* s);
+
 /* Case insensitive path equality on underlying "native" string. */
 bool path_iequal(const path& lhs, const path& rhs);
 bool is_cxx_capture_file(const path& filename);

@@ -73,10 +73,10 @@ def convert_png(file):
 				data = 0
 
     # Write to hpp file
-	f.write("static constexpr uint8_t bitmap_" + name + "_data[] = {\n")
+	f.write("inline constexpr uint8_t bitmap_" + name + "_data[] = {\n")
 	f.writelines(hpp_lines)
 	f.write("};\n")
-	f.write("static constexpr Bitmap bitmap_"  + name + " {\n")
+	f.write("inline constexpr Bitmap bitmap_"  + name + " {\n")
 	f.write("    {" + str(rgb_im.size[0]) + ", " + str(rgb_im.size[1]) + "},\n    bitmap_" + name + "_data};\n\n")
     
     # Write to hex file
