@@ -22,23 +22,27 @@
 # -------------------------------------------------------------------------------------
 
 import urllib.request
+import ssl
 import unicodedata
 import re
 from typing import List, Tuple
 
-
 def download_oui_file() -> str:
-    """Download the OUI file from IEEE"""
     url = "https://standards-oui.ieee.org/oui/oui.txt"
-    print(f"Downloading OUI database from {url}...")
-    try:
-        with urllib.request.urlopen(url) as response:
-            content = response.read().decode("utf-8")
-        print("Download completed successfully.")
-        return content
-    except Exception as e:
-        print(f"Error downloading OUI file: {e}")
-        raise
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        "Accept": "text/plain,*/*;q=0.9",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+    }
+
+    req = urllib.request.Request(url, headers=headers)
+    ctx = ssl.create_default_context()
+
+    with urllib.request.urlopen(req, context=ctx, timeout=30) as response:
+        print("HTTP status:", response.status)
+        return response.read().decode("utf-8", errors="replace")
 
 
 def parse_oui_data(content: str) -> List[Tuple[str, str]]:
@@ -63,9 +67,9 @@ def parse_oui_data(content: str) -> List[Tuple[str, str]]:
 
                 # Normalize vendor name and limit to 63 characters
                 vendor_name = (
-                    unicodedata.normalize("NFKD", vendor_name[:63])
+                    unicodedata.normalize("NFKD", vendor_name)
                     .encode("ascii", "ignore")
-                    .decode("ascii")
+                    .decode("ascii")[:63]
                 )
 
                 if mac_prefix and vendor_name:
@@ -115,7 +119,7 @@ def main():
 
         if not entries:
             print("No valid entries found in OUI file!")
-            return
+            return 1
 
         create_database(entries)
 
