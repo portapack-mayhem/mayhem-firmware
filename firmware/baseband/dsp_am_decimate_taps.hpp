@@ -3,7 +3,8 @@
 #ifndef DSP_AM_DECIMATE_TAPS_HPP
 #define DSP_AM_DECIMATE_TAPS_HPP
 #include <array>
-namespace dsp { namespace am {
+namespace dsp {
+namespace am {
 constexpr std::array<float, 35> decimate_taps{{
     3.247561108e-04f,
     6.688864960e-05f,
@@ -41,5 +42,6 @@ constexpr std::array<float, 35> decimate_taps{{
     6.688864960e-05f,
     3.247561108e-04f,
 }};
-}}
+}
+}  // namespace dsp
 #endif

@@ -177,7 +177,6 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
             power_acc = 0;
         }
     }
-
 }
 
 ///
