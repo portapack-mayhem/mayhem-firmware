@@ -20,9 +20,13 @@
  */
 
 #include "dsp_modulate.hpp"
+#include "dsp_am_output.hpp"
+#include "dsp_ssb_clamp.hpp"
 #include "sine_table_int8.hpp"
 #include "portapack_shared_memory.hpp"
 #include "tonesets.hpp"
+
+#include <cmath>
 
 namespace dsp {
 namespace modulate {
@@ -105,6 +109,8 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
     // No way to activate correctly  the roger beep in this option, Maybe not enough M4 CPU power , Let's  block roger beep in SSB  selection by now .
     int32_t sample = 0;
     int8_t re = 0, im = 0;
+    const bool interpolate_x16 = fs_div_factor == 128;
+    std::array<dsp::interpolate::ComplexFIRInterpolate8::Sample, 16> reconstructed{};
 
     for (size_t counter = 0; counter < buffer.count; counter++) {
         if (counter % fs_div_factor == 0) {  // Ex. TX bw_ssb 3khz =fs/4 Hilbert Transform sample rate,  128 =  1.536.000 hz  / 12.000 hz (fs H.T.)
@@ -114,15 +120,30 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
             sample = audio.p[counter / over] >> audio_shift_bits_s16_AM_DSB_SSB;  // originally fixed   >> 2, now >>2 for AK,   0,1,2,3 for WM (boost off)
             sample *= audio_gain;                                                 // Apply GAIN  Scale factor to the audio TX modulation.
 
-            // switch (mode) {
-            // case Mode::LSB:
             hilbert.execute(sample / 32768.0f, i, q);
-            // case Mode::USB:	hilbert.execute(sample / 32768.0f, q, i);
-            // default:	break;
-            // }
+            if (interpolate_x16) {
+                dsp::interpolate::ComplexFIRInterpolate8::Output stage_x8;
+                interpolator.execute(i, q, stage_x8);
+                for (size_t phase = 0; phase < stage_x8.size(); ++phase)
+                    interpolator_x2.execute(stage_x8[phase], reconstructed[2 * phase], reconstructed[2 * phase + 1]);
+            } else
+                reconstructed[0] = {i, q};  // Preserve the legacy 2 kHz path.
+        }
+
+        // 3 kHz: sixteen reconstructed outputs per Hilbert input, each held 8
+        // times. 2 kHz retains its original update/hold cadence unchanged.
+        if (interpolate_x16 ? ((counter & 7) == 0) : (counter % fs_div_factor == 0)) {
+            const auto& output = reconstructed[interpolate_x16 ? ((counter >> 3) & 15) : 0];
+            float i = output.i;
+            float q = output.q;
+            const float raw_i = i;
+            const float raw_q = q;
 
             i *= 256.0f;  // Original 64.0f,  now x 4 (+12 dB's SSB BB modulation)
             q *= 256.0f;  // Original 64.0f,  now x 4 (+12 dB's SSB BB modulation)
+            i = ssb_clamp(raw_i, i);
+            q = ssb_clamp(raw_q, q);
+
             switch (mode) {
                 case Mode::LSB:
                     re = q;
@@ -156,6 +177,7 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
             power_acc = 0;
         }
     }
+
 }
 
 ///
@@ -216,47 +238,45 @@ AM::AM() {
 }
 
 void AM::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider) {
-    int32_t sample = 0;
-    int8_t re = 0, im = 0;
-    float q = 0.0;
-
-    for (size_t counter = 0; counter < buffer.count; counter++) {
-        if (counter % 128 == 0) {
-            sample = audio.p[counter / over] >> audio_shift_bits_s16_AM_DSB_SSB;  // originally fixed >> 2, now >>2 for AK, 0,1,2,3 for WM (boost off)
-            sample *= audio_gain;                                                 // Apply GAIN  Scale factor to the audio TX modulation.
-        }
-
+    const bool carrier = mode == Mode::AM;
+    if (play_beep != was_beep_) {
+        // No stale microphone history on either side of the full-rate bypass.
+        // Reset does not smooth the pre-existing instantaneous transition.
+        microphone_ = {};
+        was_beep_ = play_beep;
+    }
+    const float gain = audio_gain / static_cast<float>(1U << audio_shift_bits_s16_AM_DSB_SSB);
+    std::array<float, 16> reconstructed;
+    int32_t vu_sample = 0;
+    int8_t value = 0;
+    for (size_t counter = 0; counter < buffer.count; ++counter) {
         if (play_beep) {
-            sample = apply_beep(sample, configured_in, new_beep_index, new_beep_timer, new_txprogress_message) << 5;  // Apply beep -if selected - atom sample by sample.
+            // Full-rate generator/timers unchanged. Division by four equals
+            // the old intended (beep * 32) / 32768 * 256 without signed << UB.
+            const float modulation = static_cast<float>(apply_beep(0, configured_in, new_beep_index, new_beep_timer, new_txprogress_message)) * 0.25f;
+            value = dsp::am::beep_output(modulation, carrier);
         } else {
-            // Update vu-meter bar in the LCD screen.
-            power_acc += (sample < 0) ? -sample : sample;  // Power average for UI vu-meter
-
+            if ((counter & 127) == 0) {
+                const size_t input = counter / over;
+                microphone_.execute(audio.p[input], audio.p[input + 1], gain, reconstructed);
+                // Preserve the original VU's selected sample, integer shift,
+                // gain truncation, accumulation cadence and divisor exactly.
+                vu_sample = audio.p[input] >> audio_shift_bits_s16_AM_DSB_SSB;
+                vu_sample *= audio_gain;
+            }
+            if ((counter & 7) == 0)
+                value = dsp::am::output(reconstructed[(counter >> 3) & 15] / 128.0f, carrier);
+            power_acc += (vu_sample < 0) ? -vu_sample : vu_sample;
             if (new_power_acc_count) {
-                new_power_acc_count--;
-            } else {  // power_acc_count = 0
+                --new_power_acc_count;
+            } else {
                 new_power_acc_count = new_divider;
-                new_level_message.value = power_acc / (new_divider * 8);  // Why ?orig / (new_divider / 4);	// Why ?
+                new_level_message.value = power_acc / (new_divider * 8);
                 shared_memory.application_queue.push(new_level_message);
                 power_acc = 0;
             }
         }
-
-        q = sample / 32768.0f;
-        q *= 256.0f;  // Original 64.0f,now x4 (+12 dB's BB_modulation in AM & DSB)
-        switch (mode) {
-            case Mode::AM:
-                re = q + 80;
-                im = q + 80;
-                break;  // Original DC add +20_DC_level=carrier,now x4 (+12dB's AM carrier)
-            case Mode::DSB:
-                re = q;
-                im = q;
-                break;
-            default:
-                break;
-        }
-        buffer.p[counter] = {re, im};
+        buffer.p[counter] = {value, value};
     }
 }
 
