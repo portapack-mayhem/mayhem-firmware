@@ -27,8 +27,10 @@
 
 #include "file.hpp"
 #include "optional.hpp"
+#include "wav_format.hpp"
 
 #include <string.h>
+#include <memory>
 
 struct fmt_pcm_t {
     constexpr fmt_pcm_t(
@@ -98,6 +100,8 @@ struct tags_t {
     char title[64]{0};
 };
 
+/* Reads PCM (8 or 16 bit) and IMA ADPCM WAV files. ADPCM is decoded on the fly: read(),
+ * data_seek() and the size getters then behave as for a 16 bit PCM file. */
 class WAVFileReader : public FileReader {
    public:
     WAVFileReader() = default;
@@ -110,50 +114,35 @@ class WAVFileReader : public FileReader {
     virtual ~WAVFileReader() = default;
 
     bool open(const std::filesystem::path& path);
-    void data_seek(const uint64_t Offset);
+    // Reads whole samples only, and for ADPCM whole frames: a request for less returns 0.
+    File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
+    void data_seek(const uint64_t Offset);  // in samples, counting every channel
     void rewind();
     uint32_t ms_duration();
-    // int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
     uint16_t channels();
     uint32_t sample_rate();
-    uint32_t data_size();
-    uint32_t sample_count();
+    uint32_t sample_count();  // counting every channel
+    uint32_t frame_count();   // one frame is one sample for every channel
     uint16_t bits_per_sample();
+    bool is_adpcm();
     std::string title();
 
    private:
-    struct fmt_pcm_t {
-        uint8_t ckID[4];  // fmt
-        uint32_t cksize;
-        uint16_t wFormatTag;
-        uint16_t nChannels;
-        uint32_t nSamplesPerSec;
-        uint32_t nAvgBytesPerSec;
-        uint16_t nBlockAlign;
-        uint16_t wBitsPerSample;
-    };
-
-    struct data_t {
-        uint8_t ckID[4];  // data
-        uint32_t cksize;
-    };
-
-    struct header_t {
-        uint8_t riff_id[4];  // RIFF
-        uint32_t cksize;
-        uint8_t wave_id[4];  // WAVE
-        fmt_pcm_t fmt;
-        data_t data;
-    };
-
-    header_t header{};
-
-    uint32_t data_start{};
-    uint32_t bytes_per_sample{};
-    uint32_t data_size_{0};
-    uint32_t sample_rate_{};
+    wav::Info info_{};
+    uint32_t bytes_per_sample{};  // of what read() returns
+    uint32_t position_{0};        // next sample read() returns, counting every channel
+    Optional<File::Error> seek_error_{};
+    Optional<File::Error> error_{};  // what made read_at() or read_adpcm() fail
     std::string title_string{};
     std::filesystem::path last_path{};
+
+    // ADPCM: one raw block and the decoder working on it, set up on the first read.
+    std::unique_ptr<uint8_t[]> block_{};
+    wav::AdpcmFrames adpcm_;
+
+    int32_t read_at(uint32_t position, void* out, uint32_t bytes);
+    int32_t read_adpcm(int16_t* out, uint32_t frames);
+    void find_title();
 };
 
 class WAVFileWriter : public FileWriter {
