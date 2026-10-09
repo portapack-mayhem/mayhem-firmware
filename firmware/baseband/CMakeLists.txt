@@ -610,6 +610,16 @@ set(MODE_CPPSRC
 DeclareTargets(PACA acars)
 
 
+### DECT RX
+
+set(MODE_CPPSRC
+	proc_dect.cpp
+	dect_packet_receiver.cpp
+	dect_packet_decoder.cpp
+)
+DeclareTargets(PDEC dect)
+
+
 ### AFSK RX
 
 set(MODE_CPPSRC
