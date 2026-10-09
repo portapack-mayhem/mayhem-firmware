@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""List every baseband image, the build tiers it is external in, and which
-apps start it. For testing only, not part of the build.
+"""Check every baseband image, the build tiers it is external in, and which
+apps start it.
 
 Sources:
   * firmware/baseband/CMakeLists.txt: DeclareTargets(<chunk tag> <name>) lines and
@@ -102,7 +102,8 @@ def scan_users(tags):
         if p.suffix not in (".cpp", ".hpp", ".h", ".c") or p.is_dir():
             continue
         parts = p.relative_to(FW).parts
-        if parts[0] in skip or p == FW / "common" / "spi_image.hpp":
+        if (parts[0] in skip or p == FW / "common" / "spi_image.hpp"
+            or p == FW / "application" / "apps" / "ui_test.cpp"):
             continue
         text = strip_comments(p.read_text(errors="ignore"))
         owner, ext_dir = owner_of(p)
@@ -250,7 +251,7 @@ def main():
     print(f"\n{len(warnings)} warning(s)")
     for w in warnings:
         print("WARNING:", w)
-    return 0
+    return 1 if warnings else 0
 
 
 if __name__ == "__main__":

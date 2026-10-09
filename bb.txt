@@ -1,0 +1,305 @@
+63 baseband images
+
+afsktx               PAFT  internal  image_tag_afsk
+    ext:aprs_tx                              external app, tier.txt=1 (internal in builds >= 1)
+    ext:kiss_tnc                             external app, tier.txt=0
+    ext:lcr                                  external app, tier.txt=0
+    ext:mdc_tx                               external app, tier.txt=0
+    ext:same_tx                              external app, tier.txt=0
+btlerx               PBTR  internal  image_tag_btle_rx
+    int:application/apps/ble_comm_app.cpp    internal, all builds
+    int:application/apps/ble_rx_app.cpp      internal, all builds
+    int:application/apps/ui_btle_rx.cpp      internal, all builds
+btletx               PBTT  internal  image_tag_btle_tx
+    ext:adult_toys_controller                external app, tier.txt=0
+    ext:blespam                              external app, tier.txt=0
+    int:application/apps/ble_comm_app.cpp    internal, all builds
+    int:application/apps/ble_tx_app.cpp      internal, all builds
+am_audio             PAMA  internal  image_tag_am_audio
+    ext:fmradio                              external app, tier.txt=2 (internal in builds >= 2)
+    ext:foxhunt                              external app, tier.txt=0
+    ext:level                                external app, tier.txt=1 (internal in builds >= 1)
+    ext:scanner                              external app, tier.txt=0
+    int:application/apps/analog_audio_app.cpp internal, all builds
+    int:application/apps/ui_mictx.cpp        internal, all builds
+    int:application/apps/ui_recon.cpp        internal, all builds
+    int:application/baseband_api.cpp         internal, all builds
+capture              PCAP  internal  image_tag_capture
+    ext:detector_rx                          external app, tier.txt=0
+    ext:fpv_detect                           external app, tier.txt=0
+    ext:level                                external app, tier.txt=1 (internal in builds >= 1)
+    ext:waterfall_designer                   external app, tier.txt=0
+    int:application/apps/capture_app.cpp     internal, all builds
+    int:application/apps/ui_recon.cpp        internal, all builds
+    int:application/baseband_api.cpp         internal, all builds
+sonde                PSON  internal  image_tag_sonde
+    int:application/apps/ui_sonde.cpp        internal, all builds
+fskrx                PFSR  internal  image_tag_fskrx
+    (no image_tag_ users, probably bundled with an external app and started by run_prepared_image)
+fsktx                PFSK  internal  image_tag_fsktx
+    ext:battleship                           external app, tier.txt=0
+    ext:coasterp                             external app, tier.txt=0
+    ext:flex_tx                              external app, tier.txt=1 (internal in builds >= 1)
+    ext:lge                                  external app, tier.txt=0
+    ext:pocsag_tx                            external app, tier.txt=0
+    ext:tpmstx                               external app, tier.txt=0
+mic_tx               PMTX  internal  image_tag_mic_tx
+    int:application/apps/ui_mictx.cpp        internal, all builds
+nfm_audio            PNFM  internal  image_tag_nfm_audio
+    ext:fmradio                              external app, tier.txt=2 (internal in builds >= 2)
+    ext:level                                external app, tier.txt=1 (internal in builds >= 1)
+    ext:scanner                              external app, tier.txt=0
+    int:application/apps/analog_audio_app.cpp internal, all builds
+    int:application/apps/ui_mictx.cpp        internal, all builds
+    int:application/apps/ui_recon.cpp        internal, all builds
+    int:application/baseband_api.cpp         internal, all builds
+ook                  POOK  internal  image_tag_ook
+    ext:bht_tx                               external app, tier.txt=0
+    ext:keeloqtx                             external app, tier.txt=0
+    ext:keyfob                               external app, tier.txt=0
+    ext:ook_editor                           external app, tier.txt=0
+    ext:ookbrute                             external app, tier.txt=0
+    ext:secplustx                            external app, tier.txt=0
+    ext:tpmstx                               external app, tier.txt=0
+    int:application/apps/ui_encoders.cpp     internal, all builds
+    int:application/apps/ui_touchtunes.cpp   internal, all builds
+pocsag2              PPO2  internal  image_tag_pocsag2
+    ext:battleship                           external app, tier.txt=0
+    int:application/apps/pocsag_app.cpp      internal, all builds
+rds                  PRDS  internal  image_tag_rds
+    int:application/apps/ui_rds.cpp          internal, all builds
+replay               PREP  internal  image_tag_replay
+    ext:cvs_spam                             external app, tier.txt=0
+    ext:remote                               external app, tier.txt=0
+    int:application/apps/ui_playlist.cpp     internal, all builds
+    int:application/apps/ui_recon.cpp        internal, all builds
+wideband_spectrum    PSPE  internal  image_tag_wideband_spectrum
+    int:application/apps/analog_audio_app.cpp internal, all builds
+    int:application/apps/ui_looking_glass_app.cpp internal, all builds
+    int:application/apps/ui_search.cpp       internal, all builds
+wfm_audio            PWFM  internal  image_tag_wfm_audio
+    ext:fmradio                              external app, tier.txt=2 (internal in builds >= 2)
+    ext:gfxeq                                external app, tier.txt=0
+    ext:level                                external app, tier.txt=1 (internal in builds >= 1)
+    ext:scanner                              external app, tier.txt=0
+    int:application/apps/analog_audio_app.cpp internal, all builds
+    int:application/apps/ui_mictx.cpp        internal, all builds
+    int:application/apps/ui_recon.cpp        internal, all builds
+    int:application/baseband_api.cpp         internal, all builds
+subghzd              PSGD  internal  image_tag_subghzd
+    int:application/apps/ui_subghzd.cpp      internal, all builds
+weather              PWTH  internal  image_tag_weather
+    int:application/apps/ui_weatherstation.cpp internal, all builds
+flash_utility        PFUT  internal  image_tag_flash_utility
+    int:application/apps/ui_flash_utility.cpp internal, all builds
+adsbrx               PADR  ext 0     image_tag_adsb_rx
+    ext:adsbrx                               external app, tier.txt=1 (internal in builds >= 1)
+adsbtx               PADT  ext 0     image_tag_adsb_tx
+    ext:adsbtx                               external app, tier.txt=0
+aprsrx               PAPR  ext 0     image_tag_aprs_rx
+    ext:aprs_rx                              external app, tier.txt=1 (internal in builds >= 1)
+    ext:kiss_tnc                             external app, tier.txt=0
+ais                  PAIS  ext 0     image_tag_ais
+    ext:ais_rx                               external app, tier.txt=1 (internal in builds >= 1)
+bintstream           POSK  ext 0     image_tag_ookstream
+    ext:flippertx                            external app, tier.txt=1 (internal in builds >= 1)
+rds_rx               PRRD  ext 0     image_tag_rds_rx
+    ext:rds_rx                               external app, tier.txt=1 (internal in builds >= 1)
+spec_an              PSAN  ext 0     image_tag_spec_an
+    ext:spec_an                              external app, tier.txt=1 (internal in builds >= 1)
+ft8_rx               PFT8  ext 0     image_tag_ft8_rx
+    ext:ft8_rx                               external app, tier.txt=1 (internal in builds >= 1)
+flex                 PFLX  ext 0     image_tag_flex
+    ext:flex_rx                              external app, tier.txt=1 (internal in builds >= 1)
+am_tv                PAMT  ext 0-1   image_tag_am_tv
+    ext:analogtv                             external app, tier.txt=2 (internal in builds >= 2)
+protoview            PPVW  ext 0-1   image_tag_protoview
+    ext:protoview                            external app, tier.txt=2 (internal in builds >= 2)
+epirb_rx             PEPI  ext 0-1   image_tag_epirb_rx
+    ext:epirb_rx                             external app, tier.txt=2 (internal in builds >= 2)
+sstvrx               PSRX  ext 0-1   image_tag_sstv_rx
+    ext:sstvrx                               external app, tier.txt=2 (internal in builds >= 2)
+wefaxrx              PWFX  ext 0-1   image_tag_wefaxrx
+    ext:wefax_rx                             external app, tier.txt=2 (internal in builds >= 2)
+rtty_rx              PRTR  ext 0-1   image_tag_rttyrx
+    ext:rtty_rx                              external app, tier.txt=2 (internal in builds >= 2)
+tetra_rx             PTET  ext 0-1   image_tag_tetrarx
+    ext:tetra_rx                             external app, tier.txt=2 (internal in builds >= 2)
+vor_tx               PVTX  ext all   image_tag_vor_tx
+    ext:vor_tx                               external app, tier.txt=0
+vor_rx               PVRX  ext all   image_tag_vor_rx
+    ext:vor_rx                               external app, tier.txt=0
+acars                PACA  ext all   image_tag_acars
+    ext:acars_rx                             external app, tier.txt=0
+afskrx               PAFR  ext all   image_tag_afsk_rx
+    ext:afsk_rx                              external app, tier.txt=0
+    ext:random_password                      external app, tier.txt=0
+epirb_tx             PEPT  ext all   image_tag_epirb_tx
+    ext:epirb_tx                             external app, tier.txt=0
+p25_tx               P25T  ext all   image_tag_p25_tx
+    ext:p25_tx                               external app, tier.txt=0
+nrfrx                PNRR  ext all   image_tag_nrf_rx
+    ext:nrf_rx                               external app, tier.txt=0
+jammer               PJAM  ext all   image_tag_jammer
+    ext:hopper                               external app, tier.txt=0
+    ext:jammer                               external app, tier.txt=0
+gps_sim              PGPS  ext all   image_tag_gps
+    ext:gpssim                               external app, tier.txt=0
+spectrum_painter     PSPT  ext all   image_tag_spectrum_painter
+    ext:spainter                             external app, tier.txt=0
+test                 PTST  ext all   image_tag_test
+    int:application/apps/ui_test.cpp         internal, all builds
+audio_beep           PABP  ext all   image_tag_audio_beep
+    ext:audio_test                           external app, tier.txt=0
+    ext:breakout                             external app, tier.txt=0
+    ext:metronome                            external app, tier.txt=0
+    ext:morse_practice                       external app, tier.txt=0
+    ext:tuner                                external app, tier.txt=0
+sstvtx               PSTX  ext all   image_tag_sstv_tx
+    ext:sstvtx                               external app, tier.txt=0
+tpms                 PTPM  ext all   image_tag_tpms
+    ext:tpmsrx                               external app, tier.txt=0
+siggen               PSIG  ext all   image_tag_siggen
+    ext:siggen                               external app, tier.txt=0
+noaaapt_rx           PNOA  ext all   image_tag_noaaapt_rx
+    ext:noaaapt_rx                           external app, tier.txt=0
+audio_tx             PATX  ext all   image_tag_audio_tx
+    ext:shoppingcart_lock                    external app, tier.txt=0
+    ext:soundboard                           external app, tier.txt=0
+    ext:wav_view                             external app, tier.txt=0
+subcar               PSCD  ext all   image_tag_subcar
+    ext:subcarrx                             external app, tier.txt=0
+tonedetect           PTNE  ext all   image_tag_tonedetect
+    ext:two_tone_rx                          external app, tier.txt=0
+morse                PMRS  ext all   image_tag_morse
+    ext:morse_radio                          external app, tier.txt=0
+ert                  PERT  ext all   image_tag_ert
+    ext:ert                                  external app, tier.txt=0
+rtty_tx              PRTT  ext all   image_tag_rttytx
+    ext:rtty_tx                              external app, tier.txt=0
+morsetx              PMRT  ext all   image_tag_morsetx
+    ext:morseradiotx                         external app, tier.txt=0
+tones                PTON  ext all   image_tag_tones
+    ext:bht_tx                               external app, tier.txt=0
+    ext:morse_tx                             external app, tier.txt=-1
+    ext:two_tone_pager                       external app, tier.txt=0
+signal_hunter        HUNT  ext all   image_tag_signal_hunter
+    ext:signal_hunter                        external app, tier.txt=0
+time_sink            PTSK  ext all   image_tag_time_sink
+    ext:time_sink                            external app, tier.txt=0
+wmbus_rx             PWMB  ext all   image_tag_wmbus_rx
+    ext:wmbus_rx                             external app, tier.txt=0
+sd_over_usb          PUSB  ext all   image_tag_usb_sd
+    ext:sdusb                                external app, tier.txt=0
+
+run_prepared_image callers (use the image bundled with the external app, no tag):
+
+External apps and the baseband images they use:
+    acars_rx               tier.txt=0  bundled=acars            uses: acars
+    adsbrx                 tier.txt=1  bundled=adsb_rx          uses: adsb_rx
+    adsbtx                 tier.txt=0  bundled=adsb_tx          uses: adsb_tx
+    adult_toys_controller  tier.txt=0  bundled=btle_tx          uses: btle_tx
+    afsk_rx                tier.txt=0  bundled=afsk_rx          uses: afsk_rx
+    ais_rx                 tier.txt=1  bundled=ais              uses: ais
+    analogtv               tier.txt=2  bundled=am_tv            uses: am_tv
+    antenna_length         tier.txt=1  bundled=none             uses: -
+    app_manager            tier.txt=1  bundled=none             uses: -
+    aprs_rx                tier.txt=1  bundled=aprs_rx          uses: aprs_rx
+    aprs_tx                tier.txt=1  bundled=afsk             uses: afsk
+    audio_test             tier.txt=0  bundled=audio_beep       uses: audio_beep
+    battleship             tier.txt=0  bundled=pocsag2          uses: fsktx, pocsag2  <== MULTI
+    bht_tx                 tier.txt=0  bundled=tones            uses: ook, tones  <== MULTI
+    blackjack              tier.txt=0  bundled=(positional)     uses: -
+    blespam                tier.txt=0  bundled=btle_tx          uses: btle_tx
+    breakout               tier.txt=0  bundled=audio_beep       uses: audio_beep
+    calculator             tier.txt=0  bundled=none             uses: -
+    coasterp               tier.txt=0  bundled=fsktx            uses: fsktx
+    cvs_spam               tier.txt=0  bundled=replay           uses: replay
+    debug_pmem             tier.txt=0  bundled=none             uses: -
+    detector_rx            tier.txt=0  bundled=capture          uses: capture
+    dinogame               tier.txt=0  bundled=(positional)     uses: -
+    doom                   tier.txt=0  bundled=(positional)     uses: -
+    epirb_rx               tier.txt=2  bundled=epirb_rx         uses: epirb_rx
+    epirb_tx               tier.txt=0  bundled=epirb_tx         uses: epirb_tx
+    ert                    tier.txt=0  bundled=ert              uses: ert
+    extsensors             tier.txt=0  bundled=none             uses: -
+    flex_rx                tier.txt=1  bundled=flex             uses: flex
+    flex_tx                tier.txt=1  bundled=fsktx            uses: fsktx
+    flippertx              tier.txt=1  bundled=ookstream        uses: ookstream
+    fmradio                tier.txt=2  bundled=am_audio         uses: am_audio, nfm_audio, wfm_audio  <== MULTI
+    font_viewer            tier.txt=0  bundled=none             uses: -
+    foxhunt                tier.txt=0  bundled=am_audio         uses: am_audio
+    fpv_detect             tier.txt=0  bundled=capture          uses: capture
+    ft8_rx                 tier.txt=1  bundled=ft8_rx           uses: ft8_rx
+    game2048               tier.txt=0  bundled=(positional)     uses: -
+    gfxeq                  tier.txt=0  bundled=(positional)     uses: wfm_audio
+    gpssim                 tier.txt=0  bundled=gps              uses: gps
+    hard_reset             tier.txt=1  bundled=none             uses: -
+    hopper                 tier.txt=0  bundled=jammer           uses: jammer
+    jammer                 tier.txt=0  bundled=jammer           uses: jammer
+    keeloqtx               tier.txt=0  bundled=ook              uses: ook
+    keyfob                 tier.txt=0  bundled=ook              uses: ook
+    kiss_tnc               tier.txt=0  bundled=aprs_rx          uses: afsk, aprs_rx  <== MULTI
+    lcr                    tier.txt=0  bundled=afsk             uses: afsk
+    level                  tier.txt=1  bundled=am_audio         uses: am_audio, capture, nfm_audio, wfm_audio  <== MULTI
+    lge                    tier.txt=0  bundled=fsktx            uses: fsktx
+    mcu_temperature        tier.txt=0  bundled=none             uses: -
+    mdc_tx                 tier.txt=0  bundled=afsk             uses: afsk
+    metronome              tier.txt=0  bundled=audio_beep       uses: audio_beep
+    morse_practice         tier.txt=0  bundled=audio_beep       uses: audio_beep
+    morse_radio            tier.txt=0  bundled=morse            uses: morse
+    morseradiotx           tier.txt=0  bundled=morsetx          uses: morsetx
+    noaaapt_rx             tier.txt=0  bundled=noaaapt_rx       uses: noaaapt_rx
+    nrf_rx                 tier.txt=0  bundled=nrf_rx           uses: nrf_rx
+    ook_editor             tier.txt=0  bundled=ook              uses: ook
+    ookbrute               tier.txt=0  bundled=ook              uses: ook
+    p25_tx                 tier.txt=0  bundled=p25_tx           uses: p25_tx
+    playlist_editor        tier.txt=0  bundled=none             uses: -
+    pocsag_tx              tier.txt=0  bundled=fsktx            uses: fsktx
+    protoview              tier.txt=2  bundled=protoview        uses: protoview
+    random_password        tier.txt=0  bundled=afsk_rx          uses: afsk_rx
+    rds_rx                 tier.txt=1  bundled=rds_rx           uses: rds_rx
+    remote                 tier.txt=0  bundled=replay           uses: replay
+    rtty_rx                tier.txt=2  bundled=rttyrx           uses: rttyrx
+    rtty_tx                tier.txt=0  bundled=rttytx           uses: rttytx
+    same_tx                tier.txt=0  bundled=afsk             uses: afsk
+    scanner                tier.txt=0  bundled=am_audio         uses: am_audio, nfm_audio, wfm_audio  <== MULTI
+    sd_wipe                tier.txt=0  bundled=none             uses: -
+    sdusb                  tier.txt=0  bundled=usb_sd           uses: usb_sd
+    secplustx              tier.txt=0  bundled=ook              uses: ook
+    shoppingcart_lock      tier.txt=0  bundled=audio_tx         uses: -
+    siggen                 tier.txt=0  bundled=siggen           uses: siggen
+    signal_hunter          tier.txt=0  bundled=signal_hunter    uses: signal_hunter
+    snake                  tier.txt=0  bundled=(positional)     uses: -
+    soundboard             tier.txt=0  bundled=audio_tx         uses: audio_tx
+    spaceinv               tier.txt=0  bundled=(positional)     uses: -
+    spainter               tier.txt=0  bundled=spectrum_painter uses: spectrum_painter
+    spec_an                tier.txt=1  bundled=spec_an          uses: spec_an
+    sstvrx                 tier.txt=2  bundled=sstv_rx          uses: sstv_rx
+    sstvtx                 tier.txt=0  bundled=sstv_tx          uses: sstv_tx
+    stopwatch              tier.txt=0  bundled=none             uses: -
+    subcarrx               tier.txt=0  bundled=subcar           uses: subcar
+    tetra_rx               tier.txt=2  bundled=tetrarx          uses: tetrarx
+    tetris                 tier.txt=0  bundled=none             uses: -
+    time_sink              tier.txt=0  bundled=time_sink        uses: time_sink
+    tpmsrx                 tier.txt=0  bundled=tpms             uses: tpms
+    tpmstx                 tier.txt=0  bundled=ook              uses: fsktx, ook  <== MULTI
+    tuner                  tier.txt=0  bundled=audio_beep       uses: audio_beep
+    two_tone_pager         tier.txt=0  bundled=tones            uses: tones
+    two_tone_rx            tier.txt=0  bundled=tonedetect       uses: tonedetect
+    vor_rx                 tier.txt=0  bundled=vor_rx           uses: vor_rx
+    vor_tx                 tier.txt=0  bundled=vor_tx           uses: vor_tx
+    wardrivemap            tier.txt=0  bundled=none             uses: -
+    waterfall_designer     tier.txt=0  bundled=capture          uses: capture
+    wav_view               tier.txt=0  bundled=audio_tx         uses: audio_tx
+    wefax_rx               tier.txt=2  bundled=wefaxrx          uses: wefaxrx
+    wmbus_rx               tier.txt=0  bundled=wmbus_rx         uses: wmbus_rx
+
+Internal baseband images that can be made external safely
+(used only by external apps that use no other baseband image):
+    (none)
+
+image tags used in code but with no baseband image in CMake: hackrf
+
+1 warning(s)
+WARNING: test (ext all) is external in build(s) [0, 1, 2] but int:application/apps/ui_test.cpp is internal there
