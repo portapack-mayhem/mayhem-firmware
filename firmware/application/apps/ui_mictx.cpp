@@ -293,7 +293,7 @@ void MicTXView::set_rxbw_defaults(bool use_app_settings) {  // Initially in that
         field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
         field_rxbw.set_by_value(rxbw_index);
     } else if (mic_mod_index == MIC_MOD_NFM) {
-        field_bw.set_value(10);     // NFM TX bw 10k, RX bw 16k (index 2) default
+        field_bw.set_value(10);      // NFM TX bw 10k, RX bw 16k (index 2) default
         field_rxbw.set_by_value(2);  // 16k from the three options (8k5,11k,16k)
     } else if (mic_mod_index == MIC_MOD_WFM) {
         field_bw.set_value(75);  // WFM TX bw 75K, RX bw 200k (index 0) default
