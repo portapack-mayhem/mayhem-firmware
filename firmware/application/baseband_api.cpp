@@ -502,6 +502,7 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
 
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
+    shared_memory.clear_baseband_halted();
 
     rx_fs4_supported = image_tag == spi_flash::image_tag_am_audio ||
                        image_tag == spi_flash::image_tag_nfm_audio ||
@@ -534,6 +535,7 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const sp
 
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
+    shared_memory.clear_baseband_halted();
 
     m4_init_prepared(m4_code, false);
     // Only explicitly identified Capture images support application FS4 control.
@@ -564,13 +566,17 @@ void shutdown() {
     ShutdownMessage message;
     send_message(&message);
 
+    // send_message() only proves the M4's event thread dequeued the message, not
+    // that the M4 stopped running: its baseband DMA IRQ keeps pushing into
+    // application_queue until _default_exit() disables it. Resetting the queue
+    // (or overwriting M4 code RAM in run_image) before then corrupts the FIFO
+    // indices, and the M0 ends up dereferencing pointers read out of the garbage.
+    auto count = 20u;
+    while (!shared_memory.baseband_halted && --count)
+        chThdSleepMilliseconds(1);
+
     shared_memory.application_queue.reset();
-    // Allow time for the shutdown message to be processed and for the baseband
-    // core to stop before starting another image. Otherwise, the M4 may still be
-    // running and cause a crash when the next image is started. A processor whose
-    // destructor joins a worker thread holds the M4 for as long as that thread's
-    // current pass takes, so the wait applies to every target, not only Praline.
-    chThdSleepMilliseconds(20);
+
     baseband_image_running = false;
 }
 
