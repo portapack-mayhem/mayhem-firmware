@@ -17,6 +17,8 @@ If the premise is questionable, say so first and explain why, before commenting 
 
 - The diff must be as small as possible and address a single purpose.
 - Flag unrelated refactors, reformatting, renames, or drive-by fixes (scope creep).
+- Question Python tests or other test code that is not relevant to the change or does not fit the project's existing validation setup.
+- Flag unrelated Markdown, documentation, and other non-code files; include them only when they directly support the change.
 - Flag high-level abstractions or STL wrappers (e.g. `std::function`, `std::string`, `std::vector`, `std::map`, streams, exceptions, heavy templates) where simple code or existing project helpers work.
 - Prefer existing project patterns and helpers over new ones.
 
