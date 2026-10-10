@@ -45,4 +45,3 @@ If the premise is questionable, say so first and explain why, before commenting 
 - Introduces STL-heavy abstractions or dynamic memory without strong justification.
 - Unsafe cross-core/IPC access.
 - Claims of hardware behavior with no verification.
-- Generated, AI-written, or copied code the author clearly does not understand.
