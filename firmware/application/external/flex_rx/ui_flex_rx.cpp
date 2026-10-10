@@ -128,16 +128,25 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
                 status_cz_ = pkt.biw_v2;
                 break;
             case 2: {  // Time
-                uint32_t si = (pkt.biw_v3 * 75) / 10;
-                auto h = to_string_dec_uint(pkt.biw_v1, 2, '0');
-                auto m = to_string_dec_uint(pkt.biw_v2, 2, '0');
-                auto sec = to_string_dec_uint(si, 2, '0');
-                // Store for row 1
+                // BIW TIME encodes the time at Frame 0 of the cycle (standard
+                // mode, ARIB STD-43A §3.7.2).  Add the frame offset and the
+                // extended-seconds trim (from SysInfo) to recover real time.
+                //   coarse second: v3 * 7.5s   = v3 * 15 half-seconds
+                //   frame offset:  frame * 1.875s = frame * 15/4 half-seconds
+                //   ext_sec:       N * 0.9375s  = N * 15/8 half-seconds
+                uint32_t half = pkt.biw_v3 * 15 +
+                                (uint32_t)pkt.frame * 15 / 4 +
+                                (uint32_t)status_extsec_ * 15 / 8;
+                uint32_t total_sec = pkt.biw_v1 * 3600u + pkt.biw_v2 * 60u + half / 2u;
+                total_sec %= 86400u;
+                auto h = to_string_dec_uint(total_sec / 3600u, 2, '0');
+                auto m = to_string_dec_uint((total_sec / 60u) % 60u, 2, '0');
+                auto sec = to_string_dec_uint(total_sec % 60u, 2, '0');
                 auto ts = h + ":" + m + ":" + sec;
                 memcpy(status_time_, ts.c_str(), ts.size() + 1);
                 break;
             }
-            case 5: {  // SysInfo (timezone)
+            case 5: {  // SysInfo (timezone + ext_sec)
                 if (pkt.biw_v1 == 4 || pkt.biw_v1 == 5) {
                     uint16_t zone = pkt.biw_v2 & 0x1F;
                     int ofs = (zone < 32) ? flex_tz_table[zone] : 0;
@@ -147,6 +156,10 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
                                to_string_dec_int(hrs);
                     if (mins != 0)
                         tzs += ":" + to_string_dec_int(mins, 2, '0');
+                    // I7-I9: extended seconds (0.9375s steps per step)
+                    status_extsec_ = (pkt.biw_v2 >> 7) & 0x07;
+                    if (status_extsec_)
+                        tzs += " es=" + to_string_dec_uint(status_extsec_);
                     memcpy(status_tz_, tzs.c_str(), tzs.size() + 1);
                 }
                 break;
