@@ -241,6 +241,13 @@ void controls_init() {
         switch_debounce[toUType(i)].enable_repeat();
 }
 
+SwitchesState get_switches_pressed() {
+    SwitchesState result;
+    for (size_t i = 0; i < result.size(); i++)
+        result[i] = switch_debounce[i].pressed();
+    return result;
+}
+
 // Note: Called by event handler or apps, not in ISR, so some presses might be missed during high CPU utilization
 SwitchesState get_switches_state() {
     SwitchesState result;
