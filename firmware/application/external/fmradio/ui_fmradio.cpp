@@ -124,6 +124,7 @@ void FmRadioView::change_mode(int32_t mod) {
         default:
             break;
     }
+    radio_bw = field_bw.selected_index();  // keep in sync with the default selected above
 
     receiver_model.set_modulation(receiver_mode);
 
@@ -237,6 +238,7 @@ void FmRadioView::on_btn_clicked(uint8_t i) {
     field_frequency.set_value(freq_fav_list[i].frequency);
     field_modulation.set_by_value(freq_fav_list[i].modulation);
     change_mode(freq_fav_list[i].modulation);
+    field_bw.set_selected_index(freq_fav_list[i].bandwidth);  // restore saved bandwidth, triggers on_change
 }
 
 std::string FmRadioView::to_nice_freq(rf::Frequency freq) {
