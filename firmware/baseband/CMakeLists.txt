@@ -771,6 +771,14 @@ set(MODE_CPPSRC
 DeclareTargets(PRTR rtty_rx)
 
 
+### Seewetter (DWD RTTY) RX
+
+set(MODE_CPPSRC
+    proc_seewetter.cpp
+)
+DeclareTargets(PSWR seewetter)
+
+
 
 ### ERT
 
