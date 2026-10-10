@@ -24,9 +24,7 @@
 
 #include "dsp_types.hpp"
 #include "dsp_hilbert.hpp"
-#include "dsp_interpolate_x8.hpp"
-#include "dsp_interpolate_x2.hpp"
-#include "dsp_am_interpolate.hpp"
+#include "dsp_mic_filters.hpp"
 #include "tone_gen.hpp"
 #include "baseband_processor.hpp"
 

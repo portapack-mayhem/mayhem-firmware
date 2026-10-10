@@ -20,8 +20,6 @@
  */
 
 #include "dsp_modulate.hpp"
-#include "dsp_am_output.hpp"
-#include "dsp_ssb_clamp.hpp"
 #include "sine_table_int8.hpp"
 #include "portapack_shared_memory.hpp"
 #include "tonesets.hpp"
@@ -29,6 +27,25 @@
 #include <cmath>
 
 namespace dsp {
+
+namespace am {
+// Full-rate beep safety only: deliberately no observer/counter access.
+inline int8_t beep_output(float modulation, bool carrier) {
+    const float scalar = modulation + (carrier ? 63.0f : 0.0f);
+    // Finite carrier addition cannot turn a nonfinite modulation into a finite
+    // scalar, so one final finite check covers both values.
+    if (!std::isfinite(scalar)) return 0;
+    if (scalar > 127.0f) return 127;
+    if (scalar < -128.0f) return -128;
+    return static_cast<int8_t>(scalar);
+}
+
+// Microphone uses the same endpoint/nonfinite protection as the full-rate beep.
+inline int8_t output(float modulation, bool carrier) {
+    return beep_output(modulation, carrier);
+}
+}  // namespace am
+
 namespace modulate {
 
 Modulator::~Modulator() {
@@ -97,6 +114,21 @@ void SSB::set_fs_div_factor(float new_bw_ssb) {
             fs_div_factor = 128;  // TXBW_ssb = 3khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (6khz=fs/2) ==> (12k=fs) Hilbert_fs = 1.536.000/12000= 128
             break;
     }
+}
+
+// Called once per reconstructed component, before the existing C8 conversion.
+inline float ssb_clamp(float raw, float scaled) {
+    if (!std::isfinite(raw) || !std::isfinite(scaled)) {
+        return 0.0f;  // Separate nonfinite fallback, not a finite endpoint clamp.
+    }
+
+    if (scaled > 127.0f) {
+        return 127.0f;
+    }
+    if (scaled < -128.0f) {
+        return -128.0f;
+    }
+    return scaled;
 }
 
 void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider) {
