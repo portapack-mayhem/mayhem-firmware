@@ -21,24 +21,54 @@
 # https://standards-oui.ieee.org/oui/oui.txt as a source.
 # -------------------------------------------------------------------------------------
 
+import argparse
+import os
+import ssl
+import sys
+import tempfile
+import time
 import urllib.request
 import unicodedata
 import re
 from typing import List, Tuple
 
+OUI_URL = "https://standards-oui.ieee.org/oui/oui.txt"
 
-def download_oui_file() -> str:
-    """Download the OUI file from IEEE"""
-    url = "https://standards-oui.ieee.org/oui/oui.txt"
-    print(f"Downloading OUI database from {url}...")
-    try:
-        with urllib.request.urlopen(url) as response:
-            content = response.read().decode("utf-8")
-        print("Download completed successfully.")
-        return content
-    except Exception as e:
-        print(f"Error downloading OUI file: {e}")
-        raise
+# IEEE limits oui.txt downloads to one per day, so keep a cached copy around
+CACHE_FILE = os.path.join(tempfile.gettempdir(), "mayhem_oui.txt")
+CACHE_MAX_AGE = 24 * 60 * 60
+
+# IEEE answers the default "Python-urllib" User-Agent with HTTP 418
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+    "Accept": "text/plain,*/*;q=0.9",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+def download_oui_file(force: bool = False) -> str:
+    """Download the OUI file from IEEE, reusing a cached copy younger than 24h"""
+    if (
+        not force
+        and os.path.exists(CACHE_FILE)
+        and time.time() - os.path.getmtime(CACHE_FILE) < CACHE_MAX_AGE
+    ):
+        print(f"Using cached OUI database {CACHE_FILE} (use --force to re-download).")
+        with open(CACHE_FILE, encoding="utf-8") as f:
+            return f.read()
+
+    print(f"Downloading OUI database from {OUI_URL}...")
+    req = urllib.request.Request(OUI_URL, headers=HEADERS)
+    ctx = ssl.create_default_context()
+    with urllib.request.urlopen(req, context=ctx, timeout=60) as response:
+        content = response.read().decode("utf-8", errors="replace")
+    print("Download completed successfully.")
+
+    # Only cache something that looks like the real file, not a block page
+    if "(hex)" in content:
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            f.write(content)
+    return content
 
 
 def parse_oui_data(content: str) -> List[Tuple[str, str]]:
@@ -62,10 +92,11 @@ def parse_oui_data(content: str) -> List[Tuple[str, str]]:
                 vendor_name = match.group(2).strip()
 
                 # Normalize vendor name and limit to 63 characters
+                # (normalize first: one unicode char can expand to several ascii bytes)
                 vendor_name = (
-                    unicodedata.normalize("NFKD", vendor_name[:63])
+                    unicodedata.normalize("NFKD", vendor_name)
                     .encode("ascii", "ignore")
-                    .decode("ascii")
+                    .decode("ascii")[:63]
                 )
 
                 if mac_prefix and vendor_name:
@@ -109,17 +140,26 @@ def create_database(
 
 def main():
     """Main function to create the MAC address database."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="re-download oui.txt even if a cached copy younger than 24h exists",
+    )
+    args = parser.parse_args()
+
     try:
-        oui_content = download_oui_file()
+        oui_content = download_oui_file(args.force)
         entries = parse_oui_data(oui_content)
 
         if not entries:
             print("No valid entries found in OUI file!")
-            return
+            return 1
 
         create_database(entries)
 
         print("MAC address database creation completed successfully!")
+        return 0
 
     except Exception as e:
         print(f"Error creating MAC address database: {e}")
@@ -127,4 +167,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())
