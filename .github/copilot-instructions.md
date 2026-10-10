@@ -19,6 +19,7 @@ If the premise is questionable, say so first and explain why, before commenting 
 - Flag unrelated refactors, reformatting, renames, or drive-by fixes (scope creep).
 - Question Python tests or other test code that is not relevant to the change or does not fit the project's existing validation setup.
 - Flag unrelated Markdown, documentation, and other non-code files; include them only when they directly support the change.
+- Flag new `std::` facilities that are not already established in the project or relevant code area; do not object to existing usage, including `std::string`, solely because it is from the standard library.
 - Prefer existing project patterns and helpers over new ones.
 
 ## 3. Hardware constraints
