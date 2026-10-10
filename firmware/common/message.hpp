@@ -180,6 +180,9 @@ class Message {
         SpecAnCaptured = 121,
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
+        DECTRxConfigure = 124,
+        DECTPartInfo = 125,
+        DECTStatus = 126,
         MAX
     };
 
@@ -2257,5 +2260,61 @@ struct WMBusPacketMessage : public Message {
 
     uint16_t length = 0;
     uint8_t data[500] = {0};
+};
+
+/* DECT RX ---------------------------------------------------------------- */
+
+/* M0 -> M4: configure / reset the DECT decoder. */
+class DECTRxConfigureMessage : public Message {
+   public:
+    constexpr DECTRxConfigureMessage(
+        uint8_t band,
+        uint32_t frequency)
+        : Message{ID::DECTRxConfigure},
+          band{band},
+          frequency{frequency} {
+    }
+
+    uint8_t band;
+    uint32_t frequency;
+};
+
+struct DECTPartInfo {
+    int32_t rx_id;
+    int32_t type;
+    uint8_t part_id[5];
+    uint8_t voice_present;
+    uint8_t part_id_valid;
+    uint8_t qt_synced;
+    uint8_t slot;
+};
+
+/* M4 -> M0: snapshot of decoded DECT parts. */
+class DECTPartInfoMessage : public Message {
+   public:
+    constexpr DECTPartInfoMessage()
+        : Message{ID::DECTPartInfo} {
+    }
+
+    DECTPartInfo parts[8] = {};
+    uint8_t count = 0;
+};
+
+/* M4 -> M0: periodic receiver status. */
+class DECTStatusMessage : public Message {
+   public:
+    constexpr DECTStatusMessage(
+        bool configured,
+        uint8_t parts,
+        uint8_t voice_parts)
+        : Message{ID::DECTStatus},
+          configured{configured},
+          parts{parts},
+          voice_parts{voice_parts} {
+    }
+
+    bool configured;
+    uint8_t parts;
+    uint8_t voice_parts;
 };
 #endif /*__MESSAGE_H__*/

@@ -384,6 +384,13 @@ void set_flex_config() {
     send_message(&message);
 }
 
+void set_dect_config(uint8_t band, uint32_t frequency) {
+    const DECTRxConfigureMessage message{
+        band,
+        frequency};
+    send_message(&message);
+}
+
 void set_siggen_tone(const uint32_t tone) {
     const SigGenToneMessage message{
         TONES_F2D(tone, TONES_SAMPLERATE)};

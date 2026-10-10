@@ -429,6 +429,10 @@ set(EXTCPPSRC
 	#wmbus
 	external/wmbus_rx/main.cpp
 	external/wmbus_rx/ui_wmbus_rx.cpp
+
+	#dect
+	external/dect_rx/main.cpp
+	external/dect_rx/ui_dect_rx.cpp
 )
 
 set(EXTAPPLIST
@@ -533,5 +537,6 @@ set(EXTAPPLIST
 	sdusb
   	rds_rx
 	wmbus_rx
+	dect_rx
 )
 
