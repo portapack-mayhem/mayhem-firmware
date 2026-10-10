@@ -2,16 +2,12 @@
 
 These instructions define how to review pull requests for the PortaPack Mayhem firmware (an embedded, resource-constrained, dual-core ARM Cortex-M0/M4 project). They complement `AGENT.md`.
 
-## 1. Verify intent and validity first
+## 1. Understand the stated goal
 
 Before reviewing any code, answer these questions from the PR title, description and diff:
 
 - What does the PR claim to add or fix?
-- Does the feature make sense for this firmware and its users?
-- Is the problem real? Could it be a user misunderstanding, a misconfiguration, or expected behavior? Is the change actually invalid or unnecessary?
-- Does the change really solve the stated problem, or does it only hide a symptom?
-
-If the premise is questionable, say so first and explain why, before commenting on code details. Do not polish code whose purpose is invalid.
+- Does the diff address that stated goal? Identify concrete gaps between the claim and implementation.
 
 ## 2. Minimal, focused changes
 
