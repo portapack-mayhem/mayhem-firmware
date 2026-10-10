@@ -41,10 +41,11 @@ class FlexAppView : public View {
 
     // Status bar state (updated from BIW packets)
     char status_time_[12]{};  // "HH:MM:SS"
-    char status_tz_[12]{};    // "UTC+N"
+    char status_tz_[16]{};    // "UTC+HH:MM es=N" (worst case 14 chars + null)
     uint16_t status_lid_{0};
     uint16_t status_cz_{0};
     uint16_t status_cc_{0};
+    uint8_t status_extsec_{0};  // SysInfo extended-seconds (I7-I9, 0-7, 0.9375s each)
 
     // Helper methods
     void log_message(const std::string& message);
