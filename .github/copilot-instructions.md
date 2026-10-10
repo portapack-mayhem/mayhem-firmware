@@ -19,7 +19,6 @@ If the premise is questionable, say so first and explain why, before commenting 
 - Flag unrelated refactors, reformatting, renames, or drive-by fixes (scope creep).
 - Question Python tests or other test code that is not relevant to the change or does not fit the project's existing validation setup.
 - Flag unrelated Markdown, documentation, and other non-code files; include them only when they directly support the change.
-- Flag high-level abstractions or STL wrappers (e.g. `std::function`, `std::string`, `std::vector`, `std::map`, streams, exceptions, heavy templates) where simple code or existing project helpers work.
 - Prefer existing project patterns and helpers over new ones.
 
 ## 3. Hardware constraints
@@ -44,6 +43,6 @@ If the premise is questionable, say so first and explain why, before commenting 
 
 - The problem is not real, or the change rests on a misunderstanding.
 - Large diffs for small problems; unrelated changes mixed in.
-- Introduces STL-heavy abstractions or dynamic memory without strong justification.
+- Introduces dynamic memory without strong justification.
 - Unsafe cross-core/IPC access.
 - Claims of hardware behavior with no verification.
