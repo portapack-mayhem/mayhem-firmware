@@ -57,9 +57,12 @@ constexpr BinLayout kDefaultLayout = BinLayout::Upper;
 
 constexpr uint64_t kMaxSweepFreq = 7'250'000'000ULL;
 
-/* Where power() puts 0, for a 256 point FFT. To be checked against the noise
- * floor on hardware. */
-constexpr int32_t kPowerFloorCdb = -7000;
+/* Where power() puts 0. Chosen so the noise of a 256 point FFT lands where
+ * the classic spectrum (Looking Glass, RES 32) put it: classic noise reads
+ * 255 + 5 * 10 log10(256 * 66 * 0.397 * s2 / 2^30) = -5 + 50 log10(s2), this
+ * one 50 log10(s2) - 315.75 - floor / 20 (Blackman-Harris ENBW 2 bins, full
+ * scale tone 127), s2 being the noise power of the int8 samples. */
+constexpr int32_t kPowerFloorCdb = -6200;
 
 class Sweep {
    public:
@@ -125,9 +128,9 @@ class Sweep {
     /* The M4's waterfall history (PSAN only), nullptr if it has none. */
     uint8_t* waterfall() const { return shared_.waterfall; }
     /* A display point (centi-dBFS, 0 = full scale tone) on the 0..255 scale
-     * of the classic spectrum, 5 units per dB. The noise in a bin drops by
-     * 3 dB each time the FFT doubles; that is added back so the noise floor,
-     * and the levels compared against it, do not move with the resolution. */
+     * of the classic spectrum, 5 units per dB. As on any spectrum analyzer a
+     * tone keeps its level whatever the resolution, and the noise floor drops
+     * as the bins get narrower. */
     uint8_t power(int16_t cdb) const;
 
    private:
