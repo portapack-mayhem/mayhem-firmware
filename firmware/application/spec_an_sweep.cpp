@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 zxkmm
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
