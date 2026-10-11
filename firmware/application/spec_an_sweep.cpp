@@ -104,6 +104,16 @@ void Sweep::start(const Params& params) {
     params_.span = std::max<uint64_t>(params_.span, 1);
     compute_plan();
 
+    /* The Upper layout tunes below the range. Near 0 Hz the tuner cannot
+     * follow, so start the points where the first tune can be honoured. A
+     * narrower span never needs a higher rate, so one replan settles it. */
+    const int64_t lo = raw_slice_lo(0);
+    if (lo < 0 && static_cast<uint64_t>(-lo) < params_.span) {
+        params_.start += static_cast<uint64_t>(-lo);
+        params_.span -= static_cast<uint64_t>(-lo);
+        compute_plan();
+    }
+
     if (plan_.fs != cur_fs_) {
         receiver_model.set_sampling_rate(plan_.fs);
         cur_fs_ = plan_.fs;
@@ -143,10 +153,13 @@ uint64_t Sweep::point_freq(uint32_t x) const {
     return params_.start + static_cast<uint64_t>(x) * params_.span / (params_.points - 1);
 }
 
-int64_t Sweep::slice_lo(uint16_t slice) const {
+int64_t Sweep::raw_slice_lo(uint16_t slice) const {
     const int64_t bins = static_cast<int64_t>(slice) * plan_.bins_per_slice - plan_.bin_first;
-    const int64_t lo = plan_.f_bin0 + ((bins * plan_.fs) >> plan_.log2n);
-    return std::clamp<int64_t>(lo, 0, kMaxSweepFreq);
+    return plan_.f_bin0 + ((bins * plan_.fs) >> plan_.log2n);
+}
+
+int64_t Sweep::slice_lo(uint16_t slice) const {
+    return std::clamp<int64_t>(raw_slice_lo(slice), 0, kMaxSweepFreq);
 }
 
 void Sweep::issue(uint16_t slice, bool retune) {

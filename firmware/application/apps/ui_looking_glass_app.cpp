@@ -78,8 +78,8 @@ void GlassView::manage_beep_audio() {
 }
 
 rf::Frequency GlassView::get_freq_from_bin_pos(uint16_t pos) {
-    // Display points sit at f_min + pos * range / (points - 1), as in the sweep plan.
-    return f_min + (static_cast<uint64_t>(pos) * looking_glass_range) / (points - 1);
+    // The sweep may start a little above f_min near 0 Hz, ask it.
+    return sweep.point_freq(pos);
 }
 
 void GlassView::on_marker_change(int8_t delta) {
@@ -96,6 +96,9 @@ void GlassView::on_marker_change(int8_t delta) {
 }
 
 void GlassView::start_sweep() {
+    if (!sweep_enabled)
+        return;  // the constructor is still setting up the fields
+
     spec_an::Sweep::Params params{};
     params.start = f_min;
     params.span = looking_glass_range;
@@ -110,6 +113,11 @@ void GlassView::start_sweep() {
     sweep.start(params);
     if (paused)
         sweep.stop();
+
+    // Power is normalised to a full scale tone, so the noise in a bin drops by
+    // 3 dB each time the FFT doubles. Add that back to keep the noise floor,
+    // and so the filter and the beep levels, the same in F and S modes.
+    power_offset_cdb = (sweep.plan().log2n - 8) * 301;
 }
 
 void GlassView::reset_live_view() {
@@ -123,12 +131,13 @@ void GlassView::reset_live_view() {
 }
 
 // Display points come in centi-dBFS (0 = full scale tone). The gradient, the
-// filter and the beep work on a 0..255 power scale: 255 at full scale, 0 at
-// kPowerFloorCdb.
+// filter and the beep work on a 0..255 power scale at 5 units per dB, as the
+// classic spectrum did: 0 at kPowerFloorCdb for a 256 point FFT, 255 51 dB
+// above. To be checked against the noise floor on hardware.
 static constexpr int32_t kPowerFloorCdb = -7000;
 
-static uint8_t cdb_to_power(int16_t cdb) {
-    const int32_t v = ((static_cast<int32_t>(cdb) - kPowerFloorCdb) * 255) / -kPowerFloorCdb;
+uint8_t GlassView::cdb_to_power(int16_t cdb) const {
+    const int32_t v = (static_cast<int32_t>(cdb) + power_offset_cdb - kPowerFloorCdb) / 20;
     return static_cast<uint8_t>(std::clamp<int32_t>(v, 0, 255));
 }
 
@@ -248,11 +257,11 @@ void GlassView::on_range_changed() {
     looking_glass_range = f_max - f_min;
     search_span = looking_glass_range / MHZ_DIV;
 
-    on_marker_change(0);
-    update_range_field();
-
     receiver_model.set_squelch_level(0);
     start_sweep();  // sets the sample rate and bandwidth for the range
+
+    on_marker_change(0);  // after start_sweep: the marker frequency comes from the sweep
+    update_range_field();
 }
 
 void GlassView::plot_marker(uint16_t pos) {
@@ -532,6 +541,7 @@ GlassView::GlassView(
 
     // trigger: number of FFTs power-averaged per tune is trigger / 8 (at least 1).
     marker_pixel_index = points / 2;
+    sweep_enabled = true;
     on_range_changed();  // Force a UI update, starts the sweep.
 
     button_beep_squelch.on_select = [this](ButtonWithEncoder& button) {
@@ -557,13 +567,14 @@ GlassView::GlassView(
 }
 
 void GlassView::on_freqchg(int64_t freq) {
-    int64_t half_range = abs(field_frequency_max.value() - field_frequency_max.value()) / 2;
+    int64_t half_range = abs(field_frequency_max.value() - field_frequency_min.value()) / 2;
     if (half_range < 1) {
         half_range = 1;
     }
-    range_presets.set_selected_index(0);  // Manual
-    update_min(freq - half_range);
-    update_max(freq + half_range);
+    const int64_t center = freq / MHZ_DIV;  // freq is in Hz, the fields in MHz
+    range_presets.set_selected_index(0);    // Manual
+    update_min(std::max<int64_t>(center - half_range, 0));
+    update_max(center + half_range);
     on_range_changed();
 }
 

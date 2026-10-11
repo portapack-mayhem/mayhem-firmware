@@ -85,7 +85,8 @@ class Sweep {
     };
 
     /* Plans for `params`, sets the sample rate and filter, configures the M4
-     * and starts a new sweep. */
+     * and starts a new sweep. The start may move up a little near 0 Hz:
+     * params() and point_freq() give the points actually swept. */
     void start(const Params& params);
     /* Stops issuing requests; resume() starts a fresh sweep. */
     void stop() { sweeping_ = false; }
@@ -123,6 +124,7 @@ class Sweep {
     uint32_t last_reply_{UINT32_MAX}; /* (sweep << 16) | slice of the last reply taken */
 
     void compute_plan();
+    int64_t raw_slice_lo(uint16_t slice) const;
     int64_t slice_lo(uint16_t slice) const;
     void issue(uint16_t slice, bool retune);
 };

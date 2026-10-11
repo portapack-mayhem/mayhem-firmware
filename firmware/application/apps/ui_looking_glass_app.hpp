@@ -111,6 +111,7 @@ class GlassView : public View {
     rf::Frequency get_freq_from_bin_pos(uint16_t pos);
     void on_marker_change(int8_t delta);
     void start_sweep();
+    uint8_t cdb_to_power(int16_t cdb) const;
     void on_slice(const SpecAnSliceMessage& message);
     void on_frame_sync();
     void draw_line();
@@ -138,6 +139,8 @@ class GlassView : public View {
     std::vector<uint8_t> line_max{};   // max hold of the sweeps completed since the last drawn line
     bool line_ready{false};            // line_max holds at least one whole sweep
     systime_t last_beep{0};
+    int32_t power_offset_cdb{0};  // brings the noise floor back to that of a 256 point FFT
+    bool sweep_enabled{false};    // set once the constructor has set up the fields
 
     std::vector<Color> spectrum_row{};
     std::vector<uint8_t> spectrum_data{};
