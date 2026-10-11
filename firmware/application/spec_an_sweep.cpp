@@ -153,6 +153,11 @@ uint64_t Sweep::point_freq(uint32_t x) const {
     return params_.start + static_cast<uint64_t>(x) * params_.span / (params_.points - 1);
 }
 
+uint8_t Sweep::power(int16_t cdb) const {
+    const int32_t v = (static_cast<int32_t>(cdb) + (plan_.log2n - 8) * 301 - kPowerFloorCdb) / 20;
+    return static_cast<uint8_t>(std::clamp<int32_t>(v, 0, 255));
+}
+
 int64_t Sweep::raw_slice_lo(uint16_t slice) const {
     const int64_t bins = static_cast<int64_t>(slice) * plan_.bins_per_slice - plan_.bin_first;
     return plan_.f_bin0 + ((bins * plan_.fs) >> plan_.log2n);

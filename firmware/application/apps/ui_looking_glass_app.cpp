@@ -113,11 +113,6 @@ void GlassView::start_sweep() {
     sweep.start(params);
     if (paused)
         sweep.stop();
-
-    // Power is normalised to a full scale tone, so the noise in a bin drops by
-    // 3 dB each time the FFT doubles. Add that back to keep the noise floor,
-    // and so the filter and the beep levels, the same in F and S modes.
-    power_offset_cdb = (sweep.plan().log2n - 8) * 301;
 }
 
 void GlassView::reset_live_view() {
@@ -130,17 +125,6 @@ void GlassView::reset_live_view() {
         display.fill_rectangle({{0, spectrum_y}, {screen_width, spectrum_height}}, {0, 0, 0});
 }
 
-// Display points come in centi-dBFS (0 = full scale tone). The gradient, the
-// filter and the beep work on a 0..255 power scale at 5 units per dB, as the
-// classic spectrum did: 0 at kPowerFloorCdb for a 256 point FFT, 255 51 dB
-// above. To be checked against the noise floor on hardware.
-static constexpr int32_t kPowerFloorCdb = -7000;
-
-uint8_t GlassView::cdb_to_power(int16_t cdb) const {
-    const int32_t v = (static_cast<int32_t>(cdb) + power_offset_cdb - kPowerFloorCdb) / 20;
-    return static_cast<uint8_t>(std::clamp<int32_t>(v, 0, 255));
-}
-
 void GlassView::on_slice(const SpecAnSliceMessage& message) {
     if (!sweep.sweeping()) return;  // late reply after a pause or hide
     const int16_t* const src = sweep.accept(message);
@@ -148,7 +132,7 @@ void GlassView::on_slice(const SpecAnSliceMessage& message) {
 
     const uint16_t end = std::min<uint16_t>(message.px_end, points);
     for (uint16_t x = message.px_begin; x < end; x++) {
-        const uint8_t power = cdb_to_power(src[x]);
+        const uint8_t power = sweep.power(src[x]);  // same scale as the classic spectrum
         if (power > sweep_max[x])
             sweep_max[x] = power;
         if (power > range_max_power)

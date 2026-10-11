@@ -56,6 +56,10 @@ constexpr BinLayout kDefaultLayout = BinLayout::Upper;
 
 constexpr uint64_t kMaxSweepFreq = 7'250'000'000ULL;
 
+/* Where power() puts 0, for a 256 point FFT. To be checked against the noise
+ * floor on hardware. */
+constexpr int32_t kPowerFloorCdb = -7000;
+
 class Sweep {
    public:
     struct Params {
@@ -108,6 +112,11 @@ class Sweep {
     const Params& params() const { return params_; }
     const Plan& plan() const { return plan_; }
     uint64_t point_freq(uint32_t x) const;
+    /* A display point (centi-dBFS, 0 = full scale tone) on the 0..255 scale
+     * of the classic spectrum, 5 units per dB. The noise in a bin drops by
+     * 3 dB each time the FFT doubles; that is added back so the noise floor,
+     * and the levels compared against it, do not move with the resolution. */
+    uint8_t power(int16_t cdb) const;
 
    private:
     Params params_{};
