@@ -41,6 +41,10 @@ constexpr uint32_t kSampleRates[] = {2'500'000, 5'000'000, 10'000'000, 20'000'00
 /* A request or reply lost on the way would stall the sweep. */
 constexpr systime_t kReissueTicks = 250;
 
+/* Shared by every Sweep, so a generation is not reused within a boot: replies
+ * still queued when an app closes cannot pass for the next app's. */
+uint16_t last_gen = 0;
+
 inline void compiler_barrier() {
     __asm__ volatile("" ::: "memory");
 }
@@ -123,7 +127,7 @@ void Sweep::start(const Params& params) {
         cur_filter_ = plan_.filter_bw;
     }
 
-    gen_++;
+    gen_ = ++last_gen;
     const SpecAnConfigMessage message{
         &shared_,
         plan_.fs,
