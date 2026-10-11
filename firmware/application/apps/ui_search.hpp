@@ -147,6 +147,7 @@ class SearchView : public View {
 
     static constexpr uint16_t points = 240;              // spectrum line width
     static constexpr uint16_t kAverage = 4;              // FFTs power-averaged per tune
+    static constexpr uint8_t kRbwIdx = 4;                // 2048 point FFT: ~10 kHz bins at 20 MHz, as the classic Search
     static constexpr uint32_t kResolvedSpacing = 2'500;  // Hz between points once resolved
     static constexpr uint32_t kZoomMinSpan = 240'000;    // narrowest zoom, room for some drift
     static constexpr uint8_t kZoomPoints = 6;            // zoom span, in points of the span before
@@ -169,7 +170,7 @@ class SearchView : public View {
     uint8_t release_timer = 0;
     uint8_t timing_div = 0;
     uint8_t overall_power_max{0};
-    uint32_t mean_power = 0;
+    uint32_t noise_power = 0;  // the range's noise floor, lower quartile of the points
     uint32_t duration = 0;
 
     rf::Frequency resolved_frequency = 0;
@@ -199,7 +200,7 @@ class SearchView : public View {
         {{UI_POS_X(1), UI_POS_Y(0)}, "Min:      Max:       ", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(7), UI_POS_Y(0)}, "LNA VGA", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(1), UI_POS_Y(2)}, "Trig:   /255", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X_RIGHT(12), UI_POS_Y(2)}, "Mean:   /255", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(13), UI_POS_Y(2)}, "Noise:   /255", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(1), UI_POS_Y(3)}, "Slices:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(10), UI_POS_Y(3)}, "Rate:   Hz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(6), UI_POS_Y(5)}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
@@ -228,7 +229,7 @@ class SearchView : public View {
         {5, 255},
         5,
         ' '};
-    Text text_mean{
+    Text text_noise{
         {UI_POS_X_RIGHT(7), UI_POS_Y(2), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
     Text text_slices{

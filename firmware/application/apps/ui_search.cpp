@@ -31,6 +31,7 @@
 #include "radio.hpp"
 
 #include <algorithm>
+#include <array>
 
 using namespace portapack;
 namespace pmem = portapack::persistent_memory;
@@ -84,7 +85,7 @@ SearchView::SearchView(
                   &field_lna,
                   &field_vga,
                   &field_threshold,
-                  &text_mean,
+                  &text_noise,
                   &text_slices,
                   &text_rate,
                   &text_infos,
@@ -101,7 +102,7 @@ SearchView::SearchView(
         nav.push<FrequencySaveView>(entry.frequency);
     };
 
-    text_mean.set_style(Theme::getInstance()->fg_medium);
+    text_noise.set_style(Theme::getInstance()->fg_medium);
     text_slices.set_style(Theme::getInstance()->fg_medium);
     text_rate.set_style(Theme::getInstance()->fg_medium);
     progress_timers.set_style(Theme::getInstance()->fg_medium);
@@ -170,6 +171,9 @@ void SearchView::start_sweep(rf::Frequency start, rf::Frequency span) {
     params.span = span;
     params.points = points;
     params.avg = kAverage;
+    // Narrow bins as the classic Search: the noise in a bin grows with its
+    // width, a narrowband signal does not.
+    params.rbw_idx = kRbwIdx;
 
     std::fill(sweep_power.begin(), sweep_power.end(), 0);
     std::fill(hold_power.begin(), hold_power.end(), 0);
@@ -286,20 +290,29 @@ void SearchView::on_slice(const SpecAnSliceMessage& message) {
 }
 
 void SearchView::evaluate() {
-    uint32_t sum = 0;
+    std::array<uint8_t, 256> histogram{};  // points per power level
     uint8_t power_max = 0;
     uint16_t index_max = 0;
 
     for (uint16_t x = 0; x < points; x++) {
         const uint8_t power = hold_power[x];
-        sum += power;
+        histogram[power]++;
         if (power > power_max) {
             power_max = power;
             index_max = x;
         }
     }
-    const uint32_t mean = sum / points;
-    const bool over = power_max >= mean + settings_.power_threshold;
+
+    // The noise floor is the lower quartile of the points, not their mean: in
+    // a busy band (FM broadcast) the signals would raise the mean above the
+    // noise they have to stand out from.
+    uint32_t noise = 0;
+    for (uint16_t below = 0; noise < 255; noise++) {
+        below += histogram[noise];
+        if (below > points / 4)
+            break;
+    }
+    const bool over = power_max >= noise + settings_.power_threshold;
     const int16_t index = over ? index_max : -1;
 
     if (stage != Stage::Resolve) {
@@ -308,7 +321,7 @@ void SearchView::evaluate() {
             spectrum_row[x] = gradient.lut[hold_power[x]];
         row_tick = index;
         row_ready = true;
-        mean_power = mean;
+        noise_power = noise;
         overall_power_max = power_max;
     }
 
@@ -381,10 +394,10 @@ void SearchView::do_timers() {
         // ~5Hz
 
         // Update power levels
-        text_mean.set(to_string_dec_uint(mean_power, 3));
+        text_noise.set(to_string_dec_uint(noise_power, 3));
 
         vu_max.set_value(overall_power_max);
-        vu_max.set_mark(mean_power + settings_.power_threshold);
+        vu_max.set_mark(noise_power + settings_.power_threshold);
     }
 
     if (timing_div % 6 == 0) {
