@@ -42,6 +42,16 @@ constexpr uint32_t kSampleRates[] = {2'500'000, 5'000'000, 10'000'000, 20'000'00
 /* A request or reply lost on the way would stall the sweep. */
 constexpr systime_t kReissueTicks = 250;
 
+/* The M0 handles the M4's replies until its queue is empty, before anything
+ * else: input, frame sync, drawing. Unpaced, each reply asks for the next
+ * capture at once, so the replies keep coming and the UI lags (each retune
+ * costs the M0 time) or freezes outright (a single tune range repeats the
+ * same capture every DMA buffer and the queue never empties). So a sweep
+ * may only issue requests during the first part of each display frame, and
+ * the next sweep starts on the next frame: no display uses more than one
+ * sweep per frame anyway. */
+constexpr systime_t kFrameBudgetTicks = 8;
+
 /* Shared by every Sweep, so a generation is not reused within a boot: replies
  * still queued when an app closes cannot pass for the next app's. */
 uint16_t last_gen = 0;
@@ -151,6 +161,7 @@ void Sweep::resume() {
     sweep_++;
     slice_ = 0;
     sweeping_ = true;
+    frame_at_ = chTimeNow();
     issue(0, true);
 }
 
@@ -172,7 +183,20 @@ int64_t Sweep::slice_lo(uint16_t slice) const {
     return std::clamp<int64_t>(raw_slice_lo(slice), 0, kMaxSweepFreq);
 }
 
+void Sweep::request(uint16_t slice, bool retune) {
+    if (chTimeNow() - frame_at_ < kFrameBudgetTicks)
+        issue(slice, retune);
+    else
+        defer(retune);
+}
+
+void Sweep::defer(bool retune) {
+    deferred_ = true;
+    deferred_retune_ = retune;
+}
+
 void Sweep::issue(uint16_t slice, bool retune) {
+    deferred_ = false;
     if (retune) radio::set_tuning_frequency(slice_lo(slice));
     shared_.req_slice = slice;
     shared_.req_sweep = sweep_;
@@ -188,11 +212,11 @@ void Sweep::on_captured(const SpecAnCapturedMessage& message) {
     /* The M4 has its samples: retune now, it FFTs while we do. */
     if (slice_ + 1u < plan_.slices) {
         slice_++;
-        issue(slice_, true);
+        request(slice_, true);
     } else if (params_.continuous) {
         sweep_++;
         slice_ = 0;
-        issue(0, plan_.slices > 1);
+        defer(plan_.slices > 1);  // the next sweep starts on the next frame
     } else {
         sweeping_ = false;
     }
@@ -210,8 +234,14 @@ const int16_t* Sweep::accept(const SpecAnSliceMessage& message) {
     return shared_.pix[message.sweep & 1];
 }
 
-void Sweep::watchdog() {
-    if (sweeping_ && chTimeNow() - issued_at_ > kReissueTicks) issue(slice_, true);
+void Sweep::on_frame() {
+    frame_at_ = chTimeNow();
+    if (!sweeping_) return;
+
+    if (deferred_)
+        issue(slice_, deferred_retune_);
+    else if (frame_at_ - issued_at_ > kReissueTicks)
+        issue(slice_, true);
 }
 
 } /* namespace spec_an */

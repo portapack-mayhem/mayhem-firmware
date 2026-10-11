@@ -282,7 +282,7 @@ class SearchView : public View {
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
-            this->sweep.watchdog();
+            this->sweep.on_frame();
             if (this->row_ready)
                 this->draw_row();
             this->do_timers();

@@ -26,7 +26,7 @@
  * spec_an::Engine (PSAN, or PSPE in sweep mode).
  *
  * The owner forwards SpecAnCaptured to on_captured(), SpecAnSlice to
- * accept(), calls watchdog() from DisplayFrameSync, and should have called
+ * accept(), calls on_frame() from DisplayFrameSync, and should have called
  * radio::set_fast_retune(true). Display point x sits at
  * start + x * span / (points - 1). Integer math only. */
 
@@ -108,7 +108,9 @@ class Sweep {
      * repeated one. [px_begin, px_end) may be empty (a slice that completes
      * no point) or reach past `points` (tail fill up to kPoints): bound it. */
     const int16_t* accept(const SpecAnSliceMessage& message);
-    void watchdog();
+    /* Once per display frame: paces the sweep (see spec_an_sweep.cpp) and
+     * re-asks for a request or reply lost on the way. */
+    void on_frame();
 
     /* Forget the rates last applied, e.g. after another app changed them. */
     void invalidate_rates() {
@@ -140,12 +142,17 @@ class Sweep {
     uint16_t slice_{0};
     bool sweeping_{false};
     systime_t issued_at_{0};
+    systime_t frame_at_{0};
+    bool deferred_{false}; /* slice_ is due, issued on the next frame */
+    bool deferred_retune_{false};
     uint32_t last_reply_{UINT32_MAX}; /* (sweep << 16) | slice of the last reply taken */
 
     void compute_plan();
     int64_t raw_slice_lo(uint16_t slice) const;
     int64_t slice_lo(uint16_t slice) const;
     void issue(uint16_t slice, bool retune);
+    void request(uint16_t slice, bool retune);
+    void defer(bool retune);
 };
 
 } /* namespace spec_an */

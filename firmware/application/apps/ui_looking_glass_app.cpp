@@ -152,7 +152,7 @@ void GlassView::on_slice(const SpecAnSliceMessage& message) {
 }
 
 void GlassView::on_frame_sync() {
-    sweep.watchdog();
+    sweep.on_frame();
     if (line_ready)
         draw_line();
 }

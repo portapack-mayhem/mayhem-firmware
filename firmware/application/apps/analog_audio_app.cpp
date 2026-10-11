@@ -571,7 +571,7 @@ void AnalogAudioView::on_waterfall_frame() {
     if (!spec_an_sweep)
         return;
     auto& s = *spec_an_sweep;
-    s.sweep.watchdog();
+    s.sweep.on_frame();
     if (s.line_ready) {
         s.line_ready = false;
         waterfall.on_channel_spectrum(s.line);
