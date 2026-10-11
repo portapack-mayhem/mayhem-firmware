@@ -108,7 +108,7 @@ void Sweep::start(const Params& params) {
      * follow, so start the points where the first tune can be honoured. A
      * narrower span never needs a higher rate, so one replan settles it. */
     const int64_t lo = raw_slice_lo(0);
-    if (lo < 0 && static_cast<uint64_t>(-lo) < params_.span) {
+    if (params_.raise_start && lo < 0 && static_cast<uint64_t>(-lo) < params_.span) {
         params_.start += static_cast<uint64_t>(-lo);
         params_.span -= static_cast<uint64_t>(-lo);
         compute_plan();
@@ -202,7 +202,6 @@ const int16_t* Sweep::accept(const SpecAnSliceMessage& message) {
     if (id == last_reply_) return nullptr;
     last_reply_ = id;
 
-    if (message.px_end <= message.px_begin || message.px_end > kPoints) return nullptr;
     return shared_.pix[message.sweep & 1];
 }
 

@@ -73,6 +73,10 @@ class Sweep {
         Detector detector{Detector::Peak};
         uint32_t settle_us{kSettleDefaultUs};
         bool continuous{true};
+        /* Near 0 Hz, raise the start so the first tune can be honoured (see
+         * start()). Off keeps the points where asked, the first tune is then
+         * clamped at 0 Hz and the lowest points are off by up to fs / 32. */
+        bool raise_start{true};
     };
 
     struct Plan {
@@ -95,10 +99,13 @@ class Sweep {
     /* Stops issuing requests; resume() starts a fresh sweep. */
     void stop() { sweeping_ = false; }
     void resume();
+    /* Takes effect at the end of the sweep in progress. */
+    void set_continuous(bool continuous) { params_.continuous = continuous; }
 
     void on_captured(const SpecAnCapturedMessage& message);
-    /* The display points of a valid reply (index [px_begin, px_end)), or
-     * nullptr for a stale or repeated one. */
+    /* The display points of a valid reply, or nullptr for a stale or
+     * repeated one. [px_begin, px_end) may be empty (a slice that completes
+     * no point) or reach past `points` (tail fill up to kPoints): bound it. */
     const int16_t* accept(const SpecAnSliceMessage& message);
     void watchdog();
 
@@ -112,6 +119,8 @@ class Sweep {
     const Params& params() const { return params_; }
     const Plan& plan() const { return plan_; }
     uint64_t point_freq(uint32_t x) const;
+    /* The M4's waterfall history (PSAN only), nullptr if it has none. */
+    uint8_t* waterfall() const { return shared_.waterfall; }
     /* A display point (centi-dBFS, 0 = full scale tone) on the 0..255 scale
      * of the classic spectrum, 5 units per dB. The noise in a bin drops by
      * 3 dB each time the FFT doubles; that is added back so the noise floor,
