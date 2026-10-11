@@ -484,9 +484,8 @@ void AnalogAudioView::set_spec_sweep(uint8_t sweep) {
     if (spec_sweep_wanted()) {
         start_spec_sweep();
     } else if (spec_an_sweep) {
-        // Back to the classic spectrum: WidebandSpectrumConfig takes PSPE out of sweep mode.
+        // Back to the classic spectrum (stop_spec_sweep() configures it).
         stop_spec_sweep();
-        baseband::set_spectrum(spec_bw, spec_trigger);
         receiver_model.set_sampling_rate(spec_bw);  // also retunes to the centre
         receiver_model.set_baseband_bandwidth(spec_bw / 2);
     }
@@ -539,6 +538,10 @@ void AnalogAudioView::stop_spec_sweep() {
     if (!spec_an_sweep)
         return;
     spec_an_sweep->sweep.stop();
+    // The M4 writes its points into the Sweep until it leaves sweep mode:
+    // WidebandSpectrumConfig does that, and send_message() returns only once
+    // the M4 has handled it. Only then can the Sweep be freed.
+    baseband::set_spectrum(spec_bw, spec_trigger);
     spec_an_sweep.reset();
     radio::set_fast_retune(false);
 }
