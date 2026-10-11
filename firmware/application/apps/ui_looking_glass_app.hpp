@@ -133,9 +133,10 @@ class GlassView : public View {
 
     // Swept on the M4 by the spectrum analyzer engine, see spec_an_shared.hpp.
     spec_an::Sweep sweep{};
-    uint16_t points{0};               // display points across the screen
-    std::vector<uint8_t> line_max{};  // max hold of the sweeps since the last drawn line
-    bool line_ready{false};           // a whole sweep went into line_max
+    uint16_t points{0};                // display points across the screen
+    std::vector<uint8_t> sweep_max{};  // the sweep in progress
+    std::vector<uint8_t> line_max{};   // max hold of the sweeps completed since the last drawn line
+    bool line_ready{false};            // line_max holds at least one whole sweep
     systime_t last_beep{0};
 
     std::vector<Color> spectrum_row{};

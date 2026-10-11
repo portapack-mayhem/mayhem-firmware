@@ -103,7 +103,7 @@ void GlassView::start_sweep() {
     params.rbw_idx = (mode == LOOKING_GLASS_SLOWSCAN) ? 4 : 0;  // 0: auto, 4: N = 2048
     params.avg = std::max<uint16_t>(trigger / 8, 1);            // FFTs power-averaged per tune
 
-    std::fill(line_max.begin(), line_max.end(), 0);
+    std::fill(sweep_max.begin(), sweep_max.end(), 0);
     line_ready = false;
     range_max_power = 0;
 
@@ -140,13 +140,22 @@ void GlassView::on_slice(const SpecAnSliceMessage& message) {
     const uint16_t end = std::min<uint16_t>(message.px_end, points);
     for (uint16_t x = message.px_begin; x < end; x++) {
         const uint8_t power = cdb_to_power(src[x]);
-        if (power > line_max[x])
-            line_max[x] = power;
+        if (power > sweep_max[x])
+            sweep_max[x] = power;
         if (power > range_max_power)
             range_max_power = power;
     }
-    if (message.last)
+    if (message.last) {
+        // Only whole sweeps reach the screen: a line taken mid sweep would show
+        // the slices not yet measured as black, at a phase that drifts with the
+        // frame rate (diagonal stripes in the waterfall).
+        for (uint16_t x = 0; x < points; x++) {
+            if (!line_ready || sweep_max[x] > line_max[x])
+                line_max[x] = sweep_max[x];
+            sweep_max[x] = 0;
+        }
         line_ready = true;
+    }
 }
 
 void GlassView::on_frame_sync() {
@@ -156,13 +165,12 @@ void GlassView::on_frame_sync() {
 }
 
 void GlassView::draw_line() {
-    // Sweeps can complete faster than frames: line_max held the peak of all of
-    // them, take it and start a new hold. Handlers pumped below refill it.
+    // Sweeps can complete faster than frames: line_max holds the peak of all of
+    // them. Handlers pumped below may start a new hold once line_ready is cleared.
     for (uint16_t xpos = 0; xpos < points; xpos++) {
         uint8_t power = line_max[xpos];
         if (power <= min_color_power)
-            power = 0;  // Filtered out, show black
-        line_max[xpos] = 0;
+            power = 0;                                                                                                    // Filtered out, show black
         spectrum_row[xpos] = gradient.lut[power];                                                                         // row of colors
         spectrum_data[xpos] = (live_frequency_integrate * spectrum_data[xpos] + power) / (live_frequency_integrate + 1);  // smoothing
     }
@@ -223,8 +231,10 @@ void GlassView::on_hide() {
 
 void GlassView::on_show() {
     display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
-    if (!paused)
+    if (!paused) {
+        std::fill(sweep_max.begin(), sweep_max.end(), 0);
         sweep.resume();
+    }
 }
 
 void GlassView::on_range_changed() {
@@ -314,6 +324,7 @@ GlassView::GlassView(
     receiver_model.enable();
 
     points = std::min<uint16_t>(screen_width, spec_an::kPoints);
+    sweep_max.resize(points);
     line_max.resize(points);
     spectrum_row.resize(screen_width);
     spectrum_data.resize(screen_width);
@@ -511,6 +522,7 @@ GlassView::GlassView(
         } else {
             button_play.set_foreground(Theme::getInstance()->fg_red->foreground);
             button_play.set_background(Theme::getInstance()->fg_red->background);
+            std::fill(sweep_max.begin(), sweep_max.end(), 0);
             sweep.resume();
             button_play.set_bitmap(&bitmap_stop);
         }
