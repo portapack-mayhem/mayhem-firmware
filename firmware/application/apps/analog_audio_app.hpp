@@ -32,6 +32,10 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "tone_key.hpp"
+#include "spec_an_sweep.hpp"
+
+#include <array>
+#include <memory>
 
 namespace ui {
 
@@ -41,6 +45,9 @@ class AnalogAudioView;
 class PralineOptionsView : public View {
    public:
     PralineOptionsView(Rect parent_rect, const Style* style);
+
+    // Called after SR changed the sampling rate.
+    std::function<void()> on_sampling_rate_changed{};
 
    private:
     // Layout: SR (Sample Rate), DC (DC Block), QI (Q-Invert), QS (Quarter Shift), D (Decim)
@@ -224,8 +231,8 @@ class SPECOptionsView : public View {
         }};
 
     Text text_speed{
-        {UI_POS_X(9), UI_POS_Y(0), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
-        "SP   /63"};
+        {UI_POS_X(9), UI_POS_Y(0), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
+        "SP"};
     NumberField field_speed{
         {UI_POS_X(12), UI_POS_Y(0)},
         2,
@@ -233,6 +240,15 @@ class SPECOptionsView : public View {
         1,
         ' ',
     };
+    // CLS: classic spectrum. NEW: the spectrum analyzer engine (windowed,
+    // power averaged FFT, no DC spike on H1), SP sets the averaging.
+    OptionsField options_sweep{
+        {UI_POS_X(15), UI_POS_Y(0)},
+        3,
+        {
+            {"CLS", 0},
+            {"NEW", 1},
+        }};
     Text text_rx_cal{
         {UI_POS_X(19), UI_POS_Y(0), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
         "Rx_IQ_CAL  "};
@@ -261,6 +277,9 @@ class AnalogAudioView : public View {
 
     uint16_t get_spec_trigger();
     void set_spec_trigger(uint16_t trigger);
+
+    uint8_t get_spec_sweep();
+    void set_spec_sweep(uint8_t sweep);
 
     uint8_t get_spec_iq_phase_calibration_value();
     void set_spec_iq_phase_calibration_value(uint8_t cal_value);
@@ -305,6 +324,7 @@ class AnalogAudioView : public View {
             {"zoom_factor_amfm"sv, &zoom_factor_amfm},                // we are saving and restoring AMFM ZOOM factor from Settings.
             {"previous_AM_mode_option"sv, &previous_AM_mode_option},  // we are saving and restoring AMFM ZOOM factor from Settings.
             {"previous_zoom"sv, &previous_zoom},                      // we are saving and restoring AMFM ZOOM factor from Settings.
+            {"spec_sweep"sv, &spec_sweep},                            // SPEC: 0 classic spectrum, 1 spectrum analyzer engine
         }};
 
     const Rect options_view_rect{UI_POS_X(0), UI_POS_Y(1), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)};
@@ -313,6 +333,20 @@ class AnalogAudioView : public View {
     size_t spec_bw_index = 0;
     uint32_t spec_bw = 20000000;
     uint16_t spec_trigger = 63;
+    uint8_t spec_sweep = 0;
+
+    // SPEC with the spectrum analyzer engine (see spec_an_shared.hpp), only
+    // allocated while in use. The waterfall takes one line per frame, the
+    // latest whole sweep, in the classic 256 bin layout.
+    static constexpr uint16_t spec_points = 256;
+    struct SpecSweep {
+        spec_an::Sweep sweep{};
+        std::array<uint8_t, spec_points> power{};      // the sweep in progress, by point
+        std::array<int16_t, spec_points> bin_point{};  // display bin to nearest swept point, -1 if not swept
+        ChannelSpectrum line{};
+        bool line_ready{false};
+    };
+    std::unique_ptr<SpecSweep> spec_an_sweep{};
 
     RSSI rssi{
         {UI_POS_X(21), 0, UI_POS_WIDTH_REMAINING(21) - UI_POS_WIDTH(2), 4}};
@@ -377,6 +411,12 @@ class AnalogAudioView : public View {
 
     void update_modulation(ReceiverModel::Mode modulation);
 
+    bool spec_sweep_wanted() const;
+    void start_spec_sweep();
+    void stop_spec_sweep();
+    void on_spec_slice(const SpecAnSliceMessage& message);
+    void on_waterfall_frame();
+
     void handle_coded_squelch(uint32_t value);
 
     void on_freqchg(int64_t freq);
@@ -390,6 +430,19 @@ class AnalogAudioView : public View {
         [this](const Message* p) {
             const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
             this->handle_coded_squelch(message.value);
+        }};
+
+    MessageHandlerRegistration message_handler_spec_captured{
+        Message::ID::SpecAnCaptured,
+        [this](const Message* const p) {
+            if (this->spec_an_sweep)
+                this->spec_an_sweep->sweep.on_captured(*reinterpret_cast<const SpecAnCapturedMessage*>(p));
+        }};
+
+    MessageHandlerRegistration message_handler_spec_slice{
+        Message::ID::SpecAnSlice,
+        [this](const Message* const p) {
+            this->on_spec_slice(*reinterpret_cast<const SpecAnSliceMessage*>(p));
         }};
 
     MessageHandlerRegistration message_handler_freqchg{
