@@ -137,6 +137,9 @@ class WaterfallWidget : public Widget {
 class WaterfallView : public View {
    public:
     std::function<void(int32_t offset)> on_select{};
+    /* Called on each display frame while running, for owners that feed the
+     * waterfall themselves (the DisplayFrameSync handler is taken here). */
+    std::function<void()> on_frame_sync{};
 
     WaterfallView(const bool cursor = false);
 
@@ -156,6 +159,9 @@ class WaterfallView : public View {
     void show_audio_spectrum_view(const bool show);
     void load_gradient();
     void set_live_tuning(const bool enabled) { frequency_scale.set_live_tuning(enabled); }
+
+    /* Draws one line from a spectrum not coming from the baseband FIFO. */
+    void on_channel_spectrum(const ChannelSpectrum& spectrum);
 
    private:
     void update_widgets_rect();
@@ -211,9 +217,10 @@ class WaterfallView : public View {
                 this->audio_spectrum_update = false;
                 this->on_audio_spectrum();
             }
+            if (this->on_frame_sync)
+                this->on_frame_sync();
         }};
 
-    void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void on_audio_spectrum();
 };
 
