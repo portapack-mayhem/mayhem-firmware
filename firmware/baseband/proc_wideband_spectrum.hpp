@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +28,7 @@
 #include "rssi_thread.hpp"
 
 #include "spectrum_collector.hpp"
+#include "spec_an_engine.hpp"
 
 #include "message.hpp"
 
@@ -47,6 +49,10 @@ class WidebandSpectrum : public BasebandProcessor {
     void on_signal_message(const RequestSignalMessage& message);
 
     SpectrumCollector channel_spectrum{};
+
+    /* Sweep mode: entered on SpecAnConfig, left on WidebandSpectrumConfig.
+     * See spec_an_shared.hpp. */
+    spec_an::Engine sweep_engine{};
 
     std::array<complex16_t, 256> spectrum{};
     size_t phase = 0, trigger = 127;

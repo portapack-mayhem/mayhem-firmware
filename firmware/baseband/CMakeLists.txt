@@ -470,6 +470,7 @@ DeclareTargets(PREP replay)
 
 set(MODE_CPPSRC
 	proc_wideband_spectrum.cpp
+	spec_an_engine.cpp
 )
 DeclareTargets(PSPE wideband_spectrum)
 
@@ -829,6 +830,7 @@ DeclareTargets(PTSK time_sink)
 
 set(MODE_CPPSRC
 	proc_spec_an.cpp
+	spec_an_engine.cpp
 )
 DeclareTargets(PSAN spec_an)
 

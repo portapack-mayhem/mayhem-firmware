@@ -246,6 +246,7 @@ set(CPPSRC
 	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
+	spec_an_sweep.cpp
 	recent_entries.cpp
 	replay_thread.cpp
 	rf_path.cpp

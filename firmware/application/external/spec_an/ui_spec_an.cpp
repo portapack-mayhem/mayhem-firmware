@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 zxkmm
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -54,14 +55,11 @@ constexpr int kKeyW = 42;
 constexpr int kSmallChars = 64;
 constexpr int kBigChars = 40;
 
-constexpr uint64_t kMaxFreq = 7'250'000'000ULL;
+constexpr uint64_t kMaxFreq = kMaxSweepFreq;
 constexpr uint64_t kMinSpan = 10'000;
 constexpr uint64_t kFullStart = 1'000'000;
 constexpr uint64_t kFullStop = 6'000'000'000ULL;
 
-/* Ascending. Narrow spans take the lowest rate that covers them in one tune:
- * finer bins for the same FFT size and a narrower anti-alias filter. */
-constexpr uint32_t kSampleRates[] = {2'500'000, 5'000'000, 10'000'000, 20'000'000};
 constexpr int32_t kDbDiv[] = {100, 200, 500, 1000, 2000};
 constexpr size_t kDbDivCount = sizeof(kDbDiv) / sizeof(kDbDiv[0]);
 constexpr uint8_t kMaxVbwIdx = 5;
@@ -286,10 +284,6 @@ int floor_log2(uint32_t v) {
     return r;
 }
 
-inline void compiler_barrier() {
-    __asm__ volatile("" ::: "memory");
-}
-
 }  // namespace
 
 /* Lifecycle ***************************************************************/
@@ -346,12 +340,9 @@ SpecAnView::SpecAnView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_spec_an);
     radio::set_fast_retune(true);
 
-    receiver_model.set_sampling_rate(kSampleRates[3]);
-    receiver_model.set_baseband_bandwidth(15'000'000);
+    /* apply_plan() sets the plan's rate and filter. */
     receiver_model.set_squelch_level(0);
     receiver_model.enable();
-    cur_fs_ = kSampleRates[3];
-    cur_filter_ = 15'000'000;
     apply_gains();
 
     set_menu(menu_root, count_of(menu_root), 1);
@@ -397,138 +388,32 @@ void SpecAnView::paint(Painter&) {
 
 /* Sweep plan **************************************************************/
 
-void SpecAnView::compute_plan() {
-    const auto layout = static_cast<BinLayout>(layout_);
-    const uint64_t span = span_;
-    /* Display points sit at start + x * span / (P - 1); each one owns the
-     * frequencies half a point either side of it. */
-    const uint64_t coverage = span + span / (kPoints - 1);
-
-    /* One tune covers layout_count(N) / N of fs, whatever N is. */
-    uint32_t fs = kSampleRates[3];
-    for (const uint32_t rate : kSampleRates) {
-        const uint64_t capacity = static_cast<uint64_t>(rate) * layout_count(layout, 256) / 256;
-        if (capacity >= coverage + coverage / 32) {
-            fs = rate;
-            break;
-        }
-    }
-
-    uint8_t log2n = kMaxFftLog2;
-    if (rbw_idx_ == 0) {
-        /* Auto RBW: the coarsest FFT whose bins are no wider than a point. */
-        for (uint8_t l = kMinFftLog2; l <= kMaxFftLog2; l++) {
-            if (static_cast<uint64_t>(fs) * (kPoints - 1) <= (span << l)) {
-                log2n = l;
-                break;
-            }
-        }
-    } else {
-        log2n = std::clamp<uint8_t>(7 + rbw_idx_, kMinFftLog2, kMaxFftLog2);
-    }
-
-    const uint32_t n = 1u << log2n;
-    const uint32_t k_max = layout_count(layout, n);
-    /* +3: interpolation needs a bin either side of the outermost points. */
-    const uint64_t bins_needed = (coverage * n + fs - 1) / fs + 3;
-    const uint32_t slices = static_cast<uint32_t>((bins_needed + k_max - 1) / k_max);
-    const uint32_t k = static_cast<uint32_t>((bins_needed + slices - 1) / slices);
-
-    plan_.fs = fs;
-    plan_.log2n = log2n;
-    plan_.avg = 1u << vbw_idx_;
-    plan_.bin_first = static_cast<int16_t>(layout_first(layout, n));
-    plan_.bins_per_slice = static_cast<uint16_t>(k);
-    plan_.slices = static_cast<uint16_t>(std::min<uint32_t>(slices, 65535));
-    plan_.f_bin0 = static_cast<int64_t>(start_freq()) - static_cast<int64_t>(span / (2 * (kPoints - 1)));
-    plan_.filter_bw = (fs / 4) * 3;
-    plan_.rbw_hz = static_cast<uint32_t>(static_cast<uint64_t>(fs) * window_enbw_centibins(static_cast<Window>(window_)) / (100ULL * n));
-    /* One DMA buffer straddles the retune, then whole buffers for settling. */
-    plan_.settle_bufs = static_cast<uint8_t>(1 + (static_cast<uint64_t>(settle_us_) * fs + 2048ULL * 1'000'000 - 1) / (2048ULL * 1'000'000));
-}
-
 void SpecAnView::apply_plan(bool reset_traces) {
-    compute_plan();
+    ::spec_an::Sweep::Params params{};
+    params.start = start_freq();
+    params.span = span_;
+    params.points = kPoints;
+    params.layout = static_cast<BinLayout>(layout_);
+    params.rbw_idx = rbw_idx_;
+    params.avg = 1u << vbw_idx_;
+    params.window = static_cast<Window>(window_);
+    params.detector = static_cast<Detector>(detector_);
+    params.settle_us = settle_us_;
+    params.continuous = continuous_;
+    /* The axis, markers and labels place the points from centre and span. */
+    params.raise_start = false;
+    sweep_.start(params);
 
-    if (plan_.fs != cur_fs_) {
-        receiver_model.set_sampling_rate(plan_.fs);
-        cur_fs_ = plan_.fs;
-    }
-    if (plan_.filter_bw != cur_filter_) {
-        receiver_model.set_baseband_bandwidth(plan_.filter_bw);
-        cur_filter_ = plan_.filter_bw;
-    }
-
-    gen_++;
-    const SpecAnConfigMessage message{
-        &shared_,
-        plan_.fs,
-        gen_,
-        plan_.log2n,
-        plan_.avg,
-        plan_.bin_first,
-        plan_.bins_per_slice,
-        plan_.slices,
-        static_cast<uint64_t>(plan_.fs) * (kPoints - 1),
-        span_ << plan_.log2n,
-        static_cast<Window>(window_),
-        static_cast<Detector>(detector_)};
-    baseband::set_spec_an_config(message);
-
+    /* Replies are only handled back in the event loop: none mixes in. */
     if (reset_traces) clear_traces();
-    restart_sweep();
-}
-
-int64_t SpecAnView::slice_lo(uint16_t slice) const {
-    const int64_t bins = static_cast<int64_t>(slice) * plan_.bins_per_slice - plan_.bin_first;
-    const int64_t lo = plan_.f_bin0 + ((bins * plan_.fs) >> plan_.log2n);
-    return std::clamp<int64_t>(lo, 0, kMaxFreq);
-}
-
-void SpecAnView::restart_sweep() {
-    sweep_++;
-    slice_ = 0;
-    sweeping_ = true;
-    issue(0, true);
-}
-
-void SpecAnView::issue(uint16_t slice, bool retune) {
-    if (retune) radio::set_tuning_frequency(slice_lo(slice));
-    shared_.req_slice = slice;
-    shared_.req_sweep = sweep_;
-    shared_.req_settle = retune ? plan_.settle_bufs : 0;
-    compiler_barrier();
-    shared_.req_seq = ++seq_;
-    issued_at_ = chTimeNow();
-}
-
-void SpecAnView::on_captured(const SpecAnCapturedMessage& message) {
-    if (message.gen != gen_ || message.seq != seq_ || !sweeping_) return;
-
-    /* The M4 has its samples: retune now, it FFTs while we do. */
-    if (slice_ + 1u < plan_.slices) {
-        slice_++;
-        issue(slice_, true);
-    } else if (continuous_) {
-        sweep_++;
-        slice_ = 0;
-        issue(0, plan_.slices > 1);
-    } else {
-        sweeping_ = false;
-    }
 }
 
 void SpecAnView::on_slice(const SpecAnSliceMessage& message) {
-    if (message.gen != gen_) return;
-
-    /* A timed out request that the M4 had in fact captured gets answered
-     * twice; the M4 replays the same points, so drop the repeat. */
-    const uint32_t id = (static_cast<uint32_t>(message.sweep) << 16) | message.slice;
-    if (id == last_reply_) return;
-    last_reply_ = id;
+    const int16_t* const src = sweep_.accept(message);
+    if (!src) return;
 
     if (message.px_end > message.px_begin && message.px_end <= kPoints) {
-        ingest(shared_.pix[message.sweep & 1], message.px_begin, message.px_end);
+        ingest(src, message.px_begin, message.px_end);
     }
     if (message.last) on_sweep_done();
 }
@@ -682,8 +567,8 @@ void SpecAnView::redraw_all() {
 void SpecAnView::on_frame_sync() {
     if (!landscape_) return;
 
-    /* A lost request or reply would stall the sweep: re-ask for the slice. */
-    if (sweeping_ && chTimeNow() - issued_at_ > 250) issue(slice_, true);
+    /* Paces the sweep, and re-asks for a request or reply lost on the way. */
+    sweep_.on_frame();
 
     if (full_redraw_) {
         redraw_all();
@@ -819,7 +704,7 @@ void SpecAnView::render_column(int x) {
 }
 
 void SpecAnView::push_waterfall_line() {
-    uint8_t* const wf = shared_.waterfall;
+    uint8_t* const wf = sweep_.waterfall();
     if (!wf) return;
 
     uint8_t* const row = wf + wf_head_ * kPoints;
@@ -844,7 +729,7 @@ void SpecAnView::render_waterfall() {
     wf_dirty_ = false;
     if (!waterfall_ || wf_rows_ <= 0) return;
 
-    const uint8_t* const wf = shared_.waterfall;
+    const uint8_t* const wf = sweep_.waterfall();
     display.start_pixels({0, wf_top_, static_cast<int>(kPoints), wf_rows_});
     /* Newest line on top. Message pumping in between is safe: handlers do
      * not touch the LCD, so the open window survives. */
@@ -887,7 +772,7 @@ void SpecAnView::render_text() {
         t.s("Ref ").cdb(ref_cdb_).s("dB ").i(kDbDiv[dbdiv_idx_] / 100).s("dB/ LNA").u(lna_).s(" VGA").u(vga_).s(amp_ ? " AMP+" : " AMP-");
         if (ref_offset_cdb_) t.s(" Ofs").cdb(ref_offset_cdb_, 1, true);
         TextBuf right;
-        right.s(sweeping_ ? (continuous_ ? "CONT " : "SGL ") : "HOLD ");
+        right.s(sweep_.sweeping() ? (continuous_ ? "CONT " : "SGL ") : "HOLD ");
         if (sweep_us_ >= 10'000)
             right.u(sweep_us_ / 1000).s("ms");
         else
@@ -922,10 +807,10 @@ void SpecAnView::render_text() {
 
     {
         TextBuf t;
-        t.s("CF ").freq_compact(center_).s("Hz  Span ").freq_compact(span_).s("Hz  RBW ").freq_compact(plan_.rbw_hz).s("Hz  VBW ").freq_compact(plan_.rbw_hz / plan_.avg).s("Hz");
+        t.s("CF ").freq_compact(center_).s("Hz  Span ").freq_compact(span_).s("Hz  RBW ").freq_compact(sweep_.plan().rbw_hz).s("Hz  VBW ").freq_compact(sweep_.plan().rbw_hz / sweep_.plan().avg).s("Hz");
         TextBuf right;
-        if (settle_low() && plan_.slices > 1) right.s("SETTLE LOW  ");
-        right.u(plan_.slices).s(plan_.slices == 1 ? "tune" : "tunes");
+        if (settle_low() && sweep_.plan().slices > 1) right.s("SETTLE LOW  ");
+        right.u(sweep_.plan().slices).s(sweep_.plan().slices == 1 ? "tune" : "tunes");
         t.pad(kSmallChars - right.size()).s(right.str());
         draw_text_line(2, {0, kAnnoY}, font::fixed_5x8, c_dim, c_bg, t.str(), kSmallChars);
     }
@@ -973,11 +858,11 @@ void SpecAnView::render_text() {
             break;
         case Item::Rbw:
             label.s("Res BW");
-            value.s(rbw_idx_ ? "" : "Auto ").freq(plan_.rbw_hz).s(" N").u(1u << plan_.log2n);
+            value.s(rbw_idx_ ? "" : "Auto ").freq(sweep_.plan().rbw_hz).s(" N").u(1u << sweep_.plan().log2n);
             break;
         case Item::Vbw:
             label.s("Video BW");
-            value.freq(plan_.rbw_hz / plan_.avg).s(" avg").u(plan_.avg);
+            value.freq(sweep_.plan().rbw_hz / sweep_.plan().avg).s(" avg").u(sweep_.plan().avg);
             break;
         case Item::Window:
             label.s("Window");
@@ -993,9 +878,9 @@ void SpecAnView::render_text() {
             break;
         case Item::Settle:
             label.s("Settle");
-            value.u(settle_us_).s("us ").u(plan_.settle_bufs).s("buf");
+            value.u(settle_us_).s("us ").u(sweep_.plan().settle_bufs).s("buf");
             if (settle_low()) {
-                value.s(" <").u(kSettleMinUs);
+                value.s(" <").u(::spec_an::kSettleMinUs);
                 value_color = c_warn;
             }
             break;
@@ -1418,10 +1303,11 @@ void SpecAnView::activate(Item item) {
             return;
         case Item::SweepMode:
             continuous_ = !continuous_;
-            if (continuous_ && !sweeping_) restart_sweep();
+            sweep_.set_continuous(continuous_);
+            if (continuous_ && !sweep_.sweeping()) sweep_.resume();
             return;
         case Item::SweepRun:
-            restart_sweep();
+            sweep_.resume();
             return;
         case Item::Flip:
             flip_ = !flip_;
