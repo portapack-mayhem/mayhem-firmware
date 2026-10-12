@@ -23,6 +23,8 @@
 #ifndef __UI_EPIRB_RX_H__
 #define __UI_EPIRB_RX_H__
 
+#include <cstddef>
+
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui_widget.hpp"
@@ -206,6 +208,9 @@ class EPIRBAppView final : public ui::View {
    public:
     EPIRBAppView(ui::NavigationView& nav);
     ~EPIRBAppView();
+
+    static void* operator new(std::size_t size);
+    static void operator delete(void* ptr) noexcept;
 
     void focus() override;
     void refresh();

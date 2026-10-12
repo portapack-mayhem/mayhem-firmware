@@ -389,6 +389,20 @@ void EPIRBRxView::on_hide() {
 #endif
 
 // App View
+alignas(EPIRBAppView) static uint8_t epirb_app_storage[sizeof(EPIRBAppView)];
+
+void* EPIRBAppView::operator new(std::size_t size) {
+    if (size > sizeof(epirb_app_storage)) {
+        chDbgPanic("EPIRB App Storage Too Small");
+    }
+
+    return epirb_app_storage;
+}
+
+void EPIRBAppView::operator delete(void* ptr) noexcept {
+    (void)ptr;
+}
+
 EPIRBAppView::EPIRBAppView(ui::NavigationView& nav)
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_epirb_rx);
