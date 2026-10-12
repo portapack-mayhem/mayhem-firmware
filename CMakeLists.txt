@@ -91,12 +91,26 @@ if(NOT EXT_TIER_RESULT EQUAL 0)
     message(FATAL_ERROR "External app tier check failed:\n${EXT_TIER_OUTPUT}${EXT_TIER_ERROR}")
 endif()
 message(STATUS "External app tier check passed, tier .ld files are up to date")
-# Re-run CMake (and so the script) when markers or the navigation file change
+# Re-run CMake (and both checks) when tier markers or relevant CMake inputs change.
 file(GLOB EXT_TIER_MARKERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/firmware/application/external/*/tier.txt)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     ${EXT_TIER_MARKERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/firmware/application/ui_navigation.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/firmware/baseband/CMakeLists.txt
 )
+
+# Check baseband image tiers and app usage alongside the external app tier check.
+message(STATUS "Running baseband image check (tools/list_baseband_images.py)")
+execute_process(
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/list_baseband_images.py
+	RESULT_VARIABLE BASEBAND_IMAGE_CHECK_RESULT
+	OUTPUT_VARIABLE BASEBAND_IMAGE_CHECK_OUTPUT
+	ERROR_VARIABLE BASEBAND_IMAGE_CHECK_ERROR
+)
+if(NOT BASEBAND_IMAGE_CHECK_RESULT EQUAL 0)
+	message(FATAL_ERROR "Baseband image check failed:\n${BASEBAND_IMAGE_CHECK_OUTPUT}${BASEBAND_IMAGE_CHECK_ERROR}")
+endif()
+message(STATUS "Baseband image check passed")
 
 # Copy the selected file to the build directory as the generic "external.ld"
 configure_file(

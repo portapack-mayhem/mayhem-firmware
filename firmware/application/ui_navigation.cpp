@@ -69,12 +69,28 @@
 #include "external/aprs_rx/ui_aprs_rx.hpp"
 #include "external/ais_rx/ais_app.hpp"
 #include "external/flippertx/ui_flippertx.hpp"
+#include "external/antenna_length/ui_whipcalc.hpp"
+#include "external/app_manager/ui_app_manager.hpp"
+#include "external/aprs_tx/ui_aprs_tx.hpp"
+#include "external/flex_rx/ui_flex_rx.hpp"
+#include "external/flex_tx/ui_flex_tx.hpp"
+#include "external/ft8_rx/ui_ft8_rx.hpp"
+#include "external/hard_reset/ui_hard_reset.hpp"
+#include "external/level/ui_level.hpp"
+#include "external/spec_an/ui_spec_an.hpp"
+#include "external/rds_rx/ui_rds_rx.hpp"
 #endif
 
 #if FLASH_TIER >= 2
 // For hackrf PRO
 #include "external/analogtv/analog_tv_app.hpp"
 #include "external/protoview/ui_protoview.hpp"
+#include "external/epirb_rx/ui_epirb_rx.hpp"
+#include "external/fmradio/ui_fmradio.hpp"
+#include "external/rtty_rx/ui_rtty_rx.hpp"
+#include "external/sstvrx/ui_sstvrx.hpp"
+#include "external/tetra_rx/ui_tetra_rx.hpp"
+#include "external/wefax_rx/ui_wefax_rx.hpp"
 #endif
 
 #include "core_control.hpp"
@@ -115,10 +131,21 @@ const NavigationView::AppList NavigationView::appList = {
     {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ui::external_app::adsbrx::ADSBRxView>()},
     {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<ui::external_app::aprs_rx::APRSRXView>()},
     {"aisrx", "AIS", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<ui::external_app::ais_rx::AISAppView>()},
+    {"specan", "Spec An", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::spec_an::SpecAnView>()},
+    {"flexrx", "Flex Rx", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::flex_rx::FlexAppView>()},
+    {"ft8rx", "FT8 Rx", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::ft8_rx::FT8RxView>()},
+    {"rdsrx", "RDS Rx", RX, Color::yellow(), &bitmap_icon_rds, new ViewFactory<ui::external_app::rds_rx::RdsRxView>()},
+    {"level", "Level", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::level::LevelView>()},
 #endif
 #if FLASH_TIER >= 2
     {"analogtv", "Analog TV", RX, Color::yellow(), &bitmap_icon_sstv, new ViewFactory<ui::external_app::analogtv::AnalogTvView>()},
     {"protoview", "ProtoView", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::protoview::ProtoView>()},
+    {"epirbrx", "EPIRB Rx", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::epirb_rx::EPIRBAppView>()},
+    {"fmradio", "FM Radio", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::fmradio::FmRadioView>()},
+    {"rttyrx", "RTTY Rx", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::rtty_rx::RttyRxView>()},
+    {"sstvrx", "SSTV Rx", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::sstvrx::SstvRxView>()},
+    {"tetrarx", "Tetra Rx", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::tetra_rx::TetraRxView>()},
+    {"wefaxrx", "WEFAX Rx", RX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::wefax_rx::WeFaxRxView>()},
 #endif
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
@@ -133,6 +160,8 @@ const NavigationView::AppList NavigationView::appList = {
     {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
 #if FLASH_TIER >= 1
     {"flippertx", "FlipperTx", TX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::flippertx::FlipperTxView>()},
+    {"aprstx", "APRS Tx", TX, Color::green(), &bitmap_icon_aprs, new ViewFactory<ui::external_app::aprs_tx::APRSTXView>()},
+    {"flextx", "Flex Tx", TX, Color::green(), &bitmap_icon_remote, new ViewFactory<ui::external_app::flex_tx::FlexTXView>()},
 #endif
 #if FLASH_TIER >= 2
 
@@ -145,6 +174,11 @@ const NavigationView::AppList NavigationView::appList = {
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
+#if FLASH_TIER >= 1
+    {"whipcalc", "Antenna Len", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<ui::external_app::antenna_length::WhipCalcView>()},
+    {"appmanager", "App Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<ui::external_app::app_manager::AppManagerView>()},
+    {"hardreset", "Hard Reset", UTILITIES, Color::red(), &bitmap_icon_dir, new ViewFactory<ui::external_app::hard_reset::HardResetView>()},
+#endif
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
     {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_peripherals_details, new ViewFactory<FlashUtilityView>()},
