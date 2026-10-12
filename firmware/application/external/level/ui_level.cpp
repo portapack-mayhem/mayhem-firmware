@@ -35,6 +35,19 @@ using portapack::memory::map::backup_ram;
 
 namespace ui::external_app::level {
 
+namespace {
+
+// The disabled style is immutable and has static lifetime. The enabled style
+// is reconstructed in LevelView::on_statistics_update() because Style's color
+// members are const.
+const Style level_rx_stats_off_style{
+    .font = font::fixed_8x16,
+    .background = {55, 55, 55},
+    .foreground = {155, 155, 155},
+};
+
+}  // namespace
+
 // Function to map the value from one range to another
 int32_t LevelView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
     return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
@@ -211,12 +224,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
 
     // refresh sat
     if (radio_mode == SPEC_MODULATION || (radio_mode == WFM_MODULATION && audio_mode == 1)) {
-        Style style_freq_stats_rx{
-            .font = font::fixed_8x16,
-            .background = {55, 55, 55},
-            .foreground = {155, 155, 155},
-        };
-        freq_stats_rx.set_style(&style_freq_stats_rx);
+        freq_stats_rx.set_style(&level_rx_stats_off_style);
         freq_stats_rx.set("RxSat off");
         return;
     }
@@ -234,12 +242,13 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
             br = (255 * (rx_sat - 80)) / 20;
             bg = 255 - br;
         }
-        Style style_freq_stats_rx{
+
+        rx_sat_style_.emplace(Style{
             .font = font::fixed_8x16,
             .background = {br, bg, bb},
             .foreground = {255, 255, 255},
-        };
-        freq_stats_rx.set_style(&style_freq_stats_rx);
+        });
+        freq_stats_rx.set_style(&*rx_sat_style_);
         freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
     }
 
