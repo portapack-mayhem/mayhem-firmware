@@ -12,11 +12,18 @@
 #include <stdio.h>
 #define LOG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #endif
-#define LOG(level, ...)     \
-    if (level >= LOG_LEVEL) \
-    LOG_PRINTF(__VA_ARGS__)
+// Braces keep -Wempty-body quiet when LOG_PRINTF is defined empty (the firmware does,
+// see firmware/baseband/CMakeLists.txt); do/while makes LOG(...); one statement.
+#define LOG(level, ...)              \
+    do {                             \
+        if (level >= LOG_LEVEL) {    \
+            LOG_PRINTF(__VA_ARGS__); \
+        }                            \
+    } while (0)
 #else // ifdef LOG_LEVEL
-#define LOG(level, ...)
+#define LOG(level, ...) \
+    do {                \
+    } while (0)
 #endif
 
 #endif // _DEBUG_H_INCLUDED_

@@ -24,6 +24,7 @@
 
 #include "dsp_types.hpp"
 #include "dsp_hilbert.hpp"
+#include "dsp_mic_filters.hpp"
 #include "tone_gen.hpp"
 #include "baseband_processor.hpp"
 
@@ -83,6 +84,8 @@ class SSB : public Modulator {
 
    private:
     dsp::HilbertTransform hilbert;
+    dsp::interpolate::ComplexFIRInterpolate8 interpolator;
+    dsp::interpolate::ComplexFIRInterpolate2 interpolator_x2{};
     float new_bw_ssb{3.0};
     int fs_div_factor{128};
 };
@@ -111,6 +114,10 @@ class AM : public Modulator {
     AM();
 
     virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider);
+
+   private:
+    dsp::am::Microphone microphone_{};
+    bool was_beep_{false};
 };
 
 } /* namespace modulate */
