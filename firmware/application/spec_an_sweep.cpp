@@ -47,9 +47,9 @@ constexpr systime_t kReissueTicks = 250;
  * capture at once, so the replies keep coming and the UI lags (each retune
  * costs the M0 time) or freezes outright (a single tune range repeats the
  * same capture every DMA buffer and the queue never empties). So a sweep
- * may only issue requests during the first part of each display frame, and
- * the next sweep starts on the next frame: no display uses more than one
- * sweep per frame anyway. */
+ * may (Params::frame_paced) only issue requests during the first part of
+ * each display frame, sweep after sweep, and the rest of the frame is left
+ * to the UI. */
 constexpr systime_t kFrameBudgetTicks = 8;
 
 /* Shared by every Sweep, so a generation is not reused within a boot: replies
@@ -161,6 +161,8 @@ void Sweep::resume() {
     sweep_++;
     slice_ = 0;
     sweeping_ = true;
+    reply_next_ = 0;
+    done_sweep_ = sweep_ - 1;  // nothing of sweep_ - 1 is left to read
     frame_at_ = chTimeNow();
     issue(0, true);
 }
@@ -184,7 +186,7 @@ int64_t Sweep::slice_lo(uint16_t slice) const {
 }
 
 void Sweep::request(uint16_t slice, bool retune) {
-    if (chTimeNow() - frame_at_ < kFrameBudgetTicks)
+    if (!params_.frame_paced || chTimeNow() - frame_at_ < kFrameBudgetTicks)
         issue(slice, retune);
     else
         defer(retune);
@@ -216,20 +218,47 @@ void Sweep::on_captured(const SpecAnCapturedMessage& message) {
     } else if (params_.continuous) {
         sweep_++;
         slice_ = 0;
-        defer(plan_.slices > 1);  // the next sweep starts on the next frame
+        if (start_ready())
+            request(0, plan_.slices > 1);
+        else
+            defer(plan_.slices > 1);  // accept() or on_frame() issues it
     } else {
         sweeping_ = false;
     }
 }
 
+bool Sweep::start_ready() const {
+    /* pix is double buffered by sweep: sweep_ overwrites the points of
+     * sweep_ - 2, whose last slice the M0 may not have read yet when the
+     * next sweep could start (its reply can queue behind the capture of
+     * sweep_ - 1). */
+    return static_cast<uint8_t>(sweep_ - done_sweep_ - 1) < 2;
+}
+
 const int16_t* Sweep::accept(const SpecAnSliceMessage& message) {
     if (message.gen != gen_) return nullptr;
+
+    /* A sweep start waiting for the points of an earlier accept(): its
+     * caller is done with them by now. */
+    if (sweeping_ && deferred_ && slice_ == 0 && start_ready())
+        request(0, deferred_retune_);
 
     /* A timed out request that the M4 had in fact captured gets answered
      * twice; the M4 replays the same points, so drop the repeat. */
     const uint32_t id = (static_cast<uint32_t>(message.sweep) << 16) | message.slice;
     if (id == last_reply_) return nullptr;
     last_reply_ = id;
+
+    /* Slices reply in order: a gap means one was dropped. */
+    if (message.slice == 0) {
+        reply_sweep_ = message.sweep;
+        sweep_complete_ = true;
+    } else if (message.sweep != reply_sweep_ || message.slice != reply_next_) {
+        sweep_complete_ = false;
+    }
+    reply_next_ = message.slice + 1;
+    if (message.last)
+        done_sweep_ = message.sweep;
 
     return shared_.pix[message.sweep & 1];
 }
@@ -238,7 +267,11 @@ void Sweep::on_frame() {
     frame_at_ = chTimeNow();
     if (!sweeping_) return;
 
-    if (deferred_)
+    /* A start still waiting for a last slice is issued by the accept()
+     * after that one, or here once ready. Not before: that reply may have
+     * been queued since the M0 last read the queue. If it was lost, the
+     * next last slice makes the start ready, else the reissue below. */
+    if (deferred_ && (slice_ != 0 || start_ready()))
         issue(slice_, deferred_retune_);
     else if (frame_at_ - issued_at_ > kReissueTicks)
         issue(slice_, true);

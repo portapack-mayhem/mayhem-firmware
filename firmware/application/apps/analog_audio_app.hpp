@@ -241,14 +241,15 @@ class SPECOptionsView : public View {
         1,
         ' ',
     };
-    // CLS: classic spectrum. NEW: the spectrum analyzer engine (windowed,
-    // power averaged FFT, no DC spike on H1), SP sets the averaging.
+    // CLS: classic spectrum. FST: the spectrum analyzer engine (windowed,
+    // power averaged FFT, no DC spike on H1), SP sets the speed as in CLS
+    // and the averaging.
     OptionsField options_sweep{
         {UI_POS_X(15), UI_POS_Y(0)},
         3,
         {
             {"CLS", 0},
-            {"NEW", 1},
+            {"FST", 1},
         }};
     Text text_rx_cal{
         {UI_POS_X(19), UI_POS_Y(0), UI_POS_WIDTH(11), UI_POS_HEIGHT(1)},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
@@ -337,15 +338,23 @@ class AnalogAudioView : public View {
     uint8_t spec_sweep = 0;
 
     // SPEC with the spectrum analyzer engine (see spec_an_shared.hpp), only
-    // allocated while in use. The waterfall takes one line per frame, the
-    // latest whole sweep, in the classic 256 bin layout.
+    // allocated while in use. Lines go to the waterfall at the classic rate
+    // for the BW and SP, each the average of its own whole sweeps, in the
+    // classic 256 bin layout.
     static constexpr uint16_t spec_points = 256;
+    static constexpr uint32_t spec_lines = 4;  // per frame at most, as the classic FIFO
     struct SpecSweep {
         spec_an::Sweep sweep{};
-        std::array<uint8_t, spec_points> power{};      // the sweep in progress, by point
-        std::array<int16_t, spec_points> bin_point{};  // display bin to nearest swept point, -1 if not swept
+        std::array<uint8_t, spec_points> power{};                         // the sweep in progress, by point
+        std::array<int16_t, spec_points> bin_point{};                     // display bin to nearest swept point, -1 if not swept
+        std::array<std::array<uint16_t, spec_points>, spec_lines> sum{};  // whole sweeps, by display bin
+        std::array<uint16_t, spec_lines> sweeps{};                        // in each sum
+        uint8_t next_acc{0};                                              // sum the next sweep goes into
+        int16_t level_offset{0};                                          // to the classic noise level at this SP
+        uint32_t line_samples{0};                                         // the classic takes (SP + 1) DMA buffers per line
+        uint32_t samples{0};                                              // received since the last line
+        systime_t frame_at{0};
         ChannelSpectrum line{};
-        bool line_ready{false};
     };
     std::unique_ptr<SpecSweep> spec_an_sweep{};
 

@@ -105,6 +105,9 @@ void GlassView::start_sweep() {
     params.points = points;
     params.rbw_idx = (mode == LOOKING_GLASS_SLOWSCAN) ? 4 : 0;  // 0: auto, 4: N = 2048
     params.avg = std::max<uint16_t>(trigger / 8, 1);            // FFTs power-averaged per tune
+    // A range that fits one tune would otherwise flood the M0 with replies
+    // and freeze the UI.
+    params.frame_paced = true;
 
     std::fill(sweep_max.begin(), sweep_max.end(), 0);
     line_ready = false;
@@ -141,13 +144,16 @@ void GlassView::on_slice(const SpecAnSliceMessage& message) {
     if (message.last) {
         // Only whole sweeps reach the screen: a line taken mid sweep would show
         // the slices not yet measured as black, at a phase that drifts with the
-        // frame rate (diagonal stripes in the waterfall).
+        // frame rate (diagonal stripes in the waterfall). A sweep missing a
+        // slice is dropped the same way.
+        const bool complete = sweep.sweep_complete();
         for (uint16_t x = 0; x < points; x++) {
-            if (!line_ready || sweep_max[x] > line_max[x])
+            if (complete && (!line_ready || sweep_max[x] > line_max[x]))
                 line_max[x] = sweep_max[x];
             sweep_max[x] = 0;
         }
-        line_ready = true;
+        if (complete)
+            line_ready = true;
     }
 }
 
@@ -551,14 +557,13 @@ GlassView::GlassView(
 }
 
 void GlassView::on_freqchg(int64_t freq) {
-    int64_t half_range = abs(field_frequency_max.value() - field_frequency_min.value()) / 2;
-    if (half_range < 1) {
-        half_range = 1;
-    }
+    const int64_t width = std::max<int64_t>(abs(field_frequency_max.value() - field_frequency_min.value()), 1);
     const int64_t center = freq / MHZ_DIV;  // freq is in Hz, the fields in MHz
     range_presets.set_selected_index(0);    // Manual
-    update_min(std::max<int64_t>(center - half_range, 0));
-    update_max(center + half_range);
+    // Keep the width: clamp the low end so the whole range fits, then derive the high end.
+    const int64_t lo = std::clamp<int64_t>(center - width / 2, 0, std::max<int64_t>(LOOKING_GLASS_MAX_FREQ_MHZ - width, 0));
+    update_min(lo);
+    update_max(lo + width);
     on_range_changed();
 }
 

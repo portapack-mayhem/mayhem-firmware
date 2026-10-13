@@ -198,7 +198,9 @@ void Engine::finish_slice(uint16_t slice, uint8_t sweep) {
 
     /* execute() cannot hold the queue mutex while this lower priority thread
      * runs, so a failure here means the queue is full: retry briefly, then
-     * drop (those points stay stale for one sweep). */
+     * drop. The M0 sees the gap in the slices and discards that sweep
+     * (spec_an::Sweep::sweep_complete()); blocking here instead would stall
+     * the capture until the M0 drains its queue. */
     for (size_t tries = 0; tries < 50; tries++) {
         if (shared_memory.application_queue.push(message)) break;
         chThdSleepMilliseconds(1);

@@ -174,6 +174,9 @@ void SearchView::start_sweep(rf::Frequency start, rf::Frequency span) {
     // Narrow bins as the classic Search: the noise in a bin grows with its
     // width, a narrowband signal does not.
     params.rbw_idx = kRbwIdx;
+    // The zoom stages fit one tune: unpaced, the replies would starve the
+    // frame sync that runs the detection timers.
+    params.frame_paced = true;
 
     std::fill(sweep_power.begin(), sweep_power.end(), 0);
     std::fill(hold_power.begin(), hold_power.end(), 0);
@@ -279,13 +282,18 @@ void SearchView::on_slice(const SpecAnSliceMessage& message) {
         sweep_power[x] = std::max(sweep_power[x], sweep.power(src[x]));
 
     if (message.last) {
-        // Only whole sweeps go into the hold, the slices of the next one are still to come.
+        // Only whole sweeps go into the hold, the slices of the next one are
+        // still to come. A sweep missing a slice is dropped.
+        const bool complete = sweep.sweep_complete();
         for (uint16_t x = 0; x < points; x++) {
-            hold_power[x] = std::max(hold_power[x], sweep_power[x]);
+            if (complete)
+                hold_power[x] = std::max(hold_power[x], sweep_power[x]);
             sweep_power[x] = 0;
         }
-        hold_count++;
-        search_counter++;
+        if (complete) {
+            hold_count++;
+            search_counter++;
+        }
     }
 }
 
