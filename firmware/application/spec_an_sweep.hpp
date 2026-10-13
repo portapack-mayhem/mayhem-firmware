@@ -26,7 +26,8 @@
  * spec_an::Engine (PSAN, or PSPE in sweep mode).
  *
  * The owner forwards SpecAnCaptured to on_captured(), SpecAnSlice to
- * accept(), calls on_frame() from DisplayFrameSync, and should have called
+ * accept(), calls on_frame() from DisplayFrameSync (also needed unpaced: it
+ * re-asks for a request or reply lost on the way), and should have called
  * radio::set_fast_retune(true). Display point x sits at
  * start + x * span / (points - 1). Integer math only. */
 
@@ -81,6 +82,10 @@ class Sweep {
          * start()). Off keeps the points where asked, the first tune is then
          * clamped at 0 Hz and the lowest points are off by up to fs / 32. */
         bool raise_start{true};
+        /* Issue requests only early in each display frame (see
+         * spec_an_sweep.cpp). Keeps a busy UI responsive, at the cost of
+         * sweep rate: off sweeps as fast as the M4 replies, all the time. */
+        bool frame_paced{false};
     };
 
     struct Plan {
@@ -109,9 +114,15 @@ class Sweep {
     void on_captured(const SpecAnCapturedMessage& message);
     /* The display points of a valid reply, or nullptr for a stale or
      * repeated one. [px_begin, px_end) may be empty (a slice that completes
-     * no point) or reach past `points` (tail fill up to kPoints): bound it. */
+     * no point) or reach past `points` (tail fill up to kPoints): bound it.
+     * Also issues a sweep start that waited for the points an earlier call
+     * handed out to be read. */
     const int16_t* accept(const SpecAnSliceMessage& message);
-    /* Once per display frame: paces the sweep (see spec_an_sweep.cpp) and
+    /* After accept() of a last slice: every slice of that sweep arrived. The
+     * M4 drops a reply when the queue stays full, and the points of a sweep
+     * missing one are partly zero or stale. */
+    bool sweep_complete() const { return sweep_complete_; }
+    /* Once per display frame: paces a frame_paced sweep (see Params) and
      * re-asks for a request or reply lost on the way. */
     void on_frame();
 
@@ -149,6 +160,10 @@ class Sweep {
     bool deferred_{false}; /* slice_ is due, issued on the next frame */
     bool deferred_retune_{false};
     uint32_t last_reply_{UINT32_MAX}; /* (sweep << 16) | slice of the last reply taken */
+    uint8_t reply_sweep_{0};          /* sweep of the replies being counted */
+    uint16_t reply_next_{0};          /* slice expected next in it */
+    uint8_t done_sweep_{0};           /* sweep of the last last slice taken */
+    bool sweep_complete_{false};
 
     void compute_plan();
     int64_t raw_slice_lo(uint16_t slice) const;
@@ -156,6 +171,7 @@ class Sweep {
     void issue(uint16_t slice, bool retune);
     void request(uint16_t slice, bool retune);
     void defer(bool retune);
+    bool start_ready() const;
 };
 
 } /* namespace spec_an */

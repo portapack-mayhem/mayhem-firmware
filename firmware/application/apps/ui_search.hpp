@@ -283,6 +283,8 @@ class SearchView : public View {
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
+            if (!this->shown)
+                return;  // a hidden view must not advance the scan
             this->sweep.on_frame();
             if (this->row_ready)
                 this->draw_row();

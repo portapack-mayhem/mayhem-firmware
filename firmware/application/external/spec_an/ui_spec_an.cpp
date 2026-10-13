@@ -567,7 +567,7 @@ void SpecAnView::redraw_all() {
 void SpecAnView::on_frame_sync() {
     if (!landscape_) return;
 
-    /* Paces the sweep, and re-asks for a request or reply lost on the way. */
+    /* Re-asks for a request or reply lost on the way. */
     sweep_.on_frame();
 
     if (full_redraw_) {
