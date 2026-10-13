@@ -35,19 +35,6 @@ using portapack::memory::map::backup_ram;
 
 namespace ui::external_app::level {
 
-namespace {
-
-// The disabled style is immutable and has static lifetime. The enabled style
-// is reconstructed in LevelView::on_statistics_update() because Style's color
-// members are const.
-const Style level_rx_stats_off_style{
-    .font = font::fixed_8x16,
-    .background = {55, 55, 55},
-    .foreground = {155, 155, 155},
-};
-
-}  // namespace
-
 // Function to map the value from one range to another
 int32_t LevelView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
     return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
@@ -196,6 +183,12 @@ LevelView::LevelView(NavigationView& nav)
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
+    static const Style level_rx_stats_off_style{
+        .font = font::fixed_8x16,
+        .background = {55, 55, 55},
+        .foreground = {155, 155, 155},
+    };
+
     static int16_t last_max_db = 0;
     static uint8_t last_min_rssi = 0;
     static uint8_t last_avg_rssi = 0;
