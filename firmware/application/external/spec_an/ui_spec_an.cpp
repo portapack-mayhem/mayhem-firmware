@@ -402,6 +402,9 @@ void SpecAnView::apply_plan(bool reset_traces) {
     params.continuous = continuous_;
     /* The axis, markers and labels place the points from centre and span. */
     params.raise_start = false;
+    /* Keep the capture overlapping the FFT: waiting for each sweep's points
+     * to be read cost ~60% sweep rate on a one tune span. */
+    params.wait_for_read = false;
     sweep_.start(params);
 
     /* Replies are only handled back in the event loop: none mixes in. */

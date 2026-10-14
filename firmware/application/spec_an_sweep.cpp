@@ -232,6 +232,7 @@ bool Sweep::start_ready() const {
      * sweep_ - 2, whose last slice the M0 may not have read yet when the
      * next sweep could start (its reply can queue behind the capture of
      * sweep_ - 1). */
+    if (!params_.wait_for_read) return true;
     return static_cast<uint8_t>(sweep_ - done_sweep_ - 1) < 2;
 }
 

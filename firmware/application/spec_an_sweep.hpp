@@ -86,6 +86,11 @@ class Sweep {
          * spec_an_sweep.cpp). Keeps a busy UI responsive, at the cost of
          * sweep rate: off sweeps as fast as the M4 replies, all the time. */
         bool frame_paced{false};
+        /* Start a sweep only once the points it overwrites (pix is double
+         * buffered by sweep) have been read, see start_ready(). Off keeps the
+         * capture overlapping the FFT of the sweep before, at the risk of a
+         * sweep showing points of a later one while the M0 falls behind. */
+        bool wait_for_read{true};
     };
 
     struct Plan {
