@@ -118,6 +118,7 @@ void set_noaaapt_config();
 void set_vor_config(bool enabled = true);
 void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled = true, const std::string& ident = "", bool enabled = true);
 void set_flex_config();
+void set_dect_config(uint8_t band, uint32_t frequency);
 void set_bitstream_config(uint32_t deviation, uint8_t mode);                                                   // mode 0 for am, 1 for 2fsk
 void set_rtty_config(uint16_t baud, uint16_t shift, uint8_t* payload = nullptr, uint16_t payload_length = 0);  // baud*100
 void set_rtty_config(RTTYDataMessage& message);
