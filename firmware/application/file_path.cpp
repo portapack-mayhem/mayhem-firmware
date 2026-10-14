@@ -21,10 +21,23 @@
 
 #include "file_path.hpp"
 #include "file.hpp"
+#include "portapack_io.hpp"
 
 const std::filesystem::path adsb_dir = u"ADSB";
 const std::filesystem::path ais_dir = u"AIS";
-const std::filesystem::path apps_dir = u"APPS";
+std::filesystem::path apps_dir = u"APPS";
+
+void init_apps_dir() {
+#ifdef PRALINE
+    apps_dir = u"APPS/hpro";
+#else
+    if (portapack::device_type == portapack::DEV_PORTARF)
+        apps_dir = u"APPS/portarf";
+    else
+        apps_dir = u"APPS/hackrf";
+#endif
+}
+
 const std::filesystem::path aprs_dir = u"APRS";
 const std::filesystem::path audio_dir = u"AUDIO";
 const std::filesystem::path blerx_dir = u"BLERX";
