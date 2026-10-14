@@ -993,34 +993,29 @@ void BLERxView::on_timer() {
 }
 
 void BLERxView::handle_entries_sort(uint8_t index) {
-    switch (index) {
-        case 0:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.uniqueKey & 0xFFFFFFFFFFFF; }, true);
-            break;
-        case 1:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-            break;
-        case 2:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
-            break;
-        case 3:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            break;
-        case 4:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-            break;
-        case 5:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.informationString; }, true);
-            break;
-        default:
-            break;
-    }
+    // One comparator type, so std::list::sort is instantiated once; a lambda
+    // per column made six ~300 byte copies of it.
+    struct ByColumn {
+        uint8_t index;
+        bool operator()(const BleRecentEntry& a, const BleRecentEntry& b) const {
+            switch (index) {
+                case 0:
+                    return (a.uniqueKey & 0xFFFFFFFFFFFF) < (b.uniqueKey & 0xFFFFFFFFFFFF);
+                case 1:
+                    return a.numHits > b.numHits;
+                case 2:
+                    return a.dbValue > b.dbValue;
+                case 3:
+                    return a.timestamp > b.timestamp;
+                case 4:
+                    return a.nameString < b.nameString;
+                default:
+                    return a.informationString < b.informationString;
+            }
+        }
+    };
+    if (index <= 5)
+        recent.sort(ByColumn{index});
 
     recent_entries_view.set_dirty();
 }
