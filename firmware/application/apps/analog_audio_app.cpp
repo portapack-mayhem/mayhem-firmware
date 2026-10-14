@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2018 Furrtek
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -32,12 +33,24 @@
 #include "utility.hpp"
 #include "radio.hpp"
 
+#include <algorithm>
+
 using namespace portapack;
 using namespace tonekey;
 
 namespace ui {
 
 namespace {
+
+// The classic SPEC sums 2 * (SP + 1) samples per FFT input coherently: its
+// noise sits 50 log10((SP + 1) / 33) units (5 per dB) off the sweep's power
+// scale, which matches the classic at SP 32. Applied to the engine's lines so
+// the background looks the same, near black at low SP.
+constexpr int8_t spec_level_offset[64] = {
+    -76, -61, -52, -46, -41, -37, -34, -31, -28, -26, -24, -22, -20, -19, -17, -16,
+    -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -4, -3, -2, -1, -1,
+    0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,
+    9, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 14};
 
 constexpr uint8_t zoom_filter_offset(const OptionsField::value_t zoom_option) {
     return zoom_option == (int)AMSpectrumZoomOption::X1 ? 0 : 6;
@@ -211,6 +224,7 @@ SPECOptionsView::SPECOptionsView(
         &options_config,
         &text_speed,
         &field_speed,
+        &options_sweep,
         &text_rx_cal,
         &field_rx_iq_phase_cal,
     });
@@ -223,6 +237,11 @@ SPECOptionsView::SPECOptionsView(
     field_speed.set_value(view->get_spec_trigger());
     field_speed.on_change = [this, view](int32_t v) {
         view->set_spec_trigger(v);
+    };
+
+    options_sweep.set_by_value(view->get_spec_sweep());
+    options_sweep.on_change = [this, view](size_t, OptionsField::value_t v) {
+        view->set_spec_sweep(v);
     };
 
     field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                       // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
@@ -252,7 +271,11 @@ PralineOptionsView::PralineOptionsView(Rect parent_rect, const Style* style) {
     options_qs.set_by_value((fpga_reg_1 & 0x04) ? 1 : 0);  // Bit 2
     options_sr.set_value(receiver_model.sampling_rate());
 
-    options_sr.on_change = [this](int32_t v) { receiver_model.set_sampling_rate(static_cast<uint32_t>(v)); };
+    options_sr.on_change = [this](int32_t v) {
+        receiver_model.set_sampling_rate(static_cast<uint32_t>(v));
+        if (on_sampling_rate_changed)
+            on_sampling_rate_changed();
+    };
     options_dc.on_change = [this](size_t, OptionsField::value_t v) {
         if (v)
             fpga_reg_1 |= 0x01;
@@ -353,6 +376,15 @@ AnalogAudioView::AnalogAudioView(
             field_frequency.value() + offset * receiver_model.frequency_step());
     };
     waterfall.set_live_tuning(true);
+    waterfall.on_frame_sync = [this]() {
+        this->on_waterfall_frame();
+    };
+
+    // SPEC with the spectrum analyzer engine: a new centre is a new sweep.
+    field_frequency.updated = [this](rf::Frequency) {
+        if (spec_an_sweep)
+            start_spec_sweep();
+    };
 
 #ifdef PRALINE
     button_pro.on_select = [this](Button&) { this->on_show_options_praline(); };
@@ -384,6 +416,11 @@ size_t AnalogAudioView::get_spec_bw_index() {
 void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
     spec_bw_index = index;
     spec_bw = bw;
+
+    if (spec_an_sweep) {
+        start_spec_sweep();  // picks its own sampling rate and filter
+        return;
+    }
 
     baseband::set_spectrum(bw, spec_trigger);
     receiver_model.set_sampling_rate(bw);
@@ -437,10 +474,174 @@ uint16_t AnalogAudioView::get_spec_trigger() {
 void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
     spec_trigger = trigger;
 
+    if (spec_an_sweep) {
+        start_spec_sweep();
+        return;
+    }
+
     baseband::set_spectrum(spec_bw, spec_trigger);
 }
 
+uint8_t AnalogAudioView::get_spec_sweep() {
+    return spec_sweep;
+}
+
+void AnalogAudioView::set_spec_sweep(uint8_t sweep) {
+    if (sweep == spec_sweep)
+        return;
+    spec_sweep = sweep;
+
+    if (spec_sweep_wanted()) {
+        start_spec_sweep();
+    } else if (spec_an_sweep) {
+        // Back to the classic spectrum (stop_spec_sweep() configures it).
+        stop_spec_sweep();
+        receiver_model.set_sampling_rate(spec_bw);  // also retunes to the centre
+        receiver_model.set_baseband_bandwidth(spec_bw / 2);
+    }
+}
+
+bool AnalogAudioView::spec_sweep_wanted() const {
+    return spec_sweep && (receiver_model.modulation() == ReceiverModel::Mode::SpectrumAnalysis);
+}
+
+void AnalogAudioView::start_spec_sweep() {
+    if (!spec_an_sweep) {
+        spec_an_sweep = std::make_unique<SpecSweep>();
+        // The sweep waits for the M4 to discard samples until the synthesizers settle.
+        radio::set_fast_retune(true);
+    }
+    auto& s = *spec_an_sweep;
+
+    // Display bin j (left to right) sits at first + j * bw / 256, the bins of
+    // the classic 256 point FFT. Near 0 Hz only the part above 0 is swept,
+    // and the sweep may start a little higher still.
+    const rf::Frequency first = receiver_model.target_frequency() - spec_bw / 2;
+    const rf::Frequency last = first + static_cast<rf::Frequency>(spec_bw) * (spec_points - 1) / spec_points;
+    spec_an::Sweep::Params params{};
+    params.start = std::max<rf::Frequency>(first, 0);
+    params.span = last - static_cast<rf::Frequency>(params.start);
+    params.points = spec_points;
+    params.avg = 1 + spec_trigger / 4;  // SP 0..63: 1..16 FFTs power-averaged per tune
+    // One tune, so unpaced the M4 replies every few DMA buffers and the
+    // replies starve the UI.
+    params.frame_paced = true;
+
+    s.power.fill(0);
+    for (auto& acc : s.sum) acc.fill(0);
+    s.sweeps.fill(0);
+    s.next_acc = 0;
+    s.level_offset = spec_level_offset[std::min<uint16_t>(spec_trigger, 63)];
+    s.line_samples = 2048 * (spec_trigger + 1u);
+    s.samples = 0;
+    s.frame_at = chTimeNow();
+    s.sweep.start(params);
+
+    // Each display bin takes the swept point nearest to it, so the line stays
+    // where the classic one is whatever was actually swept.
+    const auto& swept = s.sweep.params();
+    const rf::Frequency swept_start = swept.start;
+    const rf::Frequency swept_span = swept.span;
+    for (uint16_t j = 0; j < spec_points; j++) {
+        const rf::Frequency f = first + static_cast<rf::Frequency>(spec_bw) * j / spec_points;
+        if (f < swept_start || f > swept_start + swept_span) {
+            s.bin_point[j] = -1;
+        } else {
+            const rf::Frequency x = ((f - swept_start) * (swept.points - 1) + swept_span / 2) / swept_span;
+            s.bin_point[j] = static_cast<int16_t>(std::min<rf::Frequency>(x, swept.points - 1));
+        }
+    }
+}
+
+void AnalogAudioView::stop_spec_sweep() {
+    if (!spec_an_sweep)
+        return;
+    spec_an_sweep->sweep.stop();
+    // The M4 writes its points into the Sweep until it leaves sweep mode:
+    // WidebandSpectrumConfig does that, and send_message() returns only once
+    // the M4 has handled it. Only then can the Sweep be freed.
+    baseband::set_spectrum(spec_bw, spec_trigger);
+    spec_an_sweep.reset();
+    radio::set_fast_retune(false);
+}
+
+void AnalogAudioView::on_spec_slice(const SpecAnSliceMessage& message) {
+    if (!spec_an_sweep || !spec_an_sweep->sweep.sweeping()) return;
+    auto& s = *spec_an_sweep;
+    const int16_t* const src = s.sweep.accept(message);
+    if (!src) return;
+
+    const uint16_t end = std::min<uint16_t>(message.px_end, spec_points);
+    for (uint16_t x = message.px_begin; x < end; x++)
+        s.power[x] = s.sweep.power(src[x]);  // 5 units per dB, as the classic spectrum
+
+    if (message.last && s.sweep.sweep_complete()) {
+        // Sweeps go round the accumulators, so each line drawn in a frame
+        // gets its own sweeps. 256 at most each, so the sum cannot overflow.
+        const uint8_t a = s.next_acc;
+        s.next_acc = (a + 1) % spec_lines;
+        if (s.sweeps[a] < 256) {
+            // Classic layout: db[0] is the centre bin, then the upper half, then the lower half.
+            for (uint16_t j = 0; j < spec_points; j++) {
+                const int16_t x = s.bin_point[j];
+                s.sum[a][(j + spec_points / 2) % spec_points] += (x < 0) ? 0 : s.power[x];
+            }
+            s.sweeps[a]++;
+        }
+    }
+}
+
+void AnalogAudioView::on_waterfall_frame() {
+    if (!spec_an_sweep)
+        return;
+    auto& s = *spec_an_sweep;
+    s.sweep.on_frame();
+
+    // As the classic, a line every (SP + 1) DMA buffers at the BW: SP sets
+    // the speed. At most spec_lines per frame, as the classic's FIFO.
+    const systime_t now = chTimeNow();
+    const systime_t elapsed = std::min<systime_t>(now - s.frame_at, 100);  // frames stopped while hidden
+    s.samples += static_cast<uint32_t>(static_cast<uint64_t>(elapsed) * spec_bw / CH_FREQUENCY);
+    s.frame_at = now;
+    uint32_t lines = s.samples / s.line_samples;
+    if (lines == 0)
+        return;
+    // Accumulators fill in order from 0: `filled` hold sweeps.
+    uint32_t filled = 0;
+    while (filled < spec_lines && s.sweeps[filled])
+        filled++;
+    if (filled == 0) {
+        s.samples = std::min(s.samples, spec_lines * s.line_samples);  // wait for a sweep, one frame's lines at most
+        return;
+    }
+    s.samples -= lines * s.line_samples;
+    lines = std::min<uint32_t>(lines, spec_lines);
+
+    // Line l averages the accumulators a with a % distinct == l. Only fewer
+    // sweeps than lines due (slow sweep, fast line rate) repeats a line.
+    const uint32_t distinct = std::min(lines, filled);
+    for (uint32_t l = 0; l < distinct; l++) {
+        uint32_t count = 0;
+        for (uint32_t a = l; a < filled; a += distinct)
+            count += s.sweeps[a];
+        for (uint16_t i = 0; i < spec_points; i++) {
+            uint32_t total = 0;
+            for (uint32_t a = l; a < filled; a += distinct)
+                total += s.sum[a][i];
+            s.line.db[i] = std::clamp<int32_t>(total / count + s.level_offset, 0, 255);
+        }
+        s.line.sampling_rate = spec_bw;
+        const uint32_t repeat = lines / distinct + (l < lines % distinct ? 1 : 0);
+        for (uint32_t r = 0; r < repeat; r++)
+            waterfall.on_channel_spectrum(s.line);
+    }
+    for (auto& acc : s.sum) acc.fill(0);
+    s.sweeps.fill(0);
+    s.next_acc = 0;
+}
+
 AnalogAudioView::~AnalogAudioView() {
+    stop_spec_sweep();
     receiver_model.set_hidden_offset(0);
     audio::output::stop();
     receiver_model.disable();
@@ -578,6 +779,7 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     audio::output::mute();
     record_view.stop();
 
+    stop_spec_sweep();  // before its baseband goes
     baseband::shutdown();
 
     portapack::spi_flash::image_tag_t image_tag;
@@ -651,6 +853,9 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     if (!is_wideband_spectrum_mode) {
         audio::output::unmute();
     }
+
+    if (spec_sweep_wanted())
+        start_spec_sweep();  // after enable(): takes over the classic set up above
 }
 
 void AnalogAudioView::handle_coded_squelch(uint32_t value) {
@@ -729,7 +934,16 @@ bool AnalogAudioView::on_frequency_changed(rf::Frequency frequency) {
 
 #ifdef PRALINE
 void AnalogAudioView::on_show_options_praline() {
-    set_options_widget(std::make_unique<PralineOptionsView>(options_view_rect, Theme::getInstance()->option_active));
+    auto widget = std::make_unique<PralineOptionsView>(options_view_rect, Theme::getInstance()->option_active);
+    widget->on_sampling_rate_changed = [this]() {
+        // FST SPEC picks its rate from BW: the sweep would be read at the wrong
+        // rate, so put its own back.
+        if (spec_an_sweep) {
+            spec_an_sweep->sweep.invalidate_rates();
+            start_spec_sweep();
+        }
+    };
+    set_options_widget(std::move(widget));
 }
 #endif
 
