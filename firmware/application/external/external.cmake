@@ -429,6 +429,11 @@ set(EXTCPPSRC
 	#wmbus
 	external/wmbus_rx/main.cpp
 	external/wmbus_rx/ui_wmbus_rx.cpp
+
+	#music player 296 bytes
+	external/music/main.cpp
+	external/music/ui_music.cpp
+
 )
 
 set(EXTAPPLIST
@@ -533,5 +538,6 @@ set(EXTAPPLIST
 	sdusb
   	rds_rx
 	wmbus_rx
+	music
 )
 

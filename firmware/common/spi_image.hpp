@@ -139,6 +139,7 @@ constexpr image_tag_t image_tag_tonedetect{'P', 'T', 'N', 'E'};
 constexpr image_tag_t image_tag_tetrarx{'P', 'T', 'E', 'T'};
 constexpr image_tag_t image_tag_rds_rx{'P', 'R', 'R', 'D'};
 constexpr image_tag_t image_tag_wmbus_rx{'P', 'W', 'M', 'B'};
+constexpr image_tag_t image_tag_audio_play{'P', 'A', 'P', 'L'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 

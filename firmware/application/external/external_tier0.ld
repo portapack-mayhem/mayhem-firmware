@@ -122,6 +122,7 @@ MEMORY
     ram_external_app_rds_rx                (rwx) : org = 0xAE110000, len = 32k
     ram_external_app_wmbus_rx              (rwx) : org = 0xAE120000, len = 32k
     ram_external_app_spec_an               (rwx) : org = 0xAE130000, len = 32k
+    ram_external_app_music                 (rwx) : org = 0xAE140000, len = 32k
 }
 
 SECTIONS
@@ -719,4 +720,10 @@ SECTIONS
         KEEP(*(.external_app.app_spec_an.application_information));
         */external/spec_an/*(*ui*external_app*spec_an*);
     } > ram_external_app_spec_an
+
+    .external_app_music : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_music.application_information));
+        */external/music/*(*ui*external_app*music*);
+    } > ram_external_app_music
 }
