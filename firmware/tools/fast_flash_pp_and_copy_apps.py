@@ -204,7 +204,8 @@ def run():
         print(f"find pp sd: {mount_point}")
 
         # worker 5: copy ppma and ppmp apps
-        apps_dir = os.path.join(mount_point, 'APPS')
+        device_subdir = os.environ.get('DEVICE_SUBDIR', 'hackrf')
+        apps_dir = os.path.join(mount_point, 'APPS', device_subdir)
         if not os.path.exists(apps_dir):
             os.makedirs(apps_dir)
 
