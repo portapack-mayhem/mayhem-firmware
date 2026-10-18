@@ -79,7 +79,7 @@ def convert_png(file):
 
 	name = os.path.basename(file).split(".")[0].lower()
 
-	bmp_data.append(f"\nstatic constexpr uint8_t bitmap_{name}_data[] = {{\n")
+	bmp_data.append(f"\ninline constexpr uint8_t bitmap_{name}_data[] = {{\n")
 
 	for i in range(rgb_im.size[1]):
 		for j in range(rgb_im.size[0]):
@@ -95,7 +95,7 @@ def convert_png(file):
 				data = 0
 
 	bmp_data.append(f"""}};
-static constexpr Bitmap bitmap_{name}{{
+inline constexpr Bitmap bitmap_{name}{{
     {{{str(rgb_im.size[0])}, {str(rgb_im.size[1])}}},
     bitmap_{name}_data}};
 """)
@@ -144,7 +144,7 @@ def pp_write_bitmaphpp(pngicons_path, hpp_outpath):
 ###########################################################
 
 def parse_bitmaphpp(bitmaphpp_file,icon_name):
-    ico_pattern = re.compile(r"static constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\nstatic constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
+    ico_pattern = re.compile(r"(?:static|inline) constexpr uint8_t bitmap_(.*)_data\[\] = {\n((?:\s+(?:.*)\n)+)};\n(?:static|inline) constexpr Bitmap bitmap_.*\{\n\s+\{(.*)\},", re.MULTILINE)
     ico_data = []
     
     # read file to buffer, to find multiline regex
