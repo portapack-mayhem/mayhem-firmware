@@ -307,7 +307,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
     button_see_map.on_select = [this, &nav](Button&) {
         geomap_view = nav.push<GeoMapView>(
             format::text(entry_.name),
-            0,
+            entry_.last_position.course_over_ground >= 3600 ? 0 : entry_.last_position.course_over_ground / 10,
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::KNOTS,
             format::latlon_float(entry_.last_position.latitude.normalized()),
@@ -316,6 +316,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
             [this]() {
                 send_updates = false;
             });
+        geomap_view->set_alt_speed_labels("CoG:", "SoG:", "\xB0");
         send_updates = true;
     };
 }
@@ -332,7 +333,7 @@ AISRecentEntryDetailView& AISRecentEntryDetailView::operator=(const AISRecentEnt
 
 void AISRecentEntryDetailView::update_position() {
     if (send_updates)
-        geomap_view->update_position(format::latlon_float(entry_.last_position.latitude.normalized()), format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground / 10);
+        geomap_view->update_position(format::latlon_float(entry_.last_position.latitude.normalized()), format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, entry_.last_position.course_over_ground >= 3600 ? 0 : entry_.last_position.course_over_ground / 10, entry_.last_position.speed_over_ground > 1022 ? 0 : entry_.last_position.speed_over_ground / 10);
 }
 
 bool AISRecentEntryDetailView::add_map_marker(const AISRecentEntry& entry) {
