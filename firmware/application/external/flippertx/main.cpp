@@ -77,7 +77,7 @@ __attribute__((section(".external_app.app_flippertx.application_information"), u
     /*.menu_location = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_ookstreaming */ {'P', 'O', 'S', 'K'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_ookstream */ {'P', 'O', 'S', 'K'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

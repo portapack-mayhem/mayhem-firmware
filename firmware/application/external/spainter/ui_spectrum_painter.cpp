@@ -36,8 +36,8 @@ namespace ui::external_app::spainter {
 SpectrumPainterView::SpectrumPainterView(
     NavigationView& nav)
     : nav_(nav) {
-    // baseband::run_image(spi_flash::image_tag_spectrum_painter);
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(spi_flash::image_tag_spectrum_painter);
+    // baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({
         &labels,

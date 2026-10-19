@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""List every baseband image, the build tiers it is external in, and which
+apps start it. For testing only, not part of the build.
+
+Sources:
+  * firmware/baseband/CMakeLists.txt: DeclareTargets(<chunk tag> <name>) lines and
+    the "if(FLASH_TIER ...) set(add_to_firmware FALSE)" switches that divide the
+    images into sections.
+  * firmware/common/spi_image.hpp: image_tag_<x>{'P','A','D','R'} <-> chunk tag.
+  * every .cpp/.hpp under firmware/ (except baseband/, chibios and the tag
+    definition itself): uses of image_tag_<x> (run_image, variables, ...) and
+    calls of run_prepared_image. Commented-out code is ignored.
+
+An owner is an external app (firmware/application/external/<dir>, with its
+tier.txt value) or an internal file (anywhere else).
+
+Image availability per build tier (0 = <=1MB, 1 = <=2MB, 2 = >2MB):
+  internal    in the firmware in every build
+  ext 0       external in build 0 only        (baseband section "TIER 0")
+  ext 0-1     external in builds 0 and 1      (baseband section "TIER 0, 1")
+  ext all     external in every build         (baseband section "TIER 2")
+
+Warnings are printed when an owner that is internal in some build uses an image
+that is external in that build (the image would be missing), and for chunk tags missing from
+spi_image.hpp. Images without any image_tag_ user are marked in the list; they
+are normally started by an external app with run_prepared_image.
+
+For every external app it also prints the baseband tag bundled in its main.cpp
+(m4_app_tag) and every image_tag_ used by its sources; apps that use more than
+one baseband are marked MULTI (the bundled one must then be the biggest image).
+Warnings: m4_app_tag comment not matching the 4 letters, bundled tag not among
+the used ones, and run_prepared_image still in use.
+
+It also lists the internal images that could safely be made external: used only
+by external apps that each use just that one image.
+
+Usage: tools/list_baseband_images.py [-v]
+"""
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+FW = ROOT / "firmware"
+EXT = FW / "application" / "external"
+BUILDS = (0, 1, 2)
+
+
+def strip_comments(text):
+    text = re.sub(r'/\*.*?\*/', lambda m: "\n" * m.group(0).count("\n"), text, flags=re.S)
+    return re.sub(r'//[^\n]*', '', text)
+
+
+def parse_images():
+    """Return list of dicts: name, chunk, section (0 = firmware, 1..3 = external sections)."""
+    text = re.sub(r'(?m)^\s*#.*$', '', (FW / "baseband" / "CMakeLists.txt").read_text())
+    images, section = [], 0
+    for m in re.finditer(r'if\(\s*FLASH_TIER\s+(EQUAL|GREATER_EQUAL)\s+(\d)\s*\)\s*set\(\s*add_to_firmware\s+FALSE\s*\)|DeclareTargets\(\s*(\w+)\s+(\w+)\s*\)', text):
+        if m.group(3):
+            images.append({"chunk": m.group(3), "name": m.group(4), "section": section})
+        else:
+            section += 1
+    return images
+
+
+def parse_tags():
+    text = (FW / "common" / "spi_image.hpp").read_text()
+    tags = {}
+    for m in re.finditer(r"image_tag_(\w+)\s*\{\s*'(.)'\s*,\s*'(.)'\s*,\s*'(.)'\s*,\s*'(.)'\s*\}", text):
+        tags[m.group(1)] = "".join(m.group(2, 3, 4, 5))
+    return tags
+
+
+def read_tier(d):
+    f = EXT / d / "tier.txt"
+    return int(f.read_text().strip()) if f.exists() else 0
+
+
+def owner_of(path):
+    rel = path.relative_to(FW)
+    try:
+        d = path.relative_to(EXT).parts[0]
+        return f"ext:{d}", d
+    except ValueError:
+        return f"int:{rel}", None
+
+
+def internal_builds(ext_dir):
+    """Builds in which the owner's code is part of the firmware."""
+    if ext_dir is None:
+        return set(BUILDS)
+    t = read_tier(ext_dir)
+    return set() if t <= 0 else {b for b in BUILDS if b >= t}
+
+
+def scan_users(tags):
+    by_sym = {}
+    prepared = []
+    skip = ("baseband", "chibios", "chibios-contrib", "hackrf", "tools", "test")
+    for p in sorted(FW.rglob("*")):
+        if p.suffix not in (".cpp", ".hpp", ".h", ".c") or p.is_dir():
+            continue
+        parts = p.relative_to(FW).parts
+        if parts[0] in skip or p == FW / "common" / "spi_image.hpp":
+            continue
+        text = strip_comments(p.read_text(errors="ignore"))
+        owner, ext_dir = owner_of(p)
+        for m in re.finditer(r'\bimage_tag_(\w+)\b', text):
+            if m.group(1) in tags:
+                line = text.count("\n", 0, m.start()) + 1
+                by_sym.setdefault(m.group(1), []).append((owner, ext_dir, f"{p.relative_to(FW)}:{line}"))
+        for m in re.finditer(r'\brun_prepared_image\s*\(', text):
+            if p.name not in ("baseband_api.cpp", "baseband_api.hpp"):
+                line = text.count("\n", 0, m.start()) + 1
+                prepared.append((owner, ext_dir, f"{p.relative_to(FW)}:{line}"))
+    return by_sym, prepared
+
+
+def section_label(images, i):
+    s = images[i]["section"]
+    return {0: "internal", 1: "ext 0", 2: "ext 0-1", 3: "ext all"}.get(s, f"section {s}")
+
+
+def external_in(section):
+    """Builds in which an image of this section is NOT in the firmware."""
+    return {0: set(), 1: {0}, 2: {0, 1}, 3: {0, 1, 2}}[section]
+
+
+M4_TAG_RE = re.compile(r"/\*\.m4_app_tag\s*=\s*(?:portapack::spi_flash::image_tag_(\w+))?\s*\*/\s*\{([^}]*)\}")
+
+
+def external_app_report(tags, warnings):
+    """Print the baseband usage of every external app, marking the ones with several."""
+    letters_to_sym = {v: k for k, v in tags.items()}
+    print("\nExternal apps and the baseband images they use:")
+    for d in sorted(p for p in EXT.iterdir() if p.is_dir()):
+        tier = read_tier(d.name)
+        if tier < 0:
+            continue
+        main_text = (d / "main.cpp").read_text(errors="ignore")
+        m = M4_TAG_RE.search(main_text)
+        bundled = None
+        if m:
+            body = m.group(2).replace(" ", "")
+            if body == "0,0,0,0":
+                bundled = "none"
+            else:
+                bundled = letters_to_sym.get("".join(re.findall(r"'(.)'", body)), "UNKNOWN")
+            if m.group(1) != bundled:
+                warnings.append(f"{d.name}/main.cpp: m4_app_tag comment says {m.group(1)!r} but the letters are {bundled!r}")
+        used = app_used_tags(d, tags)
+        multi = len(used) > 1
+        mark = "  <== MULTI" if multi else ""
+        print(f"    {d.name:<22} tier.txt={tier:<2} bundled={bundled or '(positional)':<16} uses: {', '.join(sorted(used)) or '-'}{mark}")
+        if bundled and bundled != "none" and used and bundled not in used:
+            warnings.append(f"{d.name}: bundled baseband {bundled} is not started by the app (uses {sorted(used)})")
+        if used and bundled == "none":
+            warnings.append(f"{d.name}: starts {sorted(used)} but bundles no baseband (m4_app_tag is none)")
+
+
+def app_used_tags(app_dir, tags):
+    used = set()
+    for f in app_dir.rglob("*"):
+        if f.suffix in (".cpp", ".hpp", ".h") and f.name != "main.cpp":
+            used.update(x for x in re.findall(r'\bimage_tag_(\w+)', strip_comments(f.read_text(errors="ignore"))) if x in tags)
+    return used
+
+
+def externalizable_report(images, tags, by_sym):
+    """List internal images that could safely be moved to an external section:
+    every user is an external app, and each of those apps uses only this one image."""
+    chunk_to_sym = {c: s for s, c in tags.items()}
+    print("\nInternal baseband images that can be made external safely")
+    print("(used only by external apps that use no other baseband image):")
+    found = 0
+    for img in images:
+        if img["section"] != 0:
+            continue
+        sym = chunk_to_sym.get(img["chunk"])
+        users = by_sym.get(sym, []) if sym else []
+        if not users or any(ext_dir is None for _, ext_dir, _ in users):
+            continue
+        apps = sorted({ext_dir for _, ext_dir, _ in users})
+        if any(app_used_tags(EXT / d, tags) != {sym} for d in apps):
+            continue
+        found += 1
+        info = ", ".join(f"{d}(tier.txt={read_tier(d)})" for d in apps)
+        print(f"    {img['name']:<20} {img['chunk']}  image_tag_{sym}  <- {info}")
+    if not found:
+        print("    (none)")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-v", "--verbose", action="store_true", help="show every call site")
+    args = ap.parse_args()
+
+    images = parse_images()
+    tags = parse_tags()
+    by_sym, prepared = scan_users(tags)
+    chunk_to_sym = {c: s for s, c in tags.items()}
+    warnings = []
+
+    print(f"{len(images)} baseband images\n")
+    for i, img in enumerate(images):
+        sym = chunk_to_sym.get(img["chunk"])
+        users = by_sym.get(sym, []) if sym else []
+        ext_b = external_in(img["section"])
+        print(f"{img['name']:<20} {img['chunk']}  {section_label(images, i):<9} image_tag_{sym}")
+        if not sym:
+            warnings.append(f"{img['name']}: chunk tag {img['chunk']} has no image_tag_ constant in spi_image.hpp")
+        owners = {}
+        for owner, ext_dir, loc in users:
+            owners.setdefault((owner, ext_dir), []).append(loc)
+        for (owner, ext_dir), locs in sorted(owners.items()):
+            if ext_dir is None:
+                note = "internal, all builds"
+            else:
+                t = read_tier(ext_dir)
+                note = f"external app, tier.txt={t}" + ("" if t <= 0 else f" (internal in builds >= {t})")
+            print(f"    {owner:<40} {note}")
+            if args.verbose:
+                for loc in locs:
+                    print(f"        {loc}")
+            missing = sorted(internal_builds(ext_dir) & ext_b)
+            if missing:
+                warnings.append(f"{img['name']} ({section_label(images, i)}) is external in build(s) {missing} "
+                                f"but {owner} is internal there")
+        if not users:
+            print("    (no image_tag_ users, probably bundled with an external app and started by run_prepared_image)")
+
+    print("\nrun_prepared_image callers (use the image bundled with the external app, no tag):")
+    for owner, ext_dir, loc in prepared:
+        t = f", tier.txt={read_tier(ext_dir)}" if ext_dir else ""
+        print(f"    {loc}{t}")
+        if ext_dir is None:
+            warnings.append(f"{loc}: internal code uses run_prepared_image")
+        elif internal_builds(ext_dir):
+            warnings.append(f"{loc}: run_prepared_image only works while the app is external, but tier.txt={read_tier(ext_dir)} "
+                            f"makes it internal in builds {sorted(internal_builds(ext_dir))}; use run_image(image_tag_...)")
+
+    external_app_report(tags, warnings)
+    externalizable_report(images, tags, by_sym)
+
+    unknown = sorted(set(by_sym) - set(chunk_to_sym.get(img["chunk"]) for img in images))
+    if unknown:
+        print("\nimage tags used in code but with no baseband image in CMake:", ", ".join(unknown))
+
+    print(f"\n{len(warnings)} warning(s)")
+    for w in warnings:
+        print("WARNING:", w)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

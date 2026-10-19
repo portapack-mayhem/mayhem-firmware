@@ -259,7 +259,7 @@ void OOKBruteView::stop() {
 
 void OOKBruteView::start() {
     counter = field_start.value();
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_ook);
     transmitter_model.enable();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);
     generate_packet();

@@ -159,7 +159,7 @@ void TimeSinkWaveformWidget::paint(Painter& painter) {
 
 TimeSinkView::TimeSinkView(NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_time_sink);
 
     add_children({
         &labels,

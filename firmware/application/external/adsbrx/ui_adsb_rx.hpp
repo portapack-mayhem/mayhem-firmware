@@ -133,7 +133,7 @@ struct AircraftRecentEntry {
             frame_pos_odd = frame;
 
         if (!frame_pos_even.empty() && !frame_pos_odd.empty()) {
-            if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < O_E_FRAME_TIMEOUT)
+            if (abs((int64_t)(frame_pos_even.get_rx_timestamp()) - (int64_t)(frame_pos_odd.get_rx_timestamp())) < O_E_FRAME_TIMEOUT)
                 pos = decode_frame_pos(frame_pos_even, frame_pos_odd);
         }
     }

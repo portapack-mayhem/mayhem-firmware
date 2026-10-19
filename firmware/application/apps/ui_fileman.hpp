@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"

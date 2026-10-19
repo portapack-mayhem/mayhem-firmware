@@ -40,7 +40,7 @@ void BHTView::start_tx() {
     transmitter_model.set_baseband_bandwidth(1750000);
 
     if (target_system == XYLOS) {
-        baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+        baseband::run_image(portapack::spi_flash::image_tag_tones);
         view_xylos.generate_message();
 
         // if (tx_mode == SINGLE) {

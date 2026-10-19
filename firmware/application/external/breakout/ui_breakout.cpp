@@ -609,7 +609,7 @@ void BreakoutView::play_level_complete() {
 BreakoutView::BreakoutView(NavigationView& nav)
     : nav_{nav}, bricks{} {
     // Initialize audio system for beeps FIRST
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // Load the audio beep baseband
+    baseband::run_image(portapack::spi_flash::image_tag_audio_beep);  // Load the audio beep baseband
 
     add_children({&dummy});
 

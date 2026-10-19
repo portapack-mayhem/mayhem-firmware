@@ -6,8 +6,49 @@
 
 #include "i2cdevmanager.hpp"
 #include "i2cdev_ppmod.hpp"
+#include "core_control.hpp"
 
 namespace ui {
+
+namespace {
+std::filesystem::path bundled_path;
+size_t bundled_offset = 0;
+
+// Copies the baseband bundled after the app code into m4_code; the file position must be at m4_app_offset.
+bool copy_bundled_baseband(File& app, size_t m4_app_offset, uint32_t& checksum) {
+    for (size_t file_read_index = m4_app_offset;;) {
+        size_t bytes_to_read = std::filesystem::max_file_block_size;
+
+        // not aligned
+        if ((file_read_index % std::filesystem::max_file_block_size) != 0)
+            bytes_to_read = std::filesystem::max_file_block_size - (file_read_index % std::filesystem::max_file_block_size);
+
+        auto target_memory = reinterpret_cast<void*>(portapack::memory::map::m4_code.base() + file_read_index - m4_app_offset);
+
+        auto readResult = app.read(target_memory, bytes_to_read);
+        if (!readResult)
+            return false;
+
+        checksum += simple_checksum((uint32_t)target_memory, readResult.value());
+
+        if (readResult.value() != bytes_to_read)
+            break;
+        file_read_index += readResult.value();
+    }
+    return true;
+}
+
+// Re-copies the bundled baseband after another image overwrote it in m4_code.
+bool reload_bundled_baseband() {
+    File app;
+    if (app.open(bundled_path))
+        return false;
+    if (!app.seek(bundled_offset))
+        return false;
+    uint32_t unused_checksum = 0;
+    return copy_bundled_baseband(app, bundled_offset, unused_checksum);
+}
+}  // namespace
 
 /* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
 
@@ -310,27 +351,8 @@ namespace ui {
         }
 
         // copy baseband image
-        for (size_t file_read_index = application_information.m4_app_offset;; file_read_index += readResult.value()) {
-            size_t bytes_to_read = std::filesystem::max_file_block_size;
-
-            // not aligned
-            if ((file_read_index % std::filesystem::max_file_block_size) != 0)
-                bytes_to_read = std::filesystem::max_file_block_size - (file_read_index % std::filesystem::max_file_block_size);
-
-            if (bytes_to_read == 0)
-                break;
-
-            auto target_memory = reinterpret_cast<void*>(portapack::memory::map::m4_code.base() + file_read_index - application_information.m4_app_offset);
-
-            readResult = app.read(target_memory, bytes_to_read);
-            if (!readResult)
-                return false;
-
-            checksum += simple_checksum((uint32_t)target_memory, readResult.value());
-
-            if (readResult.value() != bytes_to_read)
-                break;
-        }
+        if (!copy_bundled_baseband(app, application_information.m4_app_offset, checksum))
+            return false;
     } else {
         // copy application image
         for (size_t file_read_index = 0; file_read_index < 80 * std::filesystem::max_file_block_size; file_read_index += std::filesystem::max_file_block_size) {
@@ -349,6 +371,14 @@ namespace ui {
 
     if (checksum != EXT_APP_EXPECTED_CHECKSUM)
         return false;
+
+    if (application_information.m4_app_offset != 0) {
+        bundled_path = filePath;
+        bundled_offset = application_information.m4_app_offset;
+        m4_set_bundled_reloader(reload_bundled_baseband);
+    } else {
+        m4_set_bundled_reloader(nullptr);
+    }
 
     application_information.externalAppEntry(nav);
     return true;

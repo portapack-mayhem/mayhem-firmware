@@ -524,6 +524,7 @@ ftx_message_rc_t ftx_message_decode_nonstd(const ftx_message_t* msg, ftx_callsig
 
     // Extract i3 (bits 74..76)
     uint8_t i3 = (msg->payload[9] >> 3) & 0x07u;
+    (void)i3; // only read by LOG(), which may compile to nothing
     LOG(LOG_DEBUG, "decode_nonstd() n12=%04x n58=%08llx iflip=%d nrpt=%d icq=%d i3=%d\n", n12, n58, iflip, nrpt, icq, i3);
 
     // Decode one of the calls from 58 bit encoded string
@@ -1026,6 +1027,7 @@ static bool unpack58(uint64_t n58, const ftx_callsign_hash_interface_t* hash_if,
     char c11[12];
     c11[11] = '\0';
     uint64_t n58_backup = n58;
+    (void)n58_backup; // only read by LOG(), which may compile to nothing
     for (int i = 10; /* no condition */; --i)
     {
         c11[i] = charn(n58 % 38, FT8_CHAR_TABLE_ALPHANUM_SPACE_SLASH);

@@ -101,10 +101,11 @@ uint8_t MicTXView::shift_bits(void) {
 }
 
 void MicTXView::configure_baseband() {
-    // TODO: Can this use the transmitter model instead?
+    // SSB microphone bandwidth is fixed; FM retains its configured deviation.
+    const bool ssb = mic_mod_index == MIC_MOD_USB || mic_mod_index == MIC_MOD_LSB;
     baseband::set_audiotx_config(
         sampling_rate / 20,  // Update vu-meter at 20Hz
-        transmitting ? transmitter_model.channel_bandwidth() : 0,
+        transmitting ? (ssb ? 3000U : transmitter_model.channel_bandwidth()) : 0,
         mic_gain_x10 / 10.0,
         shift_bits(),  // to be used in dsp_modulate
         8,             // bits per sample
@@ -270,23 +271,33 @@ void MicTXView::set_rxbw_options(void) {
 }
 
 void MicTXView::set_rxbw_defaults(bool use_app_settings) {  // Initially in that function we set up rxbw, but now also txbw.
-    if (use_app_settings) {
+    const bool ssb = mic_mod_index == MIC_MOD_USB || mic_mod_index == MIC_MOD_LSB;
+    field_bw.set_step(1);
+    // Restore the range before assigning values so the SSB range cannot clamp FM.
+    if (ssb)
+        field_bw.set_range(3, 3);
+    else if (mic_mod_index == MIC_MOD_NFM)
+        field_bw.set_range(1, 60);
+    else if (mic_mod_index == MIC_MOD_WFM)
+        field_bw.set_range(1, 150);
+    else
+        field_bw.set_range(0, 150);  // Hidden in AM/DSB; retain the existing model value.
+
+    if (ssb) {
+        field_bw.set_value(3);
+        // set_range clamps without a callback; normalize saved 2000 Hz explicitly.
+        transmitter_model.set_channel_bandwidth(3000);
+        if (use_app_settings)
+            field_rxbw.set_by_value(rxbw_index);
+    } else if (use_app_settings) {
         field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
         field_rxbw.set_by_value(rxbw_index);
     } else if (mic_mod_index == MIC_MOD_NFM) {
-        field_bw.set_value(10);     // NFM TX bw 10k, RX bw 16k (index 2) default
-        field_bw.set_range(1, 60);  // In NFM , FM , we are limitting index modulation range (0.08 ..5) ; (Ex max dev 60khz/12k = 5)
-        field_bw.set_step(1);
+        field_bw.set_value(10);      // NFM TX bw 10k, RX bw 16k (index 2) default
         field_rxbw.set_by_value(2);  // 16k from the three options (8k5,11k,16k)
     } else if (mic_mod_index == MIC_MOD_WFM) {
-        field_bw.set_value(75);      // WFM TX bw 75K, RX bw 200k (index 0) default
-        field_bw.set_range(1, 150);  // In our case Mod. Index range (1,67 ...12,5) ; 150k/12k=12,5
-        field_bw.set_step(1);
+        field_bw.set_value(75);  // WFM TX bw 75K, RX bw 200k (index 0) default
         field_rxbw.set_by_value(0);
-    } else if ((mic_mod_index == MIC_MOD_USB) | (mic_mod_index == MIC_MOD_LSB)) {
-        field_bw.set_value(3);     // In SSB by default let's limit TX_BW to 3kHz.
-        field_bw.set_range(2, 3);  // User TXBW GUI range to modify that SSB TX_BW to limit SSB radiated spectrum.
-        field_bw.set_step(1);
     }
     // field_bw is hidden in other modulation cases
 }

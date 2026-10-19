@@ -36,22 +36,17 @@
 #include "string_format.hpp"
 #include "analog_audio_app.hpp"
 #include "gradient.hpp"
+#include "spec_an_sweep.hpp"
 
 namespace ui {
 
-#define LOOKING_GLASS_SLICE_WIDTH_MAX 20000000
-#define LOOKING_GLASS_MAX_SAMPLERATE 20000000
 #define MHZ_DIV 1000000
 #define LOOKING_GLASS_MAX_FREQ_MHZ 7250  // HackRF upper tuning limit (band_high top), in MHz
 
-// blanked DC (16 centered bins ignored ) and top left and right (2 bins ignored on each side )
+// auto resolution: the coarsest FFT that still gives at least one bin per pixel
 #define LOOKING_GLASS_FASTSCAN 0
-// only first half used (so DC spike is not ignored, it's stopped before the DC spike) minus the 2 first bins
+// finest resolution (2048 point FFT): narrow signals stand out better from the noise
 #define LOOKING_GLASS_SLOWSCAN 1
-// analog audio view like
-#define LOOKING_GLASS_SINGLEPASS 2
-// one spectrum line number of bins
-#define SPEC_NB_BINS 256
 
 class GlassView : public View {
    public:
@@ -113,18 +108,14 @@ class GlassView : public View {
     void update_min(int32_t v);
     void update_max(int32_t v);
     void update_range_field();
-    void get_max_power(const ChannelSpectrum& spectrum, uint16_t bin, uint8_t& max_power);
     rf::Frequency get_freq_from_bin_pos(uint16_t pos);
     void on_marker_change(int8_t delta);
-    void retune();
-    bool process_bins(uint8_t* powerlevel);
-    void on_channel_spectrum(const ChannelSpectrum& spectrum);
-    void do_timers();
-    int64_t next_mult_of(int64_t num, int64_t multiplier);
-    void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
+    void start_sweep();
+    void on_slice(const SpecAnSliceMessage& message);
+    void on_frame_sync();
+    void draw_line();
     void on_range_changed();
     void reset_live_view();
-    void add_spectrum_pixel(uint8_t power);
     void plot_marker(uint16_t pos);
     void load_presets();
     void populate_presets();
@@ -133,40 +124,32 @@ class GlassView : public View {
     bool paused{false};
 
     rf::Frequency search_span{0};
-    rf::Frequency f_center{0};
-    rf::Frequency f_center_ini{0};
 
     rf::Frequency marker{0};
     uint16_t marker_pixel_index{0};
-    rf::Frequency marker_pixel_step{0};
 
-    // Size of one spectrum bin in Hz.
-    rf::Frequency each_bin_size{0};
-    // Bandwidth of a single spectrum bin.
-    rf::Frequency bins_hz_size{0};
-    rf::Frequency looking_glass_sampling_rate{0};
-    rf::Frequency looking_glass_bandwidth{0};
     rf::Frequency looking_glass_range{0};
-    rf::Frequency looking_glass_step{0};
     uint8_t min_color_power{0};  // Filter cutoff level.
-    uint32_t pixel_index{0};
+
+    // Swept on the M4 by the spectrum analyzer engine, see spec_an_shared.hpp.
+    spec_an::Sweep sweep{};
+    uint16_t points{0};                // display points across the screen
+    std::vector<uint8_t> sweep_max{};  // the sweep in progress
+    std::vector<uint8_t> line_max{};   // max hold of the sweeps completed since the last drawn line
+    bool line_ready{false};            // line_max holds at least one whole sweep
+    systime_t last_beep{0};
+    bool sweep_enabled{false};  // set once the constructor has set up the fields
 
     std::vector<Color> spectrum_row{};
     std::vector<uint8_t> spectrum_data{};
-    ChannelSpectrumFIFO* fifo{};
 
     int32_t steps = 1;
     bool locked_range = false;
 
     uint8_t range_max_power = 0;
-    uint8_t range_max_power_counter = 0;
-    uint8_t max_power = 0;
     rf::Frequency max_freq_hold = 0;
     rf::Frequency last_max_freq = 0;
     int16_t max_freq_power = -1000;
-    uint8_t bin_length = screen_width;
-    uint8_t offset = 0;
-    uint8_t ignore_dc = 0;
     bool show_rssi_guides = false;
 
     // start of spectrum area
@@ -313,22 +296,22 @@ class GlassView : public View {
         {UI_POS_X(0), UI_POS_Y(5), UI_POS_WIDTH(14), UI_POS_HEIGHT(1)},
         ""};
 
-    MessageHandlerRegistration message_handler_spectrum_config{
-        Message::ID::ChannelSpectrumConfig,
+    MessageHandlerRegistration message_handler_captured{
+        Message::ID::SpecAnCaptured,
         [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-            this->fifo = message.fifo;
+            this->sweep.on_captured(*reinterpret_cast<const SpecAnCapturedMessage*>(p));
+        }};
+
+    MessageHandlerRegistration message_handler_slice{
+        Message::ID::SpecAnSlice,
+        [this](const Message* const p) {
+            this->on_slice(*reinterpret_cast<const SpecAnSliceMessage*>(p));
         }};
 
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
-            if (this->fifo) {
-                ChannelSpectrum channel_spectrum;
-                while (fifo->out(channel_spectrum)) {
-                    this->on_channel_spectrum(channel_spectrum);
-                }
-            }
+            this->on_frame_sync();
         }};
 
     MessageHandlerRegistration message_handler_freqchg{

@@ -75,7 +75,7 @@ void SigGenView::on_tx_progress(const uint32_t progress, const bool done) {
 
 SigGenView::SigGenView(
     NavigationView& nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_siggen);
 
     add_children({&labels,
                   &options_mod,

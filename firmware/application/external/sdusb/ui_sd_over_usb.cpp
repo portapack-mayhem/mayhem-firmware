@@ -46,7 +46,7 @@ SdOverUsbView::SdOverUsbView(NavigationView& nav)
         sdcStop(&SDCD1);
 
         portapack::shutdown(true, false);
-        baseband::run_prepared_image(portapack::memory::map::m4_code.base(), false);
+        baseband::run_image(portapack::spi_flash::image_tag_usb_sd, false);
         m0_halt();
         /* will not return*/
     };

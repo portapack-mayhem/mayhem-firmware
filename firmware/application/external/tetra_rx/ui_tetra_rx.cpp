@@ -232,7 +232,7 @@ void TetraChannelDecoder::parse_mac_pdu(Result& result) {
 
 TetraRxView::TetraRxView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_tetrarx);
 
     add_children({&rssi, &channel, &field_rf_amp, &field_lna, &field_vga,
                   &field_frequency, &text_mcc, &text_la, &text_pdu,

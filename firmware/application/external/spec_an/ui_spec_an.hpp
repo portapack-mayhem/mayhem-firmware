@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 zxkmm
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -48,6 +49,7 @@
 #include "radio_state.hpp"
 #include "message.hpp"
 #include "spec_an_shared.hpp"
+#include "spec_an_sweep.hpp"
 
 #include <array>
 #include <cstdint>
@@ -149,19 +151,6 @@ class SpecAnView : public View {
     int kSoftY = 220;
     int kActiveY = 201;
 
-    struct Plan {
-        uint32_t fs{20000000};
-        uint8_t log2n{8};
-        uint16_t avg{1};
-        int16_t bin_first{8};
-        uint16_t bins_per_slice{88};
-        uint16_t slices{1};
-        int64_t f_bin0{0}; /* frequency of global bin 0 */
-        uint32_t filter_bw{15000000};
-        uint32_t rbw_hz{0};
-        uint8_t settle_bufs{2};
-    };
-
     struct Marker {
         uint8_t mode{0}; /* 0 off, 1 normal, 2 delta to M1 */
         uint8_t trace{0};
@@ -186,19 +175,9 @@ class SpecAnView : public View {
     uint8_t window_{static_cast<uint8_t>(::spec_an::Window::BlackmanHarris)};
     uint8_t detector_{static_cast<uint8_t>(::spec_an::Detector::Peak)};
     uint8_t layout_{0};
-    /* Synthesizer settling after each retune. HackRF One moves both PLLs on
-     * every slice (its second LO tracks the RF, 2650 MHz - f/7) and smears
-     * a CW across the slice below ~350 us. PRALINE keeps the MAX2831 on a
-     * fixed IF across most bands and is clean even at 0. */
-#ifdef PRALINE
-    static constexpr uint32_t kSettleMinUs = 0;
-    static constexpr uint32_t kSettleDefaultUs = 100;
-#else
-    static constexpr uint32_t kSettleMinUs = 350;
-    static constexpr uint32_t kSettleDefaultUs = 400;
-#endif
-    uint32_t settle_us_{kSettleDefaultUs};
-    bool settle_low() const { return settle_us_ < kSettleMinUs; }
+    /* Synthesizer settling after each retune, see spec_an_sweep.hpp. */
+    uint32_t settle_us_{::spec_an::kSettleDefaultUs};
+    bool settle_low() const { return settle_us_ < ::spec_an::kSettleMinUs; }
     uint8_t avg_log2_{3};
     bool fill_{true};
     bool waterfall_{true};
@@ -256,18 +235,8 @@ class SpecAnView : public View {
             {"m4_x"sv, &markers_[3].x},
         }};
 
-    /* Sweep engine. */
-    ::spec_an::Shared shared_{};
-    Plan plan_{};
-    uint32_t cur_fs_{0};
-    uint32_t cur_filter_{0};
-    uint16_t gen_{0};
-    uint32_t seq_{0};
-    uint8_t sweep_{0};
-    uint16_t slice_{0};
-    bool sweeping_{false};
-    systime_t issued_at_{0};
-    uint32_t last_reply_{UINT32_MAX}; /* (sweep << 16) | slice of the last SpecAnSlice taken */
+    /* Sweep engine, shared with Looking Glass, Search and Audio SPEC. */
+    ::spec_an::Sweep sweep_{};
 
     /* Sweep timing, averaged over a short window. */
     systime_t rate_t0_{0};
@@ -318,12 +287,7 @@ class SpecAnView : public View {
     std::array<Color, 256> palette_{};
 
     /* Sweep engine. */
-    void compute_plan();
     void apply_plan(bool reset_traces);
-    void restart_sweep();
-    void issue(uint16_t slice, bool retune);
-    int64_t slice_lo(uint16_t slice) const;
-    void on_captured(const SpecAnCapturedMessage& message);
     void on_slice(const SpecAnSliceMessage& message);
     void on_sweep_done();
     void ingest(const int16_t* src, uint16_t px_begin, uint16_t px_end);
@@ -376,7 +340,7 @@ class SpecAnView : public View {
     MessageHandlerRegistration message_handler_captured{
         Message::ID::SpecAnCaptured,
         [this](const Message* const p) {
-            this->on_captured(*reinterpret_cast<const SpecAnCapturedMessage*>(p));
+            this->sweep_.on_captured(*reinterpret_cast<const SpecAnCapturedMessage*>(p));
         }};
 
     MessageHandlerRegistration message_handler_slice{

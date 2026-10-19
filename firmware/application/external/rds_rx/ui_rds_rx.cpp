@@ -16,7 +16,7 @@ static const char* pty_names[32] = {
 
 RdsRxView::RdsRxView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_rds_rx);
 
     add_children({&rssi, &channel, &field_rf_amp, &field_lna, &field_vga,
                   &field_frequency, &text_pi, &text_tp, &text_pty,

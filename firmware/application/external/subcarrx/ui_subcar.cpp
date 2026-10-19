@@ -94,7 +94,7 @@ SubCarView::SubCarView(NavigationView& nav)
                   &options_mode,
                   &recent_entries_view});
 
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_subcar);
     logger = std::make_unique<SubCarLogger>();
 
     button_clear_list.on_select = [this](Button&) {

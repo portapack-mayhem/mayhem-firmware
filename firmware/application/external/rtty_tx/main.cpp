@@ -77,7 +77,7 @@ __attribute__((section(".external_app.app_rtty_tx.application_information"), use
     /*.menu_location = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_rttytx  */ {'P', 'R', 'T', 'T'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_rttytx */ {'P', 'R', 'T', 'T'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

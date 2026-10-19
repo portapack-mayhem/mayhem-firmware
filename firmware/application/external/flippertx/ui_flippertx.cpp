@@ -107,7 +107,7 @@ void FlipperTxView::stop() {
 
 bool FlipperTxView::start() {
     if (filename.empty()) return false;
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_ookstream);
     transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
     transmitter_model.enable();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);

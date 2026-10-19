@@ -221,7 +221,7 @@ void MorseView::set_foxhunt(size_t i) {
 MorseView::MorseView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_tones);
 
     add_children({&labels,
                   &checkbox_foxhunt,

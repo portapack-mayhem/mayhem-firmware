@@ -209,7 +209,7 @@ void HunterConfigView::focus() {
 SignalHunterAppView::SignalHunterAppView(ui::NavigationView& nav)
     : frequency_list{},
       nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_signal_hunter);
 
     receiver_model.set_target_frequency(433920000);
     receiver_model.set_baseband_bandwidth(1750000);

@@ -45,7 +45,7 @@ __attribute__((section(".external_app.app_scanner.application_information"), use
     /*.desired_menu_position = */ -1,
 
     // this has to be the biggest baseband used by the app. Scanner is using AM,WFM,NFM and AM is the biggest
-    /*.m4_app_tag = portapack::spi_flash::image_tag_scanner */ {'P', 'A', 'M', 'A'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_am_audio */ {'P', 'A', 'M', 'A'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

@@ -81,7 +81,7 @@ application_information_t _application_information_sstvrx = {
     /*.menu_location = */ app_location_t::RX,
     /*.desired_menu_position = */ -1,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {'P', 'S', 'R', 'X'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_sstv_rx */ {'P', 'S', 'R', 'X'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 

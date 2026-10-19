@@ -298,7 +298,7 @@ void TwoToneRxView::reset_detect_state() {
 }
 
 void TwoToneRxView::start_rx() {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_tonedetect);
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
