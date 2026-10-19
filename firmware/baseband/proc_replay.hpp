@@ -29,6 +29,8 @@
 #include "spectrum_collector.hpp"
 
 #include "stream_output.hpp"
+#include "dsp_replay_interpolate.hpp"
+#include "replay_schedule.hpp"
 
 #include <array>
 #include <memory>
@@ -46,6 +48,9 @@ class ReplayProcessor : public BasebandProcessor {
 
     // Holds the read IQ data chunk from the file to send.
     std::array<complex16_t, 512> iq{};
+    dsp::replay::InterpolationCascade interpolation{};
+    replay::Schedule schedule = replay::for_total(384000, 8);
+    bool input_is_c8{false};
 
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
@@ -59,7 +64,6 @@ class ReplayProcessor : public BasebandProcessor {
 
     bool configured{false};
     uint32_t bytes_read{0};
-    OversampleRate oversample_rate = OversampleRate::x8;
 
     void sample_rate_config(const SampleRateConfigMessage& message);
     void replay_config(const ReplayConfigMessage& message);
