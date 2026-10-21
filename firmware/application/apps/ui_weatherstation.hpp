@@ -74,7 +74,7 @@ class WeatherLogger {
 
     void log_data(WeatherRecentEntry& data);
     void write_header() {
-        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt; Wind m/s; Dir; Gust m/s; Rain mm; hPa; UVI; Lux; Moist; PM2.5; Storm km; Strikes");
+        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt; Wind m/s; Dir; Gust m/s; Rain mm; hPa; UVI; Lux; Moist; PM2.5; Storm km; Strikes; Leak");
     }
 
    private:
@@ -155,6 +155,8 @@ class WeatherView : public View {
         "Log",
         true};
 
+    // Southern hemisphere: arrays whose solar panel must face north there (e.g. WH24) are installed
+    // turned around, so their wind direction is 180 deg off. Not needed for other sensors.
     Checkbox check_wind_south{
         {17 * 8, 18},
         5,

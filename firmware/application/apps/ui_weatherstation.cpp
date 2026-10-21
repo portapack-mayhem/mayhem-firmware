@@ -58,8 +58,9 @@ static uint8_t weather_extra_values(const WeatherReadings& r, WeatherExtraValue*
     v[7] = {"Moisture: ", "%", r.moisture, WS_NO_U8, false};
     v[8] = {"PM2.5:    ", " ug/m3", r.pm25, WS_NO_U16, true};
     v[9] = {"Storm:    ", " km", r.storm_dist, WS_NO_U8, false};
-    v[10] = {"Strikes:  ", "", r.strikes, WS_NO_U8, false};
-    return 11;
+    v[10] = {"Strikes:  ", "", r.strikes, WS_NO_U16, false};
+    v[11] = {"Leak:     ", "", r.leak, WS_NO_U8, false};
+    return 12;
 }
 
 static std::string weather_extra_to_string(const WeatherExtraValue& v) {
@@ -76,7 +77,7 @@ std::string WeatherRecentEntry::to_csv() {
     csv += to_string_dec_uint(channel) + ";";
     csv += to_string_dec_uint(battery_low);
     // extended values, empty if the sensor doesn't have them
-    WeatherExtraValue v[11];
+    WeatherExtraValue v[12];
     uint8_t count = weather_extra_values(*this, v);
     for (uint8_t i = 0; i < count; i++) csv += ";" + weather_extra_to_string(v[i]);
     return csv;
@@ -112,7 +113,7 @@ void WeatherRecentEntryDetailView::update_data() {
     text_age.set(to_string_dec_uint(entry_.age) + " sec");
 
     // only the values the sensor has
-    WeatherExtraValue v[11];
+    WeatherExtraValue v[12];
     uint8_t count = weather_extra_values(entry_, v);
     uint8_t line = 0;
     for (uint8_t i = 0; i < count && line < extra_lines; i++) {
