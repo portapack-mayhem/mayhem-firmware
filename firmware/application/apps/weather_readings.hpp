@@ -47,7 +47,8 @@ struct WeatherReadings {
     uint8_t uv = WS_NO_U8;           // 0.1 UV index
     uint8_t moisture = WS_NO_U8;     // %
     uint8_t storm_dist = WS_NO_U8;   // km
-    uint8_t strikes = WS_NO_U8;      // lightning strike count
+    uint16_t strikes = WS_NO_U16;    // lightning strike count, 0..255
+    uint8_t leak = WS_NO_U8;         // 1 = leak alarm
 };
 
 namespace weather_fineoffset {
@@ -236,9 +237,10 @@ inline void parse(uint8_t type, const uint8_t* p, uint8_t len, WeatherReadings& 
             r.strikes = p[6];
             break;
         case FPW_FO_WH55:
-            r.id = ((p[1] & 0x0F) << 16) | (p[2] << 8) | p[3];
+            r.id = (p[2] << 8) | p[3];
             r.channel = (p[1] >> 4) + 1;
             r.battery_low = p[4] <= 1;  // 20% steps
+            r.leak = (p[7] >> 6) & 1;
             break;
         default:
             break;

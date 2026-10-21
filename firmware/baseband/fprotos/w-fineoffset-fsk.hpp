@@ -39,7 +39,8 @@ class FProtoWeatherFineOffsetFSK : public FProtoWeatherBase {
         // the bit time is 56-60us depending on the model. Measure it on the preamble (single bit runs), long runs (up to ~40 bits) need it.
         if (!collecting && duration > te_min && duration < te_max) te_x16 += ((int32_t)(duration << 4) - (int32_t)te_x16) / 8;
         uint32_t bits = ((duration << 4) + te_x16 / 2) / te_x16;
-        if (bits > 64) bits = 64;  // no valid packet has longer runs, but let it resync
+        if (!collecting && bits >= 48) long_lead = true;  // WH25 sends ~330 bits of carrier before the preamble
+        if (bits > 64) bits = 64;                         // no valid packet has longer runs, but let it resync
         for (uint32_t i = 0; i < bits; i++) add_bit(level);
     }
 
@@ -64,6 +65,7 @@ class FProtoWeatherFineOffsetFSK : public FProtoWeatherBase {
     uint8_t bit_count = 0;
     uint8_t alt_run = 0;       // current run of alternating bits
     uint8_t preamble_len = 0;  // longest run of alternating bits before the sync word
+    bool long_lead = false;    // a long run of carrier before the preamble
     bool collecting = false;
     bool inverted = false;
     uint8_t buf[WS_MAX_PAYLOAD]{};
@@ -76,6 +78,7 @@ class FProtoWeatherFineOffsetFSK : public FProtoWeatherBase {
         bit_count = 0;
         alt_run = 0;
         preamble_len = 0;
+        long_lead = false;
     }
 
     void add_bit(bool bit) {
@@ -162,12 +165,19 @@ class FProtoWeatherFineOffsetFSK : public FProtoWeatherBase {
                     sensorType = FPW_FO_WH65;
             }
         } else if ((family & 0xF0) == 0xD0 || (family & 0xF0) == 0xE0) {
-            // WH25, WH32(B): sum of 6 bytes. WH25 only: then the xor of them with swapped nibbles
+            // WH25, WH32(B): sum of 6 bytes. WH25 only: then the xor of them with swapped nibbles.
+            // WH32B uses the same 0xE code without the xor, but has no long carrier lead-in,
+            // so 0xE with a long lead-in and a bad xor is a corrupted WH25.
             ok = FProtoGeneral::subghz_protocol_blocks_add_bytes(buf, 6) == buf[6];
             uint8_t x = 0;
             for (uint8_t i = 0; i < 6; i++) x ^= buf[i];
             x = (x << 4) | (x >> 4);
-            sensorType = ((family & 0xF0) == 0xE0 && byte_count >= 8 && x == buf[7]) ? FPW_FO_WH25 : FPW_FO_WH32;
+            if ((family & 0xF0) == 0xE0 && byte_count >= 8 && x == buf[7]) {
+                sensorType = FPW_FO_WH25;
+            } else {
+                sensorType = FPW_FO_WH32;
+                if ((family & 0xF0) == 0xE0 && long_lead) ok = false;
+            }
         } else {
             for (const auto& f : families) {
                 if (f.code == family) {
