@@ -57,6 +57,7 @@ class KeyCopierView : public View {
     int px(int units) const;       // 1/10000 inch to pixels
 
     NavigationView& nav_;
+    const int pitch_;  // pixel pitch of this screen, 1/100000 inch
     int format_index_{0};
     int pin_{0};
     int rot_{0};             // 0..3 = 0/90/180/270 degrees
