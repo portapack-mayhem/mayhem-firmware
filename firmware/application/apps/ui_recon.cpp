@@ -1371,6 +1371,7 @@ void ReconView::start_repeat() {
 
         const auto schedule = replay::select(metadata->sample_rate);
         if (!schedule.valid()) {
+            stop_repeat(false);
             repeat_file_error(rawmeta, "Unsupported Replay sample rate.");
             return;
         }

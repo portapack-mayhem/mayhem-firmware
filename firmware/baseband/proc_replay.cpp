@@ -89,7 +89,13 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     spectrum_samples += buffer.count;
     const bool update_spectrum = spectrum_samples >= spectrum_interval_samples;
     if (update_spectrum) spectrum_samples -= spectrum_interval_samples;
-    bool spectrum_fed = false;
+    // Keep the old average frame cadence, but collect each frame contiguously.
+    if (update_spectrum)
+        spectrum_capture_credit = std::min<size_t>(256, spectrum_capture_credit + std::min<size_t>(source_count, 256));
+    if (!spectrum_capture_remaining && spectrum_capture_credit == 256) {
+        spectrum_capture_credit = 0;
+        spectrum_capture_remaining = 256;
+    }
     size_t current_bytes_read = 0;
     const size_t bytes_to_read = source_count * (input_is_c8 ? sizeof(complex8_t) : sizeof(complex16_t));
 
@@ -99,13 +105,16 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
         current_bytes_read = stream->read(buffer.p, bytes_to_read);
         const size_t complete = current_bytes_read / sizeof(complex8_t);
         std::fill_n(buffer.p + complete, buffer.count - complete, complex8_t{});
-        if (update_spectrum && complete) {
-            const size_t count = std::min(complete, iq.size());
+        if (spectrum_capture_remaining && complete) {
+            const size_t count = std::min<size_t>(complete, spectrum_capture_remaining);
             for (size_t n = 0; n < count; ++n)
                 iq[n] = complex16_t{static_cast<int16_t>(buffer.p[n].real() * 256),
                                     static_cast<int16_t>(buffer.p[n].imag() * 256)};
-            channel_spectrum.feed({iq.data(), count, schedule.source_rate},
-                                  channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+            feed_spectrum(iq.data(), count);
+        }
+        if (current_bytes_read != bytes_to_read && spectrum_capture_remaining) {
+            channel_spectrum.discard_partial();
+            spectrum_capture_remaining = 0;
         }
         // Progress is expressed in common C16 byte units by existing callers.
         bytes_read += current_bytes_read * 2;
@@ -123,10 +132,11 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
                                          &clipped
 #endif
             );
-            if (update_spectrum && !spectrum_fed && samples) {
-                channel_spectrum.feed({iq.data(), samples, schedule.source_rate},
-                                      channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
-                spectrum_fed = true;
+            feed_spectrum(iq.data(), samples);
+            if (got != count * sizeof(complex16_t) && spectrum_capture_remaining) {
+                // Do not join a partial frame across a missing source interval.
+                channel_spectrum.discard_partial();
+                spectrum_capture_remaining = 0;
             }
             // After a short read, deterministic zeros flush all remaining
             // chunks this callback; retry the FIFO on the next callback.
@@ -148,6 +158,24 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     replay_interpolation_diagnostics.clipped_components += clipped;
     if (current_bytes_read != bytes_to_read) ++replay_interpolation_diagnostics.short_reads;
 #endif
+}
+
+void ReplayProcessor::reset_spectrum_capture() {
+    channel_spectrum.discard_partial();
+    spectrum_capture_remaining = 0;
+    spectrum_capture_credit = 0;
+}
+
+void ReplayProcessor::feed_spectrum(complex16_t* samples, size_t count) {
+    if (!spectrum_capture_remaining || !count) return;
+    const size_t take = std::min<size_t>(count, spectrum_capture_remaining);
+    // At most one block can complete; no surplus enters the next frame.
+    if (channel_spectrum.feed({samples, take, schedule.source_rate},
+                              channel_filter_low_f, channel_filter_high_f, channel_filter_transition)) {
+        spectrum_capture_remaining = 0;
+    } else {
+        spectrum_capture_remaining -= take;
+    }
 }
 
 void ReplayProcessor::on_message(const Message* const message) {
@@ -179,6 +207,7 @@ void ReplayProcessor::on_message(const Message* const message) {
 
 void ReplayProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     configured = false;
+    reset_spectrum_capture();
     schedule = replay::for_total(message.sample_rate, toUType(message.oversample_rate));
     if (!schedule.valid()) return;
     baseband_fs = schedule.output_rate;
@@ -189,6 +218,7 @@ void ReplayProcessor::sample_rate_config(const SampleRateConfigMessage& message)
 }
 
 void ReplayProcessor::replay_config(const ReplayConfigMessage& message) {
+    reset_spectrum_capture();
     interpolation.reset();
     spectrum_samples = 0;
 #if REPLAY_INTERPOLATION_DIAGNOSTICS

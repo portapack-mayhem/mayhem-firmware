@@ -61,9 +61,14 @@ class ReplayProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
+    uint16_t spectrum_capture_remaining{0};
+    uint16_t spectrum_capture_credit{0};
 
     bool configured{false};
     uint32_t bytes_read{0};
+
+    void reset_spectrum_capture();
+    void feed_spectrum(complex16_t* samples, size_t count);
 
     void sample_rate_config(const SampleRateConfigMessage& message);
     void replay_config(const ReplayConfigMessage& message);
