@@ -561,16 +561,60 @@ void EventDispatcher::handle_switches() {
 
     portapack::bl_tick_counter = 0;
 
+    // The physical key state; get_switches_state() is the auto-repeat state, which
+    // toggles low between repeat pulses while a key is held.
+    const auto pressed = get_switches_pressed();
+
+    // A completed chord owns the keys until they are physically released: nothing is
+    // dispatched meanwhile, not even the repeat pulses of the keys still held.
+    if (combo_fired_) {
+        if (pressed.any())
+            return;
+        combo_fired_ = false;
+        in_key_event = false;
+        return;
+    }
+
     if (switches_state.count() == 0) {
         // If all keys are released, we are no longer in a key event.
         in_key_event = false;
     }
 
-    if (in_key_event) {
-        if (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up]) {
-            const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
-            context.focus_manager().update(top_widget, event);
+    // Global chord gestures, recognised on the physical key state. Returns true when one
+    // fired; it then owns the keys until they are physically released (see above).
+    // Diagonals only: the PortaPack d-pad is a rocker that tilts cleanly into a corner,
+    // while opposite directions (Left+Right, Up+Down) also close the keys in between.
+    //   Left + Up    -> Back  (the existing chord)
+    //   Left + Down  -> Home  (straight back to the main menu from any app)
+    const auto fire_chord = [this, &pressed]() {
+        const bool left = pressed[(size_t)ui::KeyEvent::Left];
+        const bool up = pressed[(size_t)ui::KeyEvent::Up];
+        const bool down = pressed[(size_t)ui::KeyEvent::Down];
+        if (!left || up == down)  // needs Left and exactly one of Up / Down
+            return false;
+
+        // Like the status bar's back button: keep the settings when they live on the
+        // card, then leave the app.
+        if (portapack::persistent_memory::should_use_sdcard_for_pmem())
+            portapack::persistent_memory::save_persistent_settings_to_file();
+
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+        if (down) {
+            if (nav) nav->home(true);
+        } else {
+            // A view that handles Back itself (e.g. to leave a sub-mode) gets it first;
+            // otherwise go back a screen, as the back button does.
+            if (!event_bubble_key(ui::KeyEvent::Back) && nav)
+                nav->pop();
         }
+        combo_fired_ = true;
+        in_key_event = true;
+        return true;
+    };
+
+    if (in_key_event) {
+        // A chord pressed key by key: the first key already generated its own event.
+        fire_chord();
 
         // If we're in a key event, return. We will ignore all additional key
         // presses until the first key is released. We also want to ignore events
@@ -583,9 +627,20 @@ void EventDispatcher::handle_switches() {
         // Swallow event, wake up display.
         if (switches_state.any()) {
             set_display_sleep(false);
+            // Keys held together to wake the display are not a gesture either: hold
+            // them off until they are released.
+            if (pressed.count() >= 2)
+                combo_fired_ = true;
         }
         return;
     }
+
+    // A chord that is already complete with no key event in progress: both keys went
+    // down within one switch event (a simultaneous press, or debounced transitions the
+    // timer ISR signalled together), or the first key was in an auto-repeat low phase
+    // as the second one arrived. Recognise it rather than dispatch the keys one by one.
+    if (fire_chord())
+        return;
 
     for (size_t i = 0; i < switches_state.size(); i++) {
         // TODO: Ignore multiple keys at the same time?
