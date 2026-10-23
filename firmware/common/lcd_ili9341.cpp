@@ -255,8 +255,9 @@ void lcd_init_pp() {
 
     /*as per the datasheet chapter 8.3.7, addr B6h,
     data "REV" bit, liquid crystal type:*/
+    // REV=0 and INVON (21h) both invert the data, so IPS mode uses REV=1 + INVON and ignores normally_black.
     const bool ips = portapack::persistent_memory::config_lcd_ips();
-    if (ips || portapack::persistent_memory::config_lcd_normally_black())
+    if (!ips && portapack::persistent_memory::config_lcd_normally_black())
         io.lcd_data_write_command_and_data(0xB6, {0x0A, 0x22, 0x27, 0x00});  // IPS : normally black : 0
     else
         io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});  // TFT : normally white : 1
@@ -475,7 +476,7 @@ void ILI9341::apply_tuning(const lcd_tuning_t& t) {
 void ILI9341::apply_panel_config() {
     if (device_type != DEV_PORTAPACK) return;
     const bool ips = portapack::persistent_memory::config_lcd_ips();
-    if (ips || portapack::persistent_memory::config_lcd_normally_black())
+    if (!ips && portapack::persistent_memory::config_lcd_normally_black())
         io.lcd_data_write_command_and_data(0xB6, {0x0A, 0x22, 0x27, 0x00});
     else
         io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});

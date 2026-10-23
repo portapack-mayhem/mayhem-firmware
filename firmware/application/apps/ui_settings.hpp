@@ -819,9 +819,9 @@ class SetDisplayView : public View {
    private:
     Labels labels{
         {{1 * 8, 2 * 16}, "Panel type (240x320 only)", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 9 * 16}, "IPS: washed out / pale image", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 10 * 16}, "fix. Fine tune with the", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 11 * 16}, "LCD Gamma app (Settings).", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 9 * 16}, "IPS panel overrides Normally", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 10 * 16}, "black. Fine tune colors with", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "the LCD Gamma app (Settings).", Theme::getInstance()->fg_light->foreground},
     };
 
     Checkbox checkbox_lcd_ips{
