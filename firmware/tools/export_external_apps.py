@@ -156,6 +156,8 @@ for external_image_prefix in sys.argv[5:]:
 		continue
 
 	external_application_image = read_image(himg)
+	# The loader sums the app and its baseband as separate runs of 32 bit words
+	external_application_image += bytes(-len(external_application_image) % 4)
 
 	#m4 image @ 0x44
 	chunk_data = external_application_image[m4_app_tag_header_position:m4_app_tag_header_position+4]
