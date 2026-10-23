@@ -233,6 +233,10 @@ set(EXTCPPSRC
 	external/debug_pmem/main.cpp
 	external/debug_pmem/ui_debug_pmem.cpp
 
+	#lcd_gamma
+	external/lcd_gamma/main.cpp
+	external/lcd_gamma/ui_lcd_gamma.cpp
+
 	#scanner 520 byte
 	external/scanner/main.cpp
 	external/scanner/ui_scanner.cpp
@@ -487,6 +491,7 @@ set(EXTAPPLIST
 	dinogame
 	doom
 	debug_pmem
+	lcd_gamma
 	scanner
 	level
 	gfxeq
