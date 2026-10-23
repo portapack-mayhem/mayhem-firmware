@@ -416,6 +416,11 @@ set(EXTCPPSRC
 	external/spec_an/main.cpp
 	external/spec_an/ui_spec_an.cpp
 
+	#key copier
+	external/key_copier/main.cpp
+	external/key_copier/ui_key_copier.cpp
+	external/key_copier/key_formats.cpp
+
 	#sd over usb
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
@@ -530,6 +535,7 @@ set(EXTAPPLIST
 	aprs_tx
 	ft8_rx
 	spec_an
+	key_copier
 	sdusb
   	rds_rx
 	wmbus_rx
