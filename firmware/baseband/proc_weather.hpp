@@ -33,7 +33,12 @@
 #include "message.hpp"
 #include "dsp_decimate.hpp"
 
+// the protocols run once per pulse, not per sample, so optimize them for size (like proc_subghzd)
+#pragma GCC push_options
+#pragma GCC optimize("Os")
 #include "fprotos/weatherprotos.hpp"
+#pragma GCC pop_options
+#include "fprotos/weatherfsk.hpp"
 
 #define OOK_EST_HIGH_RATIO 3  // Constant for slowness of OOK high level estimator
 #define OOK_EST_LOW_RATIO 5   // Constant for slowness of OOK low level (noise) estimator (very slow)
@@ -72,7 +77,16 @@ class WeatherProcessor : public BasebandProcessor {
     bool currentHiLow = false;
     bool configured{false};
 
-    FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
+    WeatherProtos* protoList = new WeatherProtos();  // holds all the protocols we can parse
+
+    // FSK demodulation runs while there is a carrier, and a bit after it, to tolerate short dropouts
+    static constexpr uint8_t FSK_MAX_DROPOUT = 10;  // samples
+    static constexpr uint32_t FSK_MIN_SNR = 8;      // power above the noise floor, ~9dB
+    WeatherFSKDetect fsk_detect{WeatherProtos::feed_fsk, protoList};
+    uint32_t fsk_noise_x64 = 100 << 6;  // noise floor, same unit as mag, * 64
+    bool fsk_active = false;
+    uint8_t fsk_dropout = 0;
+
     void configure(const SubGhzFPRxConfigureMessage& message);
     void on_beep_message(const AudioBeepMessage& message);
 

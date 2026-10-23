@@ -36,6 +36,38 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
+// the values only some sensors have. Same order in the log and in the detail view
+struct WeatherExtraValue {
+    const char* label;
+    const char* unit;
+    uint32_t value;
+    uint32_t none;
+    bool tenths;
+};
+
+static uint8_t weather_extra_values(const WeatherReadings& r, WeatherExtraValue* v) {
+    v[0] = {"Wind:     ", " m/s", r.wind_avg, WS_NO_U16, true};
+    uint16_t wind_dir = r.wind_dir;
+    if (weather_wind_south && wind_dir != WS_NO_U16) wind_dir = (wind_dir + 180) % 360;
+    v[1] = {"Wind dir: ", " deg", wind_dir, WS_NO_U16, false};
+    v[2] = {"Gust:     ", " m/s", r.wind_gust, WS_NO_U16, true};
+    v[3] = {"Rain:     ", " mm", r.rain, WS_NO_U32, true};
+    v[4] = {"Pressure: ", " hPa", r.pressure, WS_NO_U16, true};
+    v[5] = {"UV index: ", "", r.uv, WS_NO_U8, true};
+    v[6] = {"Light:    ", " lux", r.light, WS_NO_U32, false};
+    v[7] = {"Moisture: ", "%", r.moisture, WS_NO_U8, false};
+    v[8] = {"PM2.5:    ", " ug/m3", r.pm25, WS_NO_U16, true};
+    v[9] = {"Storm:    ", " km", r.storm_dist, WS_NO_U8, false};
+    v[10] = {"Strikes:  ", "", r.strikes, WS_NO_U16, false};
+    v[11] = {"Leak:     ", "", r.leak, WS_NO_U8, false};
+    return 12;
+}
+
+static std::string weather_extra_to_string(const WeatherExtraValue& v) {
+    if (v.value == v.none) return "";
+    return v.tenths ? to_string_decimal(v.value / 10.0f, 1) : to_string_dec_uint(v.value);
+}
+
 std::string WeatherRecentEntry::to_csv() {
     std::string csv = ";";
     csv += WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)sensorType);
@@ -44,6 +76,10 @@ std::string WeatherRecentEntry::to_csv() {
     csv += to_string_dec_uint(humidity) + ";";
     csv += to_string_dec_uint(channel) + ";";
     csv += to_string_dec_uint(battery_low);
+    // extended values, empty if the sensor doesn't have them
+    WeatherExtraValue v[12];
+    uint8_t count = weather_extra_values(*this, v);
+    for (uint8_t i = 0; i < count; i++) csv += ";" + weather_extra_to_string(v[i]);
     return csv;
 }
 
@@ -75,6 +111,15 @@ void WeatherRecentEntryDetailView::update_data() {
     else
         text_batt.set("-");
     text_age.set(to_string_dec_uint(entry_.age) + " sec");
+
+    // only the values the sensor has
+    WeatherExtraValue v[12];
+    uint8_t count = weather_extra_values(entry_, v);
+    uint8_t line = 0;
+    for (uint8_t i = 0; i < count && line < extra_lines; i++) {
+        if (v[i].value != v[i].none) text_extra[line++].set(v[i].label + weather_extra_to_string(v[i]) + v[i].unit);
+    }
+    while (line < extra_lines) text_extra[line++].set("");
 }
 
 WeatherRecentEntryDetailView::WeatherRecentEntryDetailView(NavigationView& nav, const WeatherRecentEntry& entry)
@@ -89,6 +134,10 @@ WeatherRecentEntryDetailView::WeatherRecentEntryDetailView(NavigationView& nav, 
                   &text_batt,
                   &text_age,
                   &labels});
+    for (uint8_t i = 0; i < extra_lines; i++) {
+        text_extra[i].set_parent_rect({UI_POS_X(0), (8 + i) * 16, screen_width, 16});
+        add_child(&text_extra[i]);
+    }
 
     button_done.on_select = [&nav](const ui::Button&) {
         nav.pop();
@@ -116,6 +165,7 @@ WeatherView::WeatherView(NavigationView& nav)
                   &options_temperature,
                   &button_clear_list,
                   &check_log,
+                  &check_wind_south,
                   &recent_entries_view});
 
     logger = std::make_unique<WeatherLogger>();
@@ -133,6 +183,11 @@ WeatherView::WeatherView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
     options_temperature.set_selected_index(weather_units_fahr, false);
+
+    check_wind_south.on_select = [](Checkbox&, bool v) {
+        weather_wind_south = v;
+    };
+    check_wind_south.set_value(weather_wind_south);
 
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;
@@ -176,6 +231,7 @@ void WeatherView::on_data(const WeatherDataMessage* data) {
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
+        *matching_recent = key;  // the key doesn't cover all the values (wind, rain...), take the new ones
         (*matching_recent).reset_age();
         recent.push_front(*matching_recent);
         recent.erase(matching_recent);
@@ -256,6 +312,52 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "Bresser3CH";
         case FPW_Vauno_EN8822:
             return "Vauno EN8822";
+        case FPW_FO_WH2:
+            return "FO-WH2";
+        case FPW_FO_WH5:
+            return "FO-WH5";
+        case FPW_FO_WH0530:
+            return "FO-WH0530";
+        case FPW_FO_WH1080:
+            return "FO-WH1080";
+        case FPW_FO_WH3080UV:
+            return "FO-WH3080UV";
+        case FPW_FO_WH53:
+            return "Ecowitt WH53";
+        case FPW_FO_WH24:
+            return "FO-WH24";
+        case FPW_FO_WH65:
+            return "FO-WH65";
+        case FPW_FO_WS69:
+            return "FO-WS69";
+        case FPW_FO_WH25:
+            return "FO-WH25";
+        case FPW_FO_WH32:
+            return "FO-WH32";
+        case FPW_FO_WH0290:
+            return "FO-WH0290";
+        case FPW_FO_WH31E:
+            return "FO-WH31";
+        case FPW_FO_WH40:
+            return "FO-WH40";
+        case FPW_FO_WN20:
+            return "FO-WN20";
+        case FPW_FO_WS68:
+            return "FO-WS68";
+        case FPW_FO_WH51:
+            return "FO-WH51";
+        case FPW_FO_WS80:
+            return "FO-WS80";
+        case FPW_FO_WS85:
+            return "FO-WS85";
+        case FPW_FO_WS90:
+            return "FO-WS90";
+        case FPW_FO_WN34:
+            return "FO-WN34";
+        case FPW_FO_WH57:
+            return "FO-WH57";
+        case FPW_FO_WH55:
+            return "FO-WH55";
         case FPW_Invalid:
         default:
             return "Unknown";
@@ -284,7 +386,7 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     line = WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry.sensorType);
     line.resize(columns.at(0).second, ' ');
 
-    std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
+    std::string temp = (entry.temp == WS_NO_TEMPERATURE) ? "-" : (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
     std::string humStr = (entry.humidity != WS_NO_HUMIDITY) ? to_string_dec_uint(entry.humidity) + "%" : "-";
     std::string chStr = (entry.channel != WS_NO_CHANNEL) ? to_string_dec_uint(entry.channel) : "-";
     std::string ageStr = to_string_dec_uint(entry.age);
@@ -634,7 +736,9 @@ WeatherRecentEntry WeatherView::process_data(const WeatherDataMessage* data) {
 
             break;
         case FPW_Invalid:
+            break;
         default:
+            if (data->sensorType >= FPW_FO_WH2) weather_fineoffset::parse(data->sensorType, data->payload, data->payload_len, ret);
             break;
     }
 
