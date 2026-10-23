@@ -937,15 +937,19 @@ struct ReplayConfig {
     uint64_t baseband_bytes_received;
     FIFO<StreamBuffer*>* fifo_buffers_empty;
     FIFO<StreamBuffer*>* fifo_buffers_full;
+    // Opt-in only for native C8 direct IQ Replay. Audio/GPS default unchanged.
+    const bool input_is_c8;
 
     constexpr ReplayConfig(
         const size_t read_size,
-        const size_t buffer_count)
+        const size_t buffer_count,
+        bool input_is_c8 = false)
         : read_size{read_size},
           buffer_count{buffer_count},
           baseband_bytes_received{0},
           fifo_buffers_empty{nullptr},
-          fifo_buffers_full{nullptr} {
+          fifo_buffers_full{nullptr},
+          input_is_c8{input_is_c8} {
     }
 };
 
@@ -1112,6 +1116,9 @@ enum class OversampleRate : uint8_t {
     /* Use either to indicate there's no oversampling needed. */
     None = 1,
     x1 = None,
+
+    /* Replay-only x2; Capture's historical selection is unchanged. */
+    x2 = 2,
 
     /* Oversample rate of 4 times the sample rate. */
     x4 = 4,
