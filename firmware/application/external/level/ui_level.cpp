@@ -217,6 +217,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
 
     // refresh sat
     if (radio_mode == SPEC_MODULATION || (radio_mode == WFM_MODULATION && audio_mode == 1)) {
+        last_rx_sat = 0xff;
         freq_stats_rx.set_style(&level_rx_stats_off_style);
         freq_stats_rx.set("RxSat off");
         return;
