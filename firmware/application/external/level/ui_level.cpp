@@ -183,6 +183,12 @@ LevelView::LevelView(NavigationView& nav)
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
+    static const Style level_rx_stats_off_style{
+        .font = font::fixed_8x16,
+        .background = {55, 55, 55},
+        .foreground = {155, 155, 155},
+    };
+
     static int16_t last_max_db = 0;
     static uint8_t last_min_rssi = 0;
     static uint8_t last_avg_rssi = 0;
@@ -211,12 +217,8 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
 
     // refresh sat
     if (radio_mode == SPEC_MODULATION || (radio_mode == WFM_MODULATION && audio_mode == 1)) {
-        Style style_freq_stats_rx{
-            .font = font::fixed_8x16,
-            .background = {55, 55, 55},
-            .foreground = {155, 155, 155},
-        };
-        freq_stats_rx.set_style(&style_freq_stats_rx);
+        last_rx_sat = 0xff;
+        freq_stats_rx.set_style(&level_rx_stats_off_style);
         freq_stats_rx.set("RxSat off");
         return;
     }
@@ -234,12 +236,13 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
             br = (255 * (rx_sat - 80)) / 20;
             bg = 255 - br;
         }
-        Style style_freq_stats_rx{
+
+        rx_sat_style_.emplace(Style{
             .font = font::fixed_8x16,
             .background = {br, bg, bb},
             .foreground = {255, 255, 255},
-        };
-        freq_stats_rx.set_style(&style_freq_stats_rx);
+        });
+        freq_stats_rx.set_style(&*rx_sat_style_);
         freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
     }
 
