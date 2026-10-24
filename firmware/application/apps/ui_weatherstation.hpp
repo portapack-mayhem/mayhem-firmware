@@ -155,8 +155,8 @@ class WeatherView : public View {
         "Log",
         true};
 
-    // Southern hemisphere: arrays whose solar panel must face north there (e.g. WH24) are installed
-    // turned around, so their wind direction is 180 deg off. Not needed for other sensors.
+    // Southern hemisphere: arrays whose flat solar panel must face north there (WH24, WH65, WS69, WS68) are installed
+    // turned around, so their wind direction is 180 deg off. Only those are rotated.
     Checkbox check_wind_south{
         {17 * 8, 18},
         5,

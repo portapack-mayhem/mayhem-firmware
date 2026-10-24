@@ -45,10 +45,16 @@ struct WeatherExtraValue {
     bool tenths;
 };
 
+// Arrays with a flat solar panel that has to face the equator. In the southern hemisphere they are installed
+// turned around, so S.Hem rotates their wind direction. The WS80 / WS90 have a ring shaped panel, they are not turned.
+static bool weather_panel_faces_equator(uint8_t type) {
+    return type == FPW_FO_WH24 || type == FPW_FO_WH65 || type == FPW_FO_WS69 || type == FPW_FO_WS68;
+}
+
 static uint8_t weather_extra_values(const WeatherReadings& r, WeatherExtraValue* v) {
     v[0] = {"Wind:     ", " m/s", r.wind_avg, WS_NO_U16, true};
     uint16_t wind_dir = r.wind_dir;
-    if (weather_wind_south && wind_dir != WS_NO_U16) wind_dir = (wind_dir + 180) % 360;
+    if (weather_wind_south && wind_dir != WS_NO_U16 && weather_panel_faces_equator(r.sensorType)) wind_dir = (wind_dir + 180) % 360;
     v[1] = {"Wind dir: ", " deg", wind_dir, WS_NO_U16, false};
     v[2] = {"Gust:     ", " m/s", r.wind_gust, WS_NO_U16, true};
     v[3] = {"Rain:     ", " mm", r.rain, WS_NO_U32, true};
