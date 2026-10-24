@@ -38,7 +38,7 @@
 #pragma GCC optimize("Os")
 #include "fprotos/weatherprotos.hpp"
 #pragma GCC pop_options
-#include "fprotos/weatherfsk.hpp"
+#include "proc_weather_fsk.hpp"
 
 #define OOK_EST_HIGH_RATIO 3  // Constant for slowness of OOK high level estimator
 #define OOK_EST_LOW_RATIO 5   // Constant for slowness of OOK low level (noise) estimator (very slow)

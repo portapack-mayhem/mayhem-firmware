@@ -5,8 +5,8 @@ level true = upper frequency (mark), false = lower frequency (space).
 Port of the "classic" FSK detector and the FM demodulator from rtl_433 ( https://github.com/merbanan/rtl_433 src/pulse_detect_fsk.c, src/baseband.c ). Thanks for their work!
 */
 
-#ifndef __FPROTO_WEATHERFSK_H__
-#define __FPROTO_WEATHERFSK_H__
+#ifndef __PROC_WEATHER_FSK_H__
+#define __PROC_WEATHER_FSK_H__
 
 #include <stdint.h>
 #include <stdlib.h>
