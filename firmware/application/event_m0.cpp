@@ -587,18 +587,22 @@ void EventDispatcher::handle_switches() {
         if (!left || up == down)  // needs Left and exactly one of Up / Down
             return false;
 
+        // Apps like games turn the chords off: they read the diagonals themselves.
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+        if (!nav || !nav->chords_enabled())
+            return false;
+
         // Like the status bar's back button: keep the settings when they live on the
         // card, then leave the app.
         if (portapack::persistent_memory::should_use_sdcard_for_pmem())
             portapack::persistent_memory::save_persistent_settings_to_file();
 
-        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
         if (down) {
-            if (nav) nav->home(true);
+            nav->home(true);
         } else {
             // A view that handles Back itself (e.g. to leave a sub-mode) gets it first;
             // otherwise go back a screen, as the back button does.
-            if (!event_bubble_key(ui::KeyEvent::Back) && nav)
+            if (!event_bubble_key(ui::KeyEvent::Back))
                 nav->pop();
         }
         combo_fired_ = true;
