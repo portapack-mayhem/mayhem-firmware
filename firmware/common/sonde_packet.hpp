@@ -62,6 +62,7 @@ class Packet {
         Meteomodem_M2K2 = 3,
         Vaisala_RS41_SG = 4,
         Meteomodem_M20 = 5,
+        Meteoradiy_MRZ = 6,  // MRZ-N1 / MP3-H1, 403 MHz (issue #3309)
     };
 
     Packet(const baseband::Packet& packet, const Type type);
@@ -166,6 +167,11 @@ class Packet {
     bool crc_ok_M10() const;
     bool crc_ok_RS41() const;
     bool check_ok_M20() const;
+    bool crc_ok_MRZ() const;
+    uint8_t mrz_byte(size_t k) const;
+    int32_t mrz_i32(size_t k) const;
+    int16_t mrz_i16(size_t k) const;
+    bool mrz_latlon() const;
     bool crc16rs41(uint32_t field_start) const;
 };
 

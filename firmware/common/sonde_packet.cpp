@@ -47,6 +47,28 @@ static uint8_t calfrchk[51];        // so subframes are preserved while populate
 #define pos_GPSecefY 0x114  // 0x118  // 4 byte (not actually used since Y and Z are following X, and grabbed in that same loop)
 #define pos_GPSecefZ 0x118  // 0x11C  // 4 byte (same as Y)
 
+// MRZ-N1 / MP3-H1 (Meteo-Radiy, 403 MHz), after rs1729/RS demod/mod/mp3h1mod.c. The
+// 51-byte frame has two layouts: LATLON (bytes 30-31 = 0xFFFF; position as lat/lon x1e-6
+// and altitude x1e-2 m, CRC over 42 bytes, the PTU and config fields 3 bytes earlier) and
+// ECEF (position as ECEF x1e-2 m, CRC over 45 bytes). The CRC (reversed poly 0xA001,
+// init 0xFFFF) starts at the counter in byte 3 and is stored little-endian right after.
+#define MRZ_pos_CNT1 3   // low nibble: config subframe index
+#define MRZ_pos_TIME 4   // hh mm ss
+#define MRZ_pos_lat 7    // LATLON: int32 x1e-6 deg
+#define MRZ_pos_lon 11   // int32 x1e-6 deg
+#define MRZ_pos_alt 15   // int32 x1e-2 m
+#define MRZ_pos_ecefX 8  // ECEF: 3x int32 x1e-2 m
+#define MRZ_pos_T16 29   // int16 x1e-2 degC
+#define MRZ_pos_H16 31   // int16 x1e-2 %RH
+#define MRZ_pos_CFG 44   // uint32 config subframe data
+#define MRZ_crclen_ECEF 45
+#define MRZ_crclen_LATLON 42
+
+// The serial number ("MRZ-<C>-<D>") comes in config subframes 0xC and 0xD of successive
+// frames, so its halves are kept across packets, as the RS41 calibration frames are.
+static uint32_t mrz_snC = 0;
+static uint32_t mrz_snD = 0;
+
 #include "mathdef.hpp"
 
 Packet::Packet(
@@ -137,6 +159,33 @@ GPS_data Packet::get_GPS_data() const {
         result.alt = p / cos(phi) - R;
         result.lat = phi * 180 / PI;
         result.lon = lam * 180 / PI;
+    } else if (type_ == Type::Meteoradiy_MRZ) {
+        if (mrz_latlon()) {
+            result.lat = mrz_i32(MRZ_pos_lat) / 1e6;
+            result.lon = mrz_i32(MRZ_pos_lon) / 1e6;
+            result.alt = mrz_i32(MRZ_pos_alt) / 100.0;
+        } else {
+            double_t X[3];
+            for (int32_t k = 0; k < 3; k++)
+                X[k] = mrz_i32(MRZ_pos_ecefX + 4 * k) / 100.0;
+
+            double_t a = 6378137.0;
+            double_t b = 6356752.31424518;
+            double_t e = sqrt((a * a - b * b) / (a * a));
+            double_t ee = sqrt((a * a - b * b) / (b * b));
+
+            double_t lam = atan2(X[1], X[0]);
+            double_t p = sqrt(X[0] * X[0] + X[1] * X[1]);
+            double_t t = atan2(X[2] * a, p * b);
+            double_t phi = atan2(X[2] + ee * ee * b * sin(t) * sin(t) * sin(t),
+                                 p - e * e * a * cos(t) * cos(t) * cos(t));
+
+            double_t R = a / sqrt(1 - e * e * sin(phi) * sin(phi));
+
+            result.alt = p / cos(phi) - R;
+            result.lat = phi * 180 / PI;
+            result.lon = lam * 180 / PI;
+        }
     }
     return result;
 }
@@ -162,6 +211,9 @@ uint32_t Packet::frame() const {
         return frame_number;
     } else if (type_ == Type::Meteomodem_M20) {
         return reader_bi_m.read(0x15 * 8, 8);
+    } else if (type_ == Type::Meteoradiy_MRZ) {
+        // No running frame counter: the GPS time of day in seconds stands in for one.
+        return mrz_byte(MRZ_pos_TIME) * 3600 + mrz_byte(MRZ_pos_TIME + 1) * 60 + mrz_byte(MRZ_pos_TIME + 2);
     } else {
         return 0;  // Unknown
     }
@@ -439,6 +491,12 @@ temp_humid Packet::get_temp_humid() const {
         result.humid = RH;
     }
 
+    if (type_ == Type::Meteoradiy_MRZ) {
+        const int ofs = mrz_latlon() ? -3 : 0;
+        result.temp = mrz_i16(MRZ_pos_T16 + ofs) / 100.0f;
+        result.humid = mrz_i16(MRZ_pos_H16 + ofs) / 100.0f;
+    }
+
     return result;
 }
 
@@ -456,6 +514,8 @@ std::string Packet::type_string() const {
             return "Meteomodem M2K2";
         case Type::Vaisala_RS41_SG:
             return "Vaisala RS41-SG";
+        case Type::Meteoradiy_MRZ:
+            return "Meteo-Radiy MRZ";
         default:
             return "? 0x" + symbols_formatted().data.substr(0, 6);
     }
@@ -490,6 +550,23 @@ std::string Packet::serial_number() const {
         // Inspired by https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
         uint32_t sn = reader_bi_m.read(0x12 * 8, 8) | (reader_bi_m.read(0x13 * 8, 8) << 8) | (reader_bi_m.read(0x14 * 8, 8) << 16);
         return to_string_dec_uint(sn);  // Serial is 3 bytes at byte #12
+    } else if (type_ == Type::Meteoradiy_MRZ) {
+        if (crc_ok_MRZ()) {
+            const uint32_t cfg = (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0));
+            switch (mrz_byte(MRZ_pos_CNT1) & 0x0F) {
+                case 0xC:  // a new first half means another sonde: drop the old second half
+                    if (mrz_snC && cfg != mrz_snC) mrz_snD = 0;
+                    mrz_snC = cfg;
+                    break;
+                case 0xD:
+                    if (mrz_snD && cfg != mrz_snD) mrz_snC = 0;
+                    mrz_snD = cfg;
+                    break;
+            }
+        }
+        if (mrz_snC && mrz_snD)
+            return "MRZ-" + to_string_dec_uint(mrz_snC) + "-" + to_string_dec_uint(mrz_snD);
+        return "MRZ";
     } else {
         return "?";
     }
@@ -518,6 +595,8 @@ bool Packet::crc_ok() const {
             return crc_ok_RS41();
         case Type::Meteomodem_M20:
             return check_ok_M20();
+        case Type::Meteoradiy_MRZ:
+            return crc_ok_MRZ();
         default:
             return true;  // euquiq: it was false, but if no crc routine, then no way to check
     }
@@ -531,6 +610,46 @@ bool Packet::check_ok_M20() const {
     if (packet_.size() / 8 < b1)
         return false;
     return true;
+}
+
+bool Packet::crc_ok_MRZ() const {
+    const size_t crclen = mrz_latlon() ? MRZ_crclen_LATLON : MRZ_crclen_ECEF;
+    uint16_t crc = 0xFFFF;
+    for (size_t i = 0; i < crclen; i++) {
+        crc ^= mrz_byte(MRZ_pos_CNT1 + i);
+        for (int j = 0; j < 8; j++)
+            crc = (crc & 0x0001) ? ((crc >> 1) ^ 0xA001) : (crc >> 1);
+    }
+    return crc == (uint16_t)mrz_i16(MRZ_pos_CNT1 + crclen);
+}
+
+// MRZ frame byte k, read straight from the chips: MRZ is plain Manchester, not the
+// biphase-mark of reader_bi_m. The packet starts right after the 44-chip header, which
+// already carries frame byte 0 (0xAA) and the top six bits of byte 1 (101111); from there
+// every data bit is a chip pair, "10" = 1 and "01" = 0, so its value is the first chip.
+// Bits are sent most significant first.
+uint8_t Packet::mrz_byte(const size_t k) const {
+    if (k == 0)
+        return 0xAA;
+    uint8_t value = 0;
+    for (int i = 0; i < 8; i++) {
+        const int bit = 8 * (int)k - 14 + i;
+        const uint8_t b = (bit < 0) ? ((0xBC >> (7 - i)) & 1) : packet_[2 * bit];
+        value = (value << 1) | b;
+    }
+    return value;
+}
+
+int32_t Packet::mrz_i32(const size_t k) const {  // little-endian
+    return (int32_t)(mrz_byte(k) | (mrz_byte(k + 1) << 8) | (mrz_byte(k + 2) << 16) | ((uint32_t)mrz_byte(k + 3) << 24));
+}
+
+int16_t Packet::mrz_i16(const size_t k) const {  // little-endian
+    return (int16_t)(mrz_byte(k) | (mrz_byte(k + 1) << 8));
+}
+
+bool Packet::mrz_latlon() const {
+    return mrz_byte(30) == 0xFF && mrz_byte(31) == 0xFF;
 }
 
 // each data block has a 2 byte header, data, and 2 byte tail:
