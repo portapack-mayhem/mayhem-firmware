@@ -44,6 +44,9 @@ void text_prompt(
     uint8_t mode,
     std::function<void(std::string&)> on_done) {
     auto te_view = nav.push<AlphanumView>(str, max_length, mode);
+    // Moving across the keyboard with the d-pad easily rolls into a diagonal; keep
+    // the chord gestures from leaving it (and losing the text) while typing.
+    nav.suppress_chords();
     te_view->set_cursor(cursor_pos);
     te_view->on_changed = [on_done](std::string& value) {
         if (on_done)

@@ -522,6 +522,7 @@ EPIRBTXAppView::EPIRBTXAppView(
 
     text_field_beacon_locator.on_select = [this](TextField&) mutable {
         auto te_view = nav_.push<AlphanumView>(locator, 10, ENTER_KEYBOARD_MODE_ALPHA);
+        nav_.suppress_chords();  // as text_prompt() does: no chord gestures while typing
         te_view->on_changed = [this](std::string& value) {
             beacon_params.location.locator = value;
             init_from_locator(beacon_params.location);
