@@ -150,6 +150,21 @@ class ILI9341 {
      */
     ui::Coord scroll_area_y(const ui::Coord y) const;
 
+    /* Landscape (320x240) on a 240x320 PortaPack panel, by exchanging rows
+     * and columns in MADCTL. Everything drawn afterwards, text included,
+     * comes out upright; ui::screen_width/height are swapped to match.
+     * flip picks which way the device is turned (false: D-pad on the right).
+     * Returns false where the panel is already >= 320 wide (nothing to do). */
+    bool set_landscape(const bool landscape, const bool flip = false);
+    bool is_landscape() const { return landscape_; }
+
+    /* Streaming writes: open a window once, then push any number of runs
+     * into it in row-major order. */
+    void start_pixels(const ui::Rect r);
+    void stream_pixels(const ui::Color* const colors, const size_t count);
+    void stream_pixels_lut(const uint8_t* const index, const ui::Color* const lut, const size_t count);
+    void stream_fill(const ui::Color color, const size_t count);
+
     ui::Dim width() { return ui::screen_width; }
     ui::Dim height() { return ui::screen_height; }
     ui::Rect screen_rect() { return {0, 0, width(), height()}; }
@@ -165,6 +180,7 @@ class ILI9341 {
         ui::Coord current_position;
     };
     scroll_t scroll_state;
+    bool landscape_{false};
 };
 
 } /* namespace lcd */

@@ -40,7 +40,8 @@ void ProtoView::focus() {
 
 ProtoView::ProtoView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_protoview);
+    // baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
                   &field_rf_amp,

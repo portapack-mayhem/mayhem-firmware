@@ -77,7 +77,7 @@ application_information_t _application_information_mdc_tx = {
     /*.icon_color         = */ ui::Color::orange().v,
     /*.menu_location      = */ app_location_t::TX,
     /*.desired_menu_position = */ -1,
-    /*.m4_app_tag         = */ {'P', 'A', 'F', 'T'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_afsk */ {'P', 'A', 'F', 'T'},
     /*.m4_app_offset      = */ 0x00000000,
 };
 }

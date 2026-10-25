@@ -26,7 +26,7 @@
 import sys
 import os
 from external_app_info import external_apps_address_start
-from external_app_info import external_apps_address_end
+from external_app_info import read_external_apps_address_end
 from elf_info import external_app_section_prefix
 from elf_info import read_loaded_sections
 from elf_info import read_relocations
@@ -57,6 +57,7 @@ def write_image(data, path):
     f.close()
 
 ########external app linker script address check########
+build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
 
 def parse_memory_regions(ld_file_path):
     regions = []
@@ -180,6 +181,11 @@ spi_size = int(sys.argv[4], 0)
 application_elf = sys.argv[5]
 cmake_readelf = sys.argv[6]
 
+# End of the external app regions of the tier being built, read from the
+# external.ld that the build copied next to application.elf.
+application_binary_dir = os.path.dirname(os.path.abspath(application_elf))
+external_apps_address_end = read_external_apps_address_end(application_binary_dir)
+
 print("\ncheck gcc versions from all elf target\n")
 application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
 baseband_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[2])
@@ -194,7 +200,7 @@ print("\n")
 
 ########external app linker script address check worker########
 
-ld_file_path = Path("..") / ".." / "firmware" / "application" / "external" / "external.ld"
+ld_file_path = Path(application_binary_dir) / "external" / "external.ld"
 
 try:
     regions = parse_memory_regions(ld_file_path)
@@ -297,7 +303,6 @@ print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "
 #^^^^^^^^check if the fw size ok and check external addr leak^^^^^^^^
 
 # copy the fast flash script
-build_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'build')
 flash_py_path = os.path.join(build_dir, 'flash.py')
 
 if not os.path.exists(flash_py_path):

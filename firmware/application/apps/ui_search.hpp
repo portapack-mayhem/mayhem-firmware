@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -28,13 +29,9 @@
 #include "ui_receiver.hpp"
 #include "log_file.hpp"
 #include "file_path.hpp"
+#include "spec_an_sweep.hpp"
 
 namespace ui {
-
-#define SEARCH_SLICE_WIDTH 2500000                // Search slice bandwidth
-#define SEARCH_BIN_NB 256                         // FFT power bins
-#define SEARCH_BIN_NB_NO_DC (SEARCH_BIN_NB - 16)  // Bins after trimming
-#define SEARCH_BIN_WIDTH (SEARCH_SLICE_WIDTH / SEARCH_BIN_NB)
 
 #define DETECT_DELAY 5  // In 100ms units
 #define RELEASE_DELAY 6
@@ -109,7 +106,7 @@ class SearchView : public View {
     RxRadioState radio_state_{
         100'000'000 /* frequency */,
         2500000 /* bandwidth */,
-        SEARCH_SLICE_WIDTH /* sampling rate */,
+        2500000 /* sampling rate */,
         ReceiverModel::Mode::SpectrumAnalysis};
 
     // Settings
@@ -132,47 +129,66 @@ class SearchView : public View {
             {"snap_step"sv, &settings_.snap_step},
         }};
 
-    struct slice_t {
-        rf::Frequency center_frequency;
-        uint8_t max_power;
-        int16_t max_index;
-        uint8_t power;
-        int16_t index;
-    } slices[32];
+    /* Sweeps complete much faster than signals come and go (TDMA bursts,
+     * fading): they are max-held over each 100 ms timer period and looked at
+     * once per period.
+     * Scan: sweeps the whole range, looking for a point that stays over the
+     *       threshold for DETECT_DELAY.
+     * Resolve: sweeps narrower and narrower spans around it until the points
+     *       are no more than kResolvedSpacing apart. A zoom with no peak (a
+     *       wideband signal fills it) settles for the best estimate so far.
+     * Locked: sweeps the whole range again, the lock holds while the peak
+     *       stays around the locked point. */
+    enum class Stage : uint8_t {
+        Scan,
+        Resolve,
+        Locked
+    };
 
-    uint32_t bin_skip_acc = 0;
-    uint32_t bin_skip_frac = 0;
-    uint32_t pixel_index = 0;
+    static constexpr uint16_t points = 240;              // spectrum line width
+    static constexpr uint16_t kAverage = 4;              // FFTs power-averaged per tune
+    static constexpr uint8_t kRbwIdx = 4;                // 2048 point FFT: ~10 kHz bins at 20 MHz, as the classic Search
+    static constexpr uint32_t kResolvedSpacing = 2'500;  // Hz between points once resolved
+    static constexpr uint32_t kZoomMinSpan = 240'000;    // narrowest zoom, room for some drift
+    static constexpr uint8_t kZoomPoints = 6;            // zoom span, in points of the span before
+
+    spec_an::Sweep sweep{};
+    Stage stage{Stage::Scan};
+    bool shown{false};
+    std::vector<uint8_t> sweep_power{};  // the sweep in progress
+    std::vector<uint8_t> hold_power{};   // max hold of the sweeps completed this period
+    uint16_t hold_count{0};              // sweeps in hold_power
     std::vector<Color> spectrum_row{};
-    ChannelSpectrumFIFO* fifo = nullptr;
+    bool row_ready{false};      // spectrum_row holds a period not drawn yet
+    int16_t row_tick{-1};       // its point over the threshold, -1 if none
+    int16_t last_index{-1};     // point over the threshold at the previous period
+    int16_t locked_index{-1};   // range point of the signal being resolved or locked
+    rf::Frequency estimate{0};  // best frequency found while resolving
+    Coord last_tick_pos = 0;
 
     uint8_t detect_timer = 0;
     uint8_t release_timer = 0;
     uint8_t timing_div = 0;
     uint8_t overall_power_max{0};
-    uint32_t mean_power = 0;
-    uint32_t mean_acc = 0;
+    uint32_t noise_power = 0;  // the range's noise floor, lower quartile of the points
     uint32_t duration = 0;
 
-    rf::Frequency slice_start = 0;
-    uint8_t slices_nb = 0;
-    uint8_t slice_counter = 0;
-    int16_t last_bin = 0;
-    uint32_t last_slice = 0;
-    Coord last_tick_pos = 0;
-    rf::Frequency search_span = 0;
     rf::Frequency resolved_frequency = 0;
-    uint16_t locked_bin = 0;
-    uint8_t search_counter = 0;
-    bool locked = false;
+    uint16_t search_counter = 0;
     bool logging = false;
     SearchLogger logger{};
 
-    void do_detection();
+    void start_sweep(rf::Frequency start, rf::Frequency span);
+    void sweep_range();
+    void start_scan();
+    void zoom(uint16_t x);
+    void lock(rf::Frequency frequency);
+    void unlock();
+    void on_slice(const SpecAnSliceMessage& message);
+    void evaluate();
+    void draw_row();
     void do_timers();
-    void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void on_range_changed();
-    void add_spectrum_pixel(Color color);
 
     RecentEntriesColumns columns{{{"Frequency", 0},
                                   {"Time", 8},
@@ -184,11 +200,11 @@ class SearchView : public View {
         {{UI_POS_X(1), UI_POS_Y(0)}, "Min:      Max:       ", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(7), UI_POS_Y(0)}, "LNA VGA", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(1), UI_POS_Y(2)}, "Trig:   /255", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X_RIGHT(12), UI_POS_Y(2)}, "Mean:   /255", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(1), UI_POS_Y(3)}, "Slices:  /32", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X_RIGHT(13), UI_POS_Y(2)}, "Noise:   /255", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(3)}, "Slices:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(10), UI_POS_Y(3)}, "Rate:   Hz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(6), UI_POS_Y(5)}, "Timer  Status", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(1), 25 * 8}, "Accuracy +/-4.9kHz", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), 25 * 8}, "Accuracy +/-1.3kHz", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X_RIGHT(4), 25 * 8}, "MHz", Theme::getInstance()->fg_light->foreground}};
 
     Checkbox check_log{
@@ -213,12 +229,12 @@ class SearchView : public View {
         {5, 255},
         5,
         ' '};
-    Text text_mean{
+    Text text_noise{
         {UI_POS_X_RIGHT(7), UI_POS_Y(2), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
     Text text_slices{
-        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH(2), UI_POS_HEIGHT(1)},
-        "--"};
+        {UI_POS_X(8), UI_POS_Y(3), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
+        "---"};
     Text text_rate{
         {UI_POS_X_RIGHT(5), UI_POS_Y(3), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "---"};
@@ -251,22 +267,27 @@ class SearchView : public View {
 
     BigFrequency big_display{{UI_POS_X_CENTER(28), UI_POS_Y(9), UI_POS_WIDTH(28), 52}, 0};
 
-    MessageHandlerRegistration message_handler_spectrum_config{
-        Message::ID::ChannelSpectrumConfig,
+    // Swept on the M4 by the spectrum analyzer engine, see spec_an_shared.hpp.
+    MessageHandlerRegistration message_handler_captured{
+        Message::ID::SpecAnCaptured,
         [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-            this->fifo = message.fifo;
+            this->sweep.on_captured(*reinterpret_cast<const SpecAnCapturedMessage*>(p));
+        }};
+
+    MessageHandlerRegistration message_handler_slice{
+        Message::ID::SpecAnSlice,
+        [this](const Message* const p) {
+            this->on_slice(*reinterpret_cast<const SpecAnSliceMessage*>(p));
         }};
 
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
-            if (this->fifo) {
-                ChannelSpectrum channel_spectrum;
-                while (fifo->out(channel_spectrum)) {
-                    this->on_channel_spectrum(channel_spectrum);
-                }
-            }
+            if (!this->shown)
+                return;  // a hidden view must not advance the scan
+            this->sweep.on_frame();
+            if (this->row_ready)
+                this->draw_row();
             this->do_timers();
         }};
 };

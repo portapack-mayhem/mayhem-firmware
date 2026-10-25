@@ -31,7 +31,7 @@ namespace ui::external_app::vor_tx {
 
 VorTxView::VorTxView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_vor_tx);
 
     add_children({&labels,
                   &field_radial,

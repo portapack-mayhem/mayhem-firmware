@@ -125,6 +125,7 @@ void set_epirb_tx_config(EPIRBTXDataMessage& message);
 void set_epirb_rx_config(EPIRBRXConfig& message);
 void set_p25tx_data(const uint8_t* dibits, uint16_t frame_length);
 void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start);
+void set_wmbus_config(uint8_t mode = 0);
 
 void request_roger_beep();
 void request_rssi_beep();
@@ -135,11 +136,12 @@ bool is_image_running();
 bool supports_rx_fs4();
 void set_rx_fs4_direction(RxFs4Direction direction);
 void run_image(const portapack::spi_flash::image_tag_t image_tag, bool enforce_core_sync = true);
-void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true, const portapack::spi_flash::image_tag_t prepared_image_tag = portapack::spi_flash::image_tag_none);
 void shutdown();
 
 void spectrum_streaming_start();
 void spectrum_streaming_stop();
+
+void set_spec_an_config(const SpecAnConfigMessage& message);
 
 /* NB: sample_rate should be desired rate. Don't pre-scale. */
 void set_sample_rate(uint32_t sample_rate, OversampleRate oversample_rate = OversampleRate::None);

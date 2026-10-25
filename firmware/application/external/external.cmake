@@ -410,11 +410,25 @@ set(EXTCPPSRC
 	#ft8 rx
 	external/ft8_rx/main.cpp
 	external/ft8_rx/ui_ft8_rx.cpp
+	external/ft8_rx/ui_ft8_map.cpp
+
+	#spectrum analyzer
+	external/spec_an/main.cpp
+	external/spec_an/ui_spec_an.cpp
 
 	#sd over usb
 	external/sdusb/main.cpp
 	external/sdusb/ui_sd_over_usb.cpp
 
+
+  	#rds_rx
+    external/rds_rx/main.cpp
+  	external/rds_rx/ui_rds_rx.cpp
+
+
+	#wmbus
+	external/wmbus_rx/main.cpp
+	external/wmbus_rx/ui_wmbus_rx.cpp
 )
 
 set(EXTAPPLIST
@@ -507,12 +521,17 @@ set(EXTAPPLIST
 	two_tone_rx
 	hard_reset
 	secplustx
-  signal_hunter
+    signal_hunter
+    signal_hunter
 	tetra_rx
 	adsbrx
 	ais_rx
 	aprs_rx
 	aprs_tx
 	ft8_rx
+	spec_an
 	sdusb
+  	rds_rx
+	wmbus_rx
 )
+

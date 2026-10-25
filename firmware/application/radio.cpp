@@ -286,6 +286,12 @@ void set_direction(const rf::Direction new_direction) {
         led_tx.setActive();
 }
 
+static bool fast_retune = false;
+
+void set_fast_retune(const bool enabled) {
+    fast_retune = enabled;
+}
+
 bool set_tuning_frequency(const rf::Frequency frequency) {
 #ifdef PRALINE
     return set_tuning_frequency(frequency, false);
@@ -339,8 +345,9 @@ bool set_tuning_frequency(const rf::Frequency frequency, const bool disable_afe_
             first_if.set_frequency(tuning_config.first_lo_frequency);
             first_if.enable();
 #ifdef PRALINE
-            first_if.flush();            // Force register write with reference clock present
-            chThdSleepMilliseconds(10);  // Allow PLL to settle
+            first_if.flush();  // Force register write with reference clock present
+            if (!fast_retune)
+                chThdSleepMilliseconds(10);  // Allow PLL to settle
 #endif
         }
 

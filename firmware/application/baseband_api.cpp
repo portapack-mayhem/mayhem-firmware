@@ -42,6 +42,8 @@ using namespace portapack;
 
 namespace baseband {
 
+void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync = true, const portapack::spi_flash::image_tag_t prepared_image_tag = portapack::spi_flash::image_tag_none);
+
 static void send_message(const Message* const message) {
     // If message is only sent by this function via one thread, no need to check if
     // another message is present before setting new message.
@@ -469,6 +471,12 @@ void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start) {
     send_message(&message);
 }
 
+void set_wmbus_config(uint8_t mode) {
+    WMBusPacketMessage message;
+    message.length = mode;  // hacky? yes. ugly? yes. practical? YES (don't waste another message type on it..)
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 static bool rx_fs4_supported = false;
 
@@ -495,11 +503,14 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
 
-    m4_init(image_tag, memory::map::m4_code, false);
     rx_fs4_supported = image_tag == spi_flash::image_tag_am_audio ||
                        image_tag == spi_flash::image_tag_nfm_audio ||
                        image_tag == spi_flash::image_tag_wfm_audio ||
                        image_tag == spi_flash::image_tag_capture;
+    if (!m4_init(image_tag, memory::map::m4_code, false)) {
+        m4_restore_bundled();
+        m4_init_prepared(portapack::memory::map::m4_code.base(), false);
+    }
     baseband_image_running = true;
 
     creg::m4txevent::enable();
@@ -561,6 +572,10 @@ void shutdown() {
     // current pass takes, so the wait applies to every target, not only Praline.
     chThdSleepMilliseconds(20);
     baseband_image_running = false;
+}
+
+void set_spec_an_config(const SpecAnConfigMessage& message) {
+    send_message(&message);
 }
 
 void spectrum_streaming_start() {

@@ -460,7 +460,7 @@ TwoTonePagerView::~TwoTonePagerView() {
 
 TwoTonePagerView::TwoTonePagerView(NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_tones);
 
     // Clamp restored settings to valid ranges before touching UI
     ctcss_idx = std::min(ctcss_idx, static_cast<uint32_t>(CTCSS_COUNT - 1));

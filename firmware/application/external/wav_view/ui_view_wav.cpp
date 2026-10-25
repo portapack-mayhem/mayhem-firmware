@@ -268,7 +268,7 @@ ViewWavView::ViewWavView(
     waveform.set_data((int16_t*)waveform_buffer.data());
     for (auto& v : waveform_buffer) v = 0;
     for (auto& v : amplitude_buffer) v = 0;
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
     wav_reader = std::make_unique<WAVFileReader>();
 
     add_children({&labels,

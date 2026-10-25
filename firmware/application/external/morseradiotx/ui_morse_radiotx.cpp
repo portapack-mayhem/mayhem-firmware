@@ -14,7 +14,7 @@ static msg_t tx_thread_fn(void* arg) {
 MorseRadiotxView::MorseRadiotxView(ui::NavigationView& nav)
     : current_timings(calculate_morse_timings(20)),
       nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_morsetx);
     add_children({&tx_view,
                   &field_volume,
                   &labels,

@@ -32,7 +32,7 @@
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
 #include "io_convert.hpp"
-#include "oversample.hpp"
+#include "replay_schedule.hpp"
 #include "baseband_api.hpp"
 #include "metadata_file.hpp"
 #include "portapack.hpp"
@@ -1369,11 +1369,18 @@ void ReconView::start_repeat() {
             repeat_file_error(rawmeta, "Can't open file to read meta, using default rx_freq,500'000");
         }
 
+        const auto schedule = replay::select(metadata->sample_rate);
+        if (!schedule.valid()) {
+            stop_repeat(false);
+            repeat_file_error(rawmeta, "Unsupported Replay sample rate.");
+            return;
+        }
+
         // Update the sample rate in proc_replay baseband.
         baseband::set_sample_rate(metadata->sample_rate,
-                                  get_oversample_rate(metadata->sample_rate));
+                                  static_cast<OversampleRate>(schedule.total_factor));
 
-        transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
+        transmitter_model.set_sampling_rate(schedule.output_rate);
         transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
 
         // set TX to repeater TX freq if entry is Repeater and have a valid freq, else use recorded one

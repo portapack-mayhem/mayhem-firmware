@@ -69,6 +69,19 @@ class gfxEQView : public View {
         ColorTheme{Color(64, 64, 64), Color(255, 0, 0)},
         ColorTheme{Color(255, 192, 0), Color(0, 64, 128)}};
 
+    rf::Frequency frequency_value{93100000};
+
+    // Radio state and settings before the widgets: RFAmpField, LNAGainField and
+    // VGAGainField read the receiver model when they are constructed, so the saved
+    // amp/LNA/VGA have to be loaded first or the fields show the defaults.
+    RxRadioState rx_radio_state_{};
+
+    app_settings::SettingsManager settings_{
+        "rx_gfx_eq",
+        app_settings::Mode::RX,
+        {{"theme", &current_theme},
+         {"frequency", &frequency_value}}};
+
     // Widgets with positions using UI_POS macros
     ButtonWithEncoder button_frequency{{UI_POS_X(0), UI_POS_Y(0) + 4, UI_POS_WIDTH(11), UI_POS_HEIGHT(1)}, ""};
     RFAmpField field_rf_amp{{UI_POS_X(12), UI_POS_Y(0) + 4}};
@@ -77,16 +90,6 @@ class gfxEQView : public View {
     Button button_mood{{UI_POS_X(21), UI_POS_Y(0) + 4, UI_POS_WIDTH(4), UI_POS_HEIGHT(1)}, "MOOD"};
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0) + 4}};
     GraphEq gr{{2, UI_POS_Y(1) + 8, UI_POS_MAXWIDTH, UI_POS_Y_BOTTOM(1) - 28}, false};
-
-    rf::Frequency frequency_value{93100000};
-
-    RxRadioState rx_radio_state_{};
-
-    app_settings::SettingsManager settings_{
-        "rx_gfx_eq",
-        app_settings::Mode::RX,
-        {{"theme", &current_theme},
-         {"frequency", &frequency_value}}};
 
     void cycle_theme();
 

@@ -28,6 +28,10 @@
 #include "string_format.hpp"
 #include "audio.hpp"
 #include "file_path.hpp"
+#include "event_m0.hpp"
+#include "radio.hpp"
+
+#include <algorithm>
 
 using namespace portapack;
 
@@ -38,7 +42,9 @@ void GlassView::focus() {
 }
 
 GlassView::~GlassView() {
+    sweep.stop();
     audio::output::stop();
+    radio::set_fast_retune(false);
     receiver_model.set_sampling_rate(3072000);  // Just a hack to avoid hanging other apps
     receiver_model.disable();
     baseband::shutdown();
@@ -71,43 +77,16 @@ void GlassView::manage_beep_audio() {
     }
 }
 
-void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint16_t bin, uint8_t& max_power) {
-    if (mode == LOOKING_GLASS_SINGLEPASS) {
-        // <20MHz spectrum mode
-        if (bin < 120) {
-            if (spectrum.db[SPEC_NB_BINS - 120 + bin] > max_power)
-                max_power = spectrum.db[SPEC_NB_BINS - 120 + bin];
-        } else {
-            if (spectrum.db[bin - 120] > max_power)
-                max_power = spectrum.db[bin - 120];
-        }
-    } else {
-        // FAST or SLOW mode
-        if (bin < 120) {
-            if (spectrum.db[134 + bin] > max_power)
-                max_power = spectrum.db[134 + bin];
-        } else {
-            if (spectrum.db[bin - 118] > max_power)
-                max_power = spectrum.db[bin - 118];
-        }
-    }
-}
-
 rf::Frequency GlassView::get_freq_from_bin_pos(uint16_t pos) {
-    rf::Frequency freq_at_pos = 0;
-    if (mode == LOOKING_GLASS_SINGLEPASS) {
-        // starting from the middle, minus 8 ignored bin on each side. Since pos is [-120,120] after the (pos - 120), it's divided by screen_width(240)/2 => 120
-        freq_at_pos = f_center_ini + ((pos - 120) * ((looking_glass_range - ((16 * looking_glass_range) / SPEC_NB_BINS)) / 2)) / (screen_width / 2);
-    } else
-        freq_at_pos = f_min + (2 * offset * each_bin_size) + (pos * looking_glass_range) / screen_width;
-    return freq_at_pos;
+    // The sweep may start a little above f_min near 0 Hz, ask it.
+    return sweep.point_freq(pos);
 }
 
 void GlassView::on_marker_change(int8_t delta) {
     if ((marker_pixel_index + delta) < 0)
-        marker_pixel_index = marker_pixel_index + delta + screen_width;
-    else if ((marker_pixel_index + delta) > screen_width)
-        marker_pixel_index = marker_pixel_index + delta - screen_width;
+        marker_pixel_index = marker_pixel_index + delta + points;
+    else if ((marker_pixel_index + delta) >= points)
+        marker_pixel_index = marker_pixel_index + delta - points;
     else
         marker_pixel_index = marker_pixel_index + delta;
 
@@ -116,13 +95,27 @@ void GlassView::on_marker_change(int8_t delta) {
     plot_marker(marker_pixel_index);  // Refresh marker on screen
 }
 
-void GlassView::retune() {
-    // Start a new sweep.
-    // Tune rx for this new slice directly because the model
-    // saves to persistent memory which is slower.
-    radio::set_tuning_frequency(f_center);
-    chThdSleepMilliseconds(5);             // stabilize freq
-    baseband::spectrum_streaming_start();  // Do the RX
+void GlassView::start_sweep() {
+    if (!sweep_enabled)
+        return;  // the constructor is still setting up the fields
+
+    spec_an::Sweep::Params params{};
+    params.start = f_min;
+    params.span = looking_glass_range;
+    params.points = points;
+    params.rbw_idx = (mode == LOOKING_GLASS_SLOWSCAN) ? 4 : 0;  // 0: auto, 4: N = 2048
+    params.avg = std::max<uint16_t>(trigger / 8, 1);            // FFTs power-averaged per tune
+    // A range that fits one tune would otherwise flood the M0 with replies
+    // and freeze the UI.
+    params.frame_paced = true;
+
+    std::fill(sweep_max.begin(), sweep_max.end(), 0);
+    line_ready = false;
+    range_max_power = 0;
+
+    sweep.start(params);
+    if (paused)
+        sweep.stop();
 }
 
 void GlassView::reset_live_view() {
@@ -135,123 +128,112 @@ void GlassView::reset_live_view() {
         display.fill_rectangle({{0, spectrum_y}, {screen_width, spectrum_height}}, {0, 0, 0});
 }
 
-void GlassView::add_spectrum_pixel(uint8_t power) {
-    spectrum_row[pixel_index] = gradient.lut[power];                                                                                // row of colors
-    spectrum_data[pixel_index] = (live_frequency_integrate * spectrum_data[pixel_index] + power) / (live_frequency_integrate + 1);  // smoothing
-    pixel_index++;
+void GlassView::on_slice(const SpecAnSliceMessage& message) {
+    if (!sweep.sweeping()) return;  // late reply after a pause or hide
+    const int16_t* const src = sweep.accept(message);
+    if (!src) return;
 
-    if (pixel_index == screen_width)  // got an entire waterfall line
-    {
-        if (live_frequency_view > 0) {
-            constexpr int rssi_sample_range = SPEC_NB_BINS;
-            constexpr float rssi_voltage_min = 0.4;
-            constexpr float rssi_voltage_max = 2.2;
-            constexpr float adc_voltage_max = 3.3;
-            constexpr int raw_min = 0.5f + rssi_sample_range * rssi_voltage_min / adc_voltage_max;
-            constexpr int raw_max = 0.5f + rssi_sample_range * rssi_voltage_max / adc_voltage_max;
-            const int spectrum_height = screen_height - spectrum_y;
-            // drawing and keeping track of max freq
-            for (uint16_t xpos = 0; xpos < screen_width; xpos++) {
-                // save max powerwull freq
-                if (spectrum_data[xpos] > max_freq_power) {
-                    max_freq_power = spectrum_data[xpos];
-                    max_freq_hold = get_freq_from_bin_pos(xpos);
-                }
-                int16_t point = map(spectrum_data[xpos], 0, 255, 0, spectrum_height);
-                // clear if not in peak view
-                if (live_frequency_view != 2) {
-                    display.fill_rectangle({{xpos, spectrum_y}, {1, screen_height - point}}, {0, 0, 0});
-                }
-                display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, gradient.lut[spectrum_data[xpos]]);
-            }
-            // indicate RSSI min and max power
-            if (show_rssi_guides) {
-                display.fill_rectangle({{0, screen_height - map(raw_min, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_min]);
-                display.fill_rectangle({{0, screen_height - map(raw_max, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_max]);
-            }
-            if (last_max_freq != max_freq_hold) {
-                last_max_freq = max_freq_hold;
-                freq_stats.set("MAX: " + to_string_short_freq(max_freq_hold));
-            }
-            plot_marker(marker_pixel_index);
-        } else {
-            display.draw_pixels({{0, display.scroll(1)}, {screen_width, 1}}, spectrum_row);  // new line at top, one less var, speedier
+    const uint16_t end = std::min<uint16_t>(message.px_end, points);
+    for (uint16_t x = message.px_begin; x < end; x++) {
+        const uint8_t power = sweep.power(src[x]);  // same scale as the classic spectrum
+        if (power > sweep_max[x])
+            sweep_max[x] = power;
+        if (power > range_max_power)
+            range_max_power = power;
+    }
+    if (message.last) {
+        // Only whole sweeps reach the screen: a line taken mid sweep would show
+        // the slices not yet measured as black, at a phase that drifts with the
+        // frame rate (diagonal stripes in the waterfall). A sweep missing a
+        // slice is dropped the same way.
+        const bool complete = sweep.sweep_complete();
+        for (uint16_t x = 0; x < points; x++) {
+            if (complete && (!line_ready || sweep_max[x] > line_max[x]))
+                line_max[x] = sweep_max[x];
+            sweep_max[x] = 0;
         }
-        pixel_index = 0;  // Start New cascade line
+        if (complete)
+            line_ready = true;
     }
 }
 
-bool GlassView::process_bins(uint8_t* powerlevel) {
-    bins_hz_size += each_bin_size;          // add pixel to fulfilled bag of Hz
-    if (bins_hz_size >= marker_pixel_step)  // new pixel fullfilled
-    {
-        if (*powerlevel > min_color_power)
-            add_spectrum_pixel(*powerlevel);  // Pixel will represent max_power
-        else
-            add_spectrum_pixel(0);  // Filtered out, show black
-        *powerlevel = 0;
-
-        if (!pixel_index)  // Received indication that a waterfall line has been completed
-        {
-            bins_hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-            if (mode != LOOKING_GLASS_SINGLEPASS) {
-                f_center = f_center_ini;
-                retune();
-            } else
-                baseband::spectrum_streaming_start();
-            return true;  // signal a new line
-        }
-        bins_hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
-    }
-    return false;
+void GlassView::on_frame_sync() {
+    sweep.on_frame();
+    if (line_ready)
+        draw_line();
 }
 
-// Apparently, the spectrum object returns an array of SPEC_NB_BINS (256) bins
-// Each having the radio signal power for its corresponding frequency slot
-void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    baseband::spectrum_streaming_stop();
-    // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
-    // we actually need screen_width (240) of those bins
-    for (uint16_t bin = 0; bin < bin_length; bin++) {
-        get_max_power(spectrum, bin, max_power);
-        if (max_power > range_max_power)
-            range_max_power = max_power;
-        // process dc spike if enable
-        if (bin == 119) {
-            uint8_t next_max_power = 0;
-            get_max_power(spectrum, bin + 1, next_max_power);
-            for (uint16_t it = 0; it < ignore_dc; it++) {
-                uint8_t med_max_power = (max_power + next_max_power) / 2;  // due to the way process_bins works we have to keep resetting the color
-                if (process_bins(&med_max_power) == true)
-                    return;  // new line signaled, return
-            }
-        }
-        // process actual bin
-        if (process_bins(&max_power)) {
-            int8_t power = map(range_max_power, 0, 255, -100, 20);
-            if (power >= beep_squelch) {
-                baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 250);
-            }
-            range_max_power = 0;
-            return;  // new line signaled, return
-        }
+void GlassView::draw_line() {
+    // Sweeps can complete faster than frames: line_max holds the peak of all of
+    // them. Handlers pumped below may start a new hold once line_ready is cleared.
+    for (uint16_t xpos = 0; xpos < points; xpos++) {
+        uint8_t power = line_max[xpos];
+        if (power <= min_color_power)
+            power = 0;                                                                                                    // Filtered out, show black
+        spectrum_row[xpos] = gradient.lut[power];                                                                         // row of colors
+        spectrum_data[xpos] = (live_frequency_integrate * spectrum_data[xpos] + power) / (live_frequency_integrate + 1);  // smoothing
     }
-    if (mode != LOOKING_GLASS_SINGLEPASS) {
-        f_center += looking_glass_step;
-        retune();
+    line_ready = false;
+
+    const int8_t beep_power = map(range_max_power, 0, 255, -100, 20);
+    if (beep_power >= beep_squelch && chTimeNow() - last_beep >= 250) {
+        baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 250);
+        last_beep = chTimeNow();
+    }
+    range_max_power = 0;
+
+    if (live_frequency_view > 0) {
+        constexpr int rssi_sample_range = 256;
+        constexpr float rssi_voltage_min = 0.4;
+        constexpr float rssi_voltage_max = 2.2;
+        constexpr float adc_voltage_max = 3.3;
+        constexpr int raw_min = 0.5f + rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+        constexpr int raw_max = 0.5f + rssi_sample_range * rssi_voltage_max / adc_voltage_max;
+        const int spectrum_height = screen_height - spectrum_y;
+        // drawing and keeping track of max freq
+        for (uint16_t xpos = 0; xpos < points; xpos++) {
+            // save max powerwull freq
+            if (spectrum_data[xpos] > max_freq_power) {
+                max_freq_power = spectrum_data[xpos];
+                max_freq_hold = get_freq_from_bin_pos(xpos);
+            }
+            int16_t point = map(spectrum_data[xpos], 0, 255, 0, spectrum_height);
+            // clear if not in peak view
+            if (live_frequency_view != 2) {
+                display.fill_rectangle({{xpos, spectrum_y}, {1, screen_height - point}}, {0, 0, 0});
+            }
+            display.fill_rectangle({{xpos, screen_height - point}, {1, point}}, gradient.lut[spectrum_data[xpos]]);
+            // Let the sweep advance while we draw: retune requests wait in the queue otherwise.
+            if ((xpos & 31) == 31)
+                EventDispatcher::pump_application_queue();
+        }
+        // indicate RSSI min and max power
+        if (show_rssi_guides) {
+            display.fill_rectangle({{0, screen_height - map(raw_min, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_min]);
+            display.fill_rectangle({{0, screen_height - map(raw_max, 0, 255, 0, spectrum_height)}, {screen_width, 1}}, -gradient.lut[raw_max]);
+        }
+        if (last_max_freq != max_freq_hold) {
+            last_max_freq = max_freq_hold;
+            freq_stats.set("MAX: " + to_string_short_freq(max_freq_hold));
+        }
+        plot_marker(marker_pixel_index);
     } else {
-        baseband::spectrum_streaming_start();
+        display.draw_pixels({{0, display.scroll(1)}, {screen_width, 1}}, spectrum_row);  // new line at top, one less var, speedier
     }
 }
 
 void GlassView::on_hide() {
-    baseband::spectrum_streaming_stop();
+    sweep.stop();
+    line_ready = false;
     display.scroll_disable();
 }
 
 void GlassView::on_show() {
     display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
-    baseband::spectrum_streaming_start();
+    if (!paused) {
+        std::fill(sweep_max.begin(), sweep_max.end(), 0);
+        sweep.resume();
+    }
 }
 
 void GlassView::on_range_changed() {
@@ -260,54 +242,16 @@ void GlassView::on_range_changed() {
     f_max = field_frequency_max.value();
     f_min = f_min * MHZ_DIV;  // Transpose into full frequency realm
     f_max = f_max * MHZ_DIV;
+    if (f_max <= f_min)
+        f_max = f_min + MHZ_DIV;
     looking_glass_range = f_max - f_min;
-    if (looking_glass_range <= LOOKING_GLASS_SLICE_WIDTH_MAX) {
-        // if the view is done in one pass, show it like in analog_audio_app
-        mode = LOOKING_GLASS_SINGLEPASS;
-        offset = 2;
-        bin_length = screen_width;
-        ignore_dc = 0;
-        looking_glass_bandwidth = looking_glass_range;
-        looking_glass_sampling_rate = looking_glass_range;
-        each_bin_size = looking_glass_bandwidth / screen_width;
-        looking_glass_step = looking_glass_bandwidth;
-        f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
-    } else {
-        // view is made in multiple pass, use original bin picking
-        mode = scan_type.selected_index_value();
-        looking_glass_bandwidth = LOOKING_GLASS_SLICE_WIDTH_MAX;
-        looking_glass_sampling_rate = LOOKING_GLASS_MAX_SAMPLERATE;
-        each_bin_size = LOOKING_GLASS_SLICE_WIDTH_MAX / SPEC_NB_BINS;
-        if (mode == LOOKING_GLASS_FASTSCAN) {
-            offset = 2;
-            ignore_dc = 4;
-            bin_length = screen_width;
-        } else {  // if( mode == LOOKING_GLASS_SLOWSCAN )
-            offset = 2;
-            bin_length = 80;
-            ignore_dc = 0;
-        }
-        looking_glass_step = (bin_length + ignore_dc) * each_bin_size;
-        f_center_ini = f_min - (offset * each_bin_size) + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
-    }
     search_span = looking_glass_range / MHZ_DIV;
-    marker_pixel_step = looking_glass_range / screen_width;  // Each pixel value in Hz
-
-    pixel_index = 0;
-    max_power = 0;
-    bins_hz_size = 0;
-
-    on_marker_change(0);
-    update_range_field();
-
-    // set the sample rate and bandwidth
-    receiver_model.set_sampling_rate(looking_glass_sampling_rate);
-    receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);
 
     receiver_model.set_squelch_level(0);
-    f_center = f_center_ini;  // Reset sweep into first slice
-    baseband::set_spectrum(looking_glass_bandwidth, trigger);
-    receiver_model.set_target_frequency(f_center);  // tune rx for this slice
+    start_sweep();  // sets the sample rate and bandwidth for the range
+
+    on_marker_change(0);  // after start_sweep: the marker frequency comes from the sweep
+    update_range_field();
 }
 
 void GlassView::plot_marker(uint16_t pos) {
@@ -373,6 +317,14 @@ GlassView::GlassView(
     NavigationView& nav)
     : nav_(nav) {
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+    // The sweep waits for the M4 to discard samples until the synthesizers settle.
+    radio::set_fast_retune(true);
+    receiver_model.set_squelch_level(0);
+    receiver_model.enable();
+
+    points = std::min<uint16_t>(screen_width, spec_an::kPoints);
+    sweep_max.resize(points);
+    line_max.resize(points);
     spectrum_row.resize(screen_width);
     spectrum_data.resize(screen_width);
     if (!gradient.load_file(default_gradient_file)) {
@@ -443,6 +395,8 @@ GlassView::GlassView(
         mode = v;
         on_range_changed();
     };
+    if (mode > LOOKING_GLASS_SLOWSCAN)
+        mode = LOOKING_GLASS_FASTSCAN;  // older settings may hold the removed single pass mode
     scan_type.set_selected_index(mode);
 
     view_config.on_change = [this](size_t, OptionsField::value_t v) {
@@ -521,7 +475,7 @@ GlassView::GlassView(
 
     field_trigger.on_change = [this](int32_t v) {
         trigger = v;
-        baseband::set_spectrum(looking_glass_bandwidth, trigger);
+        start_sweep();
     };
     field_trigger.set_value(trigger);
 
@@ -560,33 +514,25 @@ GlassView::GlassView(
     button_play.on_select = [this](ImageButton&) {
         paused = !paused;
         if (paused) {
-            button_play.set_foreground(Theme::getInstance()->fg_red->foreground);
-            button_play.set_background(Theme::getInstance()->fg_red->background);
-            baseband::spectrum_streaming_stop();
-            button_play.set_bitmap(&bitmap_play);
-        } else {
             button_play.set_foreground(Theme::getInstance()->fg_green->foreground);
             button_play.set_background(Theme::getInstance()->fg_green->background);
-            baseband::spectrum_streaming_start();
+            sweep.stop();
+            button_play.set_bitmap(&bitmap_play);
+        } else {
+            button_play.set_foreground(Theme::getInstance()->fg_red->foreground);
+            button_play.set_background(Theme::getInstance()->fg_red->background);
+            std::fill(sweep_max.begin(), sweep_max.end(), 0);
+            sweep.resume();
             button_play.set_bitmap(&bitmap_stop);
         }
     };
 
     display.scroll_set_area(109, screen_height - 1);  // Restart scroll on the correct coordinates
 
-    // trigger:
-    // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute,
-    // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made,
-    // at which time it pushes the buffer up with channel_spectrum.feed
-    baseband::set_spectrum(looking_glass_bandwidth, trigger);
-
-    marker_pixel_index = screen_width / 2;
-    on_range_changed();  // Force a UI update.
-
-    receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
-    receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
-    receiver_model.set_squelch_level(0);
-    receiver_model.enable();
+    // trigger: number of FFTs power-averaged per tune is trigger / 8 (at least 1).
+    marker_pixel_index = points / 2;
+    sweep_enabled = true;
+    on_range_changed();  // Force a UI update, starts the sweep.
 
     button_beep_squelch.on_select = [this](ButtonWithEncoder& button) {
         (void)button;
@@ -611,13 +557,13 @@ GlassView::GlassView(
 }
 
 void GlassView::on_freqchg(int64_t freq) {
-    int64_t half_range = abs(field_frequency_max.value() - field_frequency_max.value()) / 2;
-    if (half_range < 1) {
-        half_range = 1;
-    }
-    range_presets.set_selected_index(0);  // Manual
-    update_min(freq - half_range);
-    update_max(freq + half_range);
+    const int64_t width = std::max<int64_t>(abs(field_frequency_max.value() - field_frequency_min.value()), 1);
+    const int64_t center = freq / MHZ_DIV;  // freq is in Hz, the fields in MHz
+    range_presets.set_selected_index(0);    // Manual
+    // Keep the width: clamp the low end so the whole range fits, then derive the high end.
+    const int64_t lo = std::clamp<int64_t>(center - width / 2, 0, std::max<int64_t>(LOOKING_GLASS_MAX_FREQ_MHZ - width, 0));
+    update_min(lo);
+    update_max(lo + width);
     on_range_changed();
 }
 

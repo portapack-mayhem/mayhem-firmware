@@ -107,7 +107,7 @@ def main():
             ld_file_path = input_path
     else:
         # if no arg, this assume this script is in mayhemrepo/firmware/tools
-        ld_file_path = Path("..") / "application" / "external" / "external.ld"
+        ld_file_path = Path("..") / Path("..") / "build" / "firmware" / "application" / "external" / "external.ld"
         
     try:
         regions = parse_memory_regions(ld_file_path)

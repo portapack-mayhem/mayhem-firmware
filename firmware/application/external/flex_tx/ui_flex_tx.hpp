@@ -18,6 +18,7 @@ struct FlexBIWParams {
     int32_t send_time{1};
     int32_t send_tz{1};
     int32_t send_dst{0};
+    int32_t ext_sec{0};  // extended seconds (0-7, 0.9375s each; clock-sync trim)
     int32_t send_ssid1{0};
     int32_t send_ssid2{0};
     int32_t roaming{0};
@@ -103,6 +104,11 @@ class FlexParamsView : public View {
          {"UTC-1   ", 31}}};
     Checkbox check_dst{{18 * 8, 3 * 16}, 3, "DST", true};
 
+    Labels labels_extsec{
+        {{0 * 8, 4 * 16}, "ExtSec:", Theme::getInstance()->fg_light->foreground},
+    };
+    NumberField field_ext_sec{{8 * 8, 4 * 16}, 1, {0, 7}, 1, '0'};
+
     Checkbox check_ssid1{{0 * 8, 5 * 16}, 5, "LocID", true};
     NumberField field_local_id{{9 * 8, 5 * 16}, 3, {0, 511}, 1, '0'};
     Labels labels_cz{
@@ -167,6 +173,7 @@ class FlexTXView : public View {
          {"biw_ssid2", &biw_params_.send_ssid2},
          {"biw_roam", &biw_params_.roaming},
          {"biw_tzc", &biw_params_.tz_code},
+         {"biw_extsec", &biw_params_.ext_sec},
          {"biw_lid", &biw_params_.local_id},
          {"biw_cz", &biw_params_.coverage_zone},
          {"biw_cc", &biw_params_.country_code},

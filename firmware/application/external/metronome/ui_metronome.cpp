@@ -31,7 +31,7 @@ namespace ui::external_app::metronome {
 
 MetronomeView::MetronomeView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // proc_audio_beep baseband is external too
+    baseband::run_image(portapack::spi_flash::image_tag_audio_beep);  // proc_audio_beep baseband is external too
 
     add_children({
         &labels,

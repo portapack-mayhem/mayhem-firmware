@@ -37,6 +37,12 @@ class MicTXProcessor : public BasebandProcessor {
    private:
     static constexpr size_t baseband_fs = 1536000U;
 
+    // Initialized before the last-member BasebandThread can start execute().
+    struct StateMutex {
+        Mutex mutex{};
+        StateMutex() { chMtxInit(&mutex); }
+    } state_mutex{};
+
     bool configured{false};
 
     int16_t audio_data[64];

@@ -43,6 +43,7 @@
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
+#include "spec_an_shared.hpp"
 
 #include "utility.hpp"
 
@@ -174,6 +175,11 @@ class Message {
         RxFs4Config = 116,
         FT8Packet = 117,
         FT8RxStatus = 118,
+        RdsData = 119,
+        SpecAnConfig = 120,
+        SpecAnCaptured = 121,
+        SpecAnSlice = 122,
+        WMBusPacketMessageID = 123,
         MAX
     };
 
@@ -931,15 +937,19 @@ struct ReplayConfig {
     uint64_t baseband_bytes_received;
     FIFO<StreamBuffer*>* fifo_buffers_empty;
     FIFO<StreamBuffer*>* fifo_buffers_full;
+    // Opt-in only for native C8 direct IQ Replay. Audio/GPS default unchanged.
+    const bool input_is_c8;
 
     constexpr ReplayConfig(
         const size_t read_size,
-        const size_t buffer_count)
+        const size_t buffer_count,
+        bool input_is_c8 = false)
         : read_size{read_size},
           buffer_count{buffer_count},
           baseband_bytes_received{0},
           fifo_buffers_empty{nullptr},
-          fifo_buffers_full{nullptr} {
+          fifo_buffers_full{nullptr},
+          input_is_c8{input_is_c8} {
     }
 };
 
@@ -1106,6 +1116,9 @@ enum class OversampleRate : uint8_t {
     /* Use either to indicate there's no oversampling needed. */
     None = 1,
     x1 = None,
+
+    /* Replay-only x2; Capture's historical selection is unchanged. */
+    x2 = 2,
 
     /* Oversample rate of 4 times the sample rate. */
     x4 = 4,
@@ -2092,6 +2105,29 @@ class HunterStopMessage : public Message {
         : Message{ID::HunterStop} {}
 };
 
+struct RDSGroupMessage : public Message {
+    constexpr RDSGroupMessage(
+        uint16_t a,
+        uint16_t b,
+        uint16_t c,
+        uint16_t d,
+        bool c_prime,
+        bool is_debug,
+        uint32_t dbg_1,
+        uint32_t dbg_2)
+        : Message{ID::RdsData}, block_a{a}, block_b{b}, block_c{c}, block_d{d}, is_c_prime{c_prime}, is_debug{is_debug}, debug_1{dbg_1}, debug_2{dbg_2} {}
+
+    uint16_t block_a;
+    uint16_t block_b;
+    uint16_t block_c;
+    uint16_t block_d;
+    bool is_c_prime;
+
+    bool is_debug;
+    uint32_t debug_1;
+    uint32_t debug_2;
+};
+
 struct TetraBurstMessage : public Message {
     constexpr TetraBurstMessage(
         const uint8_t* bits,
@@ -2133,5 +2169,100 @@ struct TetraDnbMessage : public Message {
 
     // 432 TCH type-5 bits: 216 bits before the training sequence + 216 bits after.
     std::array<uint8_t, 54> payload;
+};
+/* Spectrum Analyzer ******************************************************/
+
+/* M0 -> M4, once per plan change. See spec_an_shared.hpp for the protocol. */
+class SpecAnConfigMessage : public Message {
+   public:
+    constexpr SpecAnConfigMessage(
+        spec_an::Shared* shared,
+        uint32_t sampling_rate,
+        uint16_t gen,
+        uint8_t fft_log2n,
+        uint16_t avg_blocks,
+        int16_t bin_first,
+        uint16_t bins_per_slice,
+        uint16_t slices,
+        uint64_t px_per_bin_num,
+        uint64_t px_per_bin_den,
+        spec_an::Window window,
+        spec_an::Detector detector)
+        : Message{ID::SpecAnConfig},
+          shared{shared},
+          sampling_rate{sampling_rate},
+          gen{gen},
+          fft_log2n{fft_log2n},
+          avg_blocks{avg_blocks},
+          bin_first{bin_first},
+          bins_per_slice{bins_per_slice},
+          slices{slices},
+          px_per_bin_num{px_per_bin_num},
+          px_per_bin_den{px_per_bin_den},
+          window{window},
+          detector{detector} {
+    }
+
+    spec_an::Shared* shared;
+    uint32_t sampling_rate;
+    uint16_t gen;
+    uint8_t fft_log2n;
+    uint16_t avg_blocks;     /* FFTs power-averaged per slice */
+    int16_t bin_first;       /* natural FFT bin of a slice's first bin, mod N */
+    uint16_t bins_per_slice; /* K: slice s covers global bins [s*K, (s+1)*K) */
+    uint16_t slices;
+    /* Display pixels per FFT bin, as a ratio: fs * (points - 1) / (N * span). */
+    uint64_t px_per_bin_num;
+    uint64_t px_per_bin_den;
+    spec_an::Window window;
+    spec_an::Detector detector;
+};
+
+/* M4 -> M0: samples for request `seq` are in, the tuner is free. */
+class SpecAnCapturedMessage : public Message {
+   public:
+    constexpr SpecAnCapturedMessage(uint16_t gen, uint32_t seq)
+        : Message{ID::SpecAnCaptured},
+          gen{gen},
+          seq{seq} {
+    }
+
+    uint16_t gen;
+    uint32_t seq;
+};
+
+/* M4 -> M0: display points [px_begin, px_end) of pix[sweep & 1] are final. */
+class SpecAnSliceMessage : public Message {
+   public:
+    constexpr SpecAnSliceMessage(
+        uint16_t gen,
+        uint16_t slice,
+        uint8_t sweep,
+        bool last,
+        uint16_t px_begin,
+        uint16_t px_end)
+        : Message{ID::SpecAnSlice},
+          gen{gen},
+          slice{slice},
+          sweep{sweep},
+          last{last},
+          px_begin{px_begin},
+          px_end{px_end} {
+    }
+
+    uint16_t gen;
+    uint16_t slice;
+    uint8_t sweep; /* req_sweep of the capture; pix[sweep & 1] holds the points */
+    bool last;
+    uint16_t px_begin;
+    uint16_t px_end;
+};
+
+struct WMBusPacketMessage : public Message {
+    constexpr WMBusPacketMessage()
+        : Message{ID::WMBusPacketMessageID} {}
+
+    uint16_t length = 0;
+    uint8_t data[500] = {0};
 };
 #endif /*__MESSAGE_H__*/

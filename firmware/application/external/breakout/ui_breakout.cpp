@@ -611,7 +611,7 @@ BreakoutView::BreakoutView(NavigationView& nav)
     : nav_{nav}, bricks{} {
     EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     // Initialize audio system for beeps FIRST
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // Load the audio beep baseband
+    baseband::run_image(portapack::spi_flash::image_tag_audio_beep);  // Load the audio beep baseband
 
     add_children({&dummy});
 

@@ -65,6 +65,10 @@ class EventDispatcher {
 
     static void charge_deep_sleep(const bool sleep);
 
+    /* Deliver pending M4 messages now, from inside a long-running handler
+     * (e.g. a frame render) that would otherwise hold them up. */
+    static void pump_application_queue();
+
     // Views that read the d-pad diagonals themselves (games, the on-screen keyboard)
     // turn the global chord gestures off while they are open: true from their
     // constructor, false from their destructor.

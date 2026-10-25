@@ -47,6 +47,9 @@ void init();
 
 void set_direction(const rf::Direction new_direction);
 bool set_tuning_frequency(const rf::Frequency frequency);
+/* Skip the fixed post-retune sleep. For callers that discard samples until
+ * the synthesizers settle themselves (e.g. the spectrum analyzer sweep). */
+void set_fast_retune(const bool enabled);
 void set_rf_amp(const bool rf_amp);
 void set_lna_gain(const int_fast8_t db);
 void set_vga_gain(const int_fast8_t db);

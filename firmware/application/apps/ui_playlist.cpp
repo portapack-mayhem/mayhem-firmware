@@ -30,7 +30,7 @@
 #include "file_reader.hpp"
 #include "io_file.hpp"
 #include "io_convert.hpp"
-#include "oversample.hpp"
+#include "replay_schedule.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
@@ -268,18 +268,27 @@ void PlaylistView::send_current_track() {
         return;
     }
 
+    const auto schedule = replay::select(current()->metadata.sample_rate);
+    if (!schedule.valid()) {
+        show_file_error(current()->path, "Unsupported Replay sample rate.");
+        return;
+    }
+
     // Update the sample rate in proc_replay baseband.
     baseband::set_sample_rate(current()->metadata.sample_rate,
-                              get_oversample_rate(current()->metadata.sample_rate));
+                              static_cast<OversampleRate>(schedule.total_factor));
 
     // ReplayThread starts immediately on construction; must be set before creating.
     transmitter_model.set_target_frequency(current()->metadata.center_frequency);
-    transmitter_model.set_sampling_rate(get_actual_sample_rate(current()->metadata.sample_rate));
+    transmitter_model.set_sampling_rate(schedule.output_rate);
     transmitter_model.set_baseband_bandwidth(current()->metadata.sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
     transmitter_model.enable();
 
     // Reset the transmit progress bar.
     progressbar_transmit.set_value(0);
+
+    const bool input_is_c8 = schedule.total_factor == 1 && reader->convert_c8_to_c16;
+    if (input_is_c8) reader->convert_c8_to_c16 = false;
 
     // Use the ReplayThread class to send the data.
     replay_thread_ = std::make_unique<ReplayThread>(
@@ -290,7 +299,9 @@ void PlaylistView::send_current_track() {
         [](uint32_t return_code) {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
-        });
+        },
+        /* iq_reconstruction */ true,
+        input_is_c8);
 
     // Now it's sending, update the UI.
     update_ui();

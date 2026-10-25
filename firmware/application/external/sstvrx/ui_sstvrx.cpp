@@ -78,7 +78,7 @@ void SstvRxLogger::log_info(const std::string& info_message) {
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_sstv_rx);
     DISPLAY_HEIGHT = screen_height - SSTV_IMG_START_ROW * 16 - 16;
     DISPLAY_WIDTH = screen_width;
     add_children({&field_rf_amp,
