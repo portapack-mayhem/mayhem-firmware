@@ -65,6 +65,11 @@ class EventDispatcher {
 
     static void charge_deep_sleep(const bool sleep);
 
+    // Views that read the d-pad diagonals themselves (games, the on-screen keyboard)
+    // turn the global chord gestures off while they are open: true from their
+    // constructor, false from their destructor.
+    static void set_chords_suppressed(const bool suppressed);
+
     static inline void check_fifo_isr() {
         if (!shared_memory.application_queue.is_empty()) {
             events_flag_isr(EVT_MASK_APPLICATION);
@@ -110,6 +115,7 @@ class EventDispatcher {
     static bool is_running;
     bool sd_card_present = false;
     static bool display_sleep;
+    static bool chords_suppressed;
     bool in_key_event = false;
     bool combo_fired_ = false;  // latches a multi-key chord gesture so it fires once per press
     volatile bool waiting_for_frame = false;

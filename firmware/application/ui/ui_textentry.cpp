@@ -22,6 +22,7 @@
 
 #include "ui_textentry.hpp"
 #include "ui_alphanum.hpp"
+#include "event_m0.hpp"
 
 using namespace portapack;
 
@@ -44,9 +45,6 @@ void text_prompt(
     uint8_t mode,
     std::function<void(std::string&)> on_done) {
     auto te_view = nav.push<AlphanumView>(str, max_length, mode);
-    // Moving across the keyboard with the d-pad easily rolls into a diagonal; keep
-    // the chord gestures from leaving it (and losing the text) while typing.
-    nav.suppress_chords();
     te_view->set_cursor(cursor_pos);
     te_view->on_changed = [on_done](std::string& value) {
         if (on_done)
@@ -77,6 +75,10 @@ TextEntryView::TextEntryView(
     std::string& str,
     size_t max_length)
     : text_input{str, max_length, {0, 0}} {
+    // Moving across the keys with the d-pad easily rolls into a diagonal; keep the
+    // chord gestures from leaving the keyboard (and losing the text) while typing.
+    EventDispatcher::set_chords_suppressed(true);
+
     add_children({&text_input,
                   &button_ok});
 
@@ -85,6 +87,10 @@ TextEntryView::TextEntryView(
             on_changed(str);
         nav.pop();
     };
+}
+
+TextEntryView::~TextEntryView() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 } /* namespace ui */

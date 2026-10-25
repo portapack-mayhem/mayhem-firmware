@@ -139,12 +139,6 @@ class NavigationView : public View {
      * Returns true if the handler was bound successfully. */
     bool set_on_pop(std::function<void()> on_pop);
 
-    /* Turns the global d-pad chord gestures off for the current (top) view and
-     * everything opened on top of it, until it is popped. For apps that read
-     * diagonals themselves, like games. */
-    void suppress_chords();
-    bool chords_enabled() const;
-
     // App list is used to preserve order, so the menu items in the menu grid can stay in place
     using AppList = std::vector<AppInfo>;
     static const AppList appList;
@@ -181,7 +175,6 @@ class NavigationView : public View {
     bool app_search_committed_{false};  // true only when the user confirmed a non-empty query
 
     std::vector<ViewState> view_stack{};
-    size_t chords_suppressed_depth_{0};  // stack depth of the view that turned chords off; 0 = none
 
     Widget* view() const;
 

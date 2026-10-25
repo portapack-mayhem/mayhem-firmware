@@ -7,6 +7,7 @@
  */
 
 #include "ui_breakout.hpp"
+#include "event_m0.hpp"
 #include "baseband_api.hpp"
 #include "audio.hpp"
 #include "portapack.hpp"
@@ -608,6 +609,7 @@ void BreakoutView::play_level_complete() {
 
 BreakoutView::BreakoutView(NavigationView& nav)
     : nav_{nav}, bricks{} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     // Initialize audio system for beeps FIRST
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // Load the audio beep baseband
 
@@ -629,6 +631,7 @@ BreakoutView::BreakoutView(NavigationView& nav)
 }
 
 BreakoutView::~BreakoutView() {
+    EventDispatcher::set_chords_suppressed(false);
     // Clean shutdown
     baseband::request_beep_stop();
     receiver_model.disable();

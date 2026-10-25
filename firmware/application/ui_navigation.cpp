@@ -735,22 +735,12 @@ void NavigationView::pop(bool trigger_update) {
 
     free_view();
     view_stack.pop_back();
-    if (view_stack.size() < chords_suppressed_depth_)
-        chords_suppressed_depth_ = 0;
 
     // NB: These are executed _after_ the view has been
     // destroyed. The old view MUST NOT be referenced in
     // these callbacks or it will cause crashes.
     if (trigger_update) update_view();
     if (on_pop) on_pop();
-}
-
-void NavigationView::suppress_chords() {
-    chords_suppressed_depth_ = view_stack.size();
-}
-
-bool NavigationView::chords_enabled() const {
-    return chords_suppressed_depth_ == 0;
 }
 
 void NavigationView::home(bool trigger_update) {

@@ -12,6 +12,7 @@
  */
 
 #include "ui_dinogame.hpp"
+#include "event_m0.hpp"
 
 namespace ui::external_app::dinogame {
 
@@ -98,6 +99,7 @@ void game_timer_check() {
 
 DinoGameView::DinoGameView(NavigationView& nav)
     : nav_{nav}, bird_info{}, game_timer{} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     add_children({&dummy, &button_difficulty});
     current_instance = this;
 
@@ -115,6 +117,10 @@ DinoGameView::DinoGameView(NavigationView& nav)
         easy_mode = !easy_mode;
         button_difficulty.set_text(easy_mode ? "Mode: EASY" : "Mode: HARD");
     };
+}
+
+DinoGameView::~DinoGameView() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 void DinoGameView::on_show() {

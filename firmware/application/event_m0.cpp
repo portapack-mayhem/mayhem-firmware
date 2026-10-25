@@ -107,6 +107,7 @@ static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 bool EventDispatcher::is_running = false;
 bool EventDispatcher::display_sleep = false;
+bool EventDispatcher::chords_suppressed = false;
 
 EventDispatcher::EventDispatcher(
     ui::Widget* const top_widget,
@@ -132,6 +133,10 @@ void EventDispatcher::run() {
 
 void EventDispatcher::request_stop() {
     is_running = false;
+}
+
+void EventDispatcher::set_chords_suppressed(const bool suppressed) {
+    chords_suppressed = suppressed;
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
@@ -581,15 +586,15 @@ void EventDispatcher::handle_switches() {
     //   Left + Up    -> Back  (the existing chord)
     //   Left + Down  -> Home  (straight back to the main menu from any app)
     const auto fire_chord = [this, &pressed]() {
+        // Off while a view asks for it, or when disabled in Settings > Buttons. The
+        // setting is read here rather than cached: pmem can be reloaded from the SD card.
+        if (chords_suppressed || portapack::persistent_memory::disable_chord_gestures())
+            return false;
+
         const bool left = pressed[(size_t)ui::KeyEvent::Left];
         const bool up = pressed[(size_t)ui::KeyEvent::Up];
         const bool down = pressed[(size_t)ui::KeyEvent::Down];
         if (!left || up == down)  // needs Left and exactly one of Up / Down
-            return false;
-
-        // Apps like games turn the chords off: they read the diagonals themselves.
-        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
-        if (!nav || !nav->chords_enabled())
             return false;
 
         // Like the status bar's back button: keep the settings when they live on the
@@ -597,12 +602,13 @@ void EventDispatcher::handle_switches() {
         if (portapack::persistent_memory::should_use_sdcard_for_pmem())
             portapack::persistent_memory::save_persistent_settings_to_file();
 
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
         if (down) {
-            nav->home(true);
+            if (nav) nav->home(true);
         } else {
             // A view that handles Back itself (e.g. to leave a sub-mode) gets it first;
             // otherwise go back a screen, as the back button does.
-            if (!event_bubble_key(ui::KeyEvent::Back))
+            if (!event_bubble_key(ui::KeyEvent::Back) && nav)
                 nav->pop();
         }
         combo_fired_ = true;

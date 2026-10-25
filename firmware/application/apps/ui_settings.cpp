@@ -840,16 +840,19 @@ SetButtonsView::SetButtonsView(NavigationView& nav) {
                   &button_cancel,
                   &field_repeat_delay,
                   &field_repeat_speed,
-                  &field_long_press_delay});
+                  &field_long_press_delay,
+                  &field_chord_gestures});
 
     field_repeat_delay.set_by_value(pmem::ui_button_repeat_delay());
     field_repeat_speed.set_by_value(pmem::ui_button_repeat_speed());
     field_long_press_delay.set_by_value(pmem::ui_button_long_press_delay());
+    field_chord_gestures.set_by_value(pmem::disable_chord_gestures());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_button_repeat_delay(field_repeat_delay.selected_index_value());
         pmem::set_ui_button_repeat_speed(field_repeat_speed.selected_index_value());
         pmem::set_ui_button_long_press_delay(field_long_press_delay.selected_index_value());
+        pmem::set_disable_chord_gestures(field_chord_gestures.selected_index_value());
         nav.pop();
     };
 

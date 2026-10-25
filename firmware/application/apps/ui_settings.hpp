@@ -689,6 +689,8 @@ class SetButtonsView : public View {
         {{2 * 8, 5 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 7 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
         {{2 * 8, 9 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 11 * 16}, "Chord gestures:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 12 * 16}, "Left+Up=Back Left+Down=Home", Theme::getInstance()->fg_medium->foreground},
     };
 
     OptionsField field_repeat_delay{
@@ -708,6 +710,12 @@ class SetButtonsView : public View {
         6,
         {{"NORMAL", false},
          {"FAST", true}}};
+
+    OptionsField field_chord_gestures{
+        {20 * 8, 11 * 16},
+        6,
+        {{"ON", false},
+         {"OFF", true}}};
 
     Button button_save{
         {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
