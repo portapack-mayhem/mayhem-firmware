@@ -582,6 +582,15 @@ FormattedSymbols Packet::symbols_formatted() const {
         for (uint32_t i = 0; i < bytes; i++)  // log will show the packet starting on the last 4 bytes from signature 93DF1A60
             hex_data += to_string_hex(vaisala_descramble(i), 2);
         return {hex_data, hex_error};
+    } else if (type_ == Type::Meteoradiy_MRZ) {
+        // MRZ is plain Manchester, which the biphase-mark view below turns into all-ones:
+        // log the frame bytes instead, AA BF 35 ... up to and including the CRC.
+        const size_t frame_bytes = (mrz_latlon() ? MRZ_crclen_LATLON : MRZ_crclen_ECEF) + 3;
+        std::string hex_data;
+        hex_data.reserve(frame_bytes * 2);
+        for (size_t k = 0; k < frame_bytes; k++)
+            hex_data += to_string_hex(mrz_byte(k), 2);
+        return {hex_data, {}};
     } else {
         return format_symbols(decoder_);
     }
