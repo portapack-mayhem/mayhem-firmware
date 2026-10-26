@@ -75,7 +75,7 @@ class WeatherProtos : public FProtoListGeneral {
         protos[FPW_Bresser3CH_V1] = nullptr;  // done by FProtoWeatheBresser3CH
         protos[FPW_Vauno_EN8822] = new FProtoWeatherVaunoEN8822();
         protos[FPW_OREGON2B] = nullptr;  // done by FProtoWeatherOregon2
-        protos[FPW_FO_WH2] = new FProtoWeatherFineOffsetOOK();
+        protos[FPW_FO_WH2] = fineoffset_ook = new FProtoWeatherFineOffsetOOK();
         // FPW_FO_WH5 .. FPW_FO_WH53 are done by FProtoWeatherFineOffsetOOK
         // FPW_FO_WH24 .. FPW_FO_WH55 are done by fineoffset_fsk, it gets data from the FSK detector, not from feed()
 
@@ -113,6 +113,13 @@ class WeatherProtos : public FProtoListGeneral {
         }
     }
 
+    // A run of glitches (noise, shorter than any protocol's pulse): the first few go to feed() and leave every decoder reset
+    // (some need 3, e.g. Kedsum), the next ones would change nothing there, so they only go to the Fine Offset OOK decoder,
+    // that adds short pieces to the run they are in.
+    void feed_glitch(bool level, uint32_t duration) {
+        fineoffset_ook->feed(level, duration);
+    }
+
     // pulses from the FSK detector
     static void feed_fsk(void* ctx, bool level, uint32_t duration) {
         static_cast<WeatherProtos*>(ctx)->fineoffset_fsk.feed_fsk(level, duration);
@@ -123,6 +130,7 @@ class WeatherProtos : public FProtoListGeneral {
 
    protected:
     FProtoWeatherBase* protos[FPW_COUNT] = {NULL};
+    FProtoWeatherFineOffsetOOK* fineoffset_ook = nullptr;
     FProtoWeatherFineOffsetFSK fineoffset_fsk{};
 };
 

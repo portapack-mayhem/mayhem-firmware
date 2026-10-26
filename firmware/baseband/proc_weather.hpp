@@ -78,6 +78,11 @@ class WeatherProcessor : public BasebandProcessor {
     bool configured{false};
 
     WeatherProtos* protoList = new WeatherProtos();  // holds all the protocols we can parse
+    // Pulses shorter than this are noise: the shortest valid pulse of any protocol is ~88us (LaCrosse TX141).
+    // Only the first GLITCH_FEED_ALL of a run of them go to all the decoders, see WeatherProtos::feed_glitch().
+    static constexpr uint32_t GLITCH_US = 60;
+    static constexpr uint8_t GLITCH_FEED_ALL = 4;
+    uint8_t glitch_run = 0;
 
     // FSK demodulation runs while there is a carrier, and a bit after it, to tolerate short dropouts
     static constexpr uint8_t FSK_MAX_DROPOUT = 10;  // samples

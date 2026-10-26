@@ -28,11 +28,11 @@
 void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    // SR = 4Mhz ,  and we are decimating by /8 in total , decim1_out clock 4Mhz /8= 500khz samples/sec.
-    // buffer has   2048 complex i8 I,Q signed samples
+    // SR = 2Mhz (set by the app), and we are decimating by /8 in total , decim1_out clock 2Mhz /8= 250khz samples/sec.
+    // buffer has   2048 complex i8 I,Q signed samples, ~977 buffers/sec
     // decim0 out:  2048/4 = 512 complex i16 I,Q signed samples
     // decim1 out:  512/2 =  256 complex i16 I,Q signed samples
-    // Regarding Filters, we are re-using existing FIR filters, @4Mhz, FIR decim1 ilter, BW =+-220Khz (at -3dB's). BW = 440kHZ.
+    // Regarding Filters, we are re-using existing FIR filters, made for 4Mhz (BW =+-220Khz at -3dB's), so at 2Mhz the BW is about +-110Khz.
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);       // Input:2048 complex/4 (decim factor) = 512_output complex (1024 I/Q samples)
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
@@ -132,7 +132,16 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
             if (currentDuration >= 30'000'000) sig_state = STATE_IDLE;
-            if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
+            const uint32_t duration_us = currentDuration / 1000;
+            const bool glitch = duration_us < GLITCH_US;
+            if (protoList) {
+                if (glitch && glitch_run >= GLITCH_FEED_ALL) {
+                    protoList->feed_glitch(currentHiLow, duration_us);
+                } else {
+                    protoList->feed(currentHiLow, duration_us);
+                }
+            }
+            glitch_run = glitch ? std::min<uint8_t>(glitch_run + 1, GLITCH_FEED_ALL) : 0;
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
@@ -157,7 +166,7 @@ void WeatherProcessor::on_message(const Message* const message) {
 void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     baseband_fs = message.sampling_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
-    nsPerDecSamp = 1'000'000'000 / baseband_fs * 8;  // Scaled it due to less array buffer sampes due to /8 decimation.  250 nseg (4Mhz) * 8
+    nsPerDecSamp = 1'000'000'000 / baseband_fs * 8;  // Scaled it due to less array buffer sampes due to /8 decimation.  500 nseg (2Mhz) * 8 = 4us
     fsk_detect.set_sample_period(nsPerDecSamp);
 
     // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
