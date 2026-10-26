@@ -34,38 +34,21 @@
 #include "recent_entries.hpp"
 
 #include "../baseband/fprotos/weathertypes.hpp"
+#include "weather_readings.hpp"
 using namespace ui;
 
 namespace ui {
 
 static bool weather_units_fahr{false};
+// In the southern hemisphere the Fine Offset arrays are installed rotated by 180 degrees (solar panel to the north), the consoles correct it the same way.
+static bool weather_wind_south{false};
 
-struct WeatherRecentEntry {
+struct WeatherRecentEntry : public WeatherReadings {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
-    uint8_t sensorType = FPW_Invalid;
-    uint32_t id = WS_NO_ID;
-    float temp = WS_NO_TEMPERATURE;
-    uint8_t humidity = WS_NO_HUMIDITY;
-    uint8_t battery_low = WS_NO_BATT;
-    uint8_t channel = WS_NO_CHANNEL;
-    uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
+    uint16_t age = 0;                               // updated on each seconds, show how long the signal was last seen
 
     WeatherRecentEntry() {}
-    WeatherRecentEntry(
-        uint8_t sensorType,
-        uint32_t id,
-        float temp,
-        uint8_t humidity,
-        uint8_t channel,
-        uint8_t battery_low = WS_NO_BATT)
-        : sensorType{sensorType},
-          id{id},
-          temp{temp},
-          humidity{humidity},
-          battery_low{battery_low},
-          channel{channel} {
-    }
     Key key() const {
         return (((static_cast<uint64_t>(temp * 10) & 0xFFFF) << 48) ^ static_cast<uint64_t>(id) << 24) |
                (static_cast<uint64_t>(sensorType) & 0xFF) << 16 |
@@ -91,7 +74,7 @@ class WeatherLogger {
 
     void log_data(WeatherRecentEntry& data);
     void write_header() {
-        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt");
+        log_file.write_entry(";Type; id; Temp; Hum; CH; Batt; Wind m/s; Dir; Gust m/s; Rain mm; hPa; UVI; Lux; Moist; PM2.5; Storm km; Strikes; Leak");
     }
 
    private:
@@ -114,7 +97,6 @@ class WeatherView : public View {
 
    private:
     void on_tick_second();
-    uint16_t bcd_decode_short(uint32_t data);
     void on_data(const WeatherDataMessage* data);
     WeatherRecentEntry process_data(const WeatherDataMessage* data);
     NavigationView& nav_;
@@ -130,6 +112,7 @@ class WeatherView : public View {
         {
             {"units_fahr"sv, &weather_units_fahr},
             {"log"sv, &logging},
+            {"wind_south"sv, &weather_wind_south},
         }};
 
     WeatherRecentEntries recent{};
@@ -169,6 +152,14 @@ class WeatherView : public View {
         {10 * 8, 18},
         3,
         "Log",
+        true};
+
+    // Southern hemisphere: arrays whose flat solar panel must face north there (WH24, WH65, WS69, WS68) are installed
+    // turned around, so their wind direction is 180 deg off. Only those are rotated.
+    Checkbox check_wind_south{
+        {17 * 8, 18},
+        5,
+        "S.Hem",
         true};
 
     static constexpr auto header_height = 3 * 16;
@@ -217,6 +208,9 @@ class WeatherRecentEntryDetailView : public View {
     Text text_ch{{10 * 8, 5 * 16, 6 * 8, 16}, "?"};
     Text text_batt{{10 * 8, 6 * 16, 6 * 8, 16}, "?"};
     Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
+    // wind, rain, pressure, ... only the ones the sensor has, with their label
+    static constexpr uint8_t extra_lines = 7;
+    Text text_extra[extra_lines];  // positioned in the constructor, rows 8..14
 
     Labels labels{
         {{UI_POS_X(0), UI_POS_Y(0)}, "Weather Station", Theme::getInstance()->fg_light->foreground},
