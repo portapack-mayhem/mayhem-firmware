@@ -68,6 +68,7 @@ static uint8_t calfrchk[51];        // so subframes are preserved while populate
 // frames, so its halves are kept across packets, as the RS41 calibration frames are.
 static uint32_t mrz_snC = 0;
 static uint32_t mrz_snD = 0;
+static uint32_t mrz_vbat_mv = 0;  // battery voltage from config subframe 0x9, kept between frames
 
 #include "mathdef.hpp"
 
@@ -200,6 +201,13 @@ uint32_t Packet::battery_voltage() const {
     else if (type_ == Type::Vaisala_RS41_SG) {
         uint32_t voltage = vaisala_descramble(pos_Voltage) * 100;  // byte 69 = voltage * 10 (check if this value needs to be multiplied)
         return voltage;
+    } else if (type_ == Type::Meteoradiy_MRZ) {
+        // Config subframe 0x9 carries the battery as a 12-bit ADC reading; it comes round once
+        // every 16 frames, so the last value is kept. Scale fitted to a reference decoder on a
+        // flight recording (raw 2340..2344 -> 3.87..3.88 V), ratiometric, so no offset.
+        if (crc_ok_MRZ() && (mrz_byte(MRZ_pos_CNT1) & 0x0F) == 0x9)
+            mrz_vbat_mv = (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0)) * 6776 / 4096;
+        return mrz_vbat_mv;
     } else {
         return 0;  // Unknown
     }
