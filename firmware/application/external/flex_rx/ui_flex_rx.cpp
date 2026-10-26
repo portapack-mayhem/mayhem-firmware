@@ -300,11 +300,10 @@ void FlexAppView::on_packet(const FlexPacketMessage* message) {
             log_file_.write_entry(line);
     }
 
-    // Serial, and the raw log: pipe-delimited, every field. The raw log follows the
-    // capcode filter for pages; system info (BIW) is always kept.
+    // Serial, and the raw log: pipe-delimited, every field. Like POCSAG's raw log, it
+    // records every packet; the capcode filter only applies to the pages shown above.
     const bool to_serial = portapack::usb_serial.serial_connected();
-    const bool to_raw_log = flex_settings_.enable_log && flex_settings_.log_raw &&
-                            (pkt.type == 9 || passes_filter(pkt));
+    const bool to_raw_log = flex_settings_.enable_log && flex_settings_.log_raw;
     if (to_serial || to_raw_log) {
         std::string s;
         s = "FLEX|";
