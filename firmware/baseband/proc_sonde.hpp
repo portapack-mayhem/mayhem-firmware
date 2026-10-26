@@ -105,6 +105,27 @@
 #define RSSI_PITCH_WEIGHT (float(BEEP_MAX_FREQ - BEEP_BASE_FREQ) / RSSI_CEILING)
 #define DEFAULT_AUDIO_SAMPLE_RATE 24000
 
+// MRZ matched filter: one 2400 Hz cycle over 16 taps at 38.4 kHz, i.e. one 2400 chip/s
+// chip; gain 1/16 (sinusoid / number of taps), as the AIS taps are scaled.
+constexpr std::array<std::complex<float>, 16> mrz_taps_38k4_16{{
+    {0.06250000f, 0.00000000f},
+    {0.05774247f, 0.02391771f},
+    {0.04419417f, 0.04419417f},
+    {0.02391771f, 0.05774247f},
+    {0.00000000f, 0.06250000f},
+    {-0.02391771f, 0.05774247f},
+    {-0.04419417f, 0.04419417f},
+    {-0.05774247f, 0.02391771f},
+    {-0.06250000f, 0.00000000f},
+    {-0.05774247f, -0.02391771f},
+    {-0.04419417f, -0.04419417f},
+    {-0.02391771f, -0.05774247f},
+    {0.00000000f, -0.06250000f},
+    {0.02391771f, -0.05774247f},
+    {0.04419417f, -0.04419417f},
+    {0.05774247f, -0.02391771f},
+}};
+
 class SondeProcessor : public BasebandProcessor {
    public:
     SondeProcessor();
@@ -162,6 +183,35 @@ class SondeProcessor : public BasebandProcessor {
         {320 * 8},
         [this](const baseband::Packet& packet) {
             const SondePacketMessage message{sonde::Packet::Type::Vaisala_RS41_SG, packet};
+            shared_memory.application_queue.push(message);
+        }};
+
+    // MRZ-N1 / MP3-H1 (Meteo-Radiy, 403 MHz, issue #3309): 1200 bit/s Manchester, so
+    // 2400 chips/s. It gets its own matched filter, one chip long and tuned to +/-2400 Hz:
+    // the shared 4-tap filter above spans a quarter of a chip, and on a recorded MP3-H1
+    // it left about one data bit in ten wrong, against 64 of the 65 frames with this one.
+    dsp::matched_filter::MatchedFilter mf_mrz{mrz_taps_38k4_16, 2};
+
+    clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_2400{
+        19200,
+        2400,
+        {0.0555f},
+        [this](const float raw_symbol) {
+            const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+            this->packet_builder_fsk_2400_MRZ.execute(sliced_symbol);
+        }};
+    // Sync on the whole 44-chip header, "1001" x9 + "10101010", allowing one chip error: the
+    // "1001" run alone also matches the AA AA that ends every frame, and a looser match
+    // fires a chip early and loses the frame. Frames follow each other directly, 51 bytes
+    // (816 chips) apart, so the payload must end before the next header: 752 chips reach
+    // past the ECEF CRC (740 needed) and leave room before it (from 768 every second
+    // frame is lost on the recording).
+    PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_2400_MRZ{
+        {0b10011001100110011001100110011001100110101010ULL, 44, 1},
+        {},
+        {752},
+        [this](const baseband::Packet& packet) {
+            const SondePacketMessage message{sonde::Packet::Type::Meteoradiy_MRZ, packet};
             shared_memory.application_queue.push(message);
         }};
 
