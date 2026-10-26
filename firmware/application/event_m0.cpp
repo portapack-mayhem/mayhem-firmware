@@ -107,7 +107,7 @@ static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 bool EventDispatcher::is_running = false;
 bool EventDispatcher::display_sleep = false;
-bool EventDispatcher::chords_suppressed = false;
+uint8_t EventDispatcher::chords_suppressed = 0;
 
 EventDispatcher::EventDispatcher(
     ui::Widget* const top_widget,
@@ -136,7 +136,10 @@ void EventDispatcher::request_stop() {
 }
 
 void EventDispatcher::set_chords_suppressed(const bool suppressed) {
-    chords_suppressed = suppressed;
+    if (suppressed)
+        chords_suppressed++;
+    else if (chords_suppressed > 0)
+        chords_suppressed--;
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
@@ -592,15 +595,47 @@ void EventDispatcher::handle_switches() {
     //   Left + Up    -> Back  (the existing chord)
     //   Left + Down  -> Home  (straight back to the main menu from any app)
     const auto fire_chord = [this, &pressed]() {
-        // Off while a view asks for it, or when disabled in Settings > Buttons. The
-        // setting is read here rather than cached: pmem can be reloaded from the SD card.
-        if (chords_suppressed || portapack::persistent_memory::disable_chord_gestures())
-            return false;
-
         const bool left = pressed[(size_t)ui::KeyEvent::Left];
         const bool up = pressed[(size_t)ui::KeyEvent::Up];
         const bool down = pressed[(size_t)ui::KeyEvent::Down];
-        if (!left || up == down)  // needs Left and exactly one of Up / Down
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+
+        // Off while a view asks for it, or when disabled in Settings > Buttons. The
+        // setting is read here rather than cached: pmem can be reloaded from the SD card.
+        if (chords_suppressed || portapack::persistent_memory::disable_chord_gestures()) {
+            // The keys go to the view as usual, but Left+Up held for a second still
+            // leaves the screen: games that take every key have no other exit without
+            // the touchscreen. Checked on the auto-repeat events of the held keys.
+            if (!(left && up && !down)) {
+                back_hold_since_ = 0;
+                return false;
+            }
+            const systime_t now = chTimeNow();
+            if (back_hold_since_ == 0) {
+                back_hold_since_ = now ? now : 1;
+                return false;
+            }
+            if (now - back_hold_since_ < MS2ST(1000))
+                return false;
+            back_hold_since_ = 0;
+            if (portapack::persistent_memory::should_use_sdcard_for_pmem())
+                portapack::persistent_memory::save_persistent_settings_to_file();
+            if (nav) nav->pop();
+            combo_fired_ = true;
+            in_key_event = true;
+            return true;
+        }
+
+        if (!left)
+            return false;
+        if (up && down) {
+            // Ambiguous: hold everything off until all keys are released, so letting go
+            // of one of them can't turn it into Back or Home on the way out.
+            combo_fired_ = true;
+            in_key_event = true;
+            return true;
+        }
+        if (!up && !down)  // needs Left and exactly one of Up / Down
             return false;
 
         // Like the status bar's back button: keep the settings when they live on the
@@ -608,7 +643,6 @@ void EventDispatcher::handle_switches() {
         if (portapack::persistent_memory::should_use_sdcard_for_pmem())
             portapack::persistent_memory::save_persistent_settings_to_file();
 
-        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
         if (down) {
             if (nav) nav->home(true);
         } else {
@@ -637,10 +671,9 @@ void EventDispatcher::handle_switches() {
         // Swallow event, wake up display.
         if (switches_state.any()) {
             set_display_sleep(false);
-            // Keys held together to wake the display are not a gesture either: hold
-            // them off until they are released.
-            if (pressed.count() >= 2)
-                combo_fired_ = true;
+            // Keys that wake the display are not a gesture either, also when a second
+            // one follows while the first is still down: hold them off until released.
+            combo_fired_ = true;
         }
         return;
     }

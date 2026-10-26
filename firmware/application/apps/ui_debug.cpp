@@ -22,6 +22,7 @@
  */
 
 #include "ui_debug.hpp"
+#include "event_m0.hpp"
 #include "debug.hpp"
 
 #include "ch.h"
@@ -367,6 +368,9 @@ void ControlsSwitchesWidget::on_frame_sync() {
 /* DebugControlsView *****************************************************/
 
 DebugControlsView::DebugControlsView(NavigationView& nav) {
+    // Shows every key combination, the diagonals included; hold Left+Up to leave.
+    EventDispatcher::set_chords_suppressed(true);
+
     add_children({
         &labels,
         &switches_widget,
@@ -383,6 +387,10 @@ DebugControlsView::DebugControlsView(NavigationView& nav) {
         (void)v;
         set_switches_long_press_config(options_switches_mode.selected_index_value());
     };
+}
+
+DebugControlsView::~DebugControlsView() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 void DebugControlsView::focus() {

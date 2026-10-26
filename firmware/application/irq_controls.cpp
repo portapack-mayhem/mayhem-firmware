@@ -242,9 +242,13 @@ void controls_init() {
 }
 
 SwitchesState get_switches_pressed() {
+    // One consistent snapshot: the timer ISR updates every debouncer, so it must not
+    // run halfway through (it could otherwise mix two scans into a chord neither held).
     SwitchesState result;
+    chSysLock();
     for (size_t i = 0; i < result.size(); i++)
         result[i] = switch_debounce[i].pressed();
+    chSysUnlock();
     return result;
 }
 
