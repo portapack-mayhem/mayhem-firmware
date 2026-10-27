@@ -64,12 +64,6 @@ static uint8_t calfrchk[51];        // so subframes are preserved while populate
 #define MRZ_crclen_ECEF 45
 #define MRZ_crclen_LATLON 42
 
-// The serial number ("MRZ-<C>-<D>") comes in config subframes 0xC and 0xD of successive
-// frames, so its halves are kept across packets, as the RS41 calibration frames are.
-static uint32_t mrz_snC = 0;
-static uint32_t mrz_snD = 0;
-static uint32_t mrz_vbat_mv = 0;  // battery voltage from config subframe 0x9, kept between frames
-
 #include "mathdef.hpp"
 
 Packet::Packet(
@@ -203,11 +197,11 @@ uint32_t Packet::battery_voltage() const {
         return voltage;
     } else if (type_ == Type::Meteoradiy_MRZ) {
         // Config subframe 0x9 carries the battery as a 12-bit ADC reading; it comes round once
-        // every 16 frames, so the last value is kept. Scale fitted to a reference decoder on a
-        // flight recording (raw 2340..2344 -> 3.87..3.88 V), ratiometric, so no offset.
+        // every 16 frames. Scale fitted to a reference decoder on a flight recording
+        // (raw 2340..2344 -> 3.87..3.88 V), ratiometric, so no offset.
         if (crc_ok_MRZ() && (mrz_byte(MRZ_pos_CNT1) & 0x0F) == 0x9)
-            mrz_vbat_mv = (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0)) * 6776 / 4096;
-        return mrz_vbat_mv;
+            return (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0)) * 6776 / 4096;
+        return NO_VALUE;
     } else {
         return 0;  // Unknown
     }
@@ -559,25 +553,17 @@ std::string Packet::serial_number() const {
         uint32_t sn = reader_bi_m.read(0x12 * 8, 8) | (reader_bi_m.read(0x13 * 8, 8) << 8) | (reader_bi_m.read(0x14 * 8, 8) << 16);
         return to_string_dec_uint(sn);  // Serial is 3 bytes at byte #12
     } else if (type_ == Type::Meteoradiy_MRZ) {
-        if (crc_ok_MRZ()) {
-            const uint32_t cfg = (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0));
-            switch (mrz_byte(MRZ_pos_CNT1) & 0x0F) {
-                case 0xC:  // a new first half means another sonde: drop the old second half
-                    if (mrz_snC && cfg != mrz_snC) mrz_snD = 0;
-                    mrz_snC = cfg;
-                    break;
-                case 0xD:
-                    if (mrz_snD && cfg != mrz_snD) mrz_snC = 0;
-                    mrz_snD = cfg;
-                    break;
-            }
-        }
-        if (mrz_snC && mrz_snD)
-            return "MRZ-" + to_string_dec_uint(mrz_snC) + "-" + to_string_dec_uint(mrz_snD);
-        return "MRZ";
+        return "MRZ";  // no frame carries the whole serial, see serial_part()
     } else {
         return "?";
     }
+}
+
+uint32_t Packet::serial_part(const size_t part) const {
+    if (type_ == Type::Meteoradiy_MRZ && part < 2 && crc_ok_MRZ() &&
+        (mrz_byte(MRZ_pos_CNT1) & 0x0F) == 0xC + part)
+        return (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0));
+    return NO_VALUE;
 }
 
 FormattedSymbols Packet::symbols_formatted() const {
