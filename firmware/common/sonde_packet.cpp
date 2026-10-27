@@ -199,7 +199,7 @@ uint32_t Packet::battery_voltage() const {
         // Config subframe 0x9 carries the battery as a 12-bit ADC reading; it comes round once
         // every 16 frames. Scale fitted to a reference decoder on a flight recording
         // (raw 2340..2344 -> 3.87..3.88 V), ratiometric, so no offset.
-        if (crc_ok_MRZ() && (mrz_byte(MRZ_pos_CNT1) & 0x0F) == 0x9)
+        if ((mrz_byte(MRZ_pos_CNT1) & 0x0F) == 0x9)
             return (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0)) * 6776 / 4096;
         return NO_VALUE;
     } else {
@@ -560,7 +560,7 @@ std::string Packet::serial_number() const {
 }
 
 uint32_t Packet::serial_part(const size_t part) const {
-    if (type_ == Type::Meteoradiy_MRZ && part < 2 && crc_ok_MRZ() &&
+    if (type_ == Type::Meteoradiy_MRZ && part < 2 &&
         (mrz_byte(MRZ_pos_CNT1) & 0x0F) == 0xC + part)
         return (uint32_t)mrz_i32(MRZ_pos_CFG + (mrz_latlon() ? -3 : 0));
     return NO_VALUE;
