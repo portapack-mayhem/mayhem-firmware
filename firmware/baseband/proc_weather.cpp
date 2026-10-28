@@ -132,16 +132,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
             currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
             if (currentDuration >= 30'000'000) sig_state = STATE_IDLE;
-            const uint32_t duration_us = currentDuration / 1000;
-            const bool glitch = duration_us < GLITCH_US;
-            if (protoList) {
-                if (glitch && glitch_run >= GLITCH_FEED_ALL) {
-                    protoList->feed_glitch(currentHiLow, duration_us);
-                } else {
-                    protoList->feed(currentHiLow, duration_us);
-                }
-            }
-            glitch_run = glitch ? std::min<uint8_t>(glitch_run + 1, GLITCH_FEED_ALL) : 0;
+            if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
