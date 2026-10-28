@@ -69,7 +69,7 @@ constexpr uint8_t gamma_pos_tn[LCD_GAMMA_LEN] = {0x0F, 0x1D, 0x19, 0x0E, 0x10, 0
 constexpr uint8_t gamma_neg_tn[LCD_GAMMA_LEN] = {0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25,
                                                  0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05};
 
-// IPS starting point; per-lot tuning is done with the LCD Gamma app.
+// IPS defaults, verified on CL32BC272-40A glass; other lots can be tuned with the LCD Gamma app.
 constexpr uint8_t gamma_pos_ips[LCD_GAMMA_LEN] = {0x0F, 0x2A, 0x28, 0x08, 0x0E, 0x08, 0x54, 0xA9,
                                                   0x43, 0x0A, 0x0F, 0x00, 0x00, 0x00, 0x00};
 constexpr uint8_t gamma_neg_ips[LCD_GAMMA_LEN] = {0x00, 0x15, 0x17, 0x07, 0x11, 0x06, 0x2B, 0x56,
@@ -455,7 +455,7 @@ void ILI9341::default_tuning(const bool ips, lcd_tuning_t& t) {
     t = lcd_tuning_t{};
     t.vcom1[0] = 0x32;
     t.vcom1[1] = 0x3C;
-    t.vcom2 = 0x9B;
+    t.vcom2 = ips ? 0xC0 : 0x9B;  // IPS: VMF centered (no offset)
     memcpy(t.gamma_pos, ips ? gamma_pos_ips : gamma_pos_tn, LCD_GAMMA_LEN);
     memcpy(t.gamma_neg, ips ? gamma_neg_ips : gamma_neg_tn, LCD_GAMMA_LEN);
 }
