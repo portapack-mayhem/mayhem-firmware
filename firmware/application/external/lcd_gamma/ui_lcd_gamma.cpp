@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Rabbit-Labs LLC
+ * Copyright (C) 2026 TehRabbitt, Rabbit-Labs LLC
  *
  * This file is part of PortaPack.
  *
