@@ -7,6 +7,7 @@
 #include "dsp_demodulate.hpp"
 #include "message.hpp"
 #include "flex_defs.hpp"
+#include "rssi_thread.hpp"
 #include "pocsag.hpp"  // For EccContainer
 
 #include <cstdint>
@@ -192,6 +193,7 @@ class FlexProcessor : public BasebandProcessor {
 
     // Threads
     BasebandThread baseband_thread{3072000, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 };
 
 #endif /*__PROC_FLEX_H__*/
