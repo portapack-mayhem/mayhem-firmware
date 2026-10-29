@@ -81,6 +81,7 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(config_freq_rx_correction_updown()));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(config_freq_tx_correction_updown()));
     pmem_dump_file.write_line("lcd_normally_black: " + to_string_dec_uint(config_lcd_normally_black()));
+    pmem_dump_file.write_line("lcd_ips: " + to_string_dec_uint(config_lcd_ips()));
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(config_converter_freq()));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(config_freq_rx_correction()));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(config_freq_tx_correction()));
@@ -91,6 +92,19 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)config_dst().v, 8));
     pmem_dump_file.write_line("menu_color: 0x" + to_string_hex(menu_color().v, 4));
     pmem_dump_file.write_line("touchscreen_threshold: " + to_string_dec_uint(touchscreen_threshold()));
+    {
+        const auto& t = lcd_tuning();
+        std::string g = "lcd_tuning flags: 0x" + to_string_hex(t.flags, 2) + " C5:";
+        for (auto v : t.vcom1) g += " " + to_string_hex(v, 2);
+        g += " C7: " + to_string_hex(t.vcom2, 2);
+        pmem_dump_file.write_line(g);
+        g = "lcd_tuning E0:";
+        for (auto v : t.gamma_pos) g += " " + to_string_hex(v, 2);
+        pmem_dump_file.write_line(g);
+        g = "lcd_tuning E1:";
+        for (auto v : t.gamma_neg) g += " " + to_string_hex(v, 2);
+        pmem_dump_file.write_line(g);
+    }
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();

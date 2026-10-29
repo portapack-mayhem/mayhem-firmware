@@ -42,7 +42,60 @@ using namespace portapack;
 
 namespace lcd {
 
+using portapack::persistent_memory::LCD_GAMMA_LEN;
+using portapack::persistent_memory::lcd_tuning_t;
+
+/* MADCTL: MY=0x80 MX=0x40 MV=0x20 ML=0x10 BGR=0x08. Portrait is MY|MX.
+ * With MV set, MX/MY mirror the physical columns/rows after the exchange;
+ * MV|MY and MV|MX are the two proper rotations of MY|MX. */
+static constexpr uint8_t madctl_pp_portrait = 0x80 | 0x40 | 0x10 | 0x08;
+static constexpr uint8_t madctl_pp_landscape = 0x20 | 0x80 | 0x10 | 0x08;
+static constexpr uint8_t madctl_pp_landscape_flip = 0x20 | 0x40 | 0x10 | 0x08;
+static constexpr uint8_t madctl_bgr = 0x08;
+
+static_assert(LCD_GAMMA_LEN == 15);
+
+/* Bit widths of each E0h/E1h parameter (ILI9341 PGAMCTRL/NGAMCTRL). */
+const uint8_t ILI9341::gamma_field_mask[LCD_GAMMA_LEN] = {0x0F, 0x3F, 0x3F, 0x0F, 0x1F, 0x0F, 0x7F, 0xFF,
+                                                          0x7F, 0x0F, 0x1F, 0x0F, 0x3F, 0x3F, 0x0F};
+
 namespace {
+
+uint8_t madctl_current = madctl_pp_portrait;
+uint8_t madctl_bgr_xor = 0;
+
+constexpr uint8_t gamma_pos_tn[LCD_GAMMA_LEN] = {0x0F, 0x1D, 0x19, 0x0E, 0x10, 0x07, 0x4C, 0x63,
+                                                 0x3F, 0x03, 0x0D, 0x00, 0x26, 0x24, 0x04};
+constexpr uint8_t gamma_neg_tn[LCD_GAMMA_LEN] = {0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25,
+                                                 0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05};
+
+// IPS defaults, verified on CL32BC272-40A glass; other lots can be tuned with the LCD Gamma app.
+constexpr uint8_t gamma_pos_ips[LCD_GAMMA_LEN] = {0x0F, 0x2A, 0x28, 0x08, 0x0E, 0x08, 0x54, 0xA9,
+                                                  0x43, 0x0A, 0x0F, 0x00, 0x00, 0x00, 0x00};
+constexpr uint8_t gamma_neg_ips[LCD_GAMMA_LEN] = {0x00, 0x15, 0x17, 0x07, 0x11, 0x06, 0x2B, 0x56,
+                                                  0x3C, 0x05, 0x10, 0x0F, 0x3F, 0x3F, 0x0F};
+
+void lcd_write_tuning(const lcd_tuning_t& t) {
+    uint8_t pos[LCD_GAMMA_LEN];
+    uint8_t neg[LCD_GAMMA_LEN];
+    for (size_t i = 0; i < LCD_GAMMA_LEN; i++) {
+        pos[i] = t.gamma_pos[i] & ILI9341::gamma_field_mask[i];
+        neg[i] = t.gamma_neg[i] & ILI9341::gamma_field_mask[i];
+    }
+    madctl_bgr_xor = (t.flags & portapack::persistent_memory::LCD_TUNING_BGR_SWAP) ? madctl_bgr : 0;
+
+    // VCOM Control 1
+    io.lcd_data_write_command_and_data(0xC5, {static_cast<uint8_t>(t.vcom1[0] & 0x7F), static_cast<uint8_t>(t.vcom1[1] & 0x7F)});
+
+    // VCOM Control 2
+    io.lcd_data_write_command_and_data(0xC7, {t.vcom2});
+
+    // Memory Access Control (BGR bit may be swapped by tuning)
+    io.lcd_data_write_command_and_data(0x36, {static_cast<uint8_t>(madctl_current ^ madctl_bgr_xor)});
+
+    io.lcd_data_write_command_and_data(0xE0, pos, LCD_GAMMA_LEN);
+    io.lcd_data_write_command_and_data(0xE1, neg, LCD_GAMMA_LEN);
+}
 
 void lcd_reset() {
     io.lcd_reset_state(false);
@@ -202,7 +255,9 @@ void lcd_init_pp() {
 
     /*as per the datasheet chapter 8.3.7, addr B6h,
     data "REV" bit, liquid crystal type:*/
-    if (portapack::persistent_memory::config_lcd_normally_black())
+    // REV=0 and INVON (21h) both invert the data, so IPS mode uses REV=1 + INVON and ignores normally_black.
+    const bool ips = portapack::persistent_memory::config_lcd_ips();
+    if (!ips && portapack::persistent_memory::config_lcd_normally_black())
         io.lcd_data_write_command_and_data(0xB6, {0x0A, 0x22, 0x27, 0x00});  // IPS : normally black : 0
     else
         io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});  // TFT : normally white : 1
@@ -215,22 +270,22 @@ void lcd_init_pp() {
     // SAP[2:0];BT[3:0]
     io.lcd_data_write_command_and_data(0xC1, {0x12});
 
-    // VCOM Control 1
-    io.lcd_data_write_command_and_data(0xC5, {0x32, 0x3C});
+    lcd_tuning_t t;
+    ILI9341::active_tuning(t);
+    madctl_current = madctl_pp_portrait;
+    madctl_bgr_xor = (t.flags & portapack::persistent_memory::LCD_TUNING_BGR_SWAP) ? madctl_bgr : 0;
 
-    // VCOM Control 2
-    io.lcd_data_write_command_and_data(0xC7, {0x9B});
+    // VCOM Control 1 (TN default: 0x32, 0x3C)
+    io.lcd_data_write_command_and_data(0xC5, {static_cast<uint8_t>(t.vcom1[0] & 0x7F), static_cast<uint8_t>(t.vcom1[1] & 0x7F)});
+
+    // VCOM Control 2 (TN default: 0x9B)
+    io.lcd_data_write_command_and_data(0xC7, {t.vcom2});
 
     // Memory Access Control
     // Invert X and Y memory access order, so upper-left of
     // screen is (0,0) when writing to display.
-    io.lcd_data_write_command_and_data(0x36, {
-                                                 (1 << 7) |  // MY=1
-                                                 (1 << 6) |  // MX=1
-                                                 (0 << 5) |  // MV=0
-                                                 (1 << 4) |  // ML=1: reverse vertical refresh to simplify scrolling logic
-                                                 (1 << 3)    // BGR=1: For Kingtech LCD, BGR filter.
-                                             });
+    // MY=1 MX=1 MV=0 ML=1 (reverse vertical refresh to simplify scrolling logic), BGR=1 (Kingtech LCD BGR filter)
+    io.lcd_data_write_command_and_data(0x36, {static_cast<uint8_t>(madctl_current ^ madctl_bgr_xor)});
 
     // COLMOD: Pixel Format Set
     // DPI=101 (16 bits/pixel), DBI=101 (16 bits/pixel)
@@ -252,13 +307,16 @@ void lcd_init_pp() {
     // Gamma curve selected
     io.lcd_data_write_command_and_data(0x26, {0x01});
 
-    // Set Gamma
-    io.lcd_data_write_command_and_data(0xE0, {0x0F, 0x1D, 0x19, 0x0E, 0x10, 0x07, 0x4C, 0x63,
-                                              0x3F, 0x03, 0x0D, 0x00, 0x26, 0x24, 0x04});
+    // Set Gamma (positive / negative)
+    uint8_t gamma[LCD_GAMMA_LEN];
+    for (size_t i = 0; i < LCD_GAMMA_LEN; i++) gamma[i] = t.gamma_pos[i] & ILI9341::gamma_field_mask[i];
+    io.lcd_data_write_command_and_data(0xE0, gamma, LCD_GAMMA_LEN);
+    for (size_t i = 0; i < LCD_GAMMA_LEN; i++) gamma[i] = t.gamma_neg[i] & ILI9341::gamma_field_mask[i];
+    io.lcd_data_write_command_and_data(0xE1, gamma, LCD_GAMMA_LEN);
 
-    // Set Gamma
-    io.lcd_data_write_command_and_data(0xE1, {0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25,
-                                              0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05});
+    // IPS glass needs Display Inversion On, otherwise the image is washed out.
+    if (ips)
+        io.lcd_data_write_command_and_data(0x21, {});
 
     lcd_wake();
 
@@ -391,6 +449,41 @@ void ILI9341::init() {
         screen_width = 240;
         screen_height = 320;
     }
+}
+
+void ILI9341::default_tuning(const bool ips, lcd_tuning_t& t) {
+    t = lcd_tuning_t{};
+    t.vcom1[0] = 0x32;
+    t.vcom1[1] = 0x3C;
+    t.vcom2 = ips ? 0xC0 : 0x9B;  // IPS: VMF centered (no offset)
+    memcpy(t.gamma_pos, ips ? gamma_pos_ips : gamma_pos_tn, LCD_GAMMA_LEN);
+    memcpy(t.gamma_neg, ips ? gamma_neg_ips : gamma_neg_tn, LCD_GAMMA_LEN);
+}
+
+void ILI9341::active_tuning(lcd_tuning_t& t) {
+    const auto& custom = portapack::persistent_memory::lcd_tuning();
+    if (custom.flags & portapack::persistent_memory::LCD_TUNING_ENABLED)
+        t = custom;
+    else
+        default_tuning(portapack::persistent_memory::config_lcd_ips(), t);
+}
+
+void ILI9341::apply_tuning(const lcd_tuning_t& t) {
+    if (device_type != DEV_PORTAPACK) return;
+    lcd_write_tuning(t);
+}
+
+void ILI9341::apply_panel_config() {
+    if (device_type != DEV_PORTAPACK) return;
+    const bool ips = portapack::persistent_memory::config_lcd_ips();
+    if (!ips && portapack::persistent_memory::config_lcd_normally_black())
+        io.lcd_data_write_command_and_data(0xB6, {0x0A, 0x22, 0x27, 0x00});
+    else
+        io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});
+    lcd_tuning_t t;
+    active_tuning(t);
+    lcd_write_tuning(t);
+    io.lcd_data_write_command_and_data(ips ? 0x21 : 0x20, {});
 }
 
 void ILI9341::shutdown() {
@@ -827,13 +920,6 @@ ui::Coord ILI9341::scroll_area_y(const ui::Coord y) const {
     return wrapped_y + scroll_state.top_area;
 }
 
-/* MADCTL: MY=0x80 MX=0x40 MV=0x20 ML=0x10 BGR=0x08. Portrait is MY|MX.
- * With MV set, MX/MY mirror the physical columns/rows after the exchange;
- * MV|MY and MV|MX are the two proper rotations of MY|MX. */
-static constexpr uint8_t madctl_pp_portrait = 0x80 | 0x40 | 0x10 | 0x08;
-static constexpr uint8_t madctl_pp_landscape = 0x20 | 0x80 | 0x10 | 0x08;
-static constexpr uint8_t madctl_pp_landscape_flip = 0x20 | 0x40 | 0x10 | 0x08;
-
 bool ILI9341::set_landscape(const bool landscape, const bool flip) {
     if (device_type != DEV_PORTAPACK) return false;
 
@@ -846,7 +932,8 @@ bool ILI9341::set_landscape(const bool landscape, const bool flip) {
 
     uint8_t madctl = madctl_pp_portrait;
     if (landscape) madctl = flip ? madctl_pp_landscape_flip : madctl_pp_landscape;
-    io.lcd_data_write_command_and_data(0x36, {madctl});
+    madctl_current = madctl;
+    io.lcd_data_write_command_and_data(0x36, {static_cast<uint8_t>(madctl ^ madctl_bgr_xor)});
 
     landscape_ = landscape;
     if (landscape) {
