@@ -80,7 +80,6 @@ bool DebugDumpView::debug_dump_func() {
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(config_updown_converter()));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(config_freq_rx_correction_updown()));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(config_freq_tx_correction_updown()));
-    pmem_dump_file.write_line("lcd_normally_black: " + to_string_dec_uint(config_lcd_normally_black()));
     pmem_dump_file.write_line("lcd_ips: " + to_string_dec_uint(config_lcd_ips()));
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(config_converter_freq()));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(config_freq_rx_correction()));

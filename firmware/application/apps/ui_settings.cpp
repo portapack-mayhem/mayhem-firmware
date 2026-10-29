@@ -922,18 +922,16 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
                   &button_cancel});
 
     if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
-        add_children({&checkbox_lcd_ips, &checkbox_ips_screen_switch});
+        add_child(&checkbox_lcd_ips);
     }
 
     checkbox_lcd_ips.set_value(pmem::config_lcd_ips());
-    checkbox_ips_screen_switch.set_value(pmem::config_lcd_normally_black());
 
     button_save.on_select = [&nav, this](Button&) {
-        const bool changed = checkbox_lcd_ips.value() != pmem::config_lcd_ips() ||
-                             checkbox_ips_screen_switch.value() != pmem::config_lcd_normally_black();
-        pmem::set_config_lcd_ips(checkbox_lcd_ips.value());
-        pmem::set_lcd_normally_black(checkbox_ips_screen_switch.value());
-        if (changed) portapack::display.apply_panel_config();
+        if (checkbox_lcd_ips.value() != pmem::config_lcd_ips()) {
+            pmem::set_config_lcd_ips(checkbox_lcd_ips.value());
+            portapack::display.apply_panel_config();
+        }
         send_system_refresh();
         nav.pop();
     };

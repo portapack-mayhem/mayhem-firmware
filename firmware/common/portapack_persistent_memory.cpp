@@ -210,10 +210,10 @@ struct data_t {
     bool updown_converter;
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
-    bool lcd_normally_black : 1;
+    bool lcd_ips : 1;                 // was lcd_normally_black; units with it set now get the full IPS setup
     bool encoder_dial_direction : 1;  // false = normal, true = reverse
     bool battery_replaceable : 1;
-    bool lcd_ips : 1;  // was UNUSED_7, never written by older firmware
+    bool UNUSED_7 : 1;
 
     // up/down converter offset
     int64_t converter_frequency_offset;
@@ -290,10 +290,10 @@ struct data_t {
           updown_converter(false),
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
-          lcd_normally_black(false),
+          lcd_ips(false),
           encoder_dial_direction(false),
           battery_replaceable(false),
-          lcd_ips(false),
+          UNUSED_7(false),
 
           converter_frequency_offset(0),
 
@@ -1111,13 +1111,6 @@ void set_config_freq_rx_correction(uint32_t v) {
 }
 
 // IPS vs TFT
-bool config_lcd_normally_black() {
-    return data->lcd_normally_black;
-}
-void set_lcd_normally_black(bool v) {
-    data->lcd_normally_black = v;
-}
-
 bool config_lcd_ips() {
     return data->lcd_ips;
 }

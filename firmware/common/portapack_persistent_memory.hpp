@@ -269,8 +269,6 @@ void set_config_audio_mute(bool v);
 void set_config_speaker_disable(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
-bool config_lcd_normally_black();
-void set_lcd_normally_black(bool v);
 bool config_lcd_ips();
 void set_config_lcd_ips(bool v);
 const lcd_tuning_t& lcd_tuning();
