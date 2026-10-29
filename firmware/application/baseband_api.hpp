@@ -116,6 +116,7 @@ void set_morsetx_key(bool key_down);
 void set_wefax_config(uint8_t lpm, uint8_t ioc);
 void set_noaaapt_config();
 void set_vor_config(bool enabled = true);
+void set_audio_play_config(uint8_t channels, const std::array<int8_t, AudioPlayConfigMessage::eq_bands>& eq_gain_db);
 void set_vor_tx_config(uint16_t radial_deg, bool ident_enabled = true, const std::string& ident = "", bool enabled = true);
 void set_flex_config();
 void set_bitstream_config(uint32_t deviation, uint8_t mode);                                                   // mode 0 for am, 1 for 2fsk
