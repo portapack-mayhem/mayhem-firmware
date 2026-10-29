@@ -684,37 +684,45 @@ class SetButtonsView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts response time when a", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 2 * 16}, "button is held down.", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 5 * 16}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 7 * 16}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
-        {{2 * 8, 9 * 16}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(1)}, "Adjusts response time when a", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "button is held down.", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(5)}, "Repeat delay:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(7)}, "Repeat speed:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(9)}, "Long press delay:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(11)}, "Chord gestures:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(12)}, "Left+Up=Back Left+Down=Home", Theme::getInstance()->fg_medium->foreground},
     };
 
     OptionsField field_repeat_delay{
-        {20 * 8, 5 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(5)},
         6,
         {{"NORMAL", false},
          {"FAST", true}}};
 
     OptionsField field_repeat_speed{
-        {20 * 8, 7 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(7)},
         6,
         {{"NORMAL", false},
          {"FAST", true}}};
 
     OptionsField field_long_press_delay{
-        {20 * 8, 9 * 16},
+        {UI_POS_X_RIGHT(8), UI_POS_Y(9)},
         6,
         {{"NORMAL", false},
          {"FAST", true}}};
 
+    OptionsField field_chord_gestures{
+        {UI_POS_X_RIGHT(8), UI_POS_Y(11)},
+        6,
+        {{"ON", false},
+         {"OFF", true}}};
+
     Button button_save{
-        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
+        {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Save"};
 
     Button button_cancel{
-        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), 12 * 8, 32},
+        {UI_POS_X_CENTER(12) + UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Cancel",
     };
 };

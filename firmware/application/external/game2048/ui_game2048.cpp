@@ -20,15 +20,21 @@
  */
 
 #include "ui_game2048.hpp"
+#include "event_m0.hpp"
 #include "string_format.hpp"
 
 namespace ui::external_app::game2048 {
 
 Game2048View::Game2048View(NavigationView& nav)
     : nav_(nav), score(0), best_score(0), game_state(STATE_PLAYING) {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     add_children({&dummy});
     TILE_SIZE = (screen_width - 2 * BOARD_START_X - (GRID_SIZE + 1) * TILE_MARGIN) / GRID_SIZE;
     init_game();
+}
+
+Game2048View::~Game2048View() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 void Game2048View::on_show() {

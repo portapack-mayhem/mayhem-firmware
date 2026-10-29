@@ -239,6 +239,7 @@ class ControlsSwitchesWidget : public Widget {
 class DebugControlsView : public View {
    public:
     explicit DebugControlsView(NavigationView& nav);
+    ~DebugControlsView();
 
     void focus() override;
 

@@ -21,6 +21,7 @@
  */
 
 #include "ui_tetris.hpp"
+#include "event_m0.hpp"
 
 namespace ui::external_app::tetris {
 
@@ -614,7 +615,12 @@ int main() {
 
 TetrisView::TetrisView(NavigationView& nav)
     : nav_{nav} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     add_children({&dummy});
+}
+
+TetrisView::~TetrisView() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 void TetrisView::on_show() {

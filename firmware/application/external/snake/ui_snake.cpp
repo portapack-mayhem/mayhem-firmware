@@ -7,6 +7,7 @@
  */
 
 #include "ui_snake.hpp"
+#include "event_m0.hpp"
 
 namespace ui::external_app::snake {
 
@@ -210,8 +211,13 @@ void SnakeView::show_game_over() {
 
 SnakeView::SnakeView(NavigationView& nav)
     : nav_{nav} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     add_children({&dummy});
     attach(1.0 / 5.0);
+}
+
+SnakeView::~SnakeView() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 void SnakeView::on_show() {

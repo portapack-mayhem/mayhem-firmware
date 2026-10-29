@@ -1,4 +1,5 @@
 #include "ui_morse_practice.hpp"
+#include "event_m0.hpp"
 
 using namespace portapack;
 
@@ -6,6 +7,7 @@ namespace ui::external_app::morse_practice {
 
 MorsePracticeView::MorsePracticeView(ui::NavigationView& nav)
     : nav_(nav) {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     baseband::run_image(portapack::spi_flash::image_tag_audio_beep);
     add_children({&btn_tt,
                   &txt_last,
@@ -50,6 +52,7 @@ MorsePracticeView::MorsePracticeView(ui::NavigationView& nav)
 }
 
 MorsePracticeView::~MorsePracticeView() {
+    EventDispatcher::set_chords_suppressed(false);
     set_switches_repeat_config(initial_switch_config_);
     receiver_model.disable();
     baseband::shutdown();
