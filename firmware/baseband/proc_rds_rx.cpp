@@ -22,15 +22,14 @@ void RDSProcessor::execute(const buffer_c8_t& buffer) {
 
     // 57 kHz to 0 Hz
     for (size_t i = 0; i < mpx_out.count; i++) {
-        float sample = mpx_out.p[i];
+        const int32_t sample = mpx_out.p[i];  // full scale = 75 kHz deviation
 
         uint8_t phase_idx = (nco_phase >> 24) & 0xFF;
         uint8_t cos_idx = (phase_idx + 64) & 0xFF;
 
-        // Rescaling for the integer filter
         mixed[i] = {
-            (int16_t)(sample * 32000.0f * sine_table_i8[cos_idx] / 128.0f),
-            (int16_t)(sample * 32000.0f * sine_table_i8[phase_idx] / 128.0f)};
+            (int16_t)((sample * sine_table_i8[cos_idx]) >> 7),
+            (int16_t)((sample * sine_table_i8[phase_idx]) >> 7)};
         nco_phase += nco_inc;
     }
 

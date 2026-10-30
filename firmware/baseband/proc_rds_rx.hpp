@@ -26,8 +26,10 @@ class RDSProcessor : public BasebandProcessor {
     std::array<complex16_t, 512> dst_0{};
     const buffer_c16_t dst_buffer_0{dst_0.data(), dst_0.size()};
 
-    std::array<float, 512> mpx_audio{};
-    const buffer_f32_t mpx_buffer{mpx_audio.data(), mpx_audio.size()};
+    // The FM demod runs at 384 kHz, so it uses the fixed-point output as WFM audio does:
+    // with atan2f the M4 fell behind, lost buffers and the RDS bits with them.
+    std::array<int16_t, 512> mpx_audio{};
+    const buffer_s16_t mpx_buffer{mpx_audio.data(), mpx_audio.size()};
 
     std::array<complex16_t, 512> mixed{};
     std::array<complex16_t, 512> dst_1{};
