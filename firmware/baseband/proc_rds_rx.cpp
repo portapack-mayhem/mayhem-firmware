@@ -7,6 +7,7 @@
 
 RDSProcessor::RDSProcessor() {
     decim_0.configure(taps_200k_wfm_decim_0.taps);
+    decim_channel.configure(taps_200k_wfm_decim_1.taps);
     demod_fm.configure(mpx_fs, 75000);
 
     decim_1.configure(taps_11k0_decim_1.taps);
@@ -17,8 +18,9 @@ RDSProcessor::RDSProcessor() {
 
 void RDSProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer_0);
-    const auto mpx_out = demod_fm.execute(decim_0_out, mpx_buffer);
-    feed_channel_stats(decim_0_out);
+    const auto channel = decim_channel.execute(decim_0_out, dst_buffer_0);
+    const auto mpx_out = demod_fm.execute(channel, mpx_buffer);
+    feed_channel_stats(channel);
 
     // 57 kHz to 0 Hz
     for (size_t i = 0; i < mpx_out.count; i++) {
