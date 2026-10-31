@@ -85,7 +85,7 @@ class LCDGammaView : public View {
     void import_file();
     void show_status(const std::string& s);
 
-    TestPattern pattern{{0, 0, 240, 96}};
+    TestPattern pattern{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_HEIGHT(6)}};
 
     Labels labels_easy{
         {{UI_POS_X(0), UI_POS_Y(7.5)}, "VCOM offset:", Theme::getInstance()->fg_light->foreground},

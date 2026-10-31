@@ -103,7 +103,7 @@ void FullscreenView::focus() {
 }
 
 void FullscreenView::paint(Painter& painter) {
-    const Rect r{0, 0, screen_width, screen_height};
+    const Rect r{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_MAXHEIGHT};
     switch (pattern_) {
         case 0:
             draw_ramp(painter, r, 32, 0xFF, 0xFF, 0xFF);

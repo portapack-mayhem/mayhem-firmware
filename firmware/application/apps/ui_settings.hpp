@@ -818,14 +818,14 @@ class SetDisplayView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 2 * 16}, "Panel type (240x320 only)", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 7 * 16}, "Check for IPS glass. Fine", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 8 * 16}, "tune colors with the LCD", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 9 * 16}, "Gamma app (Settings).", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(2)}, "Panel type (240x320 only)", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(7)}, "Check for IPS glass. Fine", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(8)}, "tune colors with the LCD", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(1), UI_POS_Y(9)}, "Gamma app (Settings).", Theme::getInstance()->fg_light->foreground},
     };
 
     Checkbox checkbox_lcd_ips{
-        {1 * 8, 4 * 16},
+        {UI_POS_X(1), UI_POS_Y(4)},
         23,
         "IPS Screen"};
 
