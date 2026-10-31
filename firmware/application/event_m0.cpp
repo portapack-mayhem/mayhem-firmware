@@ -107,6 +107,7 @@ static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 bool EventDispatcher::is_running = false;
 bool EventDispatcher::display_sleep = false;
+uint8_t EventDispatcher::chords_suppressed = 0;
 
 EventDispatcher::EventDispatcher(
     ui::Widget* const top_widget,
@@ -132,6 +133,13 @@ void EventDispatcher::run() {
 
 void EventDispatcher::request_stop() {
     is_running = false;
+}
+
+void EventDispatcher::set_chords_suppressed(const bool suppressed) {
+    if (suppressed)
+        chords_suppressed++;
+    else if (chords_suppressed > 0)
+        chords_suppressed--;
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
@@ -561,16 +569,96 @@ void EventDispatcher::handle_switches() {
 
     portapack::bl_tick_counter = 0;
 
+    // The physical key state; get_switches_state() is the auto-repeat state, which
+    // toggles low between repeat pulses while a key is held.
+    const auto pressed = get_switches_pressed();
+
+    // A completed chord owns the keys until they are physically released: nothing is
+    // dispatched meanwhile, not even the repeat pulses of the keys still held.
+    if (combo_fired_) {
+        if (pressed.any())
+            return;
+        combo_fired_ = false;
+        in_key_event = false;
+        return;
+    }
+
     if (switches_state.count() == 0) {
         // If all keys are released, we are no longer in a key event.
         in_key_event = false;
     }
 
-    if (in_key_event) {
-        if (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up]) {
-            const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
-            context.focus_manager().update(top_widget, event);
+    // Global chord gestures, recognised on the physical key state. Returns true when one
+    // fired; it then owns the keys until they are physically released (see above).
+    // Diagonals only: the PortaPack d-pad is a rocker that tilts cleanly into a corner,
+    // while opposite directions (Left+Right, Up+Down) also close the keys in between.
+    //   Left + Up    -> Back  (the existing chord)
+    //   Left + Down  -> Home  (straight back to the main menu from any app)
+    const auto fire_chord = [this, &pressed]() {
+        const bool left = pressed[(size_t)ui::KeyEvent::Left];
+        const bool up = pressed[(size_t)ui::KeyEvent::Up];
+        const bool down = pressed[(size_t)ui::KeyEvent::Down];
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+
+        // Off while a view asks for it, or when disabled in Settings > Buttons. The
+        // setting is read here rather than cached: pmem can be reloaded from the SD card.
+        if (chords_suppressed || portapack::persistent_memory::disable_chord_gestures()) {
+            // The keys go to the view as usual, but Left+Up held for a second still
+            // leaves the screen: games that take every key have no other exit without
+            // the touchscreen. Checked on the auto-repeat events of the held keys.
+            if (!(left && up && !down)) {
+                back_hold_since_ = 0;
+                return false;
+            }
+            const systime_t now = chTimeNow();
+            if (back_hold_since_ == 0) {
+                back_hold_since_ = now ? now : 1;
+                return false;
+            }
+            if (now - back_hold_since_ < MS2ST(1000))
+                return false;
+            back_hold_since_ = 0;
+            if (portapack::persistent_memory::should_use_sdcard_for_pmem())
+                portapack::persistent_memory::save_persistent_settings_to_file();
+            if (nav) nav->pop();
+            combo_fired_ = true;
+            in_key_event = true;
+            return true;
         }
+
+        if (!left)
+            return false;
+        if (up && down) {
+            // Ambiguous: hold everything off until all keys are released, so letting go
+            // of one of them can't turn it into Back or Home on the way out.
+            combo_fired_ = true;
+            in_key_event = true;
+            return true;
+        }
+        if (!up && !down)  // needs Left and exactly one of Up / Down
+            return false;
+
+        // Like the status bar's back button: keep the settings when they live on the
+        // card, then leave the app.
+        if (portapack::persistent_memory::should_use_sdcard_for_pmem())
+            portapack::persistent_memory::save_persistent_settings_to_file();
+
+        if (down) {
+            if (nav) nav->home(true);
+        } else {
+            // A view that handles Back itself (e.g. to leave a sub-mode) gets it first;
+            // otherwise go back a screen, as the back button does.
+            if (!event_bubble_key(ui::KeyEvent::Back) && nav)
+                nav->pop();
+        }
+        combo_fired_ = true;
+        in_key_event = true;
+        return true;
+    };
+
+    if (in_key_event) {
+        // A chord pressed key by key: the first key already generated its own event.
+        fire_chord();
 
         // If we're in a key event, return. We will ignore all additional key
         // presses until the first key is released. We also want to ignore events
@@ -583,9 +671,19 @@ void EventDispatcher::handle_switches() {
         // Swallow event, wake up display.
         if (switches_state.any()) {
             set_display_sleep(false);
+            // Keys that wake the display are not a gesture either, also when a second
+            // one follows while the first is still down: hold them off until released.
+            combo_fired_ = true;
         }
         return;
     }
+
+    // A chord that is already complete with no key event in progress: both keys went
+    // down within one switch event (a simultaneous press, or debounced transitions the
+    // timer ISR signalled together), or the first key was in an auto-repeat low phase
+    // as the second one arrived. Recognise it rather than dispatch the keys one by one.
+    if (fire_chord())
+        return;
 
     for (size_t i = 0; i < switches_state.size(); i++) {
         // TODO: Ignore multiple keys at the same time?

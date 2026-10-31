@@ -380,6 +380,8 @@ uint32_t battery_cap_mah();
 bool battery_cap_valid();
 void set_battery_replaceable(bool v);
 bool battery_replaceable();
+void set_disable_chord_gestures(bool v);
+bool disable_chord_gestures();
 
 size_t data_size();
 
