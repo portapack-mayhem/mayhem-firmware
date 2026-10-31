@@ -24,9 +24,7 @@
 #include "complex.hpp"
 
 #include <algorithm>
-#include <codecvt>
 #include <cstring>
-#include <locale>
 
 namespace fs = std::filesystem;
 static const fs::path c8_ext{u".C8"};
@@ -471,8 +469,68 @@ path path::stem() const {
 }
 
 std::string path::string() const {
-    std::wstring_convert<std::codecvt_utf8_utf16<path::value_type>, path::value_type> conv;
-    return conv.to_bytes(native());
+    std::string out;
+    out.reserve(_s.size());
+    for (size_t i = 0; i < _s.size(); i++) {
+        uint32_t c = _s[i];
+        if (c >= 0xD800 && c <= 0xDBFF && i + 1 < _s.size() && _s[i + 1] >= 0xDC00 && _s[i + 1] <= 0xDFFF) {
+            c = 0x10000 + ((c - 0xD800) << 10) + (_s[++i] - 0xDC00);
+        } else if (c >= 0xD800 && c <= 0xDFFF) {
+            c = 0xFFFD;  // lone surrogate
+        }
+        if (c < 0x80) {
+            out += (char)c;
+        } else if (c < 0x800) {
+            out += (char)(0xC0 | (c >> 6));
+            out += (char)(0x80 | (c & 0x3F));
+        } else if (c < 0x10000) {
+            out += (char)(0xE0 | (c >> 12));
+            out += (char)(0x80 | ((c >> 6) & 0x3F));
+            out += (char)(0x80 | (c & 0x3F));
+        } else {
+            out += (char)(0xF0 | (c >> 18));
+            out += (char)(0x80 | ((c >> 12) & 0x3F));
+            out += (char)(0x80 | ((c >> 6) & 0x3F));
+            out += (char)(0x80 | (c & 0x3F));
+        }
+    }
+    return out;
+}
+
+path path_from_utf8(const char* s) {
+    path::string_type out;
+    const auto* p = reinterpret_cast<const uint8_t*>(s);
+    while (*p) {
+        uint32_t c = *p++;
+        int extra = 0;
+        uint32_t min = 0;
+        if (c >= 0xF0 && c <= 0xF4) {
+            extra = 3, min = 0x10000, c &= 0x07;
+        } else if (c >= 0xE0) {
+            extra = 2, min = 0x800, c &= 0x0F;
+        } else if (c >= 0xC2 && c <= 0xDF) {
+            extra = 1, min = 0x80, c &= 0x1F;
+        } else if (c >= 0x80) {
+            c = 0xFFFD, extra = -1;  // stray continuation or invalid lead byte
+        }
+        for (int i = 0; i < extra; i++) {
+            if ((*p & 0xC0) != 0x80) {
+                c = 0xFFFD, extra = -1;  // truncated sequence; don't consume the next byte
+                break;
+            }
+            c = (c << 6) | (*p++ & 0x3F);
+        }
+        if (extra > 0 && (c < min || c > 0x10FFFF || (c >= 0xD800 && c <= 0xDFFF)))
+            c = 0xFFFD;
+        if (c >= 0x10000) {
+            c -= 0x10000;
+            out += (char16_t)(0xD800 + (c >> 10));
+            out += (char16_t)(0xDC00 + (c & 0x3FF));
+        } else {
+            out += (char16_t)c;
+        }
+    }
+    return out;
 }
 
 // appends a string to the end of filename, but leaves the extension asd.txt + "fg" -> asdfg.txt
