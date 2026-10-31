@@ -25,6 +25,7 @@
 #define __PORTAPACK_PERSISTENT_MEMORY_H__
 
 #include <cstdint>
+#include <cstddef>
 
 #include "optional.hpp"
 
@@ -56,6 +57,21 @@ using namespace ui;
 namespace portapack {
 
 namespace persistent_memory {
+
+/* Custom panel tuning for ILI9341 240x320 panels, written by the LCD Gamma app.
+ * Raw register parameters: E0h/E1h gamma, C5h/C7h VCOM. */
+constexpr uint8_t LCD_TUNING_ENABLED = 0x01;
+constexpr uint8_t LCD_TUNING_BGR_SWAP = 0x02;
+constexpr size_t LCD_GAMMA_LEN = 15;
+
+struct lcd_tuning_t {
+    uint8_t flags{0};
+    uint8_t vcom2{0};
+    uint8_t vcom1[2]{0, 0};
+    uint8_t gamma_pos[LCD_GAMMA_LEN]{};
+    uint8_t gamma_neg[LCD_GAMMA_LEN]{};
+    uint8_t reserved[2]{0, 0};
+};
 
 enum backlight_timeout_t {
     Timeout5Sec = 0,
@@ -255,6 +271,10 @@ void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 bool config_lcd_normally_black();
 void set_lcd_normally_black(bool v);
+bool config_lcd_ips();
+void set_config_lcd_ips(bool v);
+const lcd_tuning_t& lcd_tuning();
+void set_lcd_tuning(const lcd_tuning_t& v);
 
 uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);

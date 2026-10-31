@@ -818,13 +818,21 @@ class SetDisplayView : public View {
 
    private:
     Labels labels{
-        {{2 * 8, 10 * 16}, "REBOOT TO APPLY SCREEN TYPE", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Panel type (240x320 only)", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 9 * 16}, "IPS panel overrides Normally", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 10 * 16}, "black. Fine tune colors with", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 11 * 16}, "the LCD Gamma app (Settings).", Theme::getInstance()->fg_light->foreground},
     };
 
-    Checkbox checkbox_ips_screen_switch{
-        {1 * 8, 12 * 16},
+    Checkbox checkbox_lcd_ips{
+        {1 * 8, 4 * 16},
         23,
-        "IPS Screen"};
+        "IPS panel (inversion)"};
+
+    Checkbox checkbox_ips_screen_switch{
+        {1 * 8, 6 * 16},
+        23,
+        "Normally black only"};
 
     Button button_save{
         {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},

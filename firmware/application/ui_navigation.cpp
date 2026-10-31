@@ -331,6 +331,8 @@ SystemStatusView::SystemStatusView(
 
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
+        // Display was initialized before the SD card settings were available.
+        portapack::display.apply_panel_config();
     }
 
     // configure CLKOUT per pmem setting
