@@ -180,6 +180,7 @@ class Message {
         SpecAnCaptured = 121,
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
+        VDL2Frame = 124,
         MAX
     };
 
@@ -2128,6 +2129,18 @@ struct RDSGroupMessage : public Message {
     bool is_debug;
     uint32_t debug_1;
     uint32_t debug_2;
+};
+
+// One AVLC frame from VHF Data Link mode 2 (vdl2_rx), FCS checked and taken off.
+struct VDL2FrameMessage : public Message {
+    static constexpr size_t MAX_LENGTH = 320;
+
+    constexpr VDL2FrameMessage()
+        : Message{ID::VDL2Frame} {}
+
+    uint16_t length{0};    // as received; the data holds at most MAX_LENGTH of it
+    int16_t offset_hz{0};  // carrier offset seen at the sync
+    uint8_t data[MAX_LENGTH]{};
 };
 
 struct TetraBurstMessage : public Message {
