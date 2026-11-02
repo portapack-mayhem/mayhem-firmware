@@ -214,11 +214,14 @@ void VDL2DetailView::paint(Painter& painter) {
         y += height;
     };
 
-    line((entry_.ground() ? "Ground " : "ICAO   ") + icao_hex(entry_.address()));
-    if (!entry_.ground()) {
-        line("Reg    " + entry_.reg);
-        line("Flight " + entry_.flight);
-        line("Type   " + entry_.model);
+    if (entry_.ground()) {
+        line("Ground " + icao_hex(entry_.address()));
+    } else {
+        // Two fields a row, "Reg" over "Type".
+        std::string flight = entry_.flight;
+        flight.resize(8, ' ');
+        line("ICAO   " + icao_hex(entry_.address()) + "  Reg  " + entry_.reg);
+        line("Flight " + flight + "Type " + entry_.model);
         line("Oper   " + entry_.operator_);
     }
     if (!entry_.ground() && (entry_.has_oooi[0] || entry_.has_oooi[1] || entry_.has_oooi[2] || entry_.has_oooi[3])) {
