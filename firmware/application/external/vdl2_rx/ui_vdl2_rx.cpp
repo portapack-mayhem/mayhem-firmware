@@ -96,11 +96,78 @@ void VDL2Entry::update(const Frame& frame) {
         oooi[event] = last_seen;
         has_oooi[event] = true;
     }
-    if (frame.text.empty())
+}
+
+VDL2MessagesView::VDL2MessagesView(NavigationView& nav, const VDL2Messages& messages, const VDL2Entry::Key key, const std::string& title, const Style* style)
+    : nav_{nav}, messages_{messages}, key_{key}, title_{title} {
+    set_focusable(true);
+    set_style(style);
+}
+
+void VDL2MessagesView::focus() {
+    View::focus();
+}
+
+template <typename F>
+size_t VDL2MessagesView::for_each_line(const size_t columns, F&& line) const {
+    size_t n = 0;
+    for (const auto& m : messages_) {
+        if (m.key != key_)
+            continue;
+        line(n++, to_string_datetime(m.time, HMS) + " " + m.head);
+        for (size_t pos = 0; pos < m.text.size(); pos += columns)
+            line(n++, m.text.substr(pos, columns));
+        line(n++, std::string{});
+    }
+    return n;
+}
+
+void VDL2MessagesView::paint(Painter& painter) {
+    const auto s = style();
+    const auto r = screen_rect();
+    painter.fill_rectangle(r, s.background);
+    const size_t columns = r.width() / s.font.char_width();
+    const int32_t rows = r.height() / s.font.line_height();
+
+    const int32_t total = for_each_line(columns, [](size_t, const std::string&) {});
+    if (total == 0) {
+        painter.draw_string(r.location(), s, "No messages yet");
         return;
-    for (size_t i = TEXTS - 1; i > 0; i--)
-        texts[i] = texts[i - 1];
-    texts[0] = (frame.from_aircraft() ? "> " : "< ") + frame.label + " " + frame.text.substr(0, TEXT_LENGTH);
+    }
+    if (scroll_ > total - rows) scroll_ = total - rows;
+    if (scroll_ < 0) scroll_ = 0;
+
+    for_each_line(columns, [&](size_t n, const std::string& text) {
+        const int32_t row = (int32_t)n - scroll_;
+        if (row >= 0 && row < rows)
+            painter.draw_string({r.left(), (Coord)(r.top() + row * s.font.line_height())}, s, text);
+    });
+}
+
+void VDL2MessagesView::scroll(const int32_t delta) {
+    scroll_ += delta;
+    set_dirty();
+}
+
+bool VDL2MessagesView::on_key(const KeyEvent key) {
+    switch (key) {
+        case KeyEvent::Up:
+            scroll(-1);
+            return true;
+        case KeyEvent::Down:
+            scroll(1);
+            return true;
+        case KeyEvent::Left:
+            nav_.pop();
+            return true;
+        default:
+            return View::on_key(key);
+    }
+}
+
+bool VDL2MessagesView::on_encoder(const EncoderEvent delta) {
+    scroll(delta);
+    return true;
 }
 
 VDL2SettingsView::VDL2SettingsView(NavigationView& nav, VDL2Settings& settings)
@@ -115,8 +182,13 @@ VDL2SettingsView::VDL2SettingsView(NavigationView& nav, VDL2Settings& settings)
     };
 }
 
-VDL2DetailView::VDL2DetailView() {
-    add_children({&button_done});
+VDL2DetailView::VDL2DetailView(const VDL2Messages& messages)
+    : messages_{messages} {
+    add_children({&button_messages, &button_done});
+    button_messages.on_select = [this](Button&) {
+        if (on_messages)
+            on_messages();
+    };
     button_done.on_select = [this](Button&) {
         if (on_close)
             on_close();
@@ -159,13 +231,18 @@ void VDL2DetailView::paint(Painter& painter) {
     line("Link   " + to_string_dec_uint(entry_.link) + "  Data " + to_string_dec_uint(entry_.data));
     line("Last   " + to_string_datetime(entry_.last_seen, HMS) + (entry_.label.empty() ? "" : "  label " + entry_.label));
 
-    // The last messages, wrapped, as far as there is room above the button.
+    // The last messages, wrapped, as far as there is room above the buttons; all of them
+    // under Messages.
     const Coord bottom = r.top() + button_done.parent_rect().top() - height;
-    for (const auto& text : entry_.texts) {
+    for (const auto& m : messages_) {
+        if (m.key != entry_.key())
+            continue;
+        const std::string text = m.head + " " + m.text;
         for (size_t pos = 0; pos < text.size() && y < bottom; pos += columns)
             line(text.substr(pos, columns));
-        if (!text.empty())
-            y += height / 2;
+        y += height / 2;
+        if (y >= bottom)
+            break;
     }
 }
 
@@ -194,6 +271,12 @@ VDL2RxView::VDL2RxView(NavigationView& nav)
     };
     detail_view.on_close = [this]() {
         show_list();
+    };
+    detail_view.on_messages = [this]() {
+        const auto& e = detail_view.entry();
+        const std::string title = e.reg.empty() ? icao_hex(e.address()) : e.reg + (e.flight.empty() ? "" : " " + e.flight);
+        nav_.push<VDL2MessagesView>(messages_, e.key(), title,
+                                    vdl2_settings_.small_font ? Theme::getInstance()->bg_darkest_small : Theme::getInstance()->bg_darkest);
     };
 
     refresh_ui();
@@ -239,6 +322,15 @@ void VDL2RxView::show_detail(const VDL2Entry& entry) {
     detail_view.focus();
 }
 
+void VDL2RxView::add_message(const VDL2Entry::Key key, const Frame& frame) {
+    messages_.push_front({key, rtc_time::now(), (frame.from_aircraft() ? "> " : "< ") + frame.label, frame.text});
+    message_bytes_ += messages_.front().head.size() + frame.text.size();
+    while (messages_.size() > MAX_MESSAGES || message_bytes_ > MAX_MESSAGE_BYTES) {
+        message_bytes_ -= messages_.back().head.size() + messages_.back().text.size();
+        messages_.pop_back();
+    }
+}
+
 void VDL2RxView::update_entry(const VDL2Entry::Key key, const Frame& frame) {
     auto& entry = ::on_packet(recent_, key);
     truncate_entries(recent_, VDL2Entry::MAX_ENTRIES);
@@ -267,8 +359,11 @@ void VDL2RxView::on_frame(const VDL2FrameMessage& message) {
     frames_++;
     text_frames.set("Frames " + to_string_dec_uint(frames_) + (vdl2_settings_.enable_log ? "  LOG" : ""));
 
-    if (frame.aircraft())
+    if (frame.aircraft()) {
         update_entry(frame.aircraft(), frame);
+        if (frame.kind == Frame::Kind::ACARS && !frame.text.empty())
+            add_message(frame.aircraft(), frame);
+    }
     if (frame.ground_station())
         update_entry(frame.ground_station() | VDL2Entry::GROUND_FLAG, frame);
 

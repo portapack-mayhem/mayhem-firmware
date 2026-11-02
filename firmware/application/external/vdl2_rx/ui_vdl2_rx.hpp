@@ -43,11 +43,8 @@ struct VDL2Entry {
     using Key = uint32_t;
     static constexpr Key invalid_key = 0xFFFFFFFF;
     static constexpr Key GROUND_FLAG = 0x1000000;
-    // Kept small for the M0 heap (about 15 KiB free on a HackRF One): at most MAX_ENTRIES
-    // entries with TEXTS messages of TEXT_LENGTH characters; the log keeps them whole.
+    // Kept small for the M0 heap (about 15 KiB free on a HackRF One).
     static constexpr size_t MAX_ENTRIES = 16;
-    static constexpr size_t TEXTS = 3;
-    static constexpr size_t TEXT_LENGTH = 64;
 
     Key id;
     std::string reg{};
@@ -63,7 +60,6 @@ struct VDL2Entry {
     // OOOI: gate out, wheels off, wheels on, gate in; when each report came in
     rtc::RTC oooi[4]{};
     bool has_oooi[4]{};
-    std::string texts[TEXTS]{};  // newest first: "> label text" up, "< label text" down
 
     VDL2Entry()
         : VDL2Entry{0} {}
@@ -78,6 +74,43 @@ struct VDL2Entry {
 
 using VDL2Entries = RecentEntries<VDL2Entry>;
 using VDL2EntriesView = RecentEntriesView<VDL2Entries>;
+
+// ACARS messages with text, of all aircraft, newest first. One store for the app, bounded in
+// count and in bytes for the M0 heap; the oldest go first. The log keeps everything.
+struct VDL2Message {
+    VDL2Entry::Key key;
+    rtc::RTC time;
+    std::string head;  // "> H1" from the aircraft, "< H1" to it
+    std::string text;
+};
+
+using VDL2Messages = std::list<VDL2Message>;
+constexpr size_t MAX_MESSAGES = 32;
+constexpr size_t MAX_MESSAGE_BYTES = 4096;
+
+// All messages of one aircraft in full, wrapped, to scroll through.
+class VDL2MessagesView : public View {
+   public:
+    VDL2MessagesView(NavigationView& nav, const VDL2Messages& messages, const VDL2Entry::Key key, const std::string& title, const Style* style);
+
+    std::string title() const override { return title_; };
+    void focus() override;
+    void paint(Painter& painter) override;
+    bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent delta) override;
+
+   private:
+    NavigationView& nav_;
+    const VDL2Messages& messages_;
+    const VDL2Entry::Key key_;
+    const std::string title_;
+    int32_t scroll_{0};  // first line shown
+
+    // Calls line(n, text) for every display line, n counting from 0; returns how many.
+    template <typename F>
+    size_t for_each_line(const size_t columns, F&& line) const;
+    void scroll(const int32_t delta);
+};
 
 // Options in the Config screen, kept in the app settings.
 struct VDL2Settings {
@@ -111,8 +144,9 @@ class VDL2SettingsView : public View {
 class VDL2DetailView : public View {
    public:
     std::function<void(void)> on_close{};
+    std::function<void(void)> on_messages{};
 
-    VDL2DetailView();
+    VDL2DetailView(const VDL2Messages& messages);
 
     void set_entry(const VDL2Entry& entry);
     const VDL2Entry& entry() const { return entry_; }
@@ -121,11 +155,15 @@ class VDL2DetailView : public View {
     void paint(Painter& painter) override;
 
    private:
+    const VDL2Messages& messages_;
     VDL2Entry entry_{};
 
-    // Back to the list.
+    // All messages of this aircraft, and back to the list.
+    Button button_messages{
+        {UI_POS_X_CENTER(26), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        "Messages"};
     Button button_done{
-        {UI_POS_X_CENTER(12), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
+        {UI_POS_X_CENTER(26) + UI_POS_WIDTH(14), UI_POS_Y_BOTTOM(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},
         "Back"};
 };
 
@@ -202,11 +240,14 @@ class VDL2RxView : public View {
         {"#", 0},
     }};
     VDL2EntriesView recent_view{columns, recent_};
-    VDL2DetailView detail_view{};
+    VDL2Messages messages_{};
+    size_t message_bytes_{0};
+    VDL2DetailView detail_view{messages_};
 
     void on_frame(const VDL2FrameMessage& message);
     void refresh_ui();
     void update_entry(const VDL2Entry::Key key, const Frame& frame);
+    void add_message(const VDL2Entry::Key key, const Frame& frame);
     void show_list();
     void show_detail(const VDL2Entry& entry);
 
