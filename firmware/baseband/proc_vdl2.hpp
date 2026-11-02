@@ -59,7 +59,8 @@ class VDL2Processor : public BasebandProcessor {
     static void on_frame(void* context, const uint8_t* frame, size_t length);
 
     /* NB: Threads should be the last members in the class definition. */
-    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    // Started by the constructor once the filters are configured.
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive, false};
     RSSIThread rssi_thread{};
 };
 

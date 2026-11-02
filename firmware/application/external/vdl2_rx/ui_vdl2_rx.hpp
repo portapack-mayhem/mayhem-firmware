@@ -43,7 +43,11 @@ struct VDL2Entry {
     using Key = uint32_t;
     static constexpr Key invalid_key = 0xFFFFFFFF;
     static constexpr Key GROUND_FLAG = 0x1000000;
+    // Kept small for the M0 heap (about 15 KiB free on a HackRF One): at most MAX_ENTRIES
+    // entries with TEXTS messages of TEXT_LENGTH characters; the log keeps them whole.
+    static constexpr size_t MAX_ENTRIES = 16;
     static constexpr size_t TEXTS = 3;
+    static constexpr size_t TEXT_LENGTH = 64;
 
     Key id;
     std::string reg{};

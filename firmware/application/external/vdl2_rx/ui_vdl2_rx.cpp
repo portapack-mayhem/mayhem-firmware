@@ -100,7 +100,7 @@ void VDL2Entry::update(const Frame& frame) {
         return;
     for (size_t i = TEXTS - 1; i > 0; i--)
         texts[i] = texts[i - 1];
-    texts[0] = (frame.from_aircraft() ? "> " : "< ") + frame.label + " " + frame.text;
+    texts[0] = (frame.from_aircraft() ? "> " : "< ") + frame.label + " " + frame.text.substr(0, TEXT_LENGTH);
 }
 
 VDL2SettingsView::VDL2SettingsView(NavigationView& nav, VDL2Settings& settings)
@@ -155,8 +155,8 @@ void VDL2DetailView::paint(Painter& painter) {
         line("Out    " + oooi_time(entry_, 0) + "  Off " + oooi_time(entry_, 1));
         line("On     " + oooi_time(entry_, 2) + "  In  " + oooi_time(entry_, 3));
     }
-    line("Frames " + to_string_dec_uint(entry_.frames) + ": link " + to_string_dec_uint(entry_.link) +
-         " data " + to_string_dec_uint(entry_.data) + " ACARS " + to_string_dec_uint(entry_.acars));
+    line("Frames " + to_string_dec_uint(entry_.frames) + "  ACARS " + to_string_dec_uint(entry_.acars));
+    line("Link   " + to_string_dec_uint(entry_.link) + "  Data " + to_string_dec_uint(entry_.data));
     line("Last   " + to_string_datetime(entry_.last_seen, HMS) + (entry_.label.empty() ? "" : "  label " + entry_.label));
 
     // The last messages, wrapped, as far as there is room above the button.
@@ -241,6 +241,7 @@ void VDL2RxView::show_detail(const VDL2Entry& entry) {
 
 void VDL2RxView::update_entry(const VDL2Entry::Key key, const Frame& frame) {
     auto& entry = ::on_packet(recent_, key);
+    truncate_entries(recent_, VDL2Entry::MAX_ENTRIES);
     if (entry.frames == 0 && !entry.ground()) {
         // Most frames carry no registration (link management, ATN); the database knows it.
         database db{};
