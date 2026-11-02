@@ -1,6 +1,4 @@
 /*
- * Copyright (C) 2026 Xmoo26
- *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
