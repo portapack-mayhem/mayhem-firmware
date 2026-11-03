@@ -246,9 +246,10 @@ SSTVTXView::SSTVTXView(
         bitmap_options.emplace_back(bitmap.string().substr(0, 16), 0);
     options_bitmaps.set_options(bitmap_options);
 
-    // Populate mode list
+    // Populate mode list, only the RGB scanline modes: the TX doesn't send PD
     for (c = 0; c < SSTV_MODES_NB; c++)
-        mode_options.emplace_back(sstv_modes[c].name, c);
+        if (sstv_modes[c].format == SSTV_FORMAT_RGB)
+            mode_options.emplace_back(sstv_modes[c].name, c);
     options_modes.set_options(mode_options);
 
     options_bitmaps.on_change = [this](size_t i, int32_t) {
