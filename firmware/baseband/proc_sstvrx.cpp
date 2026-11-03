@@ -617,6 +617,11 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
                 channel_count = 1;
             }
             color_order = color_order_for_mode(*active_mode);
+            // The line is read from the sync on: with the sync before the last colour
+            // (Scottie: G, B, sync, R) the colours come in from there
+            if (active_mode->sync_index > 0 && active_mode->sync_index < color_order.size()) {
+                std::rotate(color_order.begin(), color_order.begin() + active_mode->sync_index, color_order.end());
+            }
             waiting_for_first_line = true;
 
             // Configure decimation chain using NFM filters (narrower than WFMAM)
