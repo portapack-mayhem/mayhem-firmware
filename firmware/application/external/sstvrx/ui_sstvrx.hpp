@@ -108,6 +108,11 @@ class SstvRxView : public ui::View {
     const sstv_mode* rx_sstv_mode{};
 
     // Image data storage - only store current line to save memory
+    static constexpr uint16_t MAX_IMAGE_WIDTH = 640;
+    static constexpr uint16_t MAX_IMAGE_HEIGHT = 496;
+    uint16_t image_width{320};
+    uint16_t image_height{256};
+
     static constexpr uint16_t IMAGE_WIDTH = 320;
     static constexpr uint16_t IMAGE_HEIGHT = 256;
     static constexpr uint16_t PIXELS_PER_LINE = 320;
@@ -125,7 +130,7 @@ class SstvRxView : public ui::View {
     std::filesystem::path current_image_path{};
     ui::Color line_buffer[320];
     uint16_t line_num{0}, file_line_num{0};
-    std::array<uint8_t, IMAGE_WIDTH * 3> pending_line_rgb{};
+    std::array<uint8_t, MAX_IMAGE_WIDTH * 3> pending_line_rgb{};
     uint16_t pending_line_number{0};
     uint8_t pending_chunk_mask{0};
     bool pending_line_valid{false};

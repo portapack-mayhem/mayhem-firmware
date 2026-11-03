@@ -27,6 +27,7 @@
 #include "fxpt_atan2.hpp"
 #include "message.hpp"
 
+#include <ch.h>
 #include <cstdint>
 #include <cmath>
 #include <cstddef>
@@ -48,13 +49,26 @@ inline volatile uint8_t& chunk_flag() {
     return *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[sstv_chunk_flag_index]);
 }
 
-inline void wait_for_chunk_slot() {
-    while (chunk_flag() != 0) {
-        __asm__ volatile("nop");
+// Max time to wait for the M0 to release the chunk buffer before dropping the chunk.
+constexpr uint32_t sstv_chunk_wait_max_ms = 250;
+
+// Wait for the M0 to consume the previous chunk. Sleeps instead of spinning so the
+// lower priority M4 event dispatcher keeps running: a busy loop here starves it, the
+// M0 then blocks forever in send_message() (start/stop, phase/slant change) and both
+// cores deadlock. Returns false if the slot did not free up in time.
+inline bool wait_for_chunk_slot() {
+    for (uint32_t waited = 0; chunk_flag() != 0; waited++) {
+        if (waited >= sstv_chunk_wait_max_ms) {
+            return false;
+        }
+        chThdSleepMilliseconds(1);
     }
+    return true;
 }
 
 inline void mark_chunk_ready() {
+    // Make sure the chunk payload is visible to the M0 before the flag is.
+    __asm__ volatile("dmb" ::: "memory");
     chunk_flag() = 1;
 }
 
@@ -391,7 +405,7 @@ uint32_t SSTVRXProcessor::compute_nominal_line_interval() const {
     const uint32_t gap_sections = (samples_per_gap == 0)
                                       ? 0U
                                       : ((active_mode && active_mode->gaps) ? channel_sections : 1U);
-    const float samples_per_channel_f = pixel_time_frac * static_cast<float>(PIXELS_PER_LINE);
+    const float samples_per_channel_f = pixel_time_frac * static_cast<float>(pixels_per_line);
     const float rounded_channel = std::round(samples_per_channel_f);
     const uint32_t samples_per_channel = static_cast<uint32_t>(std::max(1.0f, rounded_channel));
     const uint32_t total_channel_samples = samples_per_channel * channel_sections;
@@ -411,7 +425,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
     // Check if we've accumulated enough samples for one or more pixels
     // pixel_time_frac is the number of audio samples per pixel for the current mode
     // Use a loop to handle cases where pixel_phase exceeds pixel_time_frac by more than one pixel
-    while (pixel_phase >= pixel_time_frac && pixel_index < PIXELS_PER_LINE) {
+    while (pixel_phase >= pixel_time_frac && pixel_index < pixels_per_line) {
         // Pixel complete - calculate average frequency
         // Prevent division by zero
         int32_t avg_freq;
@@ -429,8 +443,8 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
         int32_t adjusted_pixel_index = (int32_t)pixel_index + phase_offset;
         if (adjusted_pixel_index < 0) {
             adjusted_pixel_index = 0;
-        } else if (adjusted_pixel_index >= PIXELS_PER_LINE) {
-            adjusted_pixel_index = PIXELS_PER_LINE - 1;
+        } else if (adjusted_pixel_index >= pixels_per_line) {
+            adjusted_pixel_index = pixels_per_line - 1;
         }
 
         store_pixel_value(channel_index, static_cast<uint16_t>(adjusted_pixel_index), pixel_value);
@@ -443,7 +457,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
         pixel_phase -= pixel_time_frac;  // Keep fractional part for next pixel
 
         // Check if we finished a color channel
-        if (pixel_index >= PIXELS_PER_LINE) {
+        if (pixel_index >= pixels_per_line) {
             pixel_index = 0;
 
             const bool last_channel = ((channel_index + 1) >= channel_count);
@@ -470,43 +484,91 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
 }
 
 void SSTVRXProcessor::process_line() {
-    if (current_line >= mode_total_lines) current_line = 1;  // reset, maybe a new image
-    if (mode_total_lines == 0) return;                       // not set
+    if (mode_total_lines == 0) return;  // not set
+    if (current_line >= mode_total_lines) current_line = 0;  // reset, maybe a new image
 
-    const uint16_t first_chunk_pixels = (PIXELS_PER_LINE < sstv_max_chunk_pixels) ? PIXELS_PER_LINE : sstv_max_chunk_pixels;
-    const uint16_t remaining_pixels = (PIXELS_PER_LINE > sstv_max_chunk_pixels) ? (PIXELS_PER_LINE - sstv_max_chunk_pixels) : 0;
+    const uint16_t chunks_per_line = static_cast<uint16_t>((pixels_per_line + sstv_max_chunk_pixels - 1) / sstv_max_chunk_pixels);
+    const uint16_t safe_chunks_per_line = (chunks_per_line == 0) ? 1 : chunks_per_line;
 
     auto write_chunk = [&](const uint16_t encoded_line, const uint16_t start_pixel, const uint16_t pixel_count) {
         if (pixel_count == 0) {
             return;
         }
 
-        wait_for_chunk_slot();
+        if (!wait_for_chunk_slot()) {
+            return;  // M0 not consuming, drop this chunk rather than stall the DSP
+        }
 
         uint8_t* data_ptr = shared_memory.bb_data.data;
         data_ptr[0] = encoded_line & 0xFF;
         data_ptr[1] = (encoded_line >> 8) & 0xFF;
 
         for (uint16_t i = 0; i < pixel_count; i++) {
-            const uint16_t src_idx = start_pixel + i;
-            const size_t dst = sstv_chunk_header_bytes + i * 3;
-            data_ptr[dst + 0] = line_buffer_r[src_idx];
-            data_ptr[dst + 1] = line_buffer_g[src_idx];
-            data_ptr[dst + 2] = line_buffer_b[src_idx];
+            const uint16_t src_i = static_cast<uint16_t>(start_pixel + i);
+            const uint16_t dst_i = static_cast<uint16_t>(sstv_chunk_header_bytes + i * 3);
+            data_ptr[dst_i + 0] = line_buffer_r[src_i];
+            data_ptr[dst_i + 1] = line_buffer_g[src_i];
+            data_ptr[dst_i + 2] = line_buffer_b[src_i];
         }
 
         mark_chunk_ready();
+
         SSTVRXProgressMessage progress_message{encoded_line, mode_total_lines};
-        shared_memory.application_queue.push(progress_message);
+        if (!shared_memory.application_queue.push(progress_message)) {
+            // Queue full: the M0 will never hear about this chunk, so it would never
+            // clear the flag. Release the slot ourselves.
+            chunk_flag() = 0;
+        }
     };
 
-    write_chunk(static_cast<uint16_t>(current_line * 2), 0, first_chunk_pixels);
+    auto emit_line = [&](uint16_t out_line) {
+        for (uint16_t chunk = 0; chunk < safe_chunks_per_line; chunk++) {
+            const uint16_t start_px = static_cast<uint16_t>(chunk * sstv_max_chunk_pixels);
+            const uint16_t remaining = (start_px < pixels_per_line) ? static_cast<uint16_t>(pixels_per_line - start_px) : 0;
+            const uint16_t count = (remaining > sstv_max_chunk_pixels) ? sstv_max_chunk_pixels : remaining;
+            const uint16_t encoded = static_cast<uint16_t>(out_line * safe_chunks_per_line + chunk);
+            write_chunk(encoded, start_px, count);
+        }
+    };
 
-    if (remaining_pixels) {
-        write_chunk(static_cast<uint16_t>(current_line * 2 + 1), first_chunk_pixels, remaining_pixels);
+    if (active_mode && active_mode->format == SSTV_FORMAT_PD) {
+        auto clamp_u8 = [](int32_t v) -> uint8_t {
+            if (v < 0) return 0;
+            if (v > 255) return 255;
+            return static_cast<uint8_t>(v);
+        };
+
+        auto convert_pd_to_rgb = [&](const uint8_t* y, const uint8_t* ry, const uint8_t* by) {
+            for (uint16_t x = 0; x < pixels_per_line; x++) {
+                const int32_t Y = y[x];
+                const int32_t RmY = static_cast<int32_t>(ry[x]) - 128;
+                const int32_t BmY = static_cast<int32_t>(by[x]) - 128;
+
+                const int32_t R = Y + RmY;
+                const int32_t B = Y + BmY;
+                const int32_t G = static_cast<int32_t>(Y - (0.509f * RmY) - (0.194f * BmY));
+
+                line_buffer_r[x] = clamp_u8(R);
+                line_buffer_g[x] = clamp_u8(G);
+                line_buffer_b[x] = clamp_u8(B);
+            }
+        };
+
+        // First output line
+        convert_pd_to_rgb(pd_y0, pd_ry, pd_by);
+        emit_line(current_line);
+
+        // Second output line
+        if ((current_line + 1) < mode_total_lines) {
+            convert_pd_to_rgb(pd_y1, pd_ry, pd_by);
+            emit_line(static_cast<uint16_t>(current_line + 1));
+        }
+
+        current_line = static_cast<uint16_t>(current_line + 2);
+    } else {
+        emit_line(current_line);
+        current_line++;
     }
-
-    current_line++;
 }
 
 void SSTVRXProcessor::on_message(const Message* const msg) {
@@ -536,7 +598,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
                 shared_memory.application_queue.push(error_msg);
                 break;
             }
-            if (active_mode->pixels != PIXELS_PER_LINE) {
+            if (active_mode->pixels == 0 || active_mode->pixels > MAX_PIXELS_PER_LINE) {
                 configured = false;
                 SSTVRXProgressMessage error_msg{0xFFFF, 0};
                 shared_memory.application_queue.push(error_msg);
@@ -546,7 +608,12 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             if (mode_total_lines == 0) {
                 mode_total_lines = 1;
             }
-            channel_count = static_cast<uint8_t>(active_mode->color ? 3U : 1U);
+            pixels_per_line = active_mode->pixels;
+            if (active_mode->format == SSTV_FORMAT_PD) {
+                channel_count = 4;  // Y, (R-Y), (B-Y), Y
+            } else {
+                channel_count = static_cast<uint8_t>(active_mode->color ? 3U : 1U);
+            }
             if (channel_count == 0) {
                 channel_count = 1;
             }
@@ -658,9 +725,13 @@ void SSTVRXProcessor::start_gap(const uint32_t duration) {
 }
 
 void SSTVRXProcessor::clear_line_buffers() {
-    std::fill_n(line_buffer_r, PIXELS_PER_LINE, uint8_t{0});
-    std::fill_n(line_buffer_g, PIXELS_PER_LINE, uint8_t{0});
-    std::fill_n(line_buffer_b, PIXELS_PER_LINE, uint8_t{0});
+    std::fill_n(line_buffer_r, pixels_per_line, uint8_t{0});
+    std::fill_n(line_buffer_g, pixels_per_line, uint8_t{0});
+    std::fill_n(line_buffer_b, pixels_per_line, uint8_t{0});
+    std::fill_n(pd_y0, pixels_per_line, uint8_t{0});
+    std::fill_n(pd_ry, pixels_per_line, uint8_t{128});
+    std::fill_n(pd_by, pixels_per_line, uint8_t{128});
+    std::fill_n(pd_y1, pixels_per_line, uint8_t{0});
 }
 
 void SSTVRXProcessor::begin_line_after_sync() {
@@ -674,6 +745,22 @@ void SSTVRXProcessor::store_pixel_value(const uint32_t channel, const uint16_t p
     if (!active_mode) {
         return;
     }
+
+    if (pixel >= pixels_per_line) {
+        return;
+    }
+
+    if (active_mode->format == SSTV_FORMAT_PD) {
+        switch (channel) {
+            case 0: pd_y0[pixel] = value; break;
+            case 1: pd_ry[pixel] = value; break;
+            case 2: pd_by[pixel] = value; break;
+            case 3: pd_y1[pixel] = value; break;
+            default: break;
+        }
+        return;
+    }
+
 
     if (!active_mode->color) {
         line_buffer_r[pixel] = value;

@@ -50,7 +50,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     };
 
     static constexpr uint32_t MAX_SAMPLES_PER_LINE = 4096;
-    static constexpr uint16_t PIXELS_PER_LINE = 320;
+    static constexpr uint16_t MAX_PIXELS_PER_LINE = 640;
 
     // Frequency ranges for SSTV (in Hz)
     static constexpr int32_t FREQ_BLACK = 1500;
@@ -64,6 +64,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     uint8_t vis_code{0};
     const sstv_mode* active_mode{nullptr};
     uint16_t mode_total_lines{256};
+    uint16_t pixels_per_line{320};
 
     static constexpr size_t baseband_fs = 3072000;
 
@@ -98,9 +99,15 @@ class SSTVRXProcessor : public BasebandProcessor {
     size_t goertzel_count{0};
 
     // Line decoding state
-    uint8_t line_buffer_r[PIXELS_PER_LINE];
-    uint8_t line_buffer_g[PIXELS_PER_LINE];
-    uint8_t line_buffer_b[PIXELS_PER_LINE];
+    uint8_t line_buffer_r[MAX_PIXELS_PER_LINE];
+    uint8_t line_buffer_g[MAX_PIXELS_PER_LINE];
+    uint8_t line_buffer_b[MAX_PIXELS_PER_LINE];
+
+    // PD modes store Y / (R-Y) / (B-Y) / Y (double-line)
+    uint8_t pd_y0[MAX_PIXELS_PER_LINE];
+    uint8_t pd_ry[MAX_PIXELS_PER_LINE];
+    uint8_t pd_by[MAX_PIXELS_PER_LINE];
+    uint8_t pd_y1[MAX_PIXELS_PER_LINE];
 
     uint32_t sample_count{0};
     uint32_t pixel_index{0};

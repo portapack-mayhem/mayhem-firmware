@@ -41,7 +41,12 @@ enum sstv_color_seq {
     SSTV_COLOR_YUV  // Not supported for now
 };
 
-#define SSTV_MODES_NB 6
+enum sstv_format {
+    SSTV_FORMAT_RGB,  // Classic RGB scanlines (Martin/Scottie/SC2)
+    SSTV_FORMAT_PD    // PD modes: Y, (R-Y), (B-Y), Y (double-line output)
+};
+
+#define SSTV_MODES_NB 9
 
 // From http://www.graphics.stanford.edu/~seander/bithacks.html, nice !
 constexpr inline uint8_t sstv_parity(uint8_t code) {
@@ -67,6 +72,7 @@ struct sstv_mode {
     uint8_t vis_code;
     bool color;  // Unused for now
     sstv_color_seq color_sequence;
+    sstv_format format;
     uint16_t pixels;
     uint16_t lines;
     uint32_t samples_per_pixel;
@@ -79,12 +85,15 @@ struct sstv_mode {
 };
 
 constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {
-    {"Scottie 1", sstv_parity(60), true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(0.4320), true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5)},
-    {"Scottie 2", sstv_parity(56), true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(0.2752), true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5)},
-    {"Scottie DX", sstv_parity(76), true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(1.08), true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5)},
-    {"Martin 1", sstv_parity(44), true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(0.4576), false, 0, true, SSTV_MS2S(4.862), SSTV_MS2S(0.572)},
-    {"Martin 2", sstv_parity(40), true, SSTV_COLOR_GBR, 320, 256, SSTV_MS2S(0.2288), false, 0, true, SSTV_MS2S(4.862), SSTV_MS2S(0.572)},
-    {"SC2-180", sstv_parity(55), true, SSTV_COLOR_RGB, 320, 256, SSTV_MS2S(0.7344), false, 0, false, SSTV_MS2S(5.5225), SSTV_MS2S(0.5)},
+    {"Scottie 1", sstv_parity(60), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.4320), true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5)},
+    {"Scottie 2", sstv_parity(56), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.2752), true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5)},
+    {"Scottie DX", sstv_parity(76), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(1.08), true, 2, true, SSTV_MS2S(9), SSTV_MS2S(1.5)},
+    {"Martin 1", sstv_parity(44), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.4576), false, 0, true, SSTV_MS2S(4.862), SSTV_MS2S(0.572)},
+    {"Martin 2", sstv_parity(40), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.2288), false, 0, true, SSTV_MS2S(4.862), SSTV_MS2S(0.572)},
+    {"SC2-180", sstv_parity(55), true, SSTV_COLOR_RGB,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.7344), false, 0, false, SSTV_MS2S(5.5225), SSTV_MS2S(0.5)},
+    {"PD90", sstv_parity(99), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 320, 256, SSTV_MS2S(0.5320), false, 0, true, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD120", sstv_parity(95), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 640, 496, SSTV_MS2S(0.1900), false, 0, true, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD160", sstv_parity(98), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 512, 400, SSTV_MS2S(0.3820), false, 0, true, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
     //{ "PASOKON 3",	sstv_parity(113),	true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.2083), 	{ 1500, 2300 } },
     //{ "PASOKON 7",	sstv_parity(115),	true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.4167), 	{ 1500, 2300 } }
 };

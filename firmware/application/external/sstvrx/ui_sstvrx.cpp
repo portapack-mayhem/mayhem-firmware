@@ -275,7 +275,11 @@ void SstvRxView::start_audio() {
         SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
     }
     current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
-    auto ok = bmp.create(current_image_path, IMAGE_WIDTH, 1);
+    image_width = rx_sstv_mode ? rx_sstv_mode->pixels : 320;
+    image_height = rx_sstv_mode ? rx_sstv_mode->lines : 256;
+    if (image_width == 0 || image_width > MAX_IMAGE_WIDTH) image_width = 320;
+    if (image_height == 0 || image_height > MAX_IMAGE_HEIGHT) image_height = 256;
+    auto ok = bmp.create(current_image_path, image_width, 1);
     if (!ok) {
         SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
         bmp.close();
@@ -295,7 +299,16 @@ void SstvRxView::start_audio() {
 }
 
 void SstvRxView::on_mode_changed(const size_t index) {
+    if (index >= SSTV_MODES_NB) return;
     rx_sstv_mode = &sstv_modes[index];
+
+    // image_width/image_height must match what the baseband was configured with,
+    // they are only updated in start_audio(). If a reception is running, restart it
+    // so the M4 is reconfigured for the new mode and a new BMP of the right size is made.
+    if (is_receiving) {
+        on_stop();
+        start_audio();
+    }
 }
 
 void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
@@ -308,7 +321,7 @@ void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) 
     bmp.seek(0, file_line_num);
 
     // Write RGB data in BGR order
-    for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
+    for (uint16_t x = 0; x < image_width; x++) {
         uint8_t r = rgb_line[x * 3 + 0];
         uint8_t g = rgb_line[x * 3 + 1];
         uint8_t b = rgb_line[x * 3 + 2];
@@ -319,7 +332,7 @@ void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) 
 }
 
 void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) {
-    if (current_line >= IMAGE_HEIGHT) return;
+    if (current_line >= image_height) return;
 
     // Reset line counter if we reach the bottom of display
     if (line_num >= DISPLAY_HEIGHT) {
@@ -329,8 +342,8 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) 
     // Scale line to display width
     for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
         // Scale x coordinate
-        uint16_t src_x = (x * IMAGE_WIDTH) / DISPLAY_WIDTH;
-        if (src_x >= IMAGE_WIDTH) continue;
+        uint16_t src_x = (x * image_width) / DISPLAY_WIDTH;
+        if (src_x >= image_width) continue;
 
         // Get RGB values from interleaved data [R,G,B,R,G,B,...]
         uint8_t r = rgb_line[src_x * 3 + 0];
@@ -425,14 +438,16 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
 
     const uint16_t line_num_encoded = chunk[0] | (chunk[1] << 8);
-    const bool is_second_chunk = (line_num_encoded & 1) == 1;
-    const uint16_t actual_line_num = line_num_encoded / 2;
+    const uint16_t chunks_per_line = static_cast<uint16_t>((image_width + MAX_CHUNK_PIXELS - 1) / MAX_CHUNK_PIXELS);
+    const uint16_t safe_chunks_per_line = (chunks_per_line == 0) ? 1 : chunks_per_line;
+    const uint16_t chunk_index = static_cast<uint16_t>(line_num_encoded % safe_chunks_per_line);
+    const uint16_t actual_line_num = static_cast<uint16_t>(line_num_encoded / safe_chunks_per_line);
 
-    if (actual_line_num >= IMAGE_HEIGHT) {
+    if (actual_line_num >= image_height) {
         return;
     }
 
-    const bool multi_chunk_line = PIXELS_PER_LINE > MAX_CHUNK_PIXELS;
+    //const bool multi_chunk_line = (safe_chunks_per_line > 1);
     if (!pending_line_valid || pending_line_number != actual_line_num) {
         pending_line_number = actual_line_num;
         pending_line_valid = true;
@@ -440,10 +455,9 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
     }
 
-    const uint16_t chunk_pixels = multi_chunk_line
-                                      ? (is_second_chunk ? (PIXELS_PER_LINE - MAX_CHUNK_PIXELS) : MAX_CHUNK_PIXELS)
-                                      : PIXELS_PER_LINE;
-    const uint16_t dest_pixel_offset = (multi_chunk_line && is_second_chunk) ? MAX_CHUNK_PIXELS : 0;
+    const uint16_t dest_pixel_offset = static_cast<uint16_t>(chunk_index * MAX_CHUNK_PIXELS);
+    const uint16_t remaining_pixels = (dest_pixel_offset < image_width) ? static_cast<uint16_t>(image_width - dest_pixel_offset) : 0;
+    const uint16_t chunk_pixels = (remaining_pixels > MAX_CHUNK_PIXELS) ? MAX_CHUNK_PIXELS : remaining_pixels;
     const uint16_t chunk_bytes = chunk_pixels * 3;
     const uint16_t max_copy_bytes = static_cast<uint16_t>(chunk.size() > CHUNK_HEADER_BYTES ? (chunk.size() - CHUNK_HEADER_BYTES) : 0);
     const uint16_t bytes_to_copy = (chunk_bytes < max_copy_bytes) ? chunk_bytes : max_copy_bytes;
@@ -453,9 +467,9 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         memcpy(pending_line_rgb.data() + dest_byte_offset, chunk.data() + CHUNK_HEADER_BYTES, bytes_to_copy);
     }
 
-    const uint8_t chunk_bit = (multi_chunk_line && is_second_chunk) ? 0x2 : 0x1;
+    const uint8_t chunk_bit = static_cast<uint8_t>(1U << (chunk_index & 7));
     pending_chunk_mask |= chunk_bit;
-    const uint8_t required_mask = multi_chunk_line ? 0x3 : 0x1;
+    const uint8_t required_mask = (safe_chunks_per_line >= 8) ? 0xFF : static_cast<uint8_t>((1U << safe_chunks_per_line) - 1U);
     if (pending_chunk_mask != required_mask) {
         return;
     }
@@ -463,7 +477,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     pending_line_valid = false;
     pending_chunk_mask = 0;
     current_line_rx = actual_line_num;
-    if (actual_line_num < IMAGE_HEIGHT) {
+    if (actual_line_num < image_height) {
         write_line_to_file(actual_line_num, pending_line_rgb.data());
         update_display(actual_line_num, pending_line_rgb.data());
         max_received_line = max_received_line > (actual_line_num + 1) ? max_received_line : (actual_line_num + 1);
