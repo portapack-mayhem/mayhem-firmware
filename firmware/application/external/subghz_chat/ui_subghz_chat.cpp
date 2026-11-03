@@ -52,6 +52,9 @@ constexpr size_t GAP_BYTES = 12;
 constexpr size_t LEAD_IN_BYTES = 24;
 // The radio settles after switching to TX before the first bit goes out.
 constexpr uint32_t TX_SETTLE_MS = 20;
+// TX done comes when the last bit is made, while the baseband's DMA ring (8192 samples, 3.6 ms
+// at 2.28 MHz) still holds it: let that go out (0,0 after the end) before the radio goes off.
+constexpr uint32_t TX_DRAIN_MS = 10;
 // On top of the time the bits take: a TX done that never comes doesn't keep the radio in TX.
 constexpr systime_t TX_MARGIN = MS2ST(1000);
 constexpr systime_t JOIN_DELAY = MS2ST(500);
@@ -429,6 +432,7 @@ void SubGhzChatView::start_tx(const size_t bits) {
 void SubGhzChatView::start_rx() {
     if (!transmitting_)
         return;
+    chThdSleepMilliseconds(TX_DRAIN_MS);
     transmitter_model.disable();
     baseband::shutdown();
     chThdSleepMilliseconds(50);
