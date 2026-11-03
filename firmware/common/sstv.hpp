@@ -100,9 +100,9 @@ constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {
     {"Martin 1", sstv_parity(44), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.4576), false, 0, true, SSTV_MS2S(4.862), SSTV_MS2S(0.572)},
     {"Martin 2", sstv_parity(40), true, SSTV_COLOR_GBR,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.2288), false, 0, true, SSTV_MS2S(4.862), SSTV_MS2S(0.572)},
     {"SC2-180", sstv_parity(55), true, SSTV_COLOR_RGB,SSTV_FORMAT_RGB, 320, 256, SSTV_MS2S(0.7344), false, 0, false, SSTV_MS2S(5.5225), SSTV_MS2S(0.5)},
-    {"PD90", sstv_parity(99), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 320, 256, SSTV_MS2S(0.5320), false, 0, true, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
-    {"PD120", sstv_parity(95), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 640, 496, SSTV_MS2S(0.1900), false, 0, true, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
-    {"PD160", sstv_parity(98), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 512, 400, SSTV_MS2S(0.3820), false, 0, true, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD90", sstv_parity(99), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 320, 256, SSTV_MS2S(0.5320), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD120", sstv_parity(95), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 640, 496, SSTV_MS2S(0.1900), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD160", sstv_parity(98), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 512, 400, SSTV_MS2S(0.3820), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
     {"Robot 36", sstv_parity(8), true, SSTV_COLOR_YUV, SSTV_FORMAT_ROBOT36, 320, 240, SSTV_MS2S(0.2750), true, 0, false, SSTV_MS2S(9), SSTV_MS2S(3)},
     //{ "PASOKON 3",	sstv_parity(113),	true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.2083), 	{ 1500, 2300 } },
     //{ "PASOKON 7",	sstv_parity(115),	true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.4167), 	{ 1500, 2300 } }
