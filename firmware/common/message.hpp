@@ -180,6 +180,7 @@ class Message {
         SpecAnCaptured = 121,
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
+        SubGhzChatPacket = 125,
         MAX
     };
 
@@ -2128,6 +2129,17 @@ struct RDSGroupMessage : public Message {
     bool is_debug;
     uint32_t debug_1;
     uint32_t debug_2;
+};
+
+// One CC1101 packet for the Sub-GHz chat (subghz_chat), CRC checked.
+struct SubGhzChatPacketMessage : public Message {
+    static constexpr size_t MAX_LENGTH = 60;
+
+    constexpr SubGhzChatPacketMessage()
+        : Message{ID::SubGhzChatPacket} {}
+
+    uint8_t length{0};
+    uint8_t data[MAX_LENGTH]{};
 };
 
 struct TetraBurstMessage : public Message {

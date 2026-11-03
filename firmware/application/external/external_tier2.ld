@@ -116,6 +116,7 @@ MEMORY
     ram_external_app_rds_rx                (rwx) : org = 0xAE0B0000, len = 32k
     ram_external_app_wmbus_rx              (rwx) : org = 0xAE0C0000, len = 32k
     ram_external_app_spec_an               (rwx) : org = 0xAE0D0000, len = 32k
+    ram_external_app_subghz_chat           (rwx) : org = 0xAE0E0000, len = 32k
 }
 
 SECTIONS
@@ -677,4 +678,10 @@ SECTIONS
         KEEP(*(.external_app.app_spec_an.application_information));
         */external/spec_an/*(*ui*external_app*spec_an*);
     } > ram_external_app_spec_an
+
+    .external_app_subghz_chat : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_subghz_chat.application_information));
+        */external/subghz_chat/*(*ui*external_app*subghz_chat*);
+    } > ram_external_app_subghz_chat
 }

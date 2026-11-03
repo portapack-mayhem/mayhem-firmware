@@ -429,6 +429,10 @@ set(EXTCPPSRC
 	#wmbus
 	external/wmbus_rx/main.cpp
 	external/wmbus_rx/ui_wmbus_rx.cpp
+	#subghz_chat
+	external/subghz_chat/main.cpp
+	external/subghz_chat/ui_subghz_chat.cpp
+	external/subghz_chat/chat_crypto.cpp
 )
 
 set(EXTAPPLIST
@@ -533,5 +537,6 @@ set(EXTAPPLIST
 	sdusb
   	rds_rx
 	wmbus_rx
+	subghz_chat
 )
 
