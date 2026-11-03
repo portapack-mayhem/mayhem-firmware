@@ -43,6 +43,7 @@ SubGhzChatProcessor::SubGhzChatProcessor() {
 }
 
 void SubGhzChatProcessor::execute(const buffer_c8_t& buffer) {
+    stir_noise(buffer);
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, channel_buffer);
@@ -51,6 +52,19 @@ void SubGhzChatProcessor::execute(const buffer_c8_t& buffer) {
     const auto f = demod.execute(channel_out, fm_buffer);
     for (size_t i = 0; i < f.count; i++)
         decoder.execute(f.p[i]);
+}
+
+// Randomness for the app's encryption (run id, IVs): the low bits of the raw samples, which
+// are receiver noise, stirred into the first bytes of bb_data. Nothing else uses bb_data
+// while this image runs; sending switches to the FSK image, which takes it for its bits.
+void SubGhzChatProcessor::stir_noise(const buffer_c8_t& buffer) {
+    uint32_t x = noise_;
+    for (size_t i = 0; i < 32 && i < buffer.count; i++)
+        x = ((x << 5) | (x >> 27)) ^ (uint8_t)buffer.p[i].real() ^ ((uint32_t)(uint8_t)buffer.p[i].imag() << 16);
+    noise_ = x;
+    uint8_t* pool = shared_memory.bb_data.data + 4 * (noise_index_++ % (SubGhzChatPacketMessage::NOISE_POOL_BYTES / 4));
+    for (int i = 0; i < 4; i++)
+        pool[i] ^= x >> (8 * i);
 }
 
 void SubGhzChatProcessor::on_packet(void* context, const uint8_t* payload, size_t length) {

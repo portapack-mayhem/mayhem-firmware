@@ -27,6 +27,10 @@
 #include <cstddef>
 #include <cstdint>
 
+// Always inline: a copy out of line would be named cc1101::..., which an external app's linker
+// section doesn't take, and would land in the firmware instead of the app.
+#define CC1101_INLINE inline __attribute__((always_inline))
+
 namespace cc1101 {
 
 constexpr uint16_t SYNC_WORD = 0x464C;
@@ -36,7 +40,7 @@ constexpr float BAUD = 9992.6f;
 constexpr uint32_t DEVIATION_HZ = 19043;
 
 // CRC-16 of the CC1101: x^16 + x^15 + x^2 + 1, starting at 0xFFFF, most significant bit first.
-inline uint16_t crc16(const uint8_t* data, const size_t length, uint16_t crc = 0xFFFF) {
+CC1101_INLINE uint16_t crc16(const uint8_t* data, const size_t length, uint16_t crc = 0xFFFF) {
     for (size_t i = 0; i < length; i++) {
         crc ^= (uint16_t)data[i] << 8;
         for (size_t b = 0; b < 8; b++)
@@ -51,7 +55,7 @@ class BitWriter {
     BitWriter(uint8_t* buffer, const size_t capacity_bits)
         : buffer_{buffer}, capacity_{capacity_bits} {}
 
-    bool byte(const uint8_t v) {
+    CC1101_INLINE bool byte(const uint8_t v) {
         if (bits_ + 8 > capacity_)
             return false;
         for (int i = 7; i >= 0; i--) {
@@ -65,7 +69,7 @@ class BitWriter {
     }
 
     // One packet: preamble, sync word, length, payload, CRC.
-    bool packet(const uint8_t* payload, const size_t length) {
+    CC1101_INLINE bool packet(const uint8_t* payload, const size_t length) {
         if (length == 0 || length > MAX_PAYLOAD)
             return false;
         for (size_t i = 0; i < PREAMBLE_BYTES; i++)

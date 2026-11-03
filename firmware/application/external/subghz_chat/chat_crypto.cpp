@@ -21,7 +21,7 @@
 
 #include <cstring>
 
-namespace chat_crypto {
+namespace ui::external_app::subghz_chat::chat_crypto {
 
 namespace {
 
@@ -303,10 +303,9 @@ void ChatCipher::clear() {
     enabled_ = false;
     counter_ = 1;
     seen_count_ = 0;
-    seen_next_ = 0;
 }
 
-std::string ChatCipher::encrypt(const std::string& text, uint32_t salt) {
+std::string ChatCipher::encrypt(const std::string& text, const uint8_t* noise, size_t noise_length) {
     std::string message(OVERHEAD + text.size(), '\0');
     uint8_t* m = reinterpret_cast<uint8_t*>(&message[0]);
     memcpy(m, run_id_, RUN_ID_BYTES);
@@ -315,12 +314,14 @@ std::string ChatCipher::encrypt(const std::string& text, uint32_t salt) {
     m[10] = counter_ >> 8;
     m[11] = counter_;
 
-    // A new IV for every run id and counter: what GCM needs is that it never repeats.
-    uint8_t seed[16];
-    memcpy(seed, m, 12);
-    memcpy(seed + 12, &salt, 4);
+    // A random IV, as the Flipper's: GCM needs it never to repeat under one key. The run id and
+    // counter make it differ per message even if the noise were to repeat.
+    uint8_t seed[64 + 12];
+    const size_t n = noise_length < 64 ? noise_length : 64;
+    memcpy(seed, noise, n);
+    memcpy(seed + n, m, 12);
     uint8_t digest[32];
-    sha256(seed, sizeof(seed), digest);
+    sha256(seed, n + 12, digest);
     uint8_t* iv = m + 12;
     memcpy(iv, digest, IV_BYTES);
 
@@ -337,7 +338,7 @@ bool ChatCipher::decrypt(const std::string& message, std::string& text) {
     const uint8_t* m = reinterpret_cast<const uint8_t*>(message.data());
     const uint32_t counter = ((uint32_t)m[8] << 24) | ((uint32_t)m[9] << 16) | ((uint32_t)m[10] << 8) | m[11];
     const Seen* seen = find_seen(m);
-    if (seen && seen->counter >= counter)
+    if (seen ? seen->counter >= counter : seen_count_ == MAX_SEEN)
         return false;
 
     text.assign(message.size() - OVERHEAD, '\0');
@@ -357,17 +358,16 @@ ChatCipher::Seen* ChatCipher::find_seen(const uint8_t* run_id) {
     return nullptr;
 }
 
-void ChatCipher::set_seen(const uint8_t* run_id, uint32_t counter) {
+bool ChatCipher::set_seen(const uint8_t* run_id, uint32_t counter) {
     Seen* seen = find_seen(run_id);
     if (!seen) {
-        // full: the oldest run id makes way
-        seen = &seen_[seen_next_];
-        seen_next_ = (seen_next_ + 1) % MAX_SEEN;
-        if (seen_count_ < MAX_SEEN)
-            seen_count_++;
+        if (seen_count_ == MAX_SEEN)
+            return false;
+        seen = &seen_[seen_count_++];
         memcpy(seen->run_id, run_id, RUN_ID_BYTES);
     }
     seen->counter = counter;
+    return true;
 }
 
 bool parse_hex_key(const std::string& text, uint8_t key[KEY_BYTES]) {
@@ -401,4 +401,4 @@ void wipe(void* p, size_t length) {
         *b++ = 0;
 }
 
-}  // namespace chat_crypto
+}  // namespace ui::external_app::subghz_chat::chat_crypto

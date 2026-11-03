@@ -29,6 +29,7 @@
 #include "file_path.hpp"
 #include "ui_textentry.hpp"
 
+#include <algorithm>
 #include <cstring>
 
 using namespace portapack;
@@ -64,33 +65,100 @@ bool ends_with(const std::string& s, const char* end) {
 
 }  // namespace
 
+ChatLog::ChatLog(Rect parent_rect)
+    : Widget{parent_rect} {
+    set_focusable(true);
+}
+
 void ChatLog::add(const Kind kind, const std::string& text) {
     entries_.push_back({kind, text});
-    if (entries_.size() > MAX_ENTRIES)
+    bytes_ += text.size();
+    while (bytes_ > HISTORY_BYTES && entries_.size() > 1) {
+        bytes_ -= entries_.front().text.size();
         entries_.pop_front();
+    }
+    // Scrolled back: the lines in view stay put, the marker says there's more below.
+    if (scroll_)
+        scroll_ = std::min(scroll_ + rows_of(entries_.back()), max_scroll());
     set_dirty();
+}
+
+size_t ChatLog::columns() const {
+    return std::max<size_t>(1, screen_rect().width() / style().font.char_width());
+}
+
+size_t ChatLog::rows_of(const Entry& e) const {
+    return std::max<size_t>(1, (e.text.size() + columns() - 1) / columns());
+}
+
+size_t ChatLog::visible_rows() const {
+    return screen_rect().height() / style().font.line_height();
+}
+
+size_t ChatLog::max_scroll() const {
+    size_t rows = 0;
+    for (const auto& e : entries_)
+        rows += rows_of(e);
+    return rows > visible_rows() ? rows - visible_rows() : 0;
+}
+
+bool ChatLog::scroll_by(const int32_t rows) {
+    const int32_t target = std::clamp<int32_t>((int32_t)scroll_ + rows, 0, max_scroll());
+    if ((size_t)target == scroll_)
+        return false;
+    scroll_ = target;
+    set_dirty();
+    return true;
+}
+
+bool ChatLog::on_key(const KeyEvent key) {
+    if (key == KeyEvent::Up)
+        return scroll_by(1);  // at the oldest line: not handled, so the focus moves up
+    if (key == KeyEvent::Down) {
+        scroll_by(-1);
+        return true;
+    }
+    return false;
+}
+
+bool ChatLog::on_encoder(const EncoderEvent delta) {
+    scroll_by(-delta);
+    return true;
 }
 
 void ChatLog::paint(Painter& painter) {
     const auto r = screen_rect();
     const auto& s = style();
     const auto line_height = s.font.line_height();
-    const size_t columns = std::max<size_t>(1, r.width() / s.font.char_width());
+    const size_t cols = columns();
     painter.fill_rectangle(r, s.background);
 
-    // From the bottom up, each entry wrapped to the width, until the area is full.
-    Coord y = r.bottom() - line_height;
+    // From the bottom up, each entry wrapped to the width; the first scroll_ rows are skipped.
+    Coord y = r.top() + (visible_rows() - 1) * line_height;
+    size_t skip = scroll_;
     for (auto e = entries_.rbegin(); e != entries_.rend() && y >= r.top(); ++e) {
         const Color color = e->kind == Kind::Own    ? Color::green()
                             : e->kind == Kind::Info ? Color::grey()
                                                     : s.foreground;
-        const size_t rows = std::max<size_t>(1, (e->text.size() + columns - 1) / columns);
-        for (size_t row = rows; row-- > 0 && y >= r.top();) {
+        for (size_t row = rows_of(*e); row-- > 0 && y >= r.top();) {
+            if (skip) {
+                skip--;
+                continue;
+            }
             painter.draw_string({r.left(), y}, s.font, color, s.background,
-                                std::string_view{e->text}.substr(row * columns, columns));
+                                std::string_view{e->text}.substr(row * cols, cols));
             y -= line_height;
         }
     }
+
+    if (scroll_) {
+        const std::string more = " more below ";
+        const Coord w = more.size() * s.font.char_width();
+        painter.draw_string({r.right() - w, r.top() + (Coord)(visible_rows() - 1) * line_height},
+                            s.font, s.background, s.foreground, more);
+    }
+    if (has_focus())
+        painter.draw_rectangle(r, Theme::getInstance()->fg_light->foreground);
 }
 
 ChatSettingsView::ChatSettingsView(NavigationView& nav, ChatSettings& settings)
@@ -250,9 +318,9 @@ void SubGhzChatView::apply_key() {
         chat_crypto::sha256(reinterpret_cast<const uint8_t*>(secret.data()), secret.size(), key);
     else if (!chat_crypto::parse_hex_key(secret, key))
         return;
-    // the run id: new on every start and key, so the others don't take it for a replay
-    const std::string seed = chat_settings_.nickname + to_string_dec_uint(chTimeNow()) +
-                             to_string_timestamp(rtc_time::now());
+    // the run id: random (receiver noise), with the name and time on top
+    std::string seed = noise();
+    seed += chat_settings_.nickname + to_string_dec_uint(chTimeNow()) + to_string_timestamp(rtc_time::now());
     cipher_.set_key(key, reinterpret_cast<const uint8_t*>(seed.data()), seed.size());
     chat_crypto::wipe(key, sizeof(key));
     show(ChatLog::Kind::Info, "Encrypted (AES-256-GCM)");
@@ -270,6 +338,13 @@ void SubGhzChatView::show(const ChatLog::Kind kind, const std::string& line) {
     chat_log.add(kind, line);
     if (chat_settings_.enable_log)
         log_file_.write_entry(line);
+}
+
+// Receiver noise, kept up by the chat image at the start of bb_data (only while receiving).
+std::string SubGhzChatView::noise() const {
+    return std::string(reinterpret_cast<const char*>(shared_memory.bb_data.data),
+                       SubGhzChatPacketMessage::NOISE_POOL_BYTES) +
+           to_string_dec_uint(chTimeNow());
 }
 
 void SubGhzChatView::send(const std::string& text) {
@@ -302,7 +377,13 @@ void SubGhzChatView::announce(const char* what) {
 // number of bits, 0 when it doesn't fit.
 size_t SubGhzChatView::build_packets(const std::string& line) {
     // as the Flipper: plain text ends in CR LF, encrypted doesn't
-    const std::string payload = cipher_.enabled() ? cipher_.encrypt(line, chTimeNow()) : line + "\r\n";
+    std::string payload;
+    if (cipher_.enabled()) {
+        const std::string random = noise();
+        payload = cipher_.encrypt(line, reinterpret_cast<const uint8_t*>(random.data()), random.size());
+    } else {
+        payload = line + "\r\n";
+    }
 
     tx_bits_.fill(0);
     // The transmitter reads 32 bits past the end; leave room for them.

@@ -26,7 +26,8 @@
 #include <string>
 
 // SHA-256 and AES-256-GCM, small rather than fast: a chat message is a few hundred bytes.
-namespace chat_crypto {
+// In the app's namespace, so the linker puts it with the app and not in the firmware.
+namespace ui::external_app::subghz_chat::chat_crypto {
 
 constexpr size_t KEY_BYTES = 32;
 constexpr size_t IV_BYTES = 12;
@@ -68,7 +69,9 @@ void wipe(void* p, size_t length);
 // A chat message as the Flipper's esubghz_chat encrypts it:
 // run id (8) | counter (4, big endian) | IV (12) | tag (16) | AES-256-GCM of the text,
 // with the run id and counter as additional data. The key is SHA-256 of the password, or 32
-// bytes given as hex. A run id and counter that aren't newer than the last ones are a replay.
+// bytes given as hex. A run id and counter that aren't newer than the last ones are a replay;
+// every run id seen is kept for as long as the key, and when the table is full new ones are
+// refused rather than old ones forgotten.
 class ChatCipher {
    public:
     static constexpr size_t RUN_ID_BYTES = 8;
@@ -76,13 +79,13 @@ class ChatCipher {
     static constexpr size_t OVERHEAD = RUN_ID_BYTES + COUNTER_BYTES + IV_BYTES + TAG_BYTES;
 
     bool enabled() const { return enabled_; }
-    // seed: anything that differs per run (name, time), for the run id
+    // seed: random bytes (receiver noise) with anything else that differs per run, for the run id
     void set_key(const uint8_t key[KEY_BYTES], const uint8_t* seed, size_t seed_length);
     void clear();
 
-    // salt: anything that changes per message, with the run id and counter for the IV
-    std::string encrypt(const std::string& text, uint32_t salt);
-    // false: not for this key, damaged or a replay
+    // noise: random bytes for the IV, hashed with the run id and counter
+    std::string encrypt(const std::string& text, const uint8_t* noise, size_t noise_length);
+    // false: not for this key, damaged, a replay, or one sender too many
     bool decrypt(const std::string& message, std::string& text);
 
    private:
@@ -90,7 +93,7 @@ class ChatCipher {
         uint8_t run_id[RUN_ID_BYTES];
         uint32_t counter;
     };
-    static constexpr size_t MAX_SEEN = 16;
+    static constexpr size_t MAX_SEEN = 64;
 
     Gcm gcm_{};
     bool enabled_{false};
@@ -98,15 +101,14 @@ class ChatCipher {
     uint32_t counter_{1};
     std::array<Seen, MAX_SEEN> seen_{};
     size_t seen_count_{0};
-    size_t seen_next_{0};
 
     Seen* find_seen(const uint8_t* run_id);
-    void set_seen(const uint8_t* run_id, uint32_t counter);
+    bool set_seen(const uint8_t* run_id, uint32_t counter);
 };
 
 // 64 hex digits (spaces allowed) to a key
 bool parse_hex_key(const std::string& text, uint8_t key[KEY_BYTES]);
 
-}  // namespace chat_crypto
+}  // namespace ui::external_app::subghz_chat::chat_crypto
 
 #endif /*__CHAT_CRYPTO_H__*/

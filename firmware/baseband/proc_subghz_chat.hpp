@@ -61,6 +61,10 @@ class SubGhzChatProcessor : public BasebandProcessor {
 
     static void on_packet(void* context, const uint8_t* payload, size_t length);
 
+    uint32_t noise_{0};
+    size_t noise_index_{0};
+    void stir_noise(const buffer_c8_t& buffer);
+
     /* NB: Threads should be the last members in the class definition. */
     // Started by the constructor once the filters are configured.
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive, false};

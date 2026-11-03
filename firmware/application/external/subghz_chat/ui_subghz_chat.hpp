@@ -37,27 +37,40 @@
 
 namespace ui::external_app::subghz_chat {
 
-// The chat so far, painted whole from the newest line up. The Console widget keeps only its
-// last line when the keyboard has been over it, and writes that line again on a repaint.
+// The chat, newest line at the bottom. With the focus on it, the encoder and Up/Down scroll
+// back through it; Up at the oldest line hands the focus back. The Console can't scroll back
+// and loses its lines when the keyboard has been over it.
 class ChatLog : public Widget {
    public:
     enum class Kind { Received,
                       Own,
                       Info };
 
-    ChatLog(Rect parent_rect)
-        : Widget{parent_rect} {}
+    ChatLog(Rect parent_rect);
 
     void add(const Kind kind, const std::string& text);
+
     void paint(Painter& painter) override;
+    bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent delta) override;
+    void on_focus() override { set_dirty(); }
+    void on_blur() override { set_dirty(); }
 
    private:
     struct Entry {
         Kind kind;
         std::string text;
     };
-    static constexpr size_t MAX_ENTRIES = 40;
+    static constexpr size_t HISTORY_BYTES = 2048;
     std::deque<Entry> entries_{};
+    size_t bytes_{0};
+    size_t scroll_{0};  // rows scrolled back from the newest
+
+    size_t columns() const;
+    size_t rows_of(const Entry& e) const;
+    size_t visible_rows() const;
+    size_t max_scroll() const;
+    bool scroll_by(const int32_t rows);
 };
 
 // Options in the Config screen, kept in the app settings.
@@ -214,6 +227,7 @@ class SubGhzChatView : public View {
     void send(const std::string& text);
     void announce(const char* what);
     size_t build_packets(const std::string& line);
+    std::string noise() const;
     void start_rx();
     void start_tx(const size_t bits);
     void on_packet(const SubGhzChatPacketMessage& message);
