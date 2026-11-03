@@ -194,6 +194,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     void start_gap(uint32_t duration);
     void begin_line_after_sync();
     void clear_line_buffers(bool keep_chroma = false);
+    void ycbcr_to_line(const uint8_t* y, const uint8_t* cr, const uint8_t* cb);
     void measure_robot36_separator();
     void store_pixel_value(uint32_t channel, uint16_t pixel, uint8_t value);
 

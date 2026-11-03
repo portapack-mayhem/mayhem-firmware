@@ -516,54 +516,36 @@ void SSTVRXProcessor::process_line() {
     };
 
     if (active_mode && active_mode->format == SSTV_FORMAT_PD) {
-        auto clamp_u8 = [](int32_t v) -> uint8_t {
-            if (v < 0) return 0;
-            if (v > 255) return 255;
-            return static_cast<uint8_t>(v);
-        };
-
-        auto convert_pd_to_rgb = [&](const uint8_t* y, const uint8_t* ry, const uint8_t* by) {
-            for (uint16_t x = 0; x < pixels_per_line; x++) {
-                const int32_t Y = y[x];
-                const int32_t RmY = static_cast<int32_t>(ry[x]) - 128;
-                const int32_t BmY = static_cast<int32_t>(by[x]) - 128;
-
-                const int32_t R = Y + RmY;
-                const int32_t B = Y + BmY;
-                const int32_t G = static_cast<int32_t>(Y - (0.509f * RmY) - (0.194f * BmY));
-
-                line_buffer_r[x] = clamp_u8(R);
-                line_buffer_g[x] = clamp_u8(G);
-                line_buffer_b[x] = clamp_u8(B);
-            }
-        };
-
         // First output line
-        convert_pd_to_rgb(pd_y0, pd_ry, pd_by);
+        ycbcr_to_line(pd_y0, pd_ry, pd_by);
         emit_line(current_line);
 
         // Second output line
         if ((current_line + 1) < mode_total_lines) {
-            convert_pd_to_rgb(pd_y1, pd_ry, pd_by);
+            ycbcr_to_line(pd_y1, pd_ry, pd_by);
             emit_line(static_cast<uint16_t>(current_line + 1));
         }
 
         current_line = static_cast<uint16_t>(current_line + 2);
     } else if (robot36) {
-        // BT.601 YCbCr, as the Robot 36 senders use
-        for (uint16_t x = 0; x < pixels_per_line; x++) {
-            const int32_t y = 298 * (static_cast<int32_t>(pd_y0[x]) - 16);
-            const int32_t cr = static_cast<int32_t>(pd_ry[x]) - 128;
-            const int32_t cb = static_cast<int32_t>(pd_by[x]) - 128;
-            line_buffer_r[x] = std::clamp<int32_t>((y + 409 * cr + 128) >> 8, 0, 255);
-            line_buffer_g[x] = std::clamp<int32_t>((y - 208 * cr - 100 * cb + 128) >> 8, 0, 255);
-            line_buffer_b[x] = std::clamp<int32_t>((y + 516 * cb + 128) >> 8, 0, 255);
-        }
+        ycbcr_to_line(pd_y0, pd_ry, pd_by);
         emit_line(current_line);
         current_line++;
     } else {
         emit_line(current_line);
         current_line++;
+    }
+}
+
+// PD and Robot send BT.601 YCbCr (Y 16..235, chroma around 128)
+void SSTVRXProcessor::ycbcr_to_line(const uint8_t* y, const uint8_t* cr, const uint8_t* cb) {
+    for (uint16_t x = 0; x < pixels_per_line; x++) {
+        const int32_t luma = 298 * (static_cast<int32_t>(y[x]) - 16);
+        const int32_t red_diff = static_cast<int32_t>(cr[x]) - 128;
+        const int32_t blue_diff = static_cast<int32_t>(cb[x]) - 128;
+        line_buffer_r[x] = std::clamp<int32_t>((luma + 409 * red_diff + 128) >> 8, 0, 255);
+        line_buffer_g[x] = std::clamp<int32_t>((luma - 208 * red_diff - 100 * blue_diff + 128) >> 8, 0, 255);
+        line_buffer_b[x] = std::clamp<int32_t>((luma + 516 * blue_diff + 128) >> 8, 0, 255);
     }
 }
 
