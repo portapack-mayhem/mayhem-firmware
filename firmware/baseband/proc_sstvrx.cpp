@@ -120,20 +120,20 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
         // Increment global sample counter for calibration
         global_sample_count++;
 
-        // Estimate frequency using Goertzel algorithm on the audio tones
-        estimate_frequency_goertzel(audio_sample);
+        // Estimate the tone frequency
+        estimate_frequency(audio_sample);
 
         // Process based on current state
         switch (state) {
             case STATE_SYNC_SEARCH:
                 // Before Line 0: wait for initial sync pulses to establish timing
                 if (current_line == 0) {
-                    detect_sync(current_freq);
+                    detect_sync(sync_freq);
                 }
                 // After Line 0 started: we're at end of a line, waiting for next sync
                 // Just wait - the sync will be detected and we'll transition to separator
                 else {
-                    detect_sync(current_freq);
+                    detect_sync(sync_freq);
                 }
                 break;
 
@@ -164,77 +164,49 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
-// Estimate frequency from audio samples using Goertzel algorithm
-void SSTVRXProcessor::estimate_frequency_goertzel(int32_t audio_sample) {
-    // Normalize sample to float [-1.0, 1.0]
-    float sample = audio_sample / 32768.0f;
+void SSTVRXProcessor::Biquad::low_pass(const float cutoff, const float q, const float sample_rate) {
+    const float w0 = 2.0f * static_cast<float>(M_PI) * cutoff / sample_rate;
+    const float alpha = sinf(w0) / (2.0f * q);
+    const float c = cosf(w0);
+    const float a0 = 1.0f + alpha;
+    b0 = (1.0f - c) / 2.0f / a0;
+    b1 = (1.0f - c) / a0;
+    b2 = b0;
+    a1 = -2.0f * c / a0;
+    a2 = (1.0f - alpha) / a0;
+    z1 = z2 = 0;
+}
 
-    // Update Goertzel filters for each target frequency
-    for (int f = 0; f < 4; f++) {
-        float Q0 = goertzel_coeff[f] * goertzel_Q1[f] - goertzel_Q2[f] + sample;
-        goertzel_Q2[f] = goertzel_Q1[f];
-        goertzel_Q1[f] = Q0;
+// Estimate the tone frequency for every audio sample
+void SSTVRXProcessor::estimate_frequency(int32_t audio_sample) {
+    const float sample = audio_sample / 32768.0f;
+
+    // Mix down: sample * e^(-j*phase)
+    float i = sample * mix_re;
+    float q = -sample * mix_im;
+    const float re = mix_re * mix_step_re - mix_im * mix_step_im;
+    mix_im = mix_re * mix_step_im + mix_im * mix_step_re;
+    mix_re = re;
+    if (++mix_count >= 1024) {  // keep the oscillator on the unit circle
+        const float norm = 1.0f / sqrtf(mix_re * mix_re + mix_im * mix_im);
+        mix_re *= norm;
+        mix_im *= norm;
+        mix_count = 0;
     }
 
-    goertzel_count++;
-
-    // Calculate magnitudes every N samples
-    if (goertzel_count >= GOERTZEL_N) {
-        float magnitudes[4];
-
-        for (int f = 0; f < 4; f++) {
-            // Calculate magnitude^2 (we don't need sqrt for comparison)
-            magnitudes[f] = goertzel_Q1[f] * goertzel_Q1[f] +
-                            goertzel_Q2[f] * goertzel_Q2[f] -
-                            goertzel_Q1[f] * goertzel_Q2[f] * goertzel_coeff[f];
-
-            // Reset for next block
-            goertzel_Q1[f] = 0;
-            goertzel_Q2[f] = 0;
-        }
-
-        // Find which frequency has the strongest response
-        int max_idx = 0;
-        float max_mag = magnitudes[0];
-        for (int f = 1; f < 4; f++) {
-            if (magnitudes[f] > max_mag) {
-                max_mag = magnitudes[f];
-                max_idx = f;
-            }
-        }
-
-        // Map index to frequency
-        // 0=1200Hz, 1=1500Hz, 2=1900Hz, 3=2300Hz
-        const int freqs[4] = {1200, 1500, 1900, 2300};
-
-        // Check if we have a strong enough signal
-        // Lowered threshold for weak signals (SSTV often has low audio levels)
-        if (max_mag > 0.001f) {  // Very low threshold - accept weak signals
-            int freq_est = freqs[max_idx];
-
-            // Improved linear interpolation between bins
-            if (max_idx > 0 && magnitudes[max_idx - 1] > 0.0005f) {
-                float ratio = magnitudes[max_idx - 1] / max_mag;
-                if (ratio > 0.2f) {
-                    freq_est -= (int)((freqs[max_idx] - freqs[max_idx - 1]) * ratio * 0.5f);
-                }
-            }
-            if (max_idx < 3 && magnitudes[max_idx + 1] > 0.0005f) {
-                float ratio = magnitudes[max_idx + 1] / max_mag;
-                if (ratio > 0.2f) {
-                    freq_est += (int)((freqs[max_idx + 1] - freqs[max_idx]) * ratio * 0.5f);
-                }
-            }
-
-            // Light smoothing to reduce noise while maintaining responsiveness
-            current_freq = (current_freq + freq_est) / 2;
-        } else {
-            // Signal too weak - don't update frequency (keeps last valid estimate)
-            // This prevents spurious detections from noise
-        }
-
-        goertzel_count = 0;
+    for (size_t s = 0; s < 2; s++) {
+        i = lpf_i[s].execute(i);
+        q = lpf_q[s].execute(q);
     }
+
+    // Phase step from the previous sample: arg(x[n] * conj(x[n-1]))
+    const float step = atan2f(q * prev_i - i * prev_q, i * prev_i + q * prev_q);
+    prev_i = i;
+    prev_q = q;
+
+    current_freq = static_cast<int32_t>(MIX_FREQ + step * hz_per_radian);
+    sync_freq_avg += (current_freq - sync_freq_avg) * SYNC_SMOOTHING;
+    sync_freq = static_cast<int32_t>(sync_freq_avg);
 }
 
 // Convert frequency to pixel value (0-255)
@@ -666,21 +638,28 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             // Enable audio output for monitoring with passthrough filters
             audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
 
-            // Initialize Goertzel coefficients for 24kHz sample rate
-            // coeff = 2 * cos(2 * PI * freq / sample_rate)
+            // Tone frequency estimator for the audio rate
             const float sample_rate = static_cast<float>(channel_filter_output_fs);
-            const float target_freqs[4] = {1200.0f, 1500.0f, 1900.0f, 2300.0f};
-            for (int f = 0; f < 4; f++) {
-                float k = (GOERTZEL_N * target_freqs[f]) / sample_rate;
-                float omega = (2.0f * M_PI * k) / GOERTZEL_N;
-                goertzel_coeff[f] = 2.0f * cosf(omega);
-                goertzel_Q1[f] = 0;
-                goertzel_Q2[f] = 0;
+            const float mix_w = 2.0f * static_cast<float>(M_PI) * MIX_FREQ / sample_rate;
+            mix_step_re = cosf(mix_w);
+            mix_step_im = sinf(mix_w);
+            mix_re = 1.0f;
+            mix_im = 0.0f;
+            mix_count = 0;
+            const float butterworth_q[2] = {0.5412f, 1.3066f};
+            for (size_t s = 0; s < 2; s++) {
+                lpf_i[s].low_pass(TONE_LOW_PASS, butterworth_q[s], sample_rate);
+                lpf_q[s].low_pass(TONE_LOW_PASS, butterworth_q[s], sample_rate);
             }
-            goertzel_count = 0;
+            prev_i = prev_q = 0.0f;
+            hz_per_radian = sample_rate / (2.0f * static_cast<float>(M_PI));
+            sync_freq_avg = 1200.0f;
+            // From 1200 to the 1500 Hz porch, the average leaves the sync range (+150 Hz) half way
+            sync_detect_lag = static_cast<uint32_t>(std::round(logf(2.0f) / SYNC_SMOOTHING));
 
             // Initialize state variables
             current_freq = 1200;  // Default to sync frequency
+            sync_freq = 1200;
             configured = true;
             current_line = 0;
             sample_count = 0;
@@ -789,7 +768,13 @@ void SSTVRXProcessor::begin_line_after_sync() {
     channel_index = 0;
     // Robot 36 keeps the chroma of the line before, it only sends one of the two per line
     clear_line_buffers(robot36);
-    start_gap(samples_per_gap);
+    // The end of the sync was seen sync_detect_lag samples late, make up for it
+    if (samples_per_gap > sync_detect_lag) {
+        start_gap(samples_per_gap - sync_detect_lag);
+    } else {
+        start_gap(0);
+        pixel_phase = static_cast<float>(sync_detect_lag - samples_per_gap);
+    }
 }
 
 void SSTVRXProcessor::store_pixel_value(const uint32_t channel, const uint16_t pixel, const uint8_t value) {

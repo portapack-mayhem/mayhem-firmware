@@ -85,18 +85,32 @@ class SSTVRXProcessor : public BasebandProcessor {
         (int16_t*)dst.data(),
         sizeof(dst) / sizeof(int16_t)};
 
-    // State variables for Goertzel frequency estimation
+    // Tone frequency, a value per audio sample: the audio is mixed down around the middle of
+    // the SSTV tones, low passed, and the phase step between samples gives the frequency
     int32_t current_freq{1200};  // Current frequency in Hz
+    int32_t sync_freq{1200};     // Smoothed over ~1 ms, for the sync detection
 
-    // Goertzel filters for SSTV frequencies; configured at runtime (48kHz today)
-    // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
-    // Larger block size = better frequency discrimination but slower response
-    // At 48kHz: 48 samples ≈ 1ms, a little over one cycle of a 1200Hz tone
-    static constexpr size_t GOERTZEL_N = 48;  // Increased from 16 for better accuracy
-    float goertzel_Q1[4]{0, 0, 0, 0};
-    float goertzel_Q2[4]{0, 0, 0, 0};
-    float goertzel_coeff[4];  // Calculated in configure
-    size_t goertzel_count{0};
+    struct Biquad {
+        float b0{1}, b1{0}, b2{0}, a1{0}, a2{0};
+        float z1{0}, z2{0};
+        void low_pass(float cutoff, float q, float sample_rate);
+        float execute(float x) {
+            const float y = b0 * x + z1;
+            z1 = b1 * x - a1 * y + z2;
+            z2 = b2 * x - a2 * y;
+            return y;
+        }
+    };
+    static constexpr float MIX_FREQ = 1900.0f;          // middle of 1100..2300 Hz
+    static constexpr float TONE_LOW_PASS = 1500.0f;     // keeps the tones, drops the image at 2x1900 Hz
+    static constexpr float SYNC_SMOOTHING = 1.0f / 32;  // ~0.7 ms at 48 kHz
+    Biquad lpf_i[2]{}, lpf_q[2]{};                      // 4th order Butterworth
+    float mix_re{1}, mix_im{0}, mix_step_re{1}, mix_step_im{0};
+    uint32_t mix_count{0};
+    float prev_i{0}, prev_q{0};
+    float hz_per_radian{0};
+    float sync_freq_avg{1200};
+    uint32_t sync_detect_lag{0};  // samples the smoothing makes the end of a sync late
 
     // Line decoding state
     uint8_t line_buffer_r[MAX_PIXELS_PER_LINE];
@@ -174,7 +188,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     void detect_sync(int32_t freq);
     void calculate_calibration();
     uint32_t compute_nominal_line_interval() const;
-    void estimate_frequency_goertzel(int32_t audio_sample);
+    void estimate_frequency(int32_t audio_sample);
     void capture_config(const CaptureConfigMessage& message);
     void reset_pixel_state();
     void start_gap(uint32_t duration);
