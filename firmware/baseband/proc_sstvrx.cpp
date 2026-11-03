@@ -468,7 +468,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
 }
 
 void SSTVRXProcessor::process_line() {
-    if (mode_total_lines == 0) return;  // not set
+    if (mode_total_lines == 0) return;                       // not set
     if (current_line >= mode_total_lines) current_line = 0;  // reset, maybe a new image
 
     const uint16_t chunks_per_line = static_cast<uint16_t>((pixels_per_line + sstv_max_chunk_pixels - 1) / sstv_max_chunk_pixels);
@@ -775,11 +775,20 @@ void SSTVRXProcessor::store_pixel_value(const uint32_t channel, const uint16_t p
 
     if (active_mode->format == SSTV_FORMAT_PD) {
         switch (channel) {
-            case 0: pd_y0[pixel] = value; break;
-            case 1: pd_ry[pixel] = value; break;
-            case 2: pd_by[pixel] = value; break;
-            case 3: pd_y1[pixel] = value; break;
-            default: break;
+            case 0:
+                pd_y0[pixel] = value;
+                break;
+            case 1:
+                pd_ry[pixel] = value;
+                break;
+            case 2:
+                pd_by[pixel] = value;
+                break;
+            case 3:
+                pd_y1[pixel] = value;
+                break;
+            default:
+                break;
         }
         return;
     }

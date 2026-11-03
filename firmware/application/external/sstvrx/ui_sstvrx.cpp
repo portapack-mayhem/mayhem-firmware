@@ -447,7 +447,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         return;
     }
 
-    //const bool multi_chunk_line = (safe_chunks_per_line > 1);
+    // const bool multi_chunk_line = (safe_chunks_per_line > 1);
     if (!pending_line_valid || pending_line_number != actual_line_num) {
         pending_line_number = actual_line_num;
         pending_line_valid = true;
