@@ -147,6 +147,9 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
             case STATE_SEPARATOR:
                 // Wait for separator/porch tone to finish before resuming pixels
                 sample_count++;
+                if (robot36 && channel_index == 1) {
+                    measure_robot36_separator();
+                }
                 if (separator_target == 0 || sample_count >= separator_target) {
                     sample_count = 0;
                     state = STATE_IMAGE_DATA;
@@ -401,6 +404,12 @@ void SSTVRXProcessor::calculate_calibration() {
 }
 
 uint32_t SSTVRXProcessor::compute_nominal_line_interval() const {
+    if (robot36) {
+        // sync, porch, Y, separator and porch, chroma at half the pixel time
+        const float y_samples = pixel_time_frac * static_cast<float>(pixels_per_line);
+        return samples_per_sync + samples_per_gap + channel_gap_samples + static_cast<uint32_t>(std::round(y_samples * 1.5f));
+    }
+
     const uint32_t channel_sections = (channel_count > 0) ? channel_count : 1U;
     const uint32_t gap_sections = (samples_per_gap == 0)
                                       ? 0U
@@ -422,10 +431,13 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
     // Advance pixel phase (1.0 per sample, adjusted by slant)
     pixel_phase += slant_factor;
 
+    // Robot 36 sends the chroma at half the pixel time
+    const float channel_pixel_time = (robot36 && channel_index == 1) ? pixel_time_frac / 2.0f : pixel_time_frac;
+
     // Check if we've accumulated enough samples for one or more pixels
-    // pixel_time_frac is the number of audio samples per pixel for the current mode
-    // Use a loop to handle cases where pixel_phase exceeds pixel_time_frac by more than one pixel
-    while (pixel_phase >= pixel_time_frac && pixel_index < pixels_per_line) {
+    // channel_pixel_time is the number of audio samples per pixel for the current mode and channel
+    // Use a loop to handle cases where pixel_phase exceeds it by more than one pixel
+    while (pixel_phase >= channel_pixel_time && pixel_index < pixels_per_line) {
         // Pixel complete - calculate average frequency
         // Prevent division by zero
         int32_t avg_freq;
@@ -454,7 +466,7 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
         // If this is not the last pixel in the loop, subsequent pixels will use current sample
         pixel_accumulator = freq;
         pixel_sample_count = 1;
-        pixel_phase -= pixel_time_frac;  // Keep fractional part for next pixel
+        pixel_phase -= channel_pixel_time;  // Keep fractional part for next pixel
 
         // Check if we finished a color channel
         if (pixel_index >= pixels_per_line) {
@@ -565,6 +577,18 @@ void SSTVRXProcessor::process_line() {
         }
 
         current_line = static_cast<uint16_t>(current_line + 2);
+    } else if (robot36) {
+        // BT.601 YCbCr, as the Robot 36 senders use
+        for (uint16_t x = 0; x < pixels_per_line; x++) {
+            const int32_t y = 298 * (static_cast<int32_t>(pd_y0[x]) - 16);
+            const int32_t cr = static_cast<int32_t>(pd_ry[x]) - 128;
+            const int32_t cb = static_cast<int32_t>(pd_by[x]) - 128;
+            line_buffer_r[x] = std::clamp<int32_t>((y + 409 * cr + 128) >> 8, 0, 255);
+            line_buffer_g[x] = std::clamp<int32_t>((y - 208 * cr - 100 * cb + 128) >> 8, 0, 255);
+            line_buffer_b[x] = std::clamp<int32_t>((y + 516 * cb + 128) >> 8, 0, 255);
+        }
+        emit_line(current_line);
+        current_line++;
     } else {
         emit_line(current_line);
         current_line++;
@@ -609,8 +633,11 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
                 mode_total_lines = 1;
             }
             pixels_per_line = active_mode->pixels;
+            robot36 = (active_mode->format == SSTV_FORMAT_ROBOT36);
             if (active_mode->format == SSTV_FORMAT_PD) {
                 channel_count = 4;  // Y, (R-Y), (B-Y), Y
+            } else if (robot36) {
+                channel_count = 2;  // Y, then (R-Y) or (B-Y)
             } else {
                 channel_count = static_cast<uint8_t>(active_mode->color ? 3U : 1U);
             }
@@ -695,6 +722,12 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             samples_per_sync = convert_interval(active_mode->samples_per_sync);
             samples_per_gap = convert_interval(active_mode->samples_per_gap);
             channel_gap_samples = active_mode->gaps ? samples_per_gap : 0;
+            if (robot36) {
+                channel_gap_samples = convert_interval(SSTV_ROBOT36_SEPARATOR + SSTV_ROBOT36_PORCH);
+                // Middle of the separator, clear of the Y before and the porch after
+                robot36_separator_from = convert_interval(SSTV_MS2S(1.0));
+                robot36_separator_to = convert_interval(SSTV_MS2S(4.0));
+            }
             pixel_phase = 0.0f;
             reset_pixel_state();
             shared_memory.bb_data.data[sstv_chunk_flag_index] = 0;
@@ -724,20 +757,38 @@ void SSTVRXProcessor::start_gap(const uint32_t duration) {
     }
 }
 
-void SSTVRXProcessor::clear_line_buffers() {
+void SSTVRXProcessor::clear_line_buffers(const bool keep_chroma) {
     std::fill_n(line_buffer_r, pixels_per_line, uint8_t{0});
     std::fill_n(line_buffer_g, pixels_per_line, uint8_t{0});
     std::fill_n(line_buffer_b, pixels_per_line, uint8_t{0});
     std::fill_n(pd_y0, pixels_per_line, uint8_t{0});
-    std::fill_n(pd_ry, pixels_per_line, uint8_t{128});
-    std::fill_n(pd_by, pixels_per_line, uint8_t{128});
+    if (!keep_chroma) {
+        std::fill_n(pd_ry, pixels_per_line, uint8_t{128});
+        std::fill_n(pd_by, pixels_per_line, uint8_t{128});
+    }
     std::fill_n(pd_y1, pixels_per_line, uint8_t{0});
+}
+
+void SSTVRXProcessor::measure_robot36_separator() {
+    if (sample_count == 1) {
+        robot36_separator_sum = 0;
+        robot36_separator_count = 0;
+    }
+    if (sample_count >= robot36_separator_from && sample_count < robot36_separator_to) {
+        robot36_separator_sum += current_freq;
+        robot36_separator_count++;
+    }
+    if (sample_count == robot36_separator_to && robot36_separator_count) {
+        const int32_t middle = (SSTV_ROBOT36_FREQ_RY + SSTV_ROBOT36_FREQ_BY) / 2;
+        robot36_chroma_by = (robot36_separator_sum / static_cast<int32_t>(robot36_separator_count)) > middle;
+    }
 }
 
 void SSTVRXProcessor::begin_line_after_sync() {
     pixel_index = 0;
     channel_index = 0;
-    clear_line_buffers();
+    // Robot 36 keeps the chroma of the line before, it only sends one of the two per line
+    clear_line_buffers(robot36);
     start_gap(samples_per_gap);
 }
 
@@ -761,6 +812,14 @@ void SSTVRXProcessor::store_pixel_value(const uint32_t channel, const uint16_t p
         return;
     }
 
+    if (robot36) {
+        if (channel == 0) {
+            pd_y0[pixel] = value;
+        } else {
+            (robot36_chroma_by ? pd_by : pd_ry)[pixel] = value;
+        }
+        return;
+    }
 
     if (!active_mode->color) {
         line_buffer_r[pixel] = value;

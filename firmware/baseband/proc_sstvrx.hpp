@@ -109,6 +109,15 @@ class SSTVRXProcessor : public BasebandProcessor {
     uint8_t pd_by[MAX_PIXELS_PER_LINE];
     uint8_t pd_y1[MAX_PIXELS_PER_LINE];
 
+    // Robot 36: Y in pd_y0, the chroma of this and the line before in pd_ry/pd_by.
+    // The separator before the chroma says which one it is (1500 Hz R-Y, 2300 Hz B-Y).
+    bool robot36{false};
+    bool robot36_chroma_by{false};
+    int32_t robot36_separator_sum{0};
+    uint32_t robot36_separator_count{0};
+    uint32_t robot36_separator_from{0};  // part of the gap measured, in samples
+    uint32_t robot36_separator_to{0};
+
     uint32_t sample_count{0};
     uint32_t pixel_index{0};
     uint32_t channel_index{0};
@@ -170,7 +179,8 @@ class SSTVRXProcessor : public BasebandProcessor {
     void reset_pixel_state();
     void start_gap(uint32_t duration);
     void begin_line_after_sync();
-    void clear_line_buffers();
+    void clear_line_buffers(bool keep_chroma = false);
+    void measure_robot36_separator();
     void store_pixel_value(uint32_t channel, uint16_t pixel, uint8_t value);
 
     RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};

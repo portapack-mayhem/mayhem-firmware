@@ -72,6 +72,9 @@ class SSTVTXView : public View {
     const sstv_mode* tx_sstv_mode{};
 
     uint8_t component_map[3]{};
+    uint32_t scanline_components{3};  // scanlines per image line: R, G, B or Y, chroma
+
+    void prepare_robot36_scanline(uint32_t line, uint32_t component);
 
     void read_boundary(uint8_t* buffer, uint32_t position, uint32_t length);
     void on_bitmap_changed(const size_t index);

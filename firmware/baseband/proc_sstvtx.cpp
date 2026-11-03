@@ -75,7 +75,7 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
             } else if (state == STATE_PIXELS) {
                 // Many times per scanline
                 tone_delta = SSTV_F2D(1500 + ((current_scanline->luma[pixel_index] * 800) / 256));
-                sample_count = pixel_duration;
+                sample_count = current_scanline->pixel_duration ? current_scanline->pixel_duration : pixel_duration;
                 pixel_index++;
 
                 if (pixel_index >= 320) {

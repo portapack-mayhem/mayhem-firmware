@@ -26,6 +26,7 @@
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <stdio.h>
 
@@ -92,11 +93,10 @@ SSTVTXView::~SSTVTXView() {
 }
 
 void SSTVTXView::prepare_scanline() {
-    sstv_scanline scanline_buffer;
     uint32_t component, pixel_idx;
     uint8_t offset;
 
-    if (scanline_counter >= (256 * 3)) {
+    if (scanline_counter >= (tx_sstv_mode->lines * scanline_components)) {
         progressbar.set_value(0);
         transmitter_model.disable();
         options_bitmaps.set_focusable(true);
@@ -117,39 +117,83 @@ void SSTVTXView::prepare_scanline() {
     // Red
     // Scanline time: 88.064ms (275.2us/pixel @ 320 pixels/line)
 
-    component = scanline_counter % 3;
-
-    if ((!scanline_counter && tx_sstv_mode->sync_on_first) || (component == tx_sstv_mode->sync_index)) {
-        // Sync
-        scanline_buffer.start_tone.frequency = SSTV_F2D(1200);
-        scanline_buffer.start_tone.duration = tx_sstv_mode->samples_per_sync;
-        scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
-        scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
-    } else {
-        // Regular scanline
-        scanline_buffer.start_tone.duration = 0;
-        if (tx_sstv_mode->gaps) {
-            scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
-            scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
-        }
-    }
+    component = scanline_counter % scanline_components;
 
     if (!component) {
         // Read a new line
         read_boundary(pixels_buffer,
-                      bmp_header.image_data + ((255 - (scanline_counter / 3)) * sizeof(pixels_buffer)),
+                      bmp_header.image_data + ((255 - (scanline_counter / scanline_components)) * sizeof(pixels_buffer)),
                       sizeof(pixels_buffer));
     }
 
-    offset = component_map[component];
-    for (uint32_t bmp_px = 0; bmp_px < 320; bmp_px++) {
-        pixel_idx = bmp_px * 3;
-        scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + offset];
+    scanline_buffer = {};
+
+    if (tx_sstv_mode->format == SSTV_FORMAT_ROBOT36) {
+        prepare_robot36_scanline(scanline_counter / scanline_components, component);
+    } else {
+        if ((!scanline_counter && tx_sstv_mode->sync_on_first) || (component == tx_sstv_mode->sync_index)) {
+            // Sync
+            scanline_buffer.start_tone.frequency = SSTV_F2D(1200);
+            scanline_buffer.start_tone.duration = tx_sstv_mode->samples_per_sync;
+            scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
+            scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
+        } else {
+            // Regular scanline
+            scanline_buffer.start_tone.duration = 0;
+            if (tx_sstv_mode->gaps) {
+                scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
+                scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
+            }
+        }
+
+        offset = component_map[component];
+        for (uint32_t bmp_px = 0; bmp_px < 320; bmp_px++) {
+            pixel_idx = bmp_px * 3;
+            scanline_buffer.luma[bmp_px] = pixels_buffer[pixel_idx + offset];
+        }
     }
 
     baseband::set_fifo_data((int8_t*)&scanline_buffer);
 
     scanline_counter++;
+}
+
+// Robot 36 line:
+// 1200 9ms, 1500 3ms, Y (275us/pixel)
+// 1500 (even line, R-Y follows) or 2300 (odd line, B-Y follows) 4.5ms, 1900 1.5ms, chroma (137.5us/pixel)
+// Colours as BT.601 YCbCr, like the other Robot 36 senders
+void SSTVTXView::prepare_robot36_scanline(uint32_t line, uint32_t component) {
+    const bool odd_line = line & 1;
+
+    if (!component) {
+        scanline_buffer.start_tone.frequency = SSTV_F2D(1200);
+        scanline_buffer.start_tone.duration = tx_sstv_mode->samples_per_sync;
+        scanline_buffer.gap_tone.frequency = SSTV_F2D(1500);
+        scanline_buffer.gap_tone.duration = tx_sstv_mode->samples_per_gap;
+    } else {
+        scanline_buffer.start_tone.frequency = SSTV_F2D(odd_line ? SSTV_ROBOT36_FREQ_BY : SSTV_ROBOT36_FREQ_RY);
+        scanline_buffer.start_tone.duration = SSTV_ROBOT36_SEPARATOR;
+        scanline_buffer.gap_tone.frequency = SSTV_F2D(SSTV_ROBOT36_FREQ_PORCH);
+        scanline_buffer.gap_tone.duration = SSTV_ROBOT36_PORCH;
+        scanline_buffer.pixel_duration = tx_sstv_mode->samples_per_pixel / 2;
+    }
+
+    for (uint32_t bmp_px = 0; bmp_px < 320; bmp_px++) {
+        // BMP is BGR
+        const int32_t b = pixels_buffer[bmp_px * 3 + 0];
+        const int32_t g = pixels_buffer[bmp_px * 3 + 1];
+        const int32_t r = pixels_buffer[bmp_px * 3 + 2];
+        int32_t value;
+
+        if (!component)
+            value = 16 + ((66 * r + 129 * g + 25 * b + 128) >> 8);
+        else if (odd_line)
+            value = 128 + ((-38 * r - 74 * g + 112 * b + 128) >> 8);
+        else
+            value = 128 + ((112 * r - 94 * g - 18 * b + 128) >> 8);
+
+        scanline_buffer.luma[bmp_px] = std::clamp<int32_t>(value, 0, 255);
+    }
 }
 
 void SSTVTXView::start_tx() {
@@ -193,7 +237,8 @@ void SSTVTXView::on_mode_changed(const size_t index) {
         component_map[2] = 2;
     }
 
-    progressbar.set_max(sstv_modes[index].lines * 3);
+    scanline_components = (tx_sstv_mode->format == SSTV_FORMAT_ROBOT36) ? 2 : 3;
+    progressbar.set_max(sstv_modes[index].lines * scanline_components);
 }
 
 SSTVTXView::SSTVTXView(
@@ -246,9 +291,9 @@ SSTVTXView::SSTVTXView(
         bitmap_options.emplace_back(bitmap.string().substr(0, 16), 0);
     options_bitmaps.set_options(bitmap_options);
 
-    // Populate mode list, only the RGB scanline modes: the TX doesn't send PD
+    // Populate mode list, without PD: the TX doesn't send it. The value is the index in sstv_modes.
     for (c = 0; c < SSTV_MODES_NB; c++)
-        if (sstv_modes[c].format == SSTV_FORMAT_RGB)
+        if (sstv_modes[c].format != SSTV_FORMAT_PD)
             mode_options.emplace_back(sstv_modes[c].name, c);
     options_modes.set_options(mode_options);
 
@@ -258,8 +303,8 @@ SSTVTXView::SSTVTXView(
     options_bitmaps.set_selected_index(0);  // First file
     on_bitmap_changed(0);
 
-    options_modes.on_change = [this](size_t i, int32_t) {
-        this->on_mode_changed(i);
+    options_modes.on_change = [this](size_t, int32_t v) {
+        this->on_mode_changed(v);
     };
     options_modes.set_selected_index(1);  // Scottie 2
     on_mode_changed(1);
