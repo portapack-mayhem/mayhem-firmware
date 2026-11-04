@@ -78,7 +78,6 @@ void SstvRxLogger::log_info(const std::string& info_message) {
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_sstv_rx);
     DISPLAY_HEIGHT = screen_height - SSTV_IMG_START_ROW * 16 - 16;
     DISPLAY_WIDTH = screen_width;
     add_children({&field_rf_amp,
@@ -90,6 +89,7 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
                   &field_volume,
                   &audio,
                   &start_stop_btn,
+                  &clear_btn,
                   &options_mode,
                   &options_modulation,
                   &field_phase,
@@ -121,6 +121,9 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     start_stop_btn.on_select = [this](Button&) {
         start_stop_btn.focus();
         on_start_stop();
+    };
+    clear_btn.on_select = [this](Button&) {
+        on_clear();
     };
 
     // Initialize frequency field from settings or use default
@@ -210,12 +213,12 @@ void SstvRxView::on_start_stop() {
     if (is_receiving) {
         // Currently receiving - stop it
         on_stop();
-        start_stop_btn.set_text("Start RX");
+        start_stop_btn.set_text("Start");
     } else {
         // Currently stopped - start reception
         SSTVRX_LOG_INFO("Starting SSTV RX Reception");
         start_audio();
-        start_stop_btn.set_text("Stop RX");
+        start_stop_btn.set_text("Stop");
     }
 }
 
@@ -223,8 +226,9 @@ void SstvRxView::on_start_stop() {
 void SstvRxView::on_stop() {
     SSTVRX_LOG_INFO("Stopping SSTV RX Reception");
     if (is_receiving) {
-        // Stop in reverse order of start
+        // Stop in reverse order of start; the baseband too, so a start begins clean
         receiver_model.disable();
+        baseband::shutdown();
         audio::output::stop();
 
         // Reset state
@@ -248,6 +252,8 @@ void SstvRxView::on_stop() {
 void SstvRxView::start_audio() {
     SSTVRX_LOG_INFO("Configuring SSTV RX Audio Reception");
 
+    baseband::run_image(portapack::spi_flash::image_tag_sstv_rx);
+
     // Configure the baseband processor with VIS code
     active_modulation = effective_modulation();
     if (rx_sstv_mode) {
@@ -265,38 +271,9 @@ void SstvRxView::start_audio() {
     // Set audio routing and volume
     // audio::output::start();
 
-    // Clear display area and reset line counter
-    portapack::display.fill_rectangle(
-        {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
-        {0, 0, 0});
-    file_line_num = 0;
-    max_received_line = 0;
-    pending_line_valid = false;
-    pending_chunk_mask = 0;
-    std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
-
-    // Clear calibration display
     text_calibration.set("Calibrating...");
-
-    // Initialize new image file
-    current_line_rx = 0;
-    auto timestamp = to_string_timestamp(rtc_time::now());
-    auto dir_error = ensure_directory(sstv_dir / "RX");
-    if (!dir_error.ok()) {
-        SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
-    }
-    current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
-    image_width = rx_sstv_mode ? rx_sstv_mode->pixels : 320;
-    image_height = rx_sstv_mode ? rx_sstv_mode->lines : 256;
-    if (image_width == 0 || image_width > MAX_IMAGE_WIDTH) image_width = 320;
-    if (image_height == 0 || image_height > MAX_IMAGE_HEIGHT) image_height = 256;
-    fit_display();
-    auto ok = bmp.create(current_image_path, image_width, 1);
-    if (!ok) {
-        SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
-        bmp.close();
-    }
+    begin_image();
 
     // Start audio output
     audio::output::start();
@@ -342,6 +319,67 @@ void SstvRxView::on_modulation_changed() {
     if (is_receiving) {
         on_stop();
         start_audio();
+    }
+}
+
+// A new picture: clear the display, start a new BMP of the mode's size
+void SstvRxView::begin_image() {
+    bmp.close();
+    portapack::display.fill_rectangle(
+        {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
+        {0, 0, 0});
+    file_line_num = 0;
+    max_received_line = 0;
+    current_line_rx = 0;
+    pending_line_valid = false;
+    pending_chunk_mask = 0;
+    std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
+
+    image_width = rx_sstv_mode ? rx_sstv_mode->pixels : 320;
+    image_height = rx_sstv_mode ? rx_sstv_mode->lines : 256;
+    if (image_width == 0 || image_width > MAX_IMAGE_WIDTH) image_width = 320;
+    if (image_height == 0 || image_height > MAX_IMAGE_HEIGHT) image_height = 256;
+    fit_display();
+
+    auto dir_error = ensure_directory(sstv_dir / "RX");
+    if (!dir_error.ok()) {
+        SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
+    }
+    current_image_path = sstv_dir / ("RX/SSTV_" + to_string_timestamp(rtc_time::now()) + ".bmp");
+    if (!bmp.create(current_image_path, image_width, 1)) {
+        SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
+        bmp.close();
+    }
+}
+
+// Empty the display; while receiving, start over, waiting for the next picture
+void SstvRxView::on_clear() {
+    if (is_receiving) {
+        on_stop();
+        start_audio();
+    } else {
+        portapack::display.fill_rectangle(
+            {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
+            {0, 0, 0});
+        last_draw_y = -1;
+    }
+}
+
+// The processor saw a VIS: a picture starts, maybe in another mode than the one chosen
+void SstvRxView::on_vis(const uint8_t code) {
+    for (size_t i = 0; i < SSTV_MODES_NB; i++) {
+        if (sstv_modes[i].vis_code != code) continue;
+        if (rx_sstv_mode != &sstv_modes[i]) {
+            rx_sstv_mode = &sstv_modes[i];
+            const auto on_change = options_mode.on_change;
+            options_mode.on_change = nullptr;  // the processor has switched already
+            options_mode.set_selected_index(i);
+            options_mode.on_change = on_change;
+        }
+        text_calibration.set(std::string("VIS: ") + sstv_modes[i].name);
+        SSTVRX_LOG_INFO(std::string("VIS: ") + sstv_modes[i].name);
+        begin_image();
+        return;
     }
 }
 
@@ -476,6 +514,10 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         if (total_lines & 0x4) reasons += "duration ";
         if (reasons.empty()) reasons = "unknown";
         SSTVRX_LOG_INFO("FALSE SYNC PAIR REJECTED on Line 0: " + reasons);
+        return;
+    }
+    if (line == 0xFFF3) {
+        on_vis(total_lines & 0xFF);
         return;
     }
     if (line == 0xFFF4) {

@@ -28,6 +28,7 @@
 #include "message.hpp"
 
 #include <cstdint>
+#include <cstdlib>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -117,6 +118,7 @@ void SSTVRXProcessor::decode_sample(const float re, const float im) {
 
     // Estimate the tone frequency
     estimate_frequency(re, im);
+    detect_vis();
 
     // Process based on current state
     switch (state) {
@@ -511,6 +513,131 @@ void SSTVRXProcessor::process_line() {
     }
 }
 
+// Everything that depends on the mode; false when it can't be received
+bool SSTVRXProcessor::set_mode(const sstv_mode* const mode) {
+    if (!mode || mode->pixels == 0 || mode->pixels > MAX_PIXELS_PER_LINE) return false;
+
+    active_mode = mode;
+    vis_code = mode->vis_code;
+    mode_total_lines = mode->lines ? mode->lines : 1;
+    pixels_per_line = mode->pixels;
+    robot36 = (mode->format == SSTV_FORMAT_ROBOT36);
+    if (mode->format == SSTV_FORMAT_PD) {
+        channel_count = 4;  // Y, (R-Y), (B-Y), Y
+    } else if (robot36) {
+        channel_count = 2;  // Y, then (R-Y) or (B-Y)
+    } else {
+        channel_count = mode->color ? 3 : 1;
+    }
+    color_order = color_order_for_mode(*mode);
+    // The line is read from the sync on: with the sync before the last colour
+    // (Scottie: G, B, sync, R) the colours come in from there
+    if (mode->sync_index > 0 && mode->sync_index < color_order.size()) {
+        std::rotate(color_order.begin(), color_order.begin() + mode->sync_index, color_order.end());
+    }
+
+    // Translate SSTV timing constants (expressed for 3.072MHz TX) to the audio rate
+    const float conversion = audio_rate / static_cast<float>(SSTV_SAMPLERATE);
+    pixel_time_frac = std::max(1.0f, static_cast<float>(mode->samples_per_pixel) * conversion);
+    samples_per_pixel = static_cast<uint32_t>(pixel_time_frac + 0.5f);
+    const auto convert_interval = [conversion](uint32_t value) -> uint32_t {
+        return static_cast<uint32_t>(std::max(1.0f, std::round(static_cast<float>(value) * conversion)));
+    };
+    samples_per_sync = convert_interval(mode->samples_per_sync);
+    samples_per_gap = convert_interval(mode->samples_per_gap);
+    channel_gap_samples = mode->gaps ? samples_per_gap : 0;
+    if (robot36) {
+        channel_gap_samples = convert_interval(SSTV_ROBOT36_SEPARATOR + SSTV_ROBOT36_PORCH);
+        // Middle of the separator, clear of the Y before and the porch after
+        robot36_separator_from = convert_interval(SSTV_MS2S(1.0));
+        robot36_separator_to = convert_interval(SSTV_MS2S(4.0));
+    }
+    return true;
+}
+
+// Back to the start of a picture: line 0 begins at the next sync, or (wait_for_two_syncs)
+// at the second of two, when there was no VIS to say a picture starts
+void SSTVRXProcessor::restart_image(const bool wait_for_two_syncs) {
+    current_line = 0;
+    waiting_for_first_line = wait_for_two_syncs;
+    state = STATE_SYNC_SEARCH;
+    sample_count = 0;
+    pixel_index = 0;
+    channel_index = 0;
+    sync_sample_count = 0;
+    sync_freq_sum = 0;
+    sync_freq_samples = 0;
+    in_sync = false;
+    separator_target = 0;
+    clear_line_buffers();
+    reset_pixel_state();
+
+    freq_offset = 0;
+    freq_offset_calibrated = false;
+    sync_history_count = 0;
+    memset(sync_positions, 0, sizeof(sync_positions));
+
+    out_count = 0;
+    out_next_chunk = 0;
+}
+
+// The VIS header: 1900 Hz leader, then a start bit, 8 bits (LSB first, 1100 Hz is a 1,
+// 1300 Hz a 0, the last one parity) and a stop bit, 30 ms each at 1200 Hz. Searched in
+// 5 ms bins of the tone frequency, so it is found whatever state the decoder is in.
+void SSTVRXProcessor::detect_vis() {
+    vis_sum += current_freq;
+    if (++vis_count < vis_bin_samples) return;
+
+    vis_bins[vis_bin_pos] = static_cast<int16_t>(vis_sum / static_cast<int32_t>(vis_count));
+    vis_bin_pos = (vis_bin_pos + 1) % VIS_BINS;
+    vis_sum = 0;
+    vis_count = 0;
+
+    if (vis_holdoff) {
+        vis_holdoff--;
+        return;
+    }
+
+    // Oldest bin first: leader, start bit, 8 bits, stop bit
+    const auto bin = [this](size_t i) -> int32_t { return vis_bins[(vis_bin_pos + i) % VIS_BINS]; };
+    // A bit by the bins clear of its edges
+    const auto bit_freq = [&bin](size_t first) -> int32_t {
+        return (bin(first + 1) + bin(first + 2) + bin(first + 3) + bin(first + 4)) / 4;
+    };
+
+    size_t leader = 0;
+    for (size_t i = 0; i < VIS_LEADER_BINS; i++)
+        if (std::abs(bin(i) - 1900) < 150) leader++;
+    if (leader < VIS_LEADER_BINS * 9 / 10) return;
+
+    const int32_t start = bit_freq(VIS_LEADER_BINS);
+    const int32_t stop = bit_freq(VIS_BINS - VIS_BINS_PER_BIT);
+    if (std::abs(start - FREQ_SYNC) >= 150 || std::abs(stop - FREQ_SYNC) >= 150 || std::abs(start - stop) >= 60) return;
+    const int32_t reference = (start + stop) / 2;  // 1200 Hz as received
+
+    uint8_t code = 0;
+    for (size_t b = 0; b < 8; b++) {
+        const int32_t d = bit_freq(VIS_LEADER_BINS + (b + 1) * VIS_BINS_PER_BIT) - reference;
+        if (d < -40 && d > -180) {
+            code |= 1 << b;  // 1100 Hz
+        } else if (!(d > 40 && d < 180)) {
+            return;  // neither 1100 nor 1300 Hz
+        }
+    }
+
+    const sstv_mode* const mode = find_mode_by_vis_code(code);
+    if (!mode || !set_mode(mode)) return;
+    vis_holdoff = 1000 / VIS_BIN_MS;  // a second
+
+    // The stop bit runs into line 0's sync
+    restart_image(false);
+    freq_offset = reference - FREQ_SYNC;
+    freq_offset_calibrated = true;
+
+    SSTVRXProgressMessage vis_message{0xFFF3, code};
+    shared_memory.application_queue.push(vis_message);
+}
+
 // A finished line, kept until the M0 has taken all its chunks
 void SSTVRXProcessor::queue_line(const uint16_t line) {
     if (out_count >= MAX_OUT_LINES) return;
@@ -586,45 +713,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
 
         case Message::ID::SSTVRXConfigure: {
             const auto message = *reinterpret_cast<const SSTVRXConfigureMessage*>(msg);
-            vis_code = message.code;
-
-            active_mode = find_mode_by_vis_code(message.code);
             modulation = (message.modulation <= SSTV_MOD_LSB) ? static_cast<sstv_modulation>(message.modulation) : SSTV_MOD_FM;
-            if (!active_mode) {
-                configured = false;
-                SSTVRXProgressMessage error_msg{0xFFFF, 0};
-                shared_memory.application_queue.push(error_msg);
-                break;
-            }
-            if (active_mode->pixels == 0 || active_mode->pixels > MAX_PIXELS_PER_LINE) {
-                configured = false;
-                SSTVRXProgressMessage error_msg{0xFFFF, 0};
-                shared_memory.application_queue.push(error_msg);
-                break;
-            }
-            mode_total_lines = active_mode->lines;
-            if (mode_total_lines == 0) {
-                mode_total_lines = 1;
-            }
-            pixels_per_line = active_mode->pixels;
-            robot36 = (active_mode->format == SSTV_FORMAT_ROBOT36);
-            if (active_mode->format == SSTV_FORMAT_PD) {
-                channel_count = 4;  // Y, (R-Y), (B-Y), Y
-            } else if (robot36) {
-                channel_count = 2;  // Y, then (R-Y) or (B-Y)
-            } else {
-                channel_count = static_cast<uint8_t>(active_mode->color ? 3U : 1U);
-            }
-            if (channel_count == 0) {
-                channel_count = 1;
-            }
-            color_order = color_order_for_mode(*active_mode);
-            // The line is read from the sync on: with the sync before the last colour
-            // (Scottie: G, B, sync, R) the colours come in from there
-            if (active_mode->sync_index > 0 && active_mode->sync_index < color_order.size()) {
-                std::rotate(color_order.begin(), color_order.begin() + active_mode->sync_index, color_order.end());
-            }
-            waiting_for_first_line = true;
 
             // Configure decimation chain using NFM filters (narrower than WFMAM)
             decim_0.configure(taps_11k0_decim_0.taps);            // NFM decim0 filter
@@ -637,6 +726,14 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             const size_t decim_1_input_fs = decim_0_output_fs;
             const size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
             const size_t channel_filter_output_fs = decim_1_output_fs;  // Final rate: 48kHz
+            audio_rate = static_cast<float>(channel_filter_output_fs);
+
+            if (!set_mode(find_mode_by_vis_code(message.code))) {
+                configured = false;
+                SSTVRXProgressMessage error_msg{0xFFFF, 0};
+                shared_memory.application_queue.push(error_msg);
+                break;
+            }
 
             // Configure demodulator for SSTV - use moderate NFM deviation
             // SSTV needs wider deviation than voice NFM to capture 1200-2300 Hz tone range
@@ -646,8 +743,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             audio_output.configure(iir_config_passthrough, iir_config_passthrough, 0.0f);
 
             // Tone frequency estimator for the audio rate
-            const float sample_rate = static_cast<float>(channel_filter_output_fs);
-            const float mix_w = 2.0f * static_cast<float>(M_PI) * MIX_FREQ / sample_rate;
+            const float mix_w = 2.0f * static_cast<float>(M_PI) * MIX_FREQ / audio_rate;
             mix_step_re = cosf(mix_w);
             mix_step_im = sinf(mix_w);
             mix_re = 1.0f;
@@ -655,73 +751,27 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             mix_count = 0;
             const float butterworth_q[2] = {0.5412f, 1.3066f};
             for (size_t s = 0; s < 2; s++) {
-                lpf_i[s].low_pass(TONE_LOW_PASS, butterworth_q[s], sample_rate);
-                lpf_q[s].low_pass(TONE_LOW_PASS, butterworth_q[s], sample_rate);
+                lpf_i[s].low_pass(TONE_LOW_PASS, butterworth_q[s], audio_rate);
+                lpf_q[s].low_pass(TONE_LOW_PASS, butterworth_q[s], audio_rate);
             }
             prev_i = prev_q = 0.0f;
-            hz_per_radian = sample_rate / (2.0f * static_cast<float>(M_PI));
+            hz_per_radian = audio_rate / (2.0f * static_cast<float>(M_PI));
             sync_freq_avg = 1200.0f;
             // From 1200 to the 1500 Hz porch, the average leaves the sync range (+150 Hz) half way
             sync_detect_lag = static_cast<uint32_t>(std::round(logf(2.0f) / SYNC_SMOOTHING));
-
-            // Initialize state variables
             current_freq = 1200;  // Default to sync frequency
             sync_freq = 1200;
-            configured = true;
-            current_line = 0;
-            sample_count = 0;
-            pixel_index = 0;
-            channel_index = 0;
-            pixel_accumulator = 0;
-            pixel_sample_count = 0;
-            sync_sample_count = 0;
-            sync_freq_sum = 0;
-            sync_freq_samples = 0;
-            in_sync = false;
-            state = STATE_SYNC_SEARCH;
-            separator_target = 0;
-            clear_line_buffers();
 
-            // Reset frequency offset calibration
-            freq_offset = 0;
-            freq_offset_calibrated = false;
-            sync_freq_accumulator = 0;
-            sync_freq_count = 0;
+            vis_bin_samples = static_cast<uint32_t>(audio_rate) * VIS_BIN_MS / 1000;
+            vis_sum = 0;
+            vis_count = 0;
+            vis_holdoff = 0;
+            std::fill(std::begin(vis_bins), std::end(vis_bins), int16_t{0});
 
-            // Reset sync history for calibration
-            sync_history_count = 0;
-            memset(sync_positions, 0, sizeof(sync_positions));
-
-            // Translate SSTV timing constants (expressed for 3.072MHz TX) to 48kHz RX domain
-            const float conversion = sample_rate / static_cast<float>(SSTV_SAMPLERATE);
-            pixel_time_frac = static_cast<float>(active_mode->samples_per_pixel) * conversion;
-            if (pixel_time_frac < 1.0f) {
-                pixel_time_frac = 1.0f;
-            }
-            samples_per_pixel = static_cast<uint32_t>(pixel_time_frac + 0.5f);
-
-            const auto convert_interval = [conversion](uint32_t value) -> uint32_t {
-                const float samples = static_cast<float>(value) * conversion;
-                const float rounded = std::round(samples);
-                const float clamped = std::max(1.0f, rounded);
-                return static_cast<uint32_t>(clamped);
-            };
-
-            samples_per_sync = convert_interval(active_mode->samples_per_sync);
-            samples_per_gap = convert_interval(active_mode->samples_per_gap);
-            channel_gap_samples = active_mode->gaps ? samples_per_gap : 0;
-            if (robot36) {
-                channel_gap_samples = convert_interval(SSTV_ROBOT36_SEPARATOR + SSTV_ROBOT36_PORCH);
-                // Middle of the separator, clear of the Y before and the porch after
-                robot36_separator_from = convert_interval(SSTV_MS2S(1.0));
-                robot36_separator_to = convert_interval(SSTV_MS2S(4.0));
-            }
-            pixel_phase = 0.0f;
-            reset_pixel_state();
+            // Without a VIS seen, two syncs in a row start the picture
+            restart_image(true);
             shared_memory.bb_data.data[sstv_chunk_flag_index] = 0;
-            out_count = 0;
-            out_next_chunk = 0;
-
+            configured = true;
             break;
         }
 

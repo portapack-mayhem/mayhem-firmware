@@ -184,7 +184,8 @@ class SstvRxView : public ui::View {
         {{UI_POS_X(18), UI_POS_Y(2)}, "Mod:", Theme::getInstance()->fg_light->foreground}};
 
     Audio audio{{UI_POS_X(21), 10, UI_POS_WIDTH(6), 4}};
-    ui::Button start_stop_btn{{UI_POS_X_RIGHT(12), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(2)}, "Start RX"};
+    ui::Button start_stop_btn{{UI_POS_X_RIGHT(12), UI_POS_Y(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(2)}, "Start"};
+    ui::Button clear_btn{{UI_POS_X_RIGHT(6), UI_POS_Y(3), UI_POS_WIDTH(6), UI_POS_HEIGHT(2)}, "Clear"};
     // ui::Button redraw_btn{{16 * 8, UI_POS_Y(5), UI_POS_WIDTH(12), UI_POS_HEIGHT(3)}, "Redraw"};
 
     // Calibration suggestion display
@@ -197,6 +198,9 @@ class SstvRxView : public ui::View {
     void fit_display();
     void redraw_image();  // Disabled due to memory constraints
     void start_audio();
+    void begin_image();
+    void on_clear();
+    void on_vis(uint8_t code);
     void on_start_stop();  // Combined start/stop handler
     void on_stop();
     void on_mode_changed(const size_t index);

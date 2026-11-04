@@ -113,6 +113,19 @@ class SSTVRXProcessor : public BasebandProcessor {
     float hz_per_radian{0};
     float sync_freq_avg{1200};
     uint32_t sync_detect_lag{0};  // samples the smoothing makes the end of a sync late
+    float audio_rate{48000.0f};
+
+    // VIS header search, in bins of the tone frequency
+    static constexpr uint32_t VIS_BIN_MS = 5;
+    static constexpr size_t VIS_BINS_PER_BIT = 30 / VIS_BIN_MS;
+    static constexpr size_t VIS_LEADER_BINS = 200 / VIS_BIN_MS;                  // of the 300 ms leader
+    static constexpr size_t VIS_BINS = VIS_LEADER_BINS + 10 * VIS_BINS_PER_BIT;  // start, 8 bits, stop
+    int16_t vis_bins[VIS_BINS]{};
+    size_t vis_bin_pos{0};
+    int32_t vis_sum{0};
+    uint32_t vis_count{0};
+    uint32_t vis_bin_samples{240};
+    uint32_t vis_holdoff{0};
 
     // Line decoding state
     uint8_t line_buffer_r[MAX_PIXELS_PER_LINE];
@@ -196,6 +209,9 @@ class SSTVRXProcessor : public BasebandProcessor {
     void process_line();
     void detect_sync(int32_t freq);
     void update_freq_offset();
+    bool set_mode(const sstv_mode* mode);
+    void restart_image(bool wait_for_two_syncs);
+    void detect_vis();
     void calculate_calibration();
     uint32_t compute_nominal_line_interval() const;
     void estimate_frequency(float re, float im);
