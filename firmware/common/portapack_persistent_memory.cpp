@@ -210,7 +210,7 @@ struct data_t {
     bool updown_converter;
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
-    bool lcd_ips : 1;                 // was lcd_normally_black; units with it set now get the full IPS setup
+    bool lcd_ips : 1;                 // was lcd_normally_black
     bool encoder_dial_direction : 1;  // false = normal, true = reverse
     bool battery_replaceable : 1;
     bool UNUSED_7 : 1;
@@ -251,9 +251,6 @@ struct data_t {
     Color menu_color;
 
     uint16_t touchscreen_threshold;
-
-    // Custom LCD gamma/VCOM (240x320 panels). All zero (disabled) on upgrade.
-    lcd_tuning_t lcd_tuning;
 
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -311,8 +308,7 @@ struct data_t {
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
           dst_config(),
           menu_color(Color::grey()),
-          touchscreen_threshold(32),
-          lcd_tuning() {
+          touchscreen_threshold(32) {
     }
 };
 
@@ -397,8 +393,6 @@ struct backup_ram_t {
 
 static_assert(sizeof(backup_ram_t) == memory::map::backup_ram.size());
 static_assert(sizeof(data_t) <= sizeof(backup_ram_t) - sizeof(uint32_t));
-static_assert(offsetof(data_t, lcd_tuning) % 4 == 0);
-static_assert(sizeof(lcd_tuning_t) == 36);
 
 /* Uncomment to get a compiler error with the data_t size. */
 // template <size_t N>
@@ -1110,19 +1104,12 @@ void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
-// IPS vs TFT
+// IPS vs TN
 bool config_lcd_ips() {
     return data->lcd_ips;
 }
 void set_config_lcd_ips(bool v) {
     data->lcd_ips = v;
-}
-
-const lcd_tuning_t& lcd_tuning() {
-    return data->lcd_tuning;
-}
-void set_lcd_tuning(const lcd_tuning_t& v) {
-    data->lcd_tuning = v;
 }
 
 // Rotary encoder dial settings

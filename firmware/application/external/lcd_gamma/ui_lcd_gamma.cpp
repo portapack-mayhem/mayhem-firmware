@@ -23,8 +23,8 @@
 
 #include "portapack.hpp"
 #include "lcd_ili9341.hpp"
-#include "file.hpp"
-#include "file_path.hpp"
+#include "lcd_tuning_file.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 
 #include <cstring>
@@ -36,8 +36,7 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui::external_app::lcd_gamma {
 
-static constexpr size_t GLEN = pmem::LCD_GAMMA_LEN;
-#define GAMMA_FILE u"lcd_gamma.txt"
+static constexpr size_t GLEN = lcd::GAMMA_LEN;
 
 static const char* const field_names[GLEN] = {"V63", "V62", "V61", "V59", "V57", "V50", "V43", "V27|V36",
                                               "V20", "V13", "V6", "V4", "V2", "V1", "V0"};
@@ -168,7 +167,7 @@ LCDGammaView::LCDGammaView(NavigationView& nav)
                   &labels_easy, &field_vcom, &field_low, &field_mid, &field_high, &check_bgr,
                   &field_param, &text_param, &field_value, &text_e0, &text_e1, &text_vcom,
                   &text_status,
-                  &button_full, &button_save, &button_revert, &button_export, &button_import});
+                  &button_full, &button_save, &button_revert, &button_reset});
 
     lcd::ILI9341::active_tuning(base_);
     work_ = base_;
@@ -208,8 +207,7 @@ LCDGammaView::LCDGammaView(NavigationView& nav)
         load_preset(0);
         show_status("Reverted to saved");
     };
-    button_export.on_select = [this](Button&) { export_file(); };
-    button_import.on_select = [this](Button&) { import_file(); };
+    button_reset.on_select = [this](Button&) { reset_to_default(); };
 
     text_status.set_style(Theme::getInstance()->fg_yellow);
 
@@ -264,7 +262,7 @@ void LCDGammaView::load_preset(size_t index) {
     field_low.set_value(0, false);
     field_mid.set_value(0, false);
     field_high.set_value(0, false);
-    check_bgr.set_value(base_.flags & pmem::LCD_TUNING_BGR_SWAP);
+    check_bgr.set_value(base_.flags & lcd::TUNING_BGR_SWAP);
     if (advanced_) {
         work_ = base_;
         update_advanced_fields();
@@ -309,9 +307,9 @@ void LCDGammaView::recompute() {
     work_.vcom2 = 0x80 | ((field_vcom.value() + 64) & 0x7F);
     if (work_.vcom2 == (base_.vcom2 | 0x80) && !(base_.vcom2 & 0x80)) work_.vcom2 = base_.vcom2;
     if (check_bgr.value())
-        work_.flags |= pmem::LCD_TUNING_BGR_SWAP;
+        work_.flags |= lcd::TUNING_BGR_SWAP;
     else
-        work_.flags &= ~pmem::LCD_TUNING_BGR_SWAP;
+        work_.flags &= ~lcd::TUNING_BGR_SWAP;
     update_hex();
     apply();
 }
@@ -341,7 +339,7 @@ void LCDGammaView::set_advanced(bool advanced) {
         field_low.set_value(0, false);
         field_mid.set_value(0, false);
         field_high.set_value(0, false);
-        check_bgr.set_value(base_.flags & pmem::LCD_TUNING_BGR_SWAP);
+        check_bgr.set_value(base_.flags & lcd::TUNING_BGR_SWAP);
     } else {
         update_advanced_fields();
     }
@@ -391,90 +389,37 @@ void LCDGammaView::update_hex() {
     text_e0.set(hex_row(work_.gamma_pos, GLEN));
     text_e1.set(hex_row(work_.gamma_neg, GLEN));
     text_vcom.set("C5 " + hex_row(work_.vcom1, 2) + "  C7 " + to_string_hex(work_.vcom2, 2) +
-                  ((work_.flags & pmem::LCD_TUNING_BGR_SWAP) ? "  BGR swap" : ""));
+                  ((work_.flags & lcd::TUNING_BGR_SWAP) ? "  BGR swap" : ""));
 }
 
 void LCDGammaView::save() {
-    lcd_tuning_t t = work_;
-    lcd_tuning_t def;
-    lcd::ILI9341::default_tuning(pmem::config_lcd_ips(), def);
-    const bool is_default = !(t.flags & pmem::LCD_TUNING_BGR_SWAP) &&
-                            !memcmp(t.gamma_pos, def.gamma_pos, GLEN) &&
-                            !memcmp(t.gamma_neg, def.gamma_neg, GLEN) &&
-                            !memcmp(t.vcom1, def.vcom1, 2) && t.vcom2 == def.vcom2;
-    if (is_default)
-        t.flags = 0;
-    else
-        t.flags |= pmem::LCD_TUNING_ENABLED;
-    pmem::set_lcd_tuning(t);
-    if (pmem::should_use_sdcard_for_pmem()) pmem::save_persistent_settings_to_file();
+    const bool ips = pmem::config_lcd_ips();
+    panel_tuning_t def;
+    lcd::ILI9341::default_tuning(ips, def);
+    const bool is_default = !(work_.flags & lcd::TUNING_BGR_SWAP) &&
+                            !memcmp(work_.gamma_pos, def.gamma_pos, GLEN) &&
+                            !memcmp(work_.gamma_neg, def.gamma_neg, GLEN) &&
+                            !memcmp(work_.vcom1, def.vcom1, 2) && work_.vcom2 == def.vcom2;
+    if (is_default) {
+        lcd_tuning_file::remove();
+        lcd::ILI9341::set_override(nullptr);
+        show_status("Using built-in tuning");
+    } else if (lcd_tuning_file::write(work_, ips)) {
+        lcd::ILI9341::set_override(&work_);
+        show_status("Saved SETTINGS/lcd_gamma.txt");
+    } else {
+        show_status("Save failed, check SD card");
+        return;
+    }
     base_ = work_;
-    show_status(is_default ? "Saved (built-in)" : "Saved custom tuning");
 }
 
-void LCDGammaView::export_file() {
-    ensure_directory(settings_dir);
-    File f;
-    if (f.create(settings_dir / GAMMA_FILE)) {
-        show_status("Export failed");
-        return;
-    }
-    f.write_line("# Mayhem LCD tuning (ILI9341 240x320)");
-    f.write_line("E0=" + hex_row(work_.gamma_pos, GLEN));
-    f.write_line("E1=" + hex_row(work_.gamma_neg, GLEN));
-    f.write_line("C5=" + hex_row(work_.vcom1, 2));
-    f.write_line("C7=" + to_string_hex(work_.vcom2, 2));
-    f.write_line(std::string("BGR=") + ((work_.flags & pmem::LCD_TUNING_BGR_SWAP) ? "1" : "0"));
-    show_status("Saved SETTINGS/lcd_gamma.txt");
-}
-
-static int hex_nibble(char c) {
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    return -1;
-}
-
-static bool parse_hex_key(const std::string& s, const char* key, uint8_t* out, size_t n) {
-    const auto pos = s.find(key);
-    if (pos == std::string::npos) return false;
-    size_t i = pos + strlen(key);
-    for (size_t b = 0; b < n; b++, i += 2) {
-        if (i + 1 >= s.size()) return false;
-        const int h = hex_nibble(s[i]), l = hex_nibble(s[i + 1]);
-        if (h < 0 || l < 0) return false;
-        out[b] = (h << 4) | l;
-    }
-    return true;
-}
-
-void LCDGammaView::import_file() {
-    auto r = File::read_file(settings_dir / GAMMA_FILE);
-    if (!r) {
-        show_status("No SETTINGS/lcd_gamma.txt");
-        return;
-    }
-    const std::string& s = *r;
-    lcd_tuning_t t = work_;
-    if (!parse_hex_key(s, "E0=", t.gamma_pos, GLEN) ||
-        !parse_hex_key(s, "E1=", t.gamma_neg, GLEN) ||
-        !parse_hex_key(s, "C5=", t.vcom1, 2) ||
-        !parse_hex_key(s, "C7=", &t.vcom2, 1)) {
-        show_status("Bad lcd_gamma.txt");
-        return;
-    }
-    t.flags = (s.find("BGR=1") != std::string::npos) ? pmem::LCD_TUNING_BGR_SWAP : 0;
-    base_ = t;
-    work_ = t;
-    field_vcom.set_value((base_.vcom2 & 0x7F) - 64, false);
-    field_low.set_value(0, false);
-    field_mid.set_value(0, false);
-    field_high.set_value(0, false);
-    check_bgr.set_value(t.flags & pmem::LCD_TUNING_BGR_SWAP);
-    if (advanced_) update_advanced_fields();
-    update_hex();
-    apply();
-    show_status("Imported, Save to keep");
+void LCDGammaView::reset_to_default() {
+    lcd_tuning_file::remove();
+    lcd::ILI9341::set_override(nullptr);
+    field_preset.set_selected_index(1, false);
+    load_preset(1);
+    show_status("Reset to built-in tuning");
 }
 
 }  // namespace ui::external_app::lcd_gamma

@@ -30,11 +30,19 @@
 #include <cstdint>
 #include <array>
 
-namespace portapack::persistent_memory {
-struct lcd_tuning_t;
-}
-
 namespace lcd {
+
+constexpr size_t GAMMA_LEN = 15;
+constexpr uint8_t TUNING_BGR_SWAP = 0x01;
+
+/* Raw ILI9341 panel tuning: E0h/E1h gamma, C5h/C7h VCOM, MADCTL BGR swap. */
+struct panel_tuning_t {
+    uint8_t flags{0};
+    uint8_t vcom2{0};
+    uint8_t vcom1[2]{0, 0};
+    uint8_t gamma_pos[GAMMA_LEN]{};
+    uint8_t gamma_neg[GAMMA_LEN]{};
+};
 
 class ILI9341 {
    public:
@@ -54,13 +62,16 @@ class ILI9341 {
 
     /* Panel tuning (240x320 PortaPack panels only).
      * default_tuning: built-in TN or IPS gamma/VCOM.
-     * active_tuning: saved custom tuning if enabled, else the built-in for the current mode.
+     * set_override: user tuning loaded from the SD card, nullptr to clear.
+     * active_tuning: the override if set, else the built-in for the current mode.
      * apply_tuning: live write of gamma/VCOM/BGR, used by the gamma tuner.
-     * apply_panel_config: re-apply inversion, B6 and active tuning from pmem. */
-    static const uint8_t gamma_field_mask[15];
-    static void default_tuning(const bool ips, portapack::persistent_memory::lcd_tuning_t& t);
-    static void active_tuning(portapack::persistent_memory::lcd_tuning_t& t);
-    void apply_tuning(const portapack::persistent_memory::lcd_tuning_t& t);
+     * apply_panel_config: re-apply inversion and the active tuning. */
+    static const uint8_t gamma_field_mask[GAMMA_LEN];
+    static void default_tuning(const bool ips, panel_tuning_t& t);
+    static void set_override(const panel_tuning_t* t);
+    static bool has_override();
+    static void active_tuning(panel_tuning_t& t);
+    void apply_tuning(const panel_tuning_t& t);
     void apply_panel_config();
 
     void sleep(bool hw_sleep = true);

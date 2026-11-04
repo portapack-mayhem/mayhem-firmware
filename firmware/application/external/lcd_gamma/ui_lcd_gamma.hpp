@@ -25,11 +25,11 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
-#include "portapack_persistent_memory.hpp"
+#include "lcd_ili9341.hpp"
 
 namespace ui::external_app::lcd_gamma {
 
-using portapack::persistent_memory::lcd_tuning_t;
+using lcd::panel_tuning_t;
 
 /* Gray, R, G, B ramps plus primary/secondary bars. */
 class TestPattern : public Widget {
@@ -68,8 +68,8 @@ class LCDGammaView : public View {
    private:
     NavigationView& nav_;
 
-    lcd_tuning_t base_{};
-    lcd_tuning_t work_{};
+    panel_tuning_t base_{};
+    panel_tuning_t work_{};
     bool advanced_{false};
 
     void load_preset(size_t index);
@@ -81,8 +81,7 @@ class LCDGammaView : public View {
     uint8_t param_mask(int32_t index) const;
     uint8_t* param_ptr(int32_t index);
     void save();
-    void export_file();
-    void import_file();
+    void reset_to_default();
     void show_status(const std::string& s);
 
     TestPattern pattern{{UI_POS_X(0), UI_POS_Y(0), UI_POS_MAXWIDTH, UI_POS_HEIGHT(6)}};
@@ -97,7 +96,7 @@ class LCDGammaView : public View {
     OptionsField field_preset{
         {UI_POS_X(0), UI_POS_Y(6.25)},
         10,
-        {{"Saved", 0}, {"Built-in", 1}, {"TN stock", 2}, {"IPS", 3}, {"Generic", 4}}};
+        {{"Saved", 0}, {"Built-in", 1}, {"TN stock", 2}, {"CL32BC272", 3}, {"Generic", 4}}};
 
     OptionsField field_mode{
         {UI_POS_X_RIGHT(9), UI_POS_Y(6.25)},
@@ -124,8 +123,7 @@ class LCDGammaView : public View {
     Button button_full{{UI_POS_X(0), UI_POS_Y(14), UI_POS_WIDTH(10), UI_POS_HEIGHT(2)}, "Patterns"};
     Button button_save{{UI_POS_X(10), UI_POS_Y(14), UI_POS_WIDTH(10), UI_POS_HEIGHT(2)}, "Save"};
     Button button_revert{{UI_POS_X(20), UI_POS_Y(14), UI_POS_WIDTH(10), UI_POS_HEIGHT(2)}, "Revert"};
-    Button button_export{{UI_POS_X(0), UI_POS_Y(16.25), UI_POS_WIDTH(15), UI_POS_HEIGHT(2)}, "Export SD"};
-    Button button_import{{UI_POS_X(15), UI_POS_Y(16.25), UI_POS_WIDTH(15), UI_POS_HEIGHT(2)}, "Import SD"};
+    Button button_reset{{UI_POS_X(0), UI_POS_Y(16.25), UI_POS_MAXWIDTH, UI_POS_HEIGHT(2)}, "Reset to default"};
 };
 
 }  // namespace ui::external_app::lcd_gamma

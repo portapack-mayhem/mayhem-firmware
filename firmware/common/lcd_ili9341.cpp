@@ -42,9 +42,6 @@ using namespace portapack;
 
 namespace lcd {
 
-using portapack::persistent_memory::LCD_GAMMA_LEN;
-using portapack::persistent_memory::lcd_tuning_t;
-
 /* MADCTL: MY=0x80 MX=0x40 MV=0x20 ML=0x10 BGR=0x08. Portrait is MY|MX.
  * With MV set, MX/MY mirror the physical columns/rows after the exchange;
  * MV|MY and MV|MX are the two proper rotations of MY|MX. */
@@ -53,36 +50,36 @@ static constexpr uint8_t madctl_pp_landscape = 0x20 | 0x80 | 0x10 | 0x08;
 static constexpr uint8_t madctl_pp_landscape_flip = 0x20 | 0x40 | 0x10 | 0x08;
 static constexpr uint8_t madctl_bgr = 0x08;
 
-static_assert(LCD_GAMMA_LEN == 15);
-
 /* Bit widths of each E0h/E1h parameter (ILI9341 PGAMCTRL/NGAMCTRL). */
-const uint8_t ILI9341::gamma_field_mask[LCD_GAMMA_LEN] = {0x0F, 0x3F, 0x3F, 0x0F, 0x1F, 0x0F, 0x7F, 0xFF,
-                                                          0x7F, 0x0F, 0x1F, 0x0F, 0x3F, 0x3F, 0x0F};
+const uint8_t ILI9341::gamma_field_mask[GAMMA_LEN] = {0x0F, 0x3F, 0x3F, 0x0F, 0x1F, 0x0F, 0x7F, 0xFF,
+                                                      0x7F, 0x0F, 0x1F, 0x0F, 0x3F, 0x3F, 0x0F};
 
 namespace {
 
 uint8_t madctl_current = madctl_pp_portrait;
 uint8_t madctl_bgr_xor = 0;
+panel_tuning_t tuning_override{};
+bool tuning_override_set = false;
 
-constexpr uint8_t gamma_pos_tn[LCD_GAMMA_LEN] = {0x0F, 0x1D, 0x19, 0x0E, 0x10, 0x07, 0x4C, 0x63,
-                                                 0x3F, 0x03, 0x0D, 0x00, 0x26, 0x24, 0x04};
-constexpr uint8_t gamma_neg_tn[LCD_GAMMA_LEN] = {0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25,
-                                                 0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05};
+constexpr uint8_t gamma_pos_tn[GAMMA_LEN] = {0x0F, 0x1D, 0x19, 0x0E, 0x10, 0x07, 0x4C, 0x63,
+                                             0x3F, 0x03, 0x0D, 0x00, 0x26, 0x24, 0x04};
+constexpr uint8_t gamma_neg_tn[GAMMA_LEN] = {0x00, 0x1C, 0x1F, 0x02, 0x0F, 0x03, 0x35, 0x25,
+                                             0x47, 0x04, 0x0C, 0x0B, 0x29, 0x2F, 0x05};
 
-// IPS defaults, verified on CL32BC272-40A glass; other lots can be tuned with the LCD Gamma app.
-constexpr uint8_t gamma_pos_ips[LCD_GAMMA_LEN] = {0x0F, 0x2A, 0x28, 0x08, 0x0E, 0x08, 0x54, 0xA9,
-                                                  0x43, 0x0A, 0x0F, 0x00, 0x00, 0x00, 0x00};
-constexpr uint8_t gamma_neg_ips[LCD_GAMMA_LEN] = {0x00, 0x15, 0x17, 0x07, 0x11, 0x06, 0x2B, 0x56,
-                                                  0x3C, 0x05, 0x10, 0x0F, 0x3F, 0x3F, 0x0F};
+// IPS defaults, tuned on CL32BC272-40A glass. Other panels can be tuned with the LCD Gamma app.
+constexpr uint8_t gamma_pos_ips[GAMMA_LEN] = {0x0F, 0x2A, 0x28, 0x08, 0x0E, 0x08, 0x54, 0xA9,
+                                              0x43, 0x0A, 0x0F, 0x00, 0x00, 0x00, 0x00};
+constexpr uint8_t gamma_neg_ips[GAMMA_LEN] = {0x00, 0x15, 0x17, 0x07, 0x11, 0x06, 0x2B, 0x56,
+                                              0x3C, 0x05, 0x10, 0x0F, 0x3F, 0x3F, 0x0F};
 
-void lcd_write_tuning(const lcd_tuning_t& t) {
-    uint8_t pos[LCD_GAMMA_LEN];
-    uint8_t neg[LCD_GAMMA_LEN];
-    for (size_t i = 0; i < LCD_GAMMA_LEN; i++) {
+void lcd_write_tuning(const panel_tuning_t& t) {
+    uint8_t pos[GAMMA_LEN];
+    uint8_t neg[GAMMA_LEN];
+    for (size_t i = 0; i < GAMMA_LEN; i++) {
         pos[i] = t.gamma_pos[i] & ILI9341::gamma_field_mask[i];
         neg[i] = t.gamma_neg[i] & ILI9341::gamma_field_mask[i];
     }
-    madctl_bgr_xor = (t.flags & portapack::persistent_memory::LCD_TUNING_BGR_SWAP) ? madctl_bgr : 0;
+    madctl_bgr_xor = (t.flags & TUNING_BGR_SWAP) ? madctl_bgr : 0;
 
     // VCOM Control 1
     io.lcd_data_write_command_and_data(0xC5, {static_cast<uint8_t>(t.vcom1[0] & 0x7F), static_cast<uint8_t>(t.vcom1[1] & 0x7F)});
@@ -93,8 +90,8 @@ void lcd_write_tuning(const lcd_tuning_t& t) {
     // Memory Access Control (BGR bit may be swapped by tuning)
     io.lcd_data_write_command_and_data(0x36, {static_cast<uint8_t>(madctl_current ^ madctl_bgr_xor)});
 
-    io.lcd_data_write_command_and_data(0xE0, pos, LCD_GAMMA_LEN);
-    io.lcd_data_write_command_and_data(0xE1, neg, LCD_GAMMA_LEN);
+    io.lcd_data_write_command_and_data(0xE0, pos, GAMMA_LEN);
+    io.lcd_data_write_command_and_data(0xE1, neg, GAMMA_LEN);
 }
 
 void lcd_reset() {
@@ -265,10 +262,10 @@ void lcd_init_pp() {
     // SAP[2:0];BT[3:0]
     io.lcd_data_write_command_and_data(0xC1, {0x12});
 
-    lcd_tuning_t t;
+    panel_tuning_t t;
     ILI9341::active_tuning(t);
     madctl_current = madctl_pp_portrait;
-    madctl_bgr_xor = (t.flags & portapack::persistent_memory::LCD_TUNING_BGR_SWAP) ? madctl_bgr : 0;
+    madctl_bgr_xor = (t.flags & TUNING_BGR_SWAP) ? madctl_bgr : 0;
 
     // VCOM Control 1 (TN default: 0x32, 0x3C)
     io.lcd_data_write_command_and_data(0xC5, {static_cast<uint8_t>(t.vcom1[0] & 0x7F), static_cast<uint8_t>(t.vcom1[1] & 0x7F)});
@@ -303,11 +300,11 @@ void lcd_init_pp() {
     io.lcd_data_write_command_and_data(0x26, {0x01});
 
     // Set Gamma (positive / negative)
-    uint8_t gamma[LCD_GAMMA_LEN];
-    for (size_t i = 0; i < LCD_GAMMA_LEN; i++) gamma[i] = t.gamma_pos[i] & ILI9341::gamma_field_mask[i];
-    io.lcd_data_write_command_and_data(0xE0, gamma, LCD_GAMMA_LEN);
-    for (size_t i = 0; i < LCD_GAMMA_LEN; i++) gamma[i] = t.gamma_neg[i] & ILI9341::gamma_field_mask[i];
-    io.lcd_data_write_command_and_data(0xE1, gamma, LCD_GAMMA_LEN);
+    uint8_t gamma[GAMMA_LEN];
+    for (size_t i = 0; i < GAMMA_LEN; i++) gamma[i] = t.gamma_pos[i] & ILI9341::gamma_field_mask[i];
+    io.lcd_data_write_command_and_data(0xE0, gamma, GAMMA_LEN);
+    for (size_t i = 0; i < GAMMA_LEN; i++) gamma[i] = t.gamma_neg[i] & ILI9341::gamma_field_mask[i];
+    io.lcd_data_write_command_and_data(0xE1, gamma, GAMMA_LEN);
 
     // IPS glass needs Display Inversion On, otherwise the image is washed out.
     if (ips)
@@ -446,24 +443,32 @@ void ILI9341::init() {
     }
 }
 
-void ILI9341::default_tuning(const bool ips, lcd_tuning_t& t) {
-    t = lcd_tuning_t{};
+void ILI9341::default_tuning(const bool ips, panel_tuning_t& t) {
+    t = panel_tuning_t{};
     t.vcom1[0] = 0x32;
     t.vcom1[1] = 0x3C;
     t.vcom2 = ips ? 0xC0 : 0x9B;  // IPS: VMF centered (no offset)
-    memcpy(t.gamma_pos, ips ? gamma_pos_ips : gamma_pos_tn, LCD_GAMMA_LEN);
-    memcpy(t.gamma_neg, ips ? gamma_neg_ips : gamma_neg_tn, LCD_GAMMA_LEN);
+    memcpy(t.gamma_pos, ips ? gamma_pos_ips : gamma_pos_tn, GAMMA_LEN);
+    memcpy(t.gamma_neg, ips ? gamma_neg_ips : gamma_neg_tn, GAMMA_LEN);
 }
 
-void ILI9341::active_tuning(lcd_tuning_t& t) {
-    const auto& custom = portapack::persistent_memory::lcd_tuning();
-    if (custom.flags & portapack::persistent_memory::LCD_TUNING_ENABLED)
-        t = custom;
+void ILI9341::set_override(const panel_tuning_t* t) {
+    tuning_override_set = (t != nullptr);
+    if (t) tuning_override = *t;
+}
+
+bool ILI9341::has_override() {
+    return tuning_override_set;
+}
+
+void ILI9341::active_tuning(panel_tuning_t& t) {
+    if (tuning_override_set)
+        t = tuning_override;
     else
         default_tuning(portapack::persistent_memory::config_lcd_ips(), t);
 }
 
-void ILI9341::apply_tuning(const lcd_tuning_t& t) {
+void ILI9341::apply_tuning(const panel_tuning_t& t) {
     if (device_type != DEV_PORTAPACK) return;
     lcd_write_tuning(t);
 }
@@ -472,7 +477,7 @@ void ILI9341::apply_panel_config() {
     if (device_type != DEV_PORTAPACK) return;
     const bool ips = portapack::persistent_memory::config_lcd_ips();
     io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});
-    lcd_tuning_t t;
+    panel_tuning_t t;
     active_tuning(t);
     lcd_write_tuning(t);
     io.lcd_data_write_command_and_data(ips ? 0x21 : 0x20, {});

@@ -38,6 +38,7 @@
 #include "ui_sd_card_debug.hpp"
 
 #include "portapack_persistent_memory.hpp"
+#include "lcd_tuning_file.hpp"
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
@@ -930,7 +931,7 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
     button_save.on_select = [&nav, this](Button&) {
         if (checkbox_lcd_ips.value() != pmem::config_lcd_ips()) {
             pmem::set_config_lcd_ips(checkbox_lcd_ips.value());
-            portapack::display.apply_panel_config();
+            lcd_tuning_file::apply(true);
         }
         send_system_refresh();
         nav.pop();
