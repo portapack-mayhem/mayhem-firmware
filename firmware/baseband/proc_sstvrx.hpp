@@ -50,7 +50,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     };
 
     static constexpr uint32_t MAX_SAMPLES_PER_LINE = 4096;
-    static constexpr uint16_t MAX_PIXELS_PER_LINE = 640;
+    static constexpr uint16_t MAX_PIXELS_PER_LINE = 800;  // PD290
 
     // Frequency ranges for SSTV (in Hz)
     static constexpr int32_t FREQ_BLACK = 1500;
@@ -65,6 +65,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     const sstv_mode* active_mode{nullptr};
     uint16_t mode_total_lines{256};
     uint16_t pixels_per_line{320};
+    sstv_modulation modulation{SSTV_MOD_FM};
 
     static constexpr size_t baseband_fs = 3072000;
 
@@ -80,6 +81,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     const buffer_c16_t dst_buffer{
         dst.data(),
         dst.size()};
+    std::array<int16_t, 32> ssb_audio{};  // the real part of the channel, to listen to
     // work_audio_buffer and dst_buffer use the same data pointer
     const buffer_s16_t work_audio_buffer{
         (int16_t*)dst.data(),
@@ -193,9 +195,11 @@ class SSTVRXProcessor : public BasebandProcessor {
     void process_pixel_sample(int32_t freq);
     void process_line();
     void detect_sync(int32_t freq);
+    void update_freq_offset();
     void calculate_calibration();
     uint32_t compute_nominal_line_interval() const;
-    void estimate_frequency(int32_t audio_sample);
+    void estimate_frequency(float re, float im);
+    void decode_sample(float re, float im);
     void capture_config(const CaptureConfigMessage& message);
     void reset_pixel_state();
     void start_gap(uint32_t duration);

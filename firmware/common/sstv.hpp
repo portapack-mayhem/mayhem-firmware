@@ -54,7 +54,14 @@ enum sstv_format {
 #define SSTV_ROBOT36_FREQ_BY 2300  // separator before (B-Y), odd lines
 #define SSTV_ROBOT36_FREQ_PORCH 1900
 
-#define SSTV_MODES_NB 10
+// How the tones go on air: FM on VHF/UHF, SSB on HF (USB is the usual)
+enum sstv_modulation : uint8_t {
+    SSTV_MOD_FM,
+    SSTV_MOD_USB,
+    SSTV_MOD_LSB
+};
+
+#define SSTV_MODES_NB 13
 
 // From http://www.graphics.stanford.edu/~seander/bithacks.html, nice !
 constexpr inline uint8_t sstv_parity(uint8_t code) {
@@ -103,6 +110,9 @@ constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {
     {"PD90", sstv_parity(99), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 320, 256, SSTV_MS2S(0.5320), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
     {"PD120", sstv_parity(95), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 640, 496, SSTV_MS2S(0.1900), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
     {"PD160", sstv_parity(98), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 512, 400, SSTV_MS2S(0.3820), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD180", sstv_parity(96), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 640, 496, SSTV_MS2S(0.2860), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD240", sstv_parity(97), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 640, 496, SSTV_MS2S(0.3820), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
+    {"PD290", sstv_parity(94), true, SSTV_COLOR_RGB, SSTV_FORMAT_PD, 800, 616, SSTV_MS2S(0.2860), false, 0, false, SSTV_MS2S(20.0), SSTV_MS2S(2.08)},
     {"Robot 36", sstv_parity(8), true, SSTV_COLOR_YUV, SSTV_FORMAT_ROBOT36, 320, 240, SSTV_MS2S(0.2750), true, 0, false, SSTV_MS2S(9), SSTV_MS2S(3)},
     //{ "PASOKON 3",	sstv_parity(113),	true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.2083), 	{ 1500, 2300 } },
     //{ "PASOKON 7",	sstv_parity(115),	true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.4167), 	{ 1500, 2300 } }

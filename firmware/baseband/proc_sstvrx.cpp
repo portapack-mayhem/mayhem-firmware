@@ -88,63 +88,73 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel = channel_filter.execute(decim_1_out, dst_buffer);
     feed_channel_stats(channel);
-    // FM demodulation and audio processing
-    // Demodulator outputs 24kHz audio after channel filter decimation
-    auto audio = demod.execute(channel, work_audio_buffer);
 
-    // Feed audio samples to output and use for frequency estimation
-    audio_output.write(audio);
-
-    // Process each audio sample for SSTV decoding
-    // audio is buffer_s16_t, so audio.p[i] is int16_t
-    for (size_t i = 0; i < audio.count; i++) {
-        // Get int16 audio sample directly (no float conversion needed)
-        int32_t audio_sample = audio.p[i];
-
-        // Increment global sample counter for calibration
-        global_sample_count++;
-
-        // Estimate the tone frequency
-        estimate_frequency(audio_sample);
-
-        // Process based on current state
-        switch (state) {
-            case STATE_SYNC_SEARCH:
-                // Before Line 0: wait for initial sync pulses to establish timing
-                if (current_line == 0) {
-                    detect_sync(sync_freq);
-                }
-                // After Line 0 started: we're at end of a line, waiting for next sync
-                // Just wait - the sync will be detected and we'll transition to separator
-                else {
-                    detect_sync(sync_freq);
-                }
-                break;
-
-            case STATE_VIS_DECODE:
-                // VIS code detection not implemented yet
-                // Skip directly to separator wait
-                state = STATE_SEPARATOR;
-                sample_count = 0;
-                break;
-
-            case STATE_SEPARATOR:
-                // Wait for separator/porch tone to finish before resuming pixels
-                sample_count++;
-                if (robot36 && channel_index == 1) {
-                    measure_robot36_separator();
-                }
-                if (separator_target == 0 || sample_count >= separator_target) {
-                    sample_count = 0;
-                    state = STATE_IMAGE_DATA;
-                }
-                break;
-
-            case STATE_IMAGE_DATA:
-                // Process pixels continuously
-                process_pixel_sample(current_freq);
-                break;
+    if (modulation == SSTV_MOD_FM) {
+        // FM demodulation, 48 kHz audio
+        auto audio = demod.execute(channel, work_audio_buffer);
+        audio_output.write(audio);
+        for (size_t i = 0; i < audio.count; i++) {
+            decode_sample(audio.p[i] / 32768.0f, 0.0f);
         }
+        return;
+    }
+
+    // SSB: the tone is already in the channel, at +f (USB) or -f (LSB): no demodulation,
+    // the frequency comes straight from the IQ. The real part is the audio to listen to.
+    const float sign = (modulation == SSTV_MOD_LSB) ? -1.0f : 1.0f;
+    const size_t count = std::min(channel.count, ssb_audio.size());
+    for (size_t i = 0; i < count; i++) {
+        ssb_audio[i] = channel.p[i].real();
+        decode_sample(channel.p[i].real() / 32768.0f, sign * channel.p[i].imag() / 32768.0f);
+    }
+    audio_output.write(buffer_s16_t{ssb_audio.data(), count, channel.sampling_rate});
+}
+
+// One audio sample (FM) or IQ sample (SSB) through the decoder
+void SSTVRXProcessor::decode_sample(const float re, const float im) {
+    // Increment global sample counter for calibration
+    global_sample_count++;
+
+    // Estimate the tone frequency
+    estimate_frequency(re, im);
+
+    // Process based on current state
+    switch (state) {
+        case STATE_SYNC_SEARCH:
+            // Before Line 0: wait for initial sync pulses to establish timing
+            if (current_line == 0) {
+                detect_sync(sync_freq);
+            }
+            // After Line 0 started: we're at end of a line, waiting for next sync
+            // Just wait - the sync will be detected and we'll transition to separator
+            else {
+                detect_sync(sync_freq);
+            }
+            break;
+
+        case STATE_VIS_DECODE:
+            // VIS code detection not implemented yet
+            // Skip directly to separator wait
+            state = STATE_SEPARATOR;
+            sample_count = 0;
+            break;
+
+        case STATE_SEPARATOR:
+            // Wait for separator/porch tone to finish before resuming pixels
+            sample_count++;
+            if (robot36 && channel_index == 1) {
+                measure_robot36_separator();
+            }
+            if (separator_target == 0 || sample_count >= separator_target) {
+                sample_count = 0;
+                state = STATE_IMAGE_DATA;
+            }
+            break;
+
+        case STATE_IMAGE_DATA:
+            // Process pixels continuously
+            process_pixel_sample(current_freq - freq_offset);
+            break;
     }
 }
 
@@ -162,12 +172,10 @@ void SSTVRXProcessor::Biquad::low_pass(const float cutoff, const float q, const 
 }
 
 // Estimate the tone frequency for every audio sample
-void SSTVRXProcessor::estimate_frequency(int32_t audio_sample) {
-    const float sample = audio_sample / 32768.0f;
-
-    // Mix down: sample * e^(-j*phase)
-    float i = sample * mix_re;
-    float q = -sample * mix_im;
+void SSTVRXProcessor::estimate_frequency(const float re_in, const float im_in) {
+    // Mix down: (re + j*im) * e^(-j*phase); FM audio is real (im = 0)
+    float i = re_in * mix_re + im_in * mix_im;
+    float q = im_in * mix_re - re_in * mix_im;
     const float re = mix_re * mix_step_re - mix_im * mix_step_im;
     mix_im = mix_re * mix_step_im + mix_im * mix_step_re;
     mix_re = re;
@@ -217,10 +225,16 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
     if (freq > (FREQ_SYNC - sync_tolerance) && freq < (FREQ_SYNC + sync_tolerance)) {
         sync_sample_count++;
         in_sync = true;
+        // For the tuning offset: the sync tone itself, not the edges the average still has
+        if (current_freq > (FREQ_SYNC - sync_tolerance) && current_freq < (FREQ_SYNC + sync_tolerance)) {
+            sync_freq_sum += current_freq;
+            sync_freq_samples++;
+        }
     } else {
         // Not sync frequency - check if we just finished a valid sync
         // Require at least 1/3 of expected sync duration (more lenient for weak signals)
         if (in_sync && sync_sample_count >= (samples_per_sync / 3)) {
+            update_freq_offset();
             // Valid sync pulse detected - always record it for timing tracking
             // Debug: log current history count before recording
             SSTVRXProgressMessage pre_count_msg{0xFFF7, sync_history_count};
@@ -293,6 +307,20 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
         }
         in_sync = false;
         sync_sample_count = 0;
+        sync_freq_sum = 0;
+        sync_freq_samples = 0;
+    }
+}
+
+// Mistuning (SSB on HF) moves every tone: the syncs say by how much, 1200 Hz is known
+void SSTVRXProcessor::update_freq_offset() {
+    if (sync_freq_samples < samples_per_sync / 4) return;
+    const int32_t measured = sync_freq_sum / static_cast<int32_t>(sync_freq_samples) - FREQ_SYNC;
+    if (!freq_offset_calibrated) {
+        freq_offset = measured;
+        freq_offset_calibrated = true;
+    } else {
+        freq_offset += (measured - freq_offset) / 4;
     }
 }
 
@@ -434,6 +462,8 @@ void SSTVRXProcessor::process_pixel_sample(int32_t freq) {
                 channel_index = 0;
                 state = STATE_SYNC_SEARCH;
                 sync_sample_count = 0;
+                sync_freq_sum = 0;
+                sync_freq_samples = 0;
                 in_sync = false;
                 reset_pixel_state();
                 break;
@@ -559,6 +589,7 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             vis_code = message.code;
 
             active_mode = find_mode_by_vis_code(message.code);
+            modulation = (message.modulation <= SSTV_MOD_LSB) ? static_cast<sstv_modulation>(message.modulation) : SSTV_MOD_FM;
             if (!active_mode) {
                 configured = false;
                 SSTVRXProgressMessage error_msg{0xFFFF, 0};
@@ -644,6 +675,8 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             pixel_accumulator = 0;
             pixel_sample_count = 0;
             sync_sample_count = 0;
+            sync_freq_sum = 0;
+            sync_freq_samples = 0;
             in_sync = false;
             state = STATE_SYNC_SEARCH;
             separator_target = 0;
@@ -732,7 +765,7 @@ void SSTVRXProcessor::measure_robot36_separator() {
         robot36_separator_count = 0;
     }
     if (sample_count >= robot36_separator_from && sample_count < robot36_separator_to) {
-        robot36_separator_sum += current_freq;
+        robot36_separator_sum += current_freq - freq_offset;
         robot36_separator_count++;
     }
     if (sample_count == robot36_separator_to && robot36_separator_count) {

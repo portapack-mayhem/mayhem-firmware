@@ -93,10 +93,15 @@ class SstvRxView : public ui::View {
     int16_t phase_adjustment{0};  // Horizontal offset in pixels (-50 to +50)
     int16_t slant_adjustment{0};  // Timing adjustment in 0.1% units (-100 to +100)
 
+    // Auto: USB on HF (below 30 MHz), FM on VHF/UHF; else FM, USB or LSB
+    uint32_t modulation_choice{0};
+    uint8_t active_modulation{SSTV_MOD_FM};
+
     // Settings must be declared before UI controls
     app_settings::SettingsManager settings_{
         "rx_sstv",
-        app_settings::Mode::RX};
+        app_settings::Mode::RX,
+        {{std::string_view{"modulation"}, &modulation_choice}}};
 
     ReceiverModel::Mode receiver_mode = ReceiverModel::Mode::WidebandFMAudio;
     AudioSpectrum* audio_spectrum_data{nullptr};
@@ -108,8 +113,8 @@ class SstvRxView : public ui::View {
     const sstv_mode* rx_sstv_mode{};
 
     // Image data storage - only store current line to save memory
-    static constexpr uint16_t MAX_IMAGE_WIDTH = 640;
-    static constexpr uint16_t MAX_IMAGE_HEIGHT = 496;
+    static constexpr uint16_t MAX_IMAGE_WIDTH = 800;  // PD290
+    static constexpr uint16_t MAX_IMAGE_HEIGHT = 616;
     uint16_t image_width{320};
     uint16_t image_height{256};
 
@@ -167,6 +172,7 @@ class SstvRxView : public ui::View {
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     OptionsField options_mode{{UI_POS_X(6), UI_POS_Y(1)}, 16, {}};
+    OptionsField options_modulation{{UI_POS_X(18), UI_POS_Y(2)}, 4, {{"Auto", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}}};
 
     NumberField field_phase{{UI_POS_X(4), UI_POS_Y(2)}, 3, {-50, 50}, 1, ' '};
     NumberField field_slant{{UI_POS_X(13), UI_POS_Y(2)}, 4, {-100, 100}, 1, ' '};
@@ -193,6 +199,8 @@ class SstvRxView : public ui::View {
     void on_start_stop();  // Combined start/stop handler
     void on_stop();
     void on_mode_changed(const size_t index);
+    uint8_t effective_modulation() const;
+    void on_modulation_changed();
     void on_progress(uint16_t line, uint16_t total_lines);
     void on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count);
     void write_bmp_header();

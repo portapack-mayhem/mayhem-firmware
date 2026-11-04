@@ -58,8 +58,13 @@ class SSTVTXView : public View {
    private:
     NavigationView& nav_;
     TxRadioState radio_state_{};
+    // Auto: USB on HF (below 30 MHz), FM on VHF/UHF; else FM, USB or LSB
+    uint32_t modulation_choice{0};
+
     app_settings::SettingsManager settings_{
-        "tx_sstv", app_settings::Mode::TX};
+        "tx_sstv",
+        app_settings::Mode::TX,
+        {{std::string_view{"modulation"}, &modulation_choice}}};
 
     sstv_scanline scanline_buffer{};
 
@@ -80,11 +85,13 @@ class SSTVTXView : public View {
     void on_bitmap_changed(const size_t index);
     void on_mode_changed(const size_t index);
     void start_tx();
+    uint8_t effective_modulation() const;
     void prepare_scanline();
 
     Labels labels{
         {{1 * 8, 1 * 8}, "File:", Theme::getInstance()->fg_light->foreground},
-        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground}};
+        {{1 * 8, 3 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 5 * 8}, "Mod:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_bitmaps{
         {6 * 8, 1 * 8},
@@ -94,6 +101,10 @@ class SSTVTXView : public View {
         {6 * 8, 3 * 8},
         16,
         {}};
+    OptionsField options_modulation{
+        {6 * 8, 5 * 8},
+        4,
+        {{"Auto", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}}};
 
     ProgressBar progressbar{
         {16, 25 * 8, UI_POS_WIDTH_REMAINING(4), 16}};

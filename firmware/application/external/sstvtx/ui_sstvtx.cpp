@@ -208,11 +208,25 @@ void SSTVTXView::start_tx() {
 
     baseband::set_sstv_data(
         tx_sstv_mode->vis_code,
-        tx_sstv_mode->samples_per_pixel);
+        tx_sstv_mode->samples_per_pixel,
+        effective_modulation());
 
     // Todo: Find a better way to prevent user from changing bitmap during tx
     options_bitmaps.set_focusable(false);
     tx_view.focus();
+}
+
+uint8_t SSTVTXView::effective_modulation() const {
+    switch (modulation_choice) {
+        case 1:
+            return SSTV_MOD_FM;
+        case 2:
+            return SSTV_MOD_USB;
+        case 3:
+            return SSTV_MOD_LSB;
+        default:
+            return (transmitter_model.target_frequency() < 30'000'000) ? SSTV_MOD_USB : SSTV_MOD_FM;
+    }
 }
 
 void SSTVTXView::on_bitmap_changed(const size_t index) {
@@ -283,6 +297,7 @@ SSTVTXView::SSTVTXView(
     add_children({&labels,
                   &options_bitmaps,
                   &options_modes,
+                  &options_modulation,
                   &progressbar,
                   &tx_view});
 
@@ -306,6 +321,11 @@ SSTVTXView::SSTVTXView(
     options_modes.on_change = [this](size_t, int32_t v) {
         this->on_mode_changed(v);
     };
+    options_modulation.set_by_value(modulation_choice);
+    options_modulation.on_change = [this](size_t, int32_t v) {
+        modulation_choice = v;
+    };
+
     options_modes.set_selected_index(1);  // Scottie 2
     on_mode_changed(1);
 

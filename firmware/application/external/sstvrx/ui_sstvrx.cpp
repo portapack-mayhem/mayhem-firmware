@@ -91,6 +91,7 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
                   &audio,
                   &start_stop_btn,
                   &options_mode,
+                  &options_modulation,
                   &field_phase,
                   &field_slant,
                   &labels,
@@ -129,6 +130,16 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         field_frequency.set_value(145800000);  // Default to 145.800 MHz (ISS)
     }
     field_frequency.set_step(25000);
+
+    options_modulation.set_by_value(modulation_choice);
+    options_modulation.on_change = [this](size_t, int32_t v) {
+        modulation_choice = v;
+        on_modulation_changed();
+    };
+    // In Auto the band can change the demodulation
+    field_frequency.updated = [this](rf::Frequency) {
+        on_modulation_changed();
+    };
 
     // Populate mode list
     for (c = 0; c < SSTV_MODES_NB; c++)
@@ -237,8 +248,9 @@ void SstvRxView::start_audio() {
     SSTVRX_LOG_INFO("Configuring SSTV RX Audio Reception");
 
     // Configure the baseband processor with VIS code
+    active_modulation = effective_modulation();
     if (rx_sstv_mode) {
-        baseband::set_sstvrx_data(rx_sstv_mode->vis_code);
+        baseband::set_sstvrx_data(rx_sstv_mode->vis_code, active_modulation);
         SSTVRX_LOG_INFO("Sent VIS code to processor: " + to_string_dec_uint(rx_sstv_mode->vis_code));
     }
 
@@ -296,6 +308,30 @@ void SstvRxView::start_audio() {
     receiver_model.enable();
     is_receiving = true;
     SSTVRX_LOG_INFO("SSTV RX Started");
+}
+
+uint8_t SstvRxView::effective_modulation() const {
+    switch (modulation_choice) {
+        case 1:
+            return SSTV_MOD_FM;
+        case 2:
+            return SSTV_MOD_USB;
+        case 3:
+            return SSTV_MOD_LSB;
+        default:
+            return (receiver_model.target_frequency() < 30'000'000) ? SSTV_MOD_USB : SSTV_MOD_FM;
+    }
+}
+
+void SstvRxView::on_modulation_changed() {
+    const uint8_t modulation = effective_modulation();
+    if (modulation == active_modulation) return;
+    active_modulation = modulation;
+    // The processor takes the demodulation when it is configured: start again
+    if (is_receiving) {
+        on_stop();
+        start_audio();
+    }
 }
 
 void SstvRxView::on_mode_changed(const size_t index) {
