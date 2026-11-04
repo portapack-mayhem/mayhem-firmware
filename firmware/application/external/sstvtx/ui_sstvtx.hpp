@@ -60,6 +60,7 @@ class SSTVTXView : public View {
     TxRadioState radio_state_{};
     // Auto: USB on HF (below 30 MHz), FM on VHF/UHF; else FM, USB or LSB
     uint32_t modulation_choice{0};
+    bool auto_usb_{false};  // what the Auto option says now
 
     app_settings::SettingsManager settings_{
         "tx_sstv",
@@ -86,6 +87,8 @@ class SSTVTXView : public View {
     void on_mode_changed(const size_t index);
     void start_tx();
     uint8_t effective_modulation() const;
+    void update_modulation_options();
+    void on_frame_sync();
     void prepare_scanline();
 
     Labels labels{
@@ -103,8 +106,8 @@ class SSTVTXView : public View {
         {}};
     OptionsField options_modulation{
         {6 * 8, 5 * 8},
-        4,
-        {{"Auto", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}}};
+        8,
+        {}};
 
     ProgressBar progressbar{
         {16, 25 * 8, UI_POS_WIDTH_REMAINING(4), 16}};
@@ -113,6 +116,13 @@ class SSTVTXView : public View {
         (int16_t)UI_POS_Y_BOTTOM(4),
         10000,
         12};
+
+    // The frequency can change in the TransmitterView: keep Auto's text right
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_frame_sync();
+        }};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,

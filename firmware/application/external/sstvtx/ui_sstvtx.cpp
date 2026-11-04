@@ -229,6 +229,22 @@ uint8_t SSTVTXView::effective_modulation() const {
     }
 }
 
+// Auto says what it chose for the frequency
+void SSTVTXView::update_modulation_options() {
+    const bool usb = transmitter_model.target_frequency() < 30'000'000;
+    auto_usb_ = usb;
+    const auto on_change = options_modulation.on_change;
+    options_modulation.on_change = nullptr;  // set_options() selects the first one
+    options_modulation.set_options({{usb ? "Auto USB" : "Auto FM", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}});
+    options_modulation.set_by_value(modulation_choice);
+    options_modulation.on_change = on_change;
+}
+
+void SSTVTXView::on_frame_sync() {
+    if ((transmitter_model.target_frequency() < 30'000'000) != auto_usb_)
+        update_modulation_options();
+}
+
 void SSTVTXView::on_bitmap_changed(const size_t index) {
     bmp_file.open("/sstv/" + bitmaps[index].string());
     bmp_file.read(&bmp_header, sizeof(bmp_header));
@@ -321,7 +337,7 @@ SSTVTXView::SSTVTXView(
     options_modes.on_change = [this](size_t, int32_t v) {
         this->on_mode_changed(v);
     };
-    options_modulation.set_by_value(modulation_choice);
+    update_modulation_options();
     options_modulation.on_change = [this](size_t, int32_t v) {
         modulation_choice = v;
     };

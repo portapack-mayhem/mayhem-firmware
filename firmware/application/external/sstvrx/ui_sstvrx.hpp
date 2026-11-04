@@ -172,7 +172,7 @@ class SstvRxView : public ui::View {
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     OptionsField options_mode{{UI_POS_X(6), UI_POS_Y(1)}, 16, {}};
-    OptionsField options_modulation{{UI_POS_X(18), UI_POS_Y(2)}, 4, {{"Auto", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}}};
+    OptionsField options_modulation{{UI_POS_X(22), UI_POS_Y(2)}, 8, {}};
 
     NumberField field_phase{{UI_POS_X(4), UI_POS_Y(2)}, 3, {-50, 50}, 1, ' '};
     NumberField field_slant{{UI_POS_X(13), UI_POS_Y(2)}, 4, {-100, 100}, 1, ' '};
@@ -180,7 +180,8 @@ class SstvRxView : public ui::View {
     Labels labels{
         {{UI_POS_X(1), UI_POS_Y(1)}, "Mode:", Theme::getInstance()->fg_light->foreground},
         {{UI_POS_X(1), UI_POS_Y(2)}, "Ph:", Theme::getInstance()->fg_light->foreground},
-        {{UI_POS_X(8), UI_POS_Y(2)}, "Slnt:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(8), UI_POS_Y(2)}, "Slnt:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(18), UI_POS_Y(2)}, "Mod:", Theme::getInstance()->fg_light->foreground}};
 
     Audio audio{{UI_POS_X(21), 10, UI_POS_WIDTH(6), 4}};
     ui::Button start_stop_btn{{UI_POS_X_RIGHT(12), UI_POS_Y(3), UI_POS_WIDTH(11), UI_POS_HEIGHT(2)}, "Start RX"};
@@ -201,6 +202,7 @@ class SstvRxView : public ui::View {
     void on_mode_changed(const size_t index);
     uint8_t effective_modulation() const;
     void on_modulation_changed();
+    void update_modulation_options();
     void on_progress(uint16_t line, uint16_t total_lines);
     void on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count);
     void write_bmp_header();

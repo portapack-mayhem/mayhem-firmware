@@ -131,13 +131,14 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
     }
     field_frequency.set_step(25000);
 
-    options_modulation.set_by_value(modulation_choice);
+    update_modulation_options();
     options_modulation.on_change = [this](size_t, int32_t v) {
         modulation_choice = v;
         on_modulation_changed();
     };
     // In Auto the band can change the demodulation
     field_frequency.updated = [this](rf::Frequency) {
+        update_modulation_options();
         on_modulation_changed();
     };
 
@@ -321,6 +322,16 @@ uint8_t SstvRxView::effective_modulation() const {
         default:
             return (receiver_model.target_frequency() < 30'000'000) ? SSTV_MOD_USB : SSTV_MOD_FM;
     }
+}
+
+// Auto says what it chose for the frequency
+void SstvRxView::update_modulation_options() {
+    const bool usb = receiver_model.target_frequency() < 30'000'000;
+    const auto on_change = options_modulation.on_change;
+    options_modulation.on_change = nullptr;  // set_options() selects the first one
+    options_modulation.set_options({{usb ? "Auto USB" : "Auto FM", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}});
+    options_modulation.set_by_value(modulation_choice);
+    options_modulation.on_change = on_change;
 }
 
 void SstvRxView::on_modulation_changed() {
