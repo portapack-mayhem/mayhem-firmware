@@ -129,7 +129,10 @@ class SstvRxView : public ui::View {
     BMPFile bmp{};
     std::filesystem::path current_image_path{};
     ui::Color line_buffer[320];
-    uint16_t line_num{0}, file_line_num{0};
+    uint16_t file_line_num{0};
+    // The picture as drawn: fitted in the display area, aspect kept, at most 1:1
+    uint16_t draw_x{0}, draw_width{240}, draw_height{192};
+    int32_t last_draw_y{-1};
     std::array<uint8_t, MAX_IMAGE_WIDTH * 3> pending_line_rgb{};
     uint16_t pending_line_number{0};
     uint8_t pending_chunk_mask{0};
@@ -184,6 +187,7 @@ class SstvRxView : public ui::View {
 
     void on_audio_spectrum();
     void update_display(uint16_t line_num, const uint8_t* rgb_line);
+    void fit_display();
     void redraw_image();  // Disabled due to memory constraints
     void start_audio();
     void on_start_stop();  // Combined start/stop handler

@@ -256,7 +256,6 @@ void SstvRxView::start_audio() {
     portapack::display.fill_rectangle(
         {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
         {0, 0, 0});
-    line_num = 0;
     file_line_num = 0;
     max_received_line = 0;
     pending_line_valid = false;
@@ -279,6 +278,7 @@ void SstvRxView::start_audio() {
     image_height = rx_sstv_mode ? rx_sstv_mode->lines : 256;
     if (image_width == 0 || image_width > MAX_IMAGE_WIDTH) image_width = 320;
     if (image_height == 0 || image_height > MAX_IMAGE_HEIGHT) image_height = 256;
+    fit_display();
     auto ok = bmp.create(current_image_path, image_width, 1);
     if (!ok) {
         SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
@@ -331,19 +331,27 @@ void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) 
     file_line_num++;
 }
 
+void SstvRxView::fit_display() {
+    draw_width = std::min({image_width, DISPLAY_WIDTH, static_cast<uint16_t>(std::size(line_buffer))});
+    draw_height = static_cast<uint16_t>(static_cast<uint32_t>(image_height) * draw_width / image_width);
+    if (draw_height > DISPLAY_HEIGHT) {
+        draw_height = DISPLAY_HEIGHT;
+        draw_width = static_cast<uint16_t>(static_cast<uint32_t>(image_width) * draw_height / image_height);
+    }
+    draw_x = (DISPLAY_WIDTH - draw_width) / 2;
+    last_draw_y = -1;
+}
+
 void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) {
     if (current_line >= image_height) return;
 
-    // Reset line counter if we reach the bottom of display
-    if (line_num >= DISPLAY_HEIGHT) {
-        line_num = 0;
-    }
+    // Each picture line has its own display line; scaled down, some share one and the first is drawn
+    const int32_t y = static_cast<int32_t>(static_cast<uint32_t>(current_line) * draw_height / image_height);
+    if (y == last_draw_y) return;
+    last_draw_y = y;
 
-    // Scale line to display width
-    for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
-        // Scale x coordinate
-        uint16_t src_x = (x * image_width) / DISPLAY_WIDTH;
-        if (src_x >= image_width) continue;
+    for (uint16_t x = 0; x < draw_width; x++) {
+        const uint16_t src_x = static_cast<uint16_t>(static_cast<uint32_t>(x) * image_width / draw_width);
 
         // Get RGB values from interleaved data [R,G,B,R,G,B,...]
         uint8_t r = rgb_line[src_x * 3 + 0];
@@ -352,15 +360,12 @@ void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) 
         line_buffer[x] = Color(r, g, b);
     }
 
-    // Render the line at the current position
     portapack::display.render_line(
-        {0, line_num + SSTV_IMG_START_ROW * 16},
-        DISPLAY_WIDTH,
+        {draw_x, static_cast<int>(y + SSTV_IMG_START_ROW * 16)},
+        draw_width,
         line_buffer);
-
-    // Increment line counter
-    line_num++;
 }
+
 void SstvRxView::redraw_image() {
     // Disabled: Post-reception redraw requires 245KB buffer which exceeds M0 memory
     // Phase and slant adjustments must be set before reception starts
