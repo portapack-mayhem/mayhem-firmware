@@ -27,7 +27,6 @@
 #include "fxpt_atan2.hpp"
 #include "message.hpp"
 
-#include <ch.h>
 #include <cstdint>
 #include <cmath>
 #include <cstddef>
@@ -47,23 +46,6 @@ constexpr uint16_t sstv_max_chunk_pixels = (sstv_chunk_copy_bytes - sstv_chunk_h
 
 inline volatile uint8_t& chunk_flag() {
     return *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[sstv_chunk_flag_index]);
-}
-
-// Max time to wait for the M0 to release the chunk buffer before dropping the chunk.
-constexpr uint32_t sstv_chunk_wait_max_ms = 250;
-
-// Wait for the M0 to consume the previous chunk. Sleeps instead of spinning so the
-// lower priority M4 event dispatcher keeps running: a busy loop here starves it, the
-// M0 then blocks forever in send_message() (start/stop, phase/slant change) and both
-// cores deadlock. Returns false if the slot did not free up in time.
-inline bool wait_for_chunk_slot() {
-    for (uint32_t waited = 0; chunk_flag() != 0; waited++) {
-        if (waited >= sstv_chunk_wait_max_ms) {
-            return false;
-        }
-        chThdSleepMilliseconds(1);
-    }
-    return true;
 }
 
 inline void mark_chunk_ready() {
@@ -98,6 +80,8 @@ void SSTVRXProcessor::execute(const buffer_c8_t& buffer) {
         // Just return silently if not configured
         return;
     }
+
+    send_pending_chunk();
 
     // Decimation chain (same as NFM)
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
@@ -471,69 +455,74 @@ void SSTVRXProcessor::process_line() {
     if (mode_total_lines == 0) return;                       // not set
     if (current_line >= mode_total_lines) current_line = 0;  // reset, maybe a new image
 
-    const uint16_t chunks_per_line = static_cast<uint16_t>((pixels_per_line + sstv_max_chunk_pixels - 1) / sstv_max_chunk_pixels);
-    const uint16_t safe_chunks_per_line = (chunks_per_line == 0) ? 1 : chunks_per_line;
-
-    auto write_chunk = [&](const uint16_t encoded_line, const uint16_t start_pixel, const uint16_t pixel_count) {
-        if (pixel_count == 0) {
-            return;
-        }
-
-        if (!wait_for_chunk_slot()) {
-            return;  // M0 not consuming, drop this chunk rather than stall the DSP
-        }
-
-        uint8_t* data_ptr = shared_memory.bb_data.data;
-        data_ptr[0] = encoded_line & 0xFF;
-        data_ptr[1] = (encoded_line >> 8) & 0xFF;
-
-        for (uint16_t i = 0; i < pixel_count; i++) {
-            const uint16_t src_i = static_cast<uint16_t>(start_pixel + i);
-            const uint16_t dst_i = static_cast<uint16_t>(sstv_chunk_header_bytes + i * 3);
-            data_ptr[dst_i + 0] = line_buffer_r[src_i];
-            data_ptr[dst_i + 1] = line_buffer_g[src_i];
-            data_ptr[dst_i + 2] = line_buffer_b[src_i];
-        }
-
-        mark_chunk_ready();
-
-        SSTVRXProgressMessage progress_message{encoded_line, mode_total_lines};
-        if (!shared_memory.application_queue.push(progress_message)) {
-            // Queue full: the M0 will never hear about this chunk, so it would never
-            // clear the flag. Release the slot ourselves.
-            chunk_flag() = 0;
-        }
-    };
-
-    auto emit_line = [&](uint16_t out_line) {
-        for (uint16_t chunk = 0; chunk < safe_chunks_per_line; chunk++) {
-            const uint16_t start_px = static_cast<uint16_t>(chunk * sstv_max_chunk_pixels);
-            const uint16_t remaining = (start_px < pixels_per_line) ? static_cast<uint16_t>(pixels_per_line - start_px) : 0;
-            const uint16_t count = (remaining > sstv_max_chunk_pixels) ? sstv_max_chunk_pixels : remaining;
-            const uint16_t encoded = static_cast<uint16_t>(out_line * safe_chunks_per_line + chunk);
-            write_chunk(encoded, start_px, count);
-        }
-    };
+    // What the M0 hasn't taken of the lines before is dropped: it is too far behind
+    out_count = 0;
+    out_next_chunk = 0;
 
     if (active_mode && active_mode->format == SSTV_FORMAT_PD) {
         // First output line
         ycbcr_to_line(pd_y0, pd_ry, pd_by);
-        emit_line(current_line);
+        queue_line(current_line);
 
         // Second output line
         if ((current_line + 1) < mode_total_lines) {
             ycbcr_to_line(pd_y1, pd_ry, pd_by);
-            emit_line(static_cast<uint16_t>(current_line + 1));
+            queue_line(static_cast<uint16_t>(current_line + 1));
         }
 
         current_line = static_cast<uint16_t>(current_line + 2);
     } else if (robot36) {
         ycbcr_to_line(pd_y0, pd_ry, pd_by);
-        emit_line(current_line);
+        queue_line(current_line);
         current_line++;
     } else {
-        emit_line(current_line);
+        queue_line(current_line);
         current_line++;
+    }
+}
+
+// A finished line, kept until the M0 has taken all its chunks
+void SSTVRXProcessor::queue_line(const uint16_t line) {
+    if (out_count >= MAX_OUT_LINES) return;
+    uint8_t* const rgb = out_rgb[out_count];
+    for (uint16_t x = 0; x < pixels_per_line; x++) {
+        rgb[x * 3 + 0] = line_buffer_r[x];
+        rgb[x * 3 + 1] = line_buffer_g[x];
+        rgb[x * 3 + 2] = line_buffer_b[x];
+    }
+    out_line[out_count] = line;
+    out_count++;
+}
+
+// One chunk to the M0 when it has taken the one before. Never waits: the samples
+// have to keep being processed, and messages are handled between two execute()s.
+void SSTVRXProcessor::send_pending_chunk() {
+    if (out_count == 0 || chunk_flag() != 0) return;
+
+    const uint16_t chunks_per_line = std::max<uint16_t>(1, (pixels_per_line + sstv_max_chunk_pixels - 1) / sstv_max_chunk_pixels);
+    const uint16_t index = out_next_chunk / chunks_per_line;
+    const uint16_t chunk = out_next_chunk % chunks_per_line;
+    const uint16_t start = chunk * sstv_max_chunk_pixels;
+    const uint16_t count = std::min<uint16_t>(sstv_max_chunk_pixels, pixels_per_line - start);
+    const uint16_t encoded = out_line[index] * chunks_per_line + chunk;
+
+    uint8_t* const data = shared_memory.bb_data.data;
+    data[0] = encoded & 0xFF;
+    data[1] = (encoded >> 8) & 0xFF;
+    memcpy(data + sstv_chunk_header_bytes, out_rgb[index] + start * 3, count * 3);
+    mark_chunk_ready();
+
+    SSTVRXProgressMessage progress_message{encoded, mode_total_lines};
+    if (!shared_memory.application_queue.push(progress_message)) {
+        // Queue full: the M0 won't hear of it, so free the slot and send it again next time
+        chunk_flag() = 0;
+        return;
+    }
+
+    out_next_chunk++;
+    if (out_next_chunk >= out_count * chunks_per_line) {
+        out_count = 0;
+        out_next_chunk = 0;
     }
 }
 
@@ -697,6 +686,8 @@ void SSTVRXProcessor::on_message(const Message* const msg) {
             pixel_phase = 0.0f;
             reset_pixel_state();
             shared_memory.bb_data.data[sstv_chunk_flag_index] = 0;
+            out_count = 0;
+            out_next_chunk = 0;
 
             break;
         }

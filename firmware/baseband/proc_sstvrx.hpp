@@ -123,6 +123,13 @@ class SSTVRXProcessor : public BasebandProcessor {
     uint8_t pd_by[MAX_PIXELS_PER_LINE];
     uint8_t pd_y1[MAX_PIXELS_PER_LINE];
 
+    // Finished lines as RGB, handed to the M0 a chunk per execute()
+    static constexpr uint8_t MAX_OUT_LINES = 2;  // PD finishes two at once
+    uint8_t out_rgb[MAX_OUT_LINES][MAX_PIXELS_PER_LINE * 3];
+    uint16_t out_line[MAX_OUT_LINES]{};
+    uint8_t out_count{0};
+    uint16_t out_next_chunk{0};
+
     // Robot 36: Y in pd_y0, the chroma of this and the line before in pd_ry/pd_by.
     // The separator before the chroma says which one it is (1500 Hz R-Y, 2300 Hz B-Y).
     bool robot36{false};
@@ -195,6 +202,8 @@ class SSTVRXProcessor : public BasebandProcessor {
     void begin_line_after_sync();
     void clear_line_buffers(bool keep_chroma = false);
     void ycbcr_to_line(const uint8_t* y, const uint8_t* cr, const uint8_t* cb);
+    void queue_line(uint16_t line);
+    void send_pending_chunk();
     void measure_robot36_separator();
     void store_pixel_value(uint32_t channel, uint16_t pixel, uint8_t value);
 

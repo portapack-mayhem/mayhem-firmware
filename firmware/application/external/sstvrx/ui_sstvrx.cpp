@@ -440,6 +440,11 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     memcpy(chunk.data(), shared_memory.bb_data.data, chunk.size());
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
 
+    // Left over from before a mode change: for another picture size
+    if (total_lines != image_height) {
+        return;
+    }
+
     const uint16_t line_num_encoded = chunk[0] | (chunk[1] << 8);
     const uint16_t chunks_per_line = static_cast<uint16_t>((image_width + MAX_CHUNK_PIXELS - 1) / MAX_CHUNK_PIXELS);
     const uint16_t safe_chunks_per_line = (chunks_per_line == 0) ? 1 : chunks_per_line;
