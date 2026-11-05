@@ -63,6 +63,7 @@ bool BMPFile::create(const std::filesystem::path& file, uint32_t x, uint32_t y) 
     auto result = bmpimage.open(file, false, true);
     if (!result.value().ok()) return false;
     file_pos = 0;
+    pending_bytes = 0;
     byte_per_row = (x * 3 % 4 == 0) ? x * 3 : (x * 3 + (4 - ((x * 3) % 4)));  // with padding
     bmpimage.seek(file_pos);
     bmp_header.signature = 0x4D42;
@@ -297,6 +298,29 @@ bool BMPFile::write_next_px(ui::Color& px) {
     if (res.is_error()) return false;
     advance_curr_px();
     return true;
+}
+
+// writes raw row data (BGR, rows padded to 4 bytes) after the last row; see commit_rows()
+bool BMPFile::append_rows(const uint8_t* data, size_t bytes) {
+    if (!is_opened || is_read_only) return false;
+    if (bmpimage.write(data, bytes).is_error()) return false;
+    pending_bytes += bytes;
+    return true;
+}
+
+// counts the whole rows appended since the last commit in the header, then back to the end
+bool BMPFile::commit_rows() {
+    if (!is_opened || is_read_only) return false;
+    const uint32_t rows = pending_bytes / byte_per_row;
+    if (!rows) return true;
+    const uint32_t delta = rows * byte_per_row;
+    pending_bytes -= delta;
+    bmp_header.size += delta;
+    bmp_header.data_size += delta;
+    bmp_header.height = -1 * (int32_t)(get_real_height() + rows);
+    if (bmpimage.seek(0).is_error()) return false;
+    if (bmpimage.write(&bmp_header, sizeof(bmp_header)).is_error()) return false;
+    return !bmpimage.seek(bmp_header.size + pending_bytes).is_error();
 }
 
 // positions in the file to the given pixel. 0 based indexing
