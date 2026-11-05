@@ -26,12 +26,16 @@
 #include "file.hpp"
 #include "file_path.hpp"
 #include "string_format.hpp"
+#include "sd_card.hpp"
 
 #include <cstring>
 
 namespace lcd_tuning_file {
 
 #define LCD_TUNING_FILE u"lcd_gamma.txt"
+
+// A valid file is about 150 bytes. Anything larger is treated as corrupt.
+constexpr size_t max_file_size = 256;
 
 static std::string hex_row(const uint8_t* p, size_t n) {
     std::string s;
@@ -59,21 +63,31 @@ static bool parse_hex_key(const std::string& s, const char* key, uint8_t* out, s
     return true;
 }
 
-bool read(lcd::panel_tuning_t& t, bool& ips) {
-    auto r = File::read_file(settings_dir / LCD_TUNING_FILE);
-    if (!r) return false;
-    const std::string& s = *r;
+Status read(lcd::panel_tuning_t& t, bool& ips) {
+    if (sd_card::status() != sd_card::Status::Mounted) return Status::Missing;
+
+    File f;
+    if (f.open(settings_dir / LCD_TUNING_FILE)) return Status::Missing;
+
+    const auto size = f.size();
+    if (size == 0 || size > max_file_size) return Status::Invalid;
+
+    char buffer[max_file_size];
+    auto r = f.read(buffer, size);
+    if (!r || *r != size) return Status::Invalid;
+
+    const std::string s(buffer, size);
     lcd::panel_tuning_t n{};
     if (!parse_hex_key(s, "E0=", n.gamma_pos, lcd::GAMMA_LEN) ||
         !parse_hex_key(s, "E1=", n.gamma_neg, lcd::GAMMA_LEN) ||
         !parse_hex_key(s, "C5=", n.vcom1, 2) ||
         !parse_hex_key(s, "C7=", &n.vcom2, 1))
-        return false;
+        return Status::Invalid;
     if (s.find("BGR=1") != std::string::npos) n.flags |= lcd::TUNING_BGR_SWAP;
     // Files without a MODE line (older exports) are treated as IPS.
     ips = s.find("MODE=TN") == std::string::npos;
     t = n;
-    return true;
+    return Status::Ok;
 }
 
 bool write(const lcd::panel_tuning_t& t, const bool ips) {
@@ -99,7 +113,7 @@ void apply(const bool force) {
     const bool had_override = lcd::ILI9341::has_override();
     lcd::panel_tuning_t t;
     bool ips = false;
-    const bool use_file = read(t, ips) && ips == portapack::persistent_memory::config_lcd_ips();
+    const bool use_file = read(t, ips) == Status::Ok && ips == portapack::persistent_memory::config_lcd_ips();
     lcd::ILI9341::set_override(use_file ? &t : nullptr);
     if (force || use_file || had_override) portapack::display.apply_panel_config();
 }

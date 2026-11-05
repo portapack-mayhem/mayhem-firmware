@@ -28,7 +28,13 @@
  * Without the file, the built-in tuning for the selected panel type is used. */
 namespace lcd_tuning_file {
 
-bool read(lcd::panel_tuning_t& t, bool& ips);
+enum class Status { Missing,
+                    Ok,
+                    Invalid };
+
+/* Invalid covers oversized, unreadable or malformed files. They are ignored
+ * at boot, and Reset to default in the LCD Gamma app deletes them. */
+Status read(lcd::panel_tuning_t& t, bool& ips);
 bool write(const lcd::panel_tuning_t& t, const bool ips);
 void remove();
 

@@ -214,8 +214,12 @@ LCDGammaView::LCDGammaView(NavigationView& nav)
     load_preset(0);
     set_advanced(false);
 
+    panel_tuning_t file_tuning;
+    bool file_ips = false;
     if (portapack::device_type != portapack::DeviceType::DEV_PORTAPACK)
         show_status("Only for 240x320 panels");
+    else if (lcd_tuning_file::read(file_tuning, file_ips) == lcd_tuning_file::Status::Invalid)
+        show_status("Bad lcd_gamma.txt, Reset deletes it");
     else
         show_status(pmem::config_lcd_ips() ? "Mode: IPS" : "Mode: TN");
 }
@@ -414,11 +418,21 @@ void LCDGammaView::save() {
     base_ = work_;
 }
 
+/* Back to a clean state: no file, no override, built-in tuning, Easy mode,
+ * all offsets 0, no red/blue swap, and the whole panel config re-sent. */
 void LCDGammaView::reset_to_default() {
     lcd_tuning_file::remove();
     lcd::ILI9341::set_override(nullptr);
+    lcd::ILI9341::default_tuning(pmem::config_lcd_ips(), base_);
+    work_ = base_;
+
     field_preset.set_selected_index(1, false);
-    load_preset(1);
+    field_mode.set_selected_index(0, false);
+    field_param.set_value(0, false);
+    set_advanced(false);
+    recompute();
+
+    portapack::display.apply_panel_config();
     show_status("Reset to built-in tuning");
 }
 
