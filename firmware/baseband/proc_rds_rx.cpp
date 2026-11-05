@@ -7,6 +7,7 @@
 
 RDSProcessor::RDSProcessor() {
     decim_0.configure(taps_200k_wfm_decim_0.taps);
+    decim_channel.configure(taps_200k_wfm_decim_1.taps);
     demod_fm.configure(mpx_fs, 75000);
 
     decim_1.configure(taps_11k0_decim_1.taps);
@@ -17,20 +18,20 @@ RDSProcessor::RDSProcessor() {
 
 void RDSProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer_0);
-    const auto mpx_out = demod_fm.execute(decim_0_out, mpx_buffer);
-    feed_channel_stats(decim_0_out);
+    const auto channel = decim_channel.execute(decim_0_out, dst_buffer_0);
+    const auto mpx_out = demod_fm.execute(channel, mpx_buffer);
+    feed_channel_stats(channel);
 
     // 57 kHz to 0 Hz
     for (size_t i = 0; i < mpx_out.count; i++) {
-        float sample = mpx_out.p[i];
+        const int32_t sample = mpx_out.p[i];  // full scale = 75 kHz deviation
 
         uint8_t phase_idx = (nco_phase >> 24) & 0xFF;
         uint8_t cos_idx = (phase_idx + 64) & 0xFF;
 
-        // Rescaling for the integer filter
         mixed[i] = {
-            (int16_t)(sample * 32000.0f * sine_table_i8[cos_idx] / 128.0f),
-            (int16_t)(sample * 32000.0f * sine_table_i8[phase_idx] / 128.0f)};
+            (int16_t)((sample * sine_table_i8[cos_idx]) >> 7),
+            (int16_t)((sample * sine_table_i8[phase_idx]) >> 7)};
         nco_phase += nco_inc;
     }
 

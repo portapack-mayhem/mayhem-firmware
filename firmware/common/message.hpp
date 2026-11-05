@@ -180,6 +180,7 @@ class Message {
         SpecAnCaptured = 121,
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
+        VDL2Frame = 124,
         MAX
     };
 
@@ -937,15 +938,19 @@ struct ReplayConfig {
     uint64_t baseband_bytes_received;
     FIFO<StreamBuffer*>* fifo_buffers_empty;
     FIFO<StreamBuffer*>* fifo_buffers_full;
+    // Opt-in only for native C8 direct IQ Replay. Audio/GPS default unchanged.
+    const bool input_is_c8;
 
     constexpr ReplayConfig(
         const size_t read_size,
-        const size_t buffer_count)
+        const size_t buffer_count,
+        bool input_is_c8 = false)
         : read_size{read_size},
           buffer_count{buffer_count},
           baseband_bytes_received{0},
           fifo_buffers_empty{nullptr},
-          fifo_buffers_full{nullptr} {
+          fifo_buffers_full{nullptr},
+          input_is_c8{input_is_c8} {
     }
 };
 
@@ -1112,6 +1117,9 @@ enum class OversampleRate : uint8_t {
     /* Use either to indicate there's no oversampling needed. */
     None = 1,
     x1 = None,
+
+    /* Replay-only x2; Capture's historical selection is unchanged. */
+    x2 = 2,
 
     /* Oversample rate of 4 times the sample rate. */
     x4 = 4,
@@ -1575,6 +1583,8 @@ class WeatherDataMessage : public Message {
     }
     uint8_t sensorType = 0;
     uint64_t decode_data = 0;
+    uint8_t payload_len = 0;
+    uint8_t payload[32]{};  // raw frame for protocols longer than 64 bits (WS_MAX_PAYLOAD)
 };
 
 class SubGhzDDataMessage : public Message {
@@ -2119,6 +2129,18 @@ struct RDSGroupMessage : public Message {
     bool is_debug;
     uint32_t debug_1;
     uint32_t debug_2;
+};
+
+// One AVLC frame from VHF Data Link mode 2 (vdl2_rx), FCS checked and taken off.
+struct VDL2FrameMessage : public Message {
+    static constexpr size_t MAX_LENGTH = 320;
+
+    constexpr VDL2FrameMessage()
+        : Message{ID::VDL2Frame} {}
+
+    uint16_t length{0};    // as received; the data holds at most MAX_LENGTH of it
+    int16_t offset_hz{0};  // carrier offset seen at the sync
+    uint8_t data[MAX_LENGTH]{};
 };
 
 struct TetraBurstMessage : public Message {

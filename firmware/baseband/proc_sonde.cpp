@@ -51,6 +51,8 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
             clock_recovery_fsk_9600(mf.get_output());
             clock_recovery_fsk_4800(mf.get_output());
         }
+        if (mf_mrz.execute_once(decimator_out.p[i]))
+            clock_recovery_fsk_2400(mf_mrz.get_output());
     }
 }
 

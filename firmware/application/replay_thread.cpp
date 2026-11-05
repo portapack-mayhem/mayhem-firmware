@@ -24,6 +24,17 @@
 
 #include "baseband_api.hpp"
 #include "buffer_exchange.hpp"
+#include "portapack.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+
+// StreamBuffer reads at capacity-size. Valid Replay bytes must therefore be
+// right-aligned when the SD read is short; do not expose the stale remainder.
+static inline void align_replay_buffer(void* data, size_t capacity, size_t used) {
+    if (used && used != capacity)
+        memmove(static_cast<uint8_t*>(data) + capacity - used, data, used);
+}
 
 struct BasebandReplay {
     BasebandReplay(ReplayConfig* const config) {
@@ -42,11 +53,14 @@ ReplayThread::ReplayThread(
     size_t read_size,
     size_t buffer_count,
     bool* ready_signal,
-    std::function<void(uint32_t return_code)> terminate_callback)
-    : config{read_size, buffer_count},
+    std::function<void(uint32_t return_code)> terminate_callback,
+    bool iq_reconstruction,
+    bool input_is_c8)
+    : config{read_size, buffer_count, input_is_c8},
       reader{std::move(reader)},
       ready_sig{ready_signal},
-      terminate_callback{std::move(terminate_callback)} {
+      terminate_callback{std::move(terminate_callback)},
+      iq_reconstruction{iq_reconstruction} {
     // Need significant stack for FATFS
     thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, ReplayThread::static_fn, this);
 }
@@ -72,56 +86,115 @@ uint32_t ReplayThread::run() {
     BasebandReplay replay{&config};
     BufferExchange buffers{&config};
 
-    StreamBuffer* prefill_buffer{nullptr};
+    // ReplayThread also serves audio/GPS and legacy IQ callers.
+    // Preserve their existing reader/lifecycle behavior unless explicitly opted in.
+    if (!iq_reconstruction) {
+        StreamBuffer* prefill_buffer{nullptr};
 
-    // Wait for FIFOs to be allocated in baseband
-    // Wait for ui_replay_view to tell us that the buffers are ready (awful :( )
-    while (!(*ready_sig)) {
-        chThdSleep(100);
-    };
+        // Wait for baseband FIFO allocation and the application ready signal.
+        while (!(*ready_sig)) {
+            chThdSleep(100);
+        };
 
-    constexpr size_t block_size = 512;
+        constexpr size_t block_size = 512;
 
-    // While empty buffers fifo is not empty...
-    while (!buffers.empty()) {
-        prefill_buffer = buffers.get_prefill();
+        // While empty buffers fifo is not empty...
+        while (!buffers.empty()) {
+            prefill_buffer = buffers.get_prefill();
 
-        if (prefill_buffer == nullptr) {
-            buffers.put_app(prefill_buffer);
-        } else {
-            size_t blocks = config.read_size / block_size;
+            if (prefill_buffer == nullptr) {
+                buffers.put_app(prefill_buffer);
+            } else {
+                size_t blocks = config.read_size / block_size;
 
-            for (size_t c = 0; c < blocks; c++) {
-                auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * block_size], block_size);
-                if (read_result.is_error()) {
-                    return READ_ERROR;
+                for (size_t c = 0; c < blocks; c++) {
+                    auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * block_size], block_size);
+                    if (read_result.is_error()) {
+                        return READ_ERROR;
+                    }
+                }
+
+                prefill_buffer->set_size(config.read_size);
+
+                buffers.put(prefill_buffer);
+            }
+        };
+
+        baseband::set_fifo_data(nullptr);
+
+        while (!chThdShouldTerminate()) {
+            auto buffer = buffers.get();
+
+            auto read_result = reader->read(buffer->data(), buffer->capacity());
+            if (read_result.is_error()) {
+                return READ_ERROR;
+            } else {
+                if (read_result.value() == 0) {
+                    return END_OF_FILE;
                 }
             }
 
-            prefill_buffer->set_size(config.read_size);
+            buffer->set_size(buffer->capacity());
 
-            buffers.put(prefill_buffer);
-        }
-    };
-
-    baseband::set_fifo_data(nullptr);
-
-    while (!chThdShouldTerminate()) {
-        auto buffer = buffers.get();
-
-        auto read_result = reader->read(buffer->data(), buffer->capacity());
-        if (read_result.is_error()) {
-            return READ_ERROR;
-        } else {
-            if (read_result.value() == 0) {
-                return END_OF_FILE;
-            }
+            buffers.put(buffer);
         }
 
-        buffer->set_size(buffer->capacity());
-
-        buffers.put(buffer);
+        return TERMINATED;
     }
 
-    return TERMINATED;
+    // Wait for allocation, but allow Stop to cancel even before FIFOData.
+    while (!(*ready_sig)) {
+        if (chThdShouldTerminate()) return TERMINATED;
+        chThdSleepMilliseconds(1);
+    }
+
+    bool eof = false;
+    // Preserve block-sized prefill reads and publish only complete IQ samples.
+    // The alignment helper preserves StreamBuffer's existing read cursor.
+    auto fill_buffer = [&](StreamBuffer* buffer, size_t block_size) {
+        size_t used = 0;
+        while (used < buffer->capacity() && !eof) {
+            if (chThdShouldTerminate()) return false;
+            const auto count = std::min(block_size, buffer->capacity() - used);
+            auto result = reader->read(static_cast<uint8_t*>(buffer->data()) + used, count);
+            if (result.is_error()) return false;
+            if (result.value() == 0) eof = true;
+            used += result.value();
+        }
+        used -= used % (config.input_is_c8 ? sizeof(complex8_t) : sizeof(complex16_t));  // ignore an incomplete trailing IQ sample
+        align_replay_buffer(buffer->data(), buffer->capacity(), used);
+        buffer->set_size(used);
+        return true;
+    };
+
+    while (!buffers.empty()) {
+        auto* buffer = buffers.get_prefill();
+        if (!buffer) break;
+        if (!fill_buffer(buffer, 512))
+            return chThdShouldTerminate() ? TERMINATED : READ_ERROR;
+        buffers.put(buffer);
+    }
+    baseband::set_fifo_data(nullptr);
+
+    while (!eof && !chThdShouldTerminate()) {
+        auto* buffer = buffers.get();
+        if (!fill_buffer(buffer, buffer->capacity()))
+            return chThdShouldTerminate() ? TERMINATED : READ_ERROR;
+        buffers.put(buffer);
+    }
+    if (chThdShouldTerminate()) return TERMINATED;
+
+    // Wait for all source buffers to be consumed before notifying the UI (which
+    // disables TX). Then allow the FIR zero tail and four DMA slots to drain.
+    while (config.fifo_buffers_empty->len() < config.buffer_count) {
+        if (chThdShouldTerminate()) return TERMINATED;
+        chThdSleepMilliseconds(1);
+    }
+    const auto rate = portapack::transmitter_model.sampling_rate();
+    const auto drain_ms = rate ? (uint64_t{6 * 2048 * 1000} + rate - 1) / rate + 1 : 1;
+    for (uint64_t elapsed = 0; elapsed < drain_ms; ++elapsed) {
+        if (chThdShouldTerminate()) return TERMINATED;
+        chThdSleepMilliseconds(1);
+    }
+    return END_OF_FILE;
 }
