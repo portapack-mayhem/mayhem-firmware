@@ -93,7 +93,8 @@ void Deinterleaver::service(Shared* shared) {
             const uint32_t lag = (INTER_BRANCHES - 1 - k) * DEINT_LAG;
             if (prepared_ < lag) continue;
             const uint32_t source = prepared_ - lag;
-            if (!valid(source)) continue;
+            // not there, or written over since by a block a whole ring later
+            if (!valid(source) || written_ > source + RING_BLOCKS) continue;
             if (read_(context_, (source % RING_BLOCKS) * FILE_BLOCK + k * DEINT_SEGMENT,
                       shared->out[slot] + k * DEINT_SEGMENT, DEINT_SEGMENT))
                 mask |= (uint64_t)1 << k;
@@ -101,10 +102,17 @@ void Deinterleaver::service(Shared* shared) {
                 errors_++;
         }
         if (shared->generation != generation) return;
+        // the card was slow and the M4 is past this block: leave the slot free
+        if (prepared_ < shared->next_consumed) continue;
         shared->out_seq[slot] = prepared_;
         shared->out_valid[slot] = mask;
         __sync_synchronize();
         shared->out_state[slot] = SLOT_READY;
+        // the M4 started over meanwhile
+        if (shared->generation != generation) {
+            shared->out_state[slot] = SLOT_FREE;
+            return;
+        }
         prepared_++;
     }
 }

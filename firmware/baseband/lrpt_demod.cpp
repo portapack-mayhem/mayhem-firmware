@@ -155,6 +155,7 @@ void Viterbi::reset() {
     metric_ = metrics_[0];
     step_ = 0;
     errors_ = 0;
+    counted_ = 0;
     bits_ = 0;
     window_ready_ = false;
 }
@@ -223,15 +224,26 @@ void Viterbi::traceback() {
     for (size_t i = 0; i < CHUNK; i++) {
         const size_t slot = (first + i) % RING;
         encoder_ = ((encoder_ << 1) | bits[i]) & 0x7F;
-        errors_ += (parity(encoder_ & POLY_A) != (received_[slot][0] > 0)) +
-                   (parity(encoder_ & POLY_B) != (received_[slot][1] > 0));
+        // erased softs (0) say nothing, they are not errors
+        const int8_t r0 = received_[slot][0];
+        const int8_t r1 = received_[slot][1];
+        if (r0) {
+            counted_++;
+            errors_ += parity(encoder_ & POLY_A) != (r0 > 0);
+        }
+        if (r1) {
+            counted_++;
+            errors_ += parity(encoder_ & POLY_B) != (r1 > 0);
+        }
         handler_(context_, bits[i]);
     }
     bits_ += CHUNK;
     if (bits_ >= WINDOW_BITS) {
         window_errors_ = errors_;
+        window_counted_ = counted_;
         window_ready_ = true;
         errors_ = 0;
+        counted_ = 0;
         bits_ = 0;
     }
 }
@@ -314,6 +326,8 @@ void Interleaved::restart() {
     for (size_t i = 0; i < DEINT_SLOTS; i++) {
         shared_->in_state[i] = SLOT_FREE;
         shared_->out_state[i] = SLOT_FREE;
+        shared_->in_seq[i] = 0xFFFFFFFF;
+        shared_->out_seq[i] = 0xFFFFFFFF;
     }
     shared_->next_consumed = 0;
     __sync_synchronize();
@@ -587,6 +601,13 @@ void Interleaved::complete() {
         shared_->in_state[slot] = SLOT_FULL;
     }
 
+    // An output block the M0 finished too late, or from before a restart, would hold its slot
+    // for good: only this block and the next may be ready.
+    for (size_t i = 0; i < DEINT_SLOTS; i++) {
+        const uint32_t q = shared_->out_seq[i];
+        if (shared_->out_state[i] == SLOT_READY && q != seq_ && q != seq_ + 1) shared_->out_state[i] = SLOT_FREE;
+    }
+
     // its output block is used while the next input block fills
     using_ = true;
     use_seq_ = seq_;
@@ -817,7 +838,10 @@ void Demodulator::decode(int8_t a, int8_t b) {
     viterbi_.step(a, b);
     if (!viterbi_.window_done()) return;
 
-    ber_permille_ = (uint16_t)((viterbi_.window_errors() * 1000) / (2 * Viterbi::WINDOW_BITS));
+    // mostly erasures (80k, blocks late or not in yet): no news about the lock
+    const uint32_t counted = viterbi_.window_counted();
+    if (counted < Viterbi::WINDOW_BITS) return;
+    ber_permille_ = (uint16_t)((viterbi_.window_errors() * 1000) / counted);
     if (ber_permille_ < BER_LOCK_PERMILLE) {
         code_locked_ = true;
         bad_windows_ = 0;

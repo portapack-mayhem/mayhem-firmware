@@ -51,6 +51,7 @@ class Viterbi {
 
     // re-encoded decisions against the received ones, over the last window
     uint32_t window_errors() const { return window_errors_; }
+    uint32_t window_counted() const { return window_counted_; }  // code symbols not erased
     bool window_done() {
         const bool d = window_ready_;
         window_ready_ = false;
@@ -72,8 +73,10 @@ class Viterbi {
     size_t step_{0};
     uint8_t encoder_{0};
     uint32_t errors_{0};
+    uint32_t counted_{0};
     uint32_t bits_{0};
     uint32_t window_errors_{0};
+    uint32_t window_counted_{0};
     bool window_ready_{false};
 
     void traceback();

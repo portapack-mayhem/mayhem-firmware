@@ -47,7 +47,8 @@ constexpr uint8_t composites[][3] = {
 };
 constexpr size_t composite_count = sizeof(composites) / sizeof(composites[0]);
 
-const std::filesystem::path deint_path{u"/LRPT/DEINT.TMP"};
+// a plain array: an external app has no static constructors
+constexpr char16_t deint_path[] = u"/LRPT/DEINT.TMP";
 
 // a block in the file is padded to whole sectors
 constexpr size_t deint_pad = Deinterleaver::FILE_BLOCK - lrpt::DEINT_BLOCK;
@@ -262,7 +263,7 @@ void LrptRxView::on_strip(void* context) {
     self.preview_strip();
     if (self.recording_) {
         if (!self.record_strip()) {
-            self.stop();
+            self.stop(false);
             self.text_record.set("SD write error");
             return;
         }
@@ -347,9 +348,9 @@ void LrptRxView::start() {
     show_record();
 }
 
-void LrptRxView::stop() {
+void LrptRxView::stop(bool partial) {
     // the strip being decoded, as far as it came
-    if (shared_ && decoder_.strip_pending()) record_strip();
+    if (partial && shared_ && decoder_.strip_pending()) record_strip();
     bmp_.commit_rows();
     bmp_.close();
     recording_ = false;
