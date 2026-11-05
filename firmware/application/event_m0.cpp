@@ -565,6 +565,64 @@ void EventDispatcher::exit_shell_working_mode() {
 }
 
 void EventDispatcher::handle_switches() {
+    // Without the chord gestures (off by default, and while a game or the keyboard is
+    // open) the keys are handled as they always were, and nothing more is done.
+    if (chords_suppressed || !portapack::persistent_memory::chord_gestures()) {
+        handle_switches_plain();
+        return;
+    }
+    handle_switches_chords();
+}
+
+void EventDispatcher::handle_switches_plain() {
+    const auto switches_state = get_switches_state();
+
+    portapack::bl_tick_counter = 0;
+
+    if (switches_state.count() == 0) {
+        // If all keys are released, we are no longer in a key event.
+        in_key_event = false;
+    }
+
+    if (in_key_event) {
+        if (switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Up]) {
+            const auto event = static_cast<ui::KeyEvent>(ui::KeyEvent::Back);
+            context.focus_manager().update(top_widget, event);
+        }
+
+        // If we're in a key event, return. We will ignore all additional key
+        // presses until the first key is released. We also want to ignore events
+        // where the last key held generates a key event when other pressed keys
+        // are released.
+        return;
+    }
+
+    if (EventDispatcher::display_sleep) {
+        // Swallow event, wake up display.
+        if (switches_state.any()) {
+            set_display_sleep(false);
+        }
+        return;
+    }
+
+    for (size_t i = 0; i < switches_state.size(); i++) {
+        // TODO: Ignore multiple keys at the same time?
+        if (switches_state[i]) {
+            const auto event = static_cast<ui::KeyEvent>(i);
+            if (!event_bubble_key(event)) {
+                if (switches_state[(size_t)ui::KeyEvent::Dfu]) {
+                    static_cast<ui::SystemView*>(top_widget)->toggle_overlay();
+                } else {
+                    context.focus_manager().update(top_widget, event);
+                }
+            }
+
+            in_key_event = true;
+        }
+    }
+}
+
+void EventDispatcher::handle_switches_chords() {
     const auto switches_state = get_switches_state();
 
     portapack::bl_tick_counter = 0;
@@ -598,33 +656,6 @@ void EventDispatcher::handle_switches() {
         const bool left = pressed[(size_t)ui::KeyEvent::Left];
         const bool up = pressed[(size_t)ui::KeyEvent::Up];
         const bool down = pressed[(size_t)ui::KeyEvent::Down];
-        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
-
-        // Off while a view asks for it, or when disabled in Settings > Buttons. The
-        // setting is read here rather than cached: pmem can be reloaded from the SD card.
-        if (chords_suppressed || portapack::persistent_memory::disable_chord_gestures()) {
-            // The keys go to the view as usual, but Left+Up held for a second still
-            // leaves the screen: games that take every key have no other exit without
-            // the touchscreen. Checked on the auto-repeat events of the held keys.
-            if (!(left && up && !down)) {
-                back_hold_since_ = 0;
-                return false;
-            }
-            const systime_t now = chTimeNow();
-            if (back_hold_since_ == 0) {
-                back_hold_since_ = now ? now : 1;
-                return false;
-            }
-            if (now - back_hold_since_ < MS2ST(1000))
-                return false;
-            back_hold_since_ = 0;
-            if (portapack::persistent_memory::should_use_sdcard_for_pmem())
-                portapack::persistent_memory::save_persistent_settings_to_file();
-            if (nav) nav->pop();
-            combo_fired_ = true;
-            in_key_event = true;
-            return true;
-        }
 
         if (!left)
             return false;
@@ -637,6 +668,7 @@ void EventDispatcher::handle_switches() {
         }
         if (!up && !down)  // needs Left and exactly one of Up / Down
             return false;
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
 
         // Like the status bar's back button: keep the settings when they live on the
         // card, then leave the app.

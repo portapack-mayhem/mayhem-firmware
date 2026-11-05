@@ -70,7 +70,7 @@ class EventDispatcher {
     static void pump_application_queue();
 
     // Views that read the d-pad diagonals themselves (games, the on-screen keyboard)
-    // turn the global chord gestures off while they are open: true from their
+    // turn the global chord gestures (Settings > Buttons, off by default) off while they are open: true from their
     // constructor, false from their destructor. Counted, so nested views (a keyboard
     // opened from a game) each keep their own request.
     static void set_chords_suppressed(const bool suppressed);
@@ -122,8 +122,7 @@ class EventDispatcher {
     static bool display_sleep;
     static uint8_t chords_suppressed;  // number of open views that turned the chords off
     bool in_key_event = false;
-    bool combo_fired_ = false;       // latches a multi-key chord gesture so it fires once per press
-    systime_t back_hold_since_ = 0;  // when Left+Up went down while the instant chords are off; 0 = not held
+    bool combo_fired_ = false;  // latches a multi-key chord gesture so it fires once per press
     volatile bool waiting_for_frame = false;
     volatile bool waiting_for_shellmode = false;
     volatile bool shellmode_active = false;
@@ -150,6 +149,8 @@ class EventDispatcher {
     // void blink_timer();
     void handle_lcd_frame_sync(bool screen_on);
     void handle_switches();
+    void handle_switches_plain();
+    void handle_switches_chords();
     void handle_encoder();
     void handle_touch();
 

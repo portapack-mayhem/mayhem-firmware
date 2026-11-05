@@ -680,7 +680,7 @@ class SetButtonsView : public View {
    public:
     SetButtonsView(NavigationView& nav);
     void focus() override;
-    std::string title() const override { return "Button Speed"; };
+    std::string title() const override { return "Buttons"; };
 
    private:
     Labels labels{
@@ -714,8 +714,8 @@ class SetButtonsView : public View {
     OptionsField field_chord_gestures{
         {UI_POS_X_RIGHT(8), UI_POS_Y(11)},
         6,
-        {{"ON", false},
-         {"OFF", true}}};
+        {{"OFF", false},
+         {"ON", true}}};
 
     Button button_save{
         {UI_POS_X_CENTER(12) - UI_POS_WIDTH(8), UI_POS_Y_BOTTOM(4), UI_POS_WIDTH(12), UI_POS_HEIGHT(2)},

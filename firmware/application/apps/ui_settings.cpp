@@ -846,13 +846,13 @@ SetButtonsView::SetButtonsView(NavigationView& nav) {
     field_repeat_delay.set_by_value(pmem::ui_button_repeat_delay());
     field_repeat_speed.set_by_value(pmem::ui_button_repeat_speed());
     field_long_press_delay.set_by_value(pmem::ui_button_long_press_delay());
-    field_chord_gestures.set_by_value(pmem::disable_chord_gestures());
+    field_chord_gestures.set_by_value(pmem::chord_gestures());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_button_repeat_delay(field_repeat_delay.selected_index_value());
         pmem::set_ui_button_repeat_speed(field_repeat_speed.selected_index_value());
         pmem::set_ui_button_long_press_delay(field_long_press_delay.selected_index_value());
-        pmem::set_disable_chord_gestures(field_chord_gestures.selected_index_value());
+        pmem::set_chord_gestures(field_chord_gestures.selected_index_value());
         nav.pop();
     };
 
@@ -1282,7 +1282,7 @@ void SettingsMenuView::on_populate() {
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
         {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetEncoderDialView>(); }},
-        {"Button Speed", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<SetButtonsView>(); }},
+        {"Buttons", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<SetButtonsView>(); }},
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
