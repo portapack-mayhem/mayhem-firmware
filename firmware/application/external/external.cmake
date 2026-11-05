@@ -437,6 +437,7 @@ set(EXTCPPSRC
 	external/lrpt_rx/main.cpp
 	external/lrpt_rx/ui_lrpt_rx.cpp
 	external/lrpt_rx/lrpt_decoder.cpp
+	external/lrpt_rx/lrpt_deinterleaver.cpp
 )
 
 set(EXTAPPLIST

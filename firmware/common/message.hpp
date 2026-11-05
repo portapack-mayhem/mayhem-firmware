@@ -183,6 +183,7 @@ class Message {
         VDL2Frame = 124,
         LrptRxStatus = 125,
         LrptRxFrame = 126,
+        LrptRxBlock = 127,
         MAX
     };
 
@@ -2155,6 +2156,7 @@ struct LrptRxStatusMessage : public Message {
     static constexpr uint8_t FLAG_CARRIER = 1;
     static constexpr uint8_t FLAG_CODE = 2;
     static constexpr uint8_t FLAG_SYNC = 4;
+    static constexpr uint8_t FLAG_MARKER = 8;
 
     constexpr LrptRxStatusMessage()
         : Message{ID::LrptRxStatus} {}
@@ -2163,8 +2165,19 @@ struct LrptRxStatusMessage : public Message {
     int32_t offset_hz{0};
     uint32_t frames{0};    // CADUs found
     uint32_t overruns{0};  // dropped, no free slot
+    uint32_t late{0};      // 80k: deinterleaved blocks not ready in time, decoded as erasures
+    uint32_t lost{0};      // 80k: blocks the M0 had not written yet, lost
     uint16_t ber_permille{0};
     uint8_t flags{0};
+    uint8_t mode{0};  // lrpt::Mode running
+};
+
+// 80k: an input block is in shared->in, for the M0 to write to the card.
+struct LrptRxBlockMessage : public Message {
+    constexpr LrptRxBlockMessage(lrpt::Shared* shared)
+        : Message{ID::LrptRxBlock}, shared{shared} {}
+
+    lrpt::Shared* shared;
 };
 
 // A CADU is in shared->frames[slot]; the M0 clears shared->busy[slot] when done with it.

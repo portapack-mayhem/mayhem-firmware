@@ -79,19 +79,59 @@ constexpr float CARRIER_ALPHA_ACQUIRE = 0.02f;
 constexpr float CARRIER_BETA_ACQUIRE = 0.00005f;
 constexpr float CARRIER_ALPHA = 0.01f;
 constexpr float CARRIER_BETA = 0.000025f;
-constexpr float OMEGA_MAX = 0.2f;  // rad/sample at 288 kS/s, about 9 kHz
+constexpr float OMEGA_MAX = 0.2f;  // rad/sample at 4 samples a symbol, 9 or 10 kHz
 
 // FLL, until the code locks: the phase of the lag 1 autocorrelation ahead of the matched
 // filter, over 32768 samples. The spectrum is symmetric, so it needs neither the timing nor the
 // carrier phase. Big steps far out, small ones close in, where the estimates are mostly noise
 // and the carrier loop pulls in the rest.
 constexpr uint16_t FLL_SAMPLES = 32768;
-constexpr float FLL_NEAR = 6.2831853f * 500.0f / INPUT_RATE;
 constexpr float FLL_GAIN_FAR = 0.6f;
 constexpr float FLL_GAIN_NEAR = 0.15f;
 
 constexpr float SOFT_SCALE = 70.0f;
 constexpr uint16_t BER_LOCK_PERMILLE = 120;
+
+// 80k, the softs as the deinterleaver keeps them. 2 bits: sign and strong; 4 bits: a signed
+// value in steps of 8. The erased value is the weakest there is.
+constexpr int32_t SOFT_SPLIT = 40;
+constexpr int8_t SOFT_WEAK = 20;
+constexpr int8_t SOFT_STRONG = 60;
+constexpr uint8_t SOFT_ERASED = 0;
+
+inline uint8_t pack_soft(int8_t s) {
+    if constexpr (DEINT_SOFT_BITS == 2) {
+        const int32_t a = (s < 0) ? -s : s;
+        return ((s < 0) ? 2 : 0) | ((a >= SOFT_SPLIT) ? 1 : 0);
+    } else {
+        int32_t q = (s + ((s < 0) ? -4 : 4)) / 8;
+        if (q > 7) q = 7;
+        if (q < -7) q = -7;
+        return (uint8_t)q & 0x0F;
+    }
+}
+
+inline int8_t unpack_soft(uint8_t c) {
+    if constexpr (DEINT_SOFT_BITS == 2) {
+        const int8_t v = (c & 1) ? SOFT_STRONG : SOFT_WEAK;
+        return (c & 2) ? -v : v;
+    } else {
+        return (int8_t)((int8_t)(c << 4) >> 4) * 8;
+    }
+}
+
+constexpr size_t SOFTS_PER_BYTE = 8 / DEINT_SOFT_BITS;
+constexpr uint8_t SOFT_MASK = (1 << DEINT_SOFT_BITS) - 1;
+
+inline void put_soft(uint8_t* segment, size_t depth, uint8_t code) {
+    uint8_t& b = segment[depth / SOFTS_PER_BYTE];
+    const uint8_t shift = (depth % SOFTS_PER_BYTE) * DEINT_SOFT_BITS;
+    b = (b & ~(SOFT_MASK << shift)) | (code << shift);
+}
+
+inline uint8_t get_soft(const uint8_t* segment, size_t depth) {
+    return (segment[depth / SOFTS_PER_BYTE] >> ((depth % SOFTS_PER_BYTE) * DEINT_SOFT_BITS)) & SOFT_MASK;
+}
 
 }  // namespace
 
@@ -248,19 +288,357 @@ void Deframer::bit(uint8_t b) {
     }
 }
 
+// Interleaved (80k)
+
+Interleaved::Interleaved(Shared* shared, SoftHandler soft, void* soft_context, BlockHandler block, void* block_context)
+    : shared_{shared}, soft_{soft}, soft_context_{soft_context}, block_{block}, block_context_{block_context} {
+    for (uint8_t v = 0; v < 4; v++) {
+        int8_t m[INTER_MARKER_BITS];
+        for (size_t i = 0; i < INTER_MARKER_BITS; i++)
+            m[i] = ((INTER_MARKER >> (INTER_MARKER_BITS - 1 - i)) & 1) ? -1 : 1;
+        if (v & 2)
+            for (size_t i = 0; i < INTER_MARKER_BITS; i += 2) {
+                const int8_t t = m[i];
+                m[i] = m[i + 1];
+                m[i + 1] = t;
+            }
+        if (v & 1)
+            for (size_t i = 1; i < INTER_MARKER_BITS; i += 2) m[i] = -m[i];
+        memcpy(pattern_[v], m, sizeof(m));
+    }
+}
+
+// a new generation: block numbers from 0, all slots free, the M0 starts over
+void Interleaved::restart() {
+    if (!shared_) return;
+    for (size_t i = 0; i < DEINT_SLOTS; i++) {
+        shared_->in_state[i] = SLOT_FREE;
+        shared_->out_state[i] = SLOT_FREE;
+    }
+    shared_->next_consumed = 0;
+    __sync_synchronize();
+    shared_->generation = shared_->generation + 1;
+    seq_ = 0;
+    index_ = 0;
+    branch_ = 0;
+    depth_ = 0;
+    stored_ = true;
+    using_ = false;
+    begun_ = false;
+    align_ = false;
+}
+
+void Interleaved::soft(int8_t s, bool carrier) {
+    carrier_ = carrier;
+    switch (state_) {
+        case State::Search:
+            search(s);
+            break;
+
+        case State::Resync:
+            // the old grid goes on with erasures, so the blocks keep their timing
+            if (phase_ >= INTER_MARKER_BITS && begun_) store(SOFT_ERASED);
+            phase_ = (phase_ + 1) % INTER_PERIOD;
+            if (++resync_softs_ > RESYNC_SOFTS) {
+                state_ = State::Search;
+                memset(acc_, 0, sizeof(acc_));
+                search_softs_ = 0;
+                abs_sum_ = 0;
+            }
+            if (state_ == State::Resync) search(s);
+            break;
+
+        case State::Track:
+            check(s);
+            if (phase_ < INTER_MARKER_BITS) {
+                if (phase_ == 0 && align_) realign();
+                marker_corr_ += s * pattern_[variant_][phase_];
+                if (phase_ == INTER_MARKER_BITS - 1) {
+                    const bool bad = marker_corr_ * sign_ < marker_threshold_;
+                    marker_misses_ = (marker_misses_ << 1) | (bad ? 1 : 0);
+                    marker_corr_ = 0;
+                    if (__builtin_popcount(marker_misses_) >= 6) {
+                        state_ = State::Resync;
+                        resync_softs_ = 0;
+                        memset(acc_, 0, sizeof(acc_));
+                        search_softs_ = 0;
+                        abs_sum_ = 0;
+                    }
+                }
+            } else {
+                data(s);
+            }
+            phase_ = (phase_ + 1) % INTER_PERIOD;
+            break;
+    }
+    position_ = (position_ + 1) % INTER_PERIOD;
+}
+
+// While tracking: the 4 variants a few softs around the markers, over 32 periods. A slip of
+// the carrier turns the softs by 90 degrees, and the marker as it then shows still matches the
+// old variant in 7 of its 8 bits, one soft over: the misses never see it, this does.
+void Interleaved::check(int8_t s) {
+    window_[window_index_] = s;
+    window_index_ = (window_index_ + 1) % INTER_MARKER_BITS;
+    abs_sum_ += (s < 0) ? -s : s;
+
+    const uint8_t start = (position_ + INTER_PERIOD - (INTER_MARKER_BITS - 1)) % INTER_PERIOD;
+    int delta = (int)start - (int)start_;
+    if (delta > (int)INTER_PERIOD / 2) delta -= INTER_PERIOD;
+    if (delta < -(int)INTER_PERIOD / 2) delta += INTER_PERIOD;
+    if (delta >= -CHECK_SHIFT && delta <= CHECK_SHIFT) {
+        for (uint8_t v = 0; v < 4; v++) {
+            int32_t corr = 0;
+            for (size_t i = 0; i < INTER_MARKER_BITS; i++)
+                corr += window_[(window_index_ + i) % INTER_MARKER_BITS] * pattern_[v][i];
+            acc_[v][delta + CHECK_SHIFT] += (int16_t)corr;
+        }
+    }
+
+    if (++search_softs_ < SEARCH_PERIODS * INTER_PERIOD) return;
+
+    int32_t best = 0;
+    uint8_t best_v = 0;
+    int best_delta = 0;
+    for (uint8_t v = 0; v < 4; v++)
+        for (int d = -CHECK_SHIFT; d <= CHECK_SHIFT; d++) {
+            const int32_t a = (acc_[v][d + CHECK_SHIFT] < 0) ? -acc_[v][d + CHECK_SHIFT] : acc_[v][d + CHECK_SHIFT];
+            if (a > best) {
+                best = a;
+                best_v = v;
+                best_delta = d;
+            }
+        }
+    const int32_t current = (acc_[variant_][CHECK_SHIFT] < 0) ? -acc_[variant_][CHECK_SHIFT] : acc_[variant_][CHECK_SHIFT];
+    const int8_t sign = (acc_[best_v][best_delta + CHECK_SHIFT] < 0) ? -1 : 1;
+    const int32_t expected = SEARCH_PERIODS * INTER_MARKER_BITS * (int32_t)(abs_sum_ / search_softs_);
+
+    memset(acc_, 0, sizeof(acc_));
+    search_softs_ = 0;
+    abs_sum_ = 0;
+    if (carrier_ && (best_v != variant_ || best_delta) && (best - current) * 16 > expected) {
+        start_ = (start_ + INTER_PERIOD + best_delta) % INTER_PERIOD;
+        variant_ = best_v;
+        sign_ = sign;
+        phase_ = (phase_ + INTER_PERIOD - best_delta) % INTER_PERIOD;
+        marker_corr_ = 0;
+        align_ = true;
+    } else if (best_v == variant_ && !best_delta) {
+        sign_ = sign;
+    }
+}
+
+// Correlates each position of the period with the 4 variants of the marker, over 32 periods.
+void Interleaved::search(int8_t s) {
+    window_[window_index_] = s;
+    window_index_ = (window_index_ + 1) % INTER_MARKER_BITS;
+    abs_sum_ += (s < 0) ? -s : s;
+
+    const uint8_t start = (position_ + INTER_PERIOD - (INTER_MARKER_BITS - 1)) % INTER_PERIOD;
+    for (uint8_t v = 0; v < 4; v++) {
+        int32_t corr = 0;
+        for (size_t i = 0; i < INTER_MARKER_BITS; i++)
+            corr += window_[(window_index_ + i) % INTER_MARKER_BITS] * pattern_[v][i];
+        acc_[v][start] += (int16_t)corr;
+    }
+
+    if (++search_softs_ < SEARCH_PERIODS * INTER_PERIOD) return;
+
+    int32_t best = 0;
+    int32_t second = 0;
+    uint8_t best_v = 0;
+    uint8_t best_start = 0;
+    for (uint8_t v = 0; v < 4; v++)
+        for (uint8_t p = 0; p < INTER_PERIOD; p++) {
+            const int32_t a = (acc_[v][p] < 0) ? -acc_[v][p] : acc_[v][p];
+            if (a > best) {
+                second = best;
+                best = a;
+                best_v = v;
+                best_start = p;
+            } else if (a > second) {
+                second = a;
+            }
+        }
+    const int8_t sign = (acc_[best_v][best_start] < 0) ? -1 : 1;
+    const int32_t mean_abs = abs_sum_ / search_softs_;
+    const int32_t expected = SEARCH_PERIODS * INTER_MARKER_BITS * mean_abs;
+
+    memset(acc_, 0, sizeof(acc_));
+    search_softs_ = 0;
+    abs_sum_ = 0;
+    // The marker turned by 90 degrees and moved by one soft still matches 7 of its 8 bits, so
+    // the runner up is close; one bit apart is expected / 8, half of that will do.
+    if (carrier_ && best * 2 > expected && (best - second) * 16 > expected)
+        found(best_start, best_v, sign, INTER_MARKER_BITS * mean_abs / 4);
+}
+
+void Interleaved::found(uint8_t start, uint8_t variant, int8_t sign, int32_t threshold) {
+    if (state_ == State::Resync) {
+        int delta = (int)start - (int)start_;
+        if (delta > (int)INTER_PERIOD / 2) delta -= INTER_PERIOD;
+        if (delta < -(int)INTER_PERIOD / 2) delta += INTER_PERIOD;
+        if (delta > RESYNC_SHIFT || delta < -RESYNC_SHIFT)
+            restart();
+        else
+            align_ = true;
+    } else {
+        restart();
+    }
+    state_ = State::Track;
+    start_ = start;
+    variant_ = variant;
+    sign_ = sign;
+    marker_threshold_ = threshold;
+    marker_misses_ = 0;
+    marker_corr_ = 0;
+    memset(acc_, 0, sizeof(acc_));
+    search_softs_ = 0;
+    abs_sum_ = 0;
+    // the soft that was just searched sat at position_
+    phase_ = (position_ + 1 + INTER_PERIOD - start) % INTER_PERIOD;
+}
+
+// After a slip the markers moved by a soft or two: back onto a period boundary of the blocks,
+// with erasures, or by writing over the last few softs.
+void Interleaved::realign() {
+    align_ = false;
+    const size_t rem = index_ % INTER_DATA;
+    if (!rem) return;
+    if (rem <= INTER_DATA / 2 && index_ >= rem) {
+        index_ -= rem;
+        branch_ = index_ % INTER_BRANCHES;
+        depth_ = index_ / INTER_BRANCHES;
+    } else {
+        for (size_t k = rem; k < INTER_DATA; k++) store(SOFT_ERASED);
+    }
+}
+
+void Interleaved::data(int8_t s) {
+    if (!begun_) {
+        // wait for a marker, the blocks start on one
+        if (phase_ != INTER_MARKER_BITS) return;
+        begun_ = true;
+    }
+    const uint8_t e = phase_ - INTER_MARKER_BITS;
+    if (!(e & 1)) {
+        held_ = s;
+        return;
+    }
+    int8_t a = held_;
+    int8_t b = s;
+    if (variant_ & 1) b = -b;
+    if (variant_ & 2) {
+        const int8_t t = a;
+        a = b;
+        b = t;
+    }
+    // The polarity too: the deinterleaver mixes softs from before and after a slip, an inversion
+    // is only harmless to the decoder when it is the same for all of them.
+    if (sign_ < 0) {
+        a = -a;
+        b = -b;
+    }
+    store(pack_soft(a));
+    store(pack_soft(b));
+}
+
+void Interleaved::store(uint8_t code) {
+    if (stored_) put_soft(shared_->in[seq_ % DEINT_SLOTS] + branch_ * DEINT_SEGMENT, depth_, code);
+    use();
+    index_++;
+    if (++branch_ == INTER_BRANCHES) {
+        branch_ = 0;
+        depth_++;
+    }
+    if (index_ == DEINT_BLOCK_SOFTS) complete();
+}
+
+// one deinterleaved soft into the decoder, which pairs them
+void Interleaved::use() {
+    if (!using_ || use_index_ == DEINT_BLOCK_SOFTS) return;
+    const size_t slot = use_seq_ % DEINT_SLOTS;
+    int8_t v = 0;
+    if (use_branch_ == INTER_BRANCHES - 1) {
+        if (use_stored_) v = unpack_soft(get_soft(shared_->in[slot] + use_branch_ * DEINT_SEGMENT, use_depth_));
+    } else if (use_ready_ && ((use_valid_ >> use_branch_) & 1)) {
+        v = unpack_soft(get_soft(shared_->out[slot] + use_branch_ * DEINT_SEGMENT, use_depth_));
+    }
+    soft_(soft_context_, v);
+    use_index_++;
+    if (++use_branch_ == INTER_BRANCHES) {
+        use_branch_ = 0;
+        use_depth_++;
+    }
+}
+
+void Interleaved::complete() {
+    const size_t slot = seq_ % DEINT_SLOTS;
+
+    // done with the output block used meanwhile
+    if (using_) {
+        const size_t used = use_seq_ % DEINT_SLOTS;
+        if (shared_->out_seq[used] == use_seq_) shared_->out_state[used] = SLOT_FREE;
+    }
+
+    if (stored_) {
+        shared_->in_seq[slot] = seq_;
+        __sync_synchronize();
+        shared_->in_state[slot] = SLOT_FULL;
+    }
+
+    // its output block is used while the next input block fills
+    using_ = true;
+    use_seq_ = seq_;
+    use_stored_ = stored_;
+    use_index_ = 0;
+    use_branch_ = 0;
+    use_depth_ = 0;
+    use_ready_ = shared_->out_state[slot] == SLOT_READY && shared_->out_seq[slot] == seq_;
+    __sync_synchronize();
+    use_valid_ = shared_->out_valid[slot];
+    if (!use_ready_ && seq_) late_++;  // block 0 can only be built once it is in
+    shared_->next_consumed = seq_ + 1;
+    block_(block_context_);
+
+    seq_++;
+    index_ = 0;
+    branch_ = 0;
+    depth_ = 0;
+    const size_t next = seq_ % DEINT_SLOTS;
+    stored_ = shared_->in_state[next] != SLOT_FULL;
+    if (stored_)
+        shared_->in_state[next] = SLOT_FREE;
+    else
+        lost_++;
+}
+
 // Demodulator
 
-Demodulator::Demodulator(FrameHandler handler, void* context)
-    : deframer_{handler, context},
-      viterbi_{on_bit, this} {
+Demodulator::Demodulator(Mode mode, FrameHandler handler, void* context, Shared* shared, BlockHandler block)
+    : mode_{mode},
+      fll_near_{6.2831853f * 500.0f / input_rate(mode)},
+      deframer_{handler, context},
+      viterbi_{on_bit, this},
+      interleaved_{shared, on_soft, this, block, context} {
 }
 
 void Demodulator::on_bit(void* context, uint8_t bit) {
     static_cast<Demodulator*>(context)->deframer_.bit(bit);
 }
 
+void Demodulator::on_soft(void* context, int8_t s) {
+    static_cast<Demodulator*>(context)->soft(s);
+}
+
+// 72k: the code locked. 80k: the code only locks once the deinterleaver is full, the markers
+// tell much earlier that the carrier is right.
+bool Demodulator::tracking() const {
+    return (mode_ == Mode::M80K) ? interleaved_.locked() : code_locked_;
+}
+
 int32_t Demodulator::frequency_offset_hz() const {
-    return (int32_t)(omega_ * (float)INPUT_RATE / 6.2831853f);
+    return (int32_t)(omega_ * (float)input_rate(mode_) / 6.2831853f);
 }
 
 void Demodulator::constellation(int8_t* out) const {
@@ -286,9 +664,9 @@ void Demodulator::execute(const Cf& in) {
     fll_acc_.im += x.im * fll_last_.re - x.re * fll_last_.im;
     fll_last_ = x;
     if (++fll_count_ == FLL_SAMPLES) {
-        if (!code_locked_) {
+        if (!tracking()) {
             const float e = atan2f(fll_acc_.im, fll_acc_.re);
-            set_omega(omega_ + e * ((fabsf(e) > FLL_NEAR) ? FLL_GAIN_FAR : FLL_GAIN_NEAR));
+            set_omega(omega_ + e * ((fabsf(e) > fll_near_) ? FLL_GAIN_FAR : FLL_GAIN_NEAR));
         }
         fll_acc_ = {0.0f, 0.0f};
         fll_count_ = 0;
@@ -378,13 +756,14 @@ void Demodulator::interpolant(const Cf& y) {
 void Demodulator::symbol(const Cf& y) {
     // carrier: decision directed QPSK, points on the diagonals
     const float ec = ((y.re > 0.0f) ? y.im : -y.im) - ((y.im > 0.0f) ? y.re : -y.re);
-    const Cf turn{1.0f, -(code_locked_ ? CARRIER_ALPHA : CARRIER_ALPHA_ACQUIRE) * ec};
+    const bool narrow = tracking();
+    const Cf turn{1.0f, -(narrow ? CARRIER_ALPHA : CARRIER_ALPHA_ACQUIRE) * ec};
     nco_ = mul(nco_, turn);
     const float mag = nco_.re * nco_.re + nco_.im * nco_.im;
     const float fix = 1.5f - 0.5f * mag;
     nco_.re *= fix;
     nco_.im *= fix;
-    set_omega(omega_ + (code_locked_ ? CARRIER_BETA : CARRIER_BETA_ACQUIRE) * ec);
+    set_omega(omega_ + (narrow ? CARRIER_BETA : CARRIER_BETA_ACQUIRE) * ec);
 
     // lock: the points sit on the diagonals, |I| close to |Q|
     const float ai = fabsf(y.re);
@@ -400,8 +779,15 @@ void Demodulator::symbol(const Cf& y) {
     points_[point_index_][1] = sq;
     point_index_ = (point_index_ + 1) % CONSTELLATION_POINTS;
 
-    soft(si);
-    soft(sq);
+    soft_in(si, carrier_locked_);
+    soft_in(sq, carrier_locked_);
+}
+
+void Demodulator::soft_in(int8_t s, bool carrier) {
+    if (mode_ == Mode::M80K)
+        interleaved_.soft(s, carrier);
+    else
+        soft(s);
 }
 
 void Demodulator::soft(int8_t s) {
@@ -424,18 +810,21 @@ void Demodulator::soft(int8_t s) {
         b = t;
     }
     if (hypothesis_ & 1) b = -b;
-    viterbi_.step(a, b);
+    decode(a, b);
+}
 
-    if (viterbi_.window_done()) {
-        ber_permille_ = (uint16_t)((viterbi_.window_errors() * 1000) / (2 * Viterbi::WINDOW_BITS));
-        if (ber_permille_ < BER_LOCK_PERMILLE) {
-            code_locked_ = true;
-            bad_windows_ = 0;
-        } else if (!code_locked_ || ++bad_windows_ > 4) {
-            code_locked_ = false;
-            bad_windows_ = 0;
-            next_hypothesis();
-        }
+void Demodulator::decode(int8_t a, int8_t b) {
+    viterbi_.step(a, b);
+    if (!viterbi_.window_done()) return;
+
+    ber_permille_ = (uint16_t)((viterbi_.window_errors() * 1000) / (2 * Viterbi::WINDOW_BITS));
+    if (ber_permille_ < BER_LOCK_PERMILLE) {
+        code_locked_ = true;
+        bad_windows_ = 0;
+    } else if (!code_locked_ || ++bad_windows_ > 4) {
+        code_locked_ = false;
+        bad_windows_ = 0;
+        next_hypothesis();
     }
 }
 

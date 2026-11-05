@@ -20,10 +20,11 @@
 #ifndef __LRPT_DEMOD_H__
 #define __LRPT_DEMOD_H__
 
-// Meteor-M N2-3 / N2-4 LRPT, 72k mode, receive side up to the CADU:
-// OQPSK at 72000 symbols/s (RRC, alpha 0.5), convolutional code r1/2 K7 (0x4F, 0x6D),
-// NRZ-M, CADUs of 1024 bytes behind the ASM 0x1ACFFC1D. Frames come out still randomized
-// and without Reed-Solomon, the M0 does the rest.
+// Meteor-M N2-3 / N2-4 LRPT, receive side up to the CADU:
+// OQPSK at 72000 or 80000 symbols/s (RRC, alpha 0.5), convolutional code r1/2 K7 (0x4F,
+// 0x6D), NRZ-M, CADUs of 1024 bytes behind the ASM 0x1ACFFC1D. Frames come out still
+// randomized and without Reed-Solomon, the M0 does the rest. In 80k mode the code bits are
+// interleaved; the M0 undoes that through the SD card (see lrpt_shared.hpp).
 // No dependency on the firmware, so the same code runs in a PC test harness.
 
 #include <cstddef>
@@ -32,8 +33,6 @@
 #include "lrpt_shared.hpp"
 
 namespace lrpt {
-
-constexpr uint32_t INPUT_RATE = SYMBOL_RATE * 4;  // samples in, 4 a symbol
 
 struct Cf {
     float re;
@@ -107,17 +106,116 @@ class Deframer {
     uint8_t frame_[FRAME_BYTES]{};
 };
 
+// 80k: finds the markers, which also tell how the softs come out of the demodulator, puts
+// the code bits into input blocks for the M0 and takes them back deinterleaved from the output
+// blocks, one out for each one in. Never waits: an output block that is not ready in time is
+// decoded as erasures. Which bit of a code pair comes first the markers can't tell; the
+// decoder finds that out as in 72k mode.
+class Interleaved {
+   public:
+    using SoftHandler = void (*)(void* context, int8_t s);
+    using BlockHandler = void (*)(void* context);
+
+    Interleaved(Shared* shared, SoftHandler soft, void* soft_context, BlockHandler block, void* block_context);
+    // carrier: the carrier loop is locked, markers found before that are not believed
+    void soft(int8_t s, bool carrier);
+
+    bool locked() const { return state_ == State::Track; }
+    uint32_t late() const { return late_; }  // output blocks not ready in time
+    uint32_t lost() const { return lost_; }  // input blocks without a free slot
+
+   private:
+    static constexpr size_t SEARCH_PERIODS = 32;
+    static constexpr uint8_t RESYNC_SHIFT = 4;            // softs a slip may move the markers by
+    static constexpr int CHECK_SHIFT = 2;                 // neighbours looked at while tracking
+    static constexpr uint32_t RESYNC_SOFTS = 2 * 160000;  // then start over, about 2 s
+
+    enum class State : uint8_t {
+        Search,  // from scratch, new generation
+        Track,
+        Resync,  // lost the markers, keeps the blocks going on the old grid meanwhile
+    };
+
+    Shared* shared_;
+    SoftHandler soft_;
+    void* soft_context_;
+    BlockHandler block_;
+    void* block_context_;
+    State state_{State::Search};
+    bool carrier_{false};
+
+    // search
+    int8_t pattern_[4][INTER_MARKER_BITS]{};  // the marker as each variant shows it
+    int8_t window_[INTER_MARKER_BITS]{};
+    uint8_t window_index_{0};
+    uint8_t position_{0};  // of the incoming soft, modulo the period
+    int16_t acc_[4][INTER_PERIOD]{};
+    uint32_t search_softs_{0};
+    uint32_t abs_sum_{0};
+    uint32_t resync_softs_{0};
+
+    // track
+    uint8_t start_{0};    // where the markers start, modulo the period
+    uint8_t phase_{0};    // of the incoming soft from the marker start
+    uint8_t variant_{0};  // bit 0: odd softs negated, bit 1: pairs swapped
+    int8_t sign_{1};
+    int32_t marker_corr_{0};
+    int32_t marker_threshold_{0};
+    uint8_t marker_misses_{0};  // the last 8 markers, a bit set for each bad one
+    bool begun_{false};         // the blocks start at a marker
+    bool align_{false};         // put the next marker on a period boundary of the blocks
+    int8_t held_{0};
+
+    // input block
+    uint32_t seq_{0};
+    size_t index_{0};  // in the block
+    uint8_t branch_{0};
+    size_t depth_{0};
+    bool stored_{false};
+
+    // output block being used
+    bool using_{false};
+    uint32_t use_seq_{0};
+    bool use_ready_{false};
+    bool use_stored_{false};  // its input block, for branch 35
+    uint64_t use_valid_{0};
+    size_t use_index_{0};
+    uint8_t use_branch_{0};
+    size_t use_depth_{0};
+
+    uint32_t late_{0};
+    uint32_t lost_{0};
+
+    void restart();
+    void search(int8_t s);
+    void check(int8_t s);
+    void found(uint8_t start, uint8_t variant, int8_t sign, int32_t threshold);
+    void realign();
+    void data(int8_t s);
+    void store(uint8_t code);
+    void use();
+    void complete();
+};
+
 class Demodulator {
    public:
     using FrameHandler = Deframer::FrameHandler;
 
-    Demodulator(FrameHandler handler, void* context);
+    using BlockHandler = Interleaved::BlockHandler;
+
+    // shared and block are only used in 80k mode
+    Demodulator(Mode mode, FrameHandler handler, void* context, Shared* shared = nullptr, BlockHandler block = nullptr);
     Demodulator(const Demodulator&) = delete;
     Demodulator& operator=(const Demodulator&) = delete;
-    void execute(const Cf& in);  // one sample at INPUT_RATE
+    void execute(const Cf& in);  // one sample at input_rate(mode)
+    // a soft symbol as it leaves the demodulator, I then Q (for tests)
+    void soft_in(int8_t s, bool carrier);
 
     bool carrier_locked() const { return carrier_locked_; }
     bool code_locked() const { return code_locked_; }
+    bool marker_locked() const { return interleaved_.locked(); }
+    uint32_t late_blocks() const { return interleaved_.late(); }
+    uint32_t lost_blocks() const { return interleaved_.lost(); }
     bool frame_synced() const { return deframer_.synced(); }
     int32_t frequency_offset_hz() const;
     // permille of the code symbols that disagree with the decoded data
@@ -128,6 +226,9 @@ class Demodulator {
    private:
     static constexpr size_t RRC_TAPS = 33;
     static const float rrc_taps_[RRC_TAPS];
+
+    const Mode mode_;
+    const float fll_near_;
 
     // RRC matched filter, decimation by 2: 4 to 2 samples a symbol
     Cf rrc_history_[RRC_TAPS * 2]{};
@@ -142,7 +243,7 @@ class Demodulator {
     // carrier NCO, e^-j(phase) as a phasor, advanced by step_ each sample
     Cf nco_{1.0f, 0.0f};
     Cf nco_step_{1.0f, 0.0f};
-    float omega_{0.0f};  // rad/sample at INPUT_RATE
+    float omega_{0.0f};  // rad/sample at the input rate
     float delayed_i_{0.0f};
 
     // symbol timing (Gardner) with a cubic interpolator, at 2 samples a symbol
@@ -178,8 +279,12 @@ class Demodulator {
 
     Deframer deframer_;
     Viterbi viterbi_;
+    Interleaved interleaved_;
 
     static void on_bit(void* context, uint8_t bit);
+    static void on_soft(void* context, int8_t s);
+    bool tracking() const;
+    void decode(int8_t a, int8_t b);
 
     void sample(Cf y);
     void interpolant(const Cf& y);

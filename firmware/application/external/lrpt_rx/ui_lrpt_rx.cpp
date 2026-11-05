@@ -47,6 +47,35 @@ constexpr uint8_t composites[][3] = {
 };
 constexpr size_t composite_count = sizeof(composites) / sizeof(composites[0]);
 
+const std::filesystem::path deint_path{u"/LRPT/DEINT.TMP"};
+
+// a block in the file is padded to whole sectors
+constexpr size_t deint_pad = Deinterleaver::FILE_BLOCK - lrpt::DEINT_BLOCK;
+const uint8_t zeros[deint_pad ? deint_pad : 1]{};
+
+// at most 28 characters a line, 13 lines
+const char* const warning_80k =
+    "Experimental. In 80k the\n"
+    "code is spread over 18 s:\n"
+    "it is buffered on the SD\n"
+#if defined(PORTAPACK_BOARD_PRALINE)
+    "card, LRPT/DEINT.TMP 1.3 MB.\n"
+#else
+    "card, LRPT/DEINT.TMP 0.7 MB.\n"
+#endif
+    "- the image comes 18 s\n"
+    "  after the lock\n"
+    "- a slow or busy card gives\n"
+    "  gaps and black blocks,\n"
+    "  counted in S\n"
+#if defined(PORTAPACK_BOARD_PRALINE)
+    "- 4 bits a soft value\n"
+#else
+    "- 2 bits a soft value: about\n"
+    "  1 dB less than 72k\n"
+#endif
+    "- many SD writes and reads";
+
 }  // namespace
 
 void Constellation::update(const int8_t* points) {
@@ -77,8 +106,8 @@ LrptRxView::LrptRxView(NavigationView& nav)
     baseband::run_image(portapack::spi_flash::image_tag_lrpt_rx);
 
     add_children({&options_frequency, &label_mhz, &field_rf_amp, &field_lna, &field_vga, &rssi, &channel,
-                  &button_record, &text_carrier, &text_code, &text_sync, &text_offset, &text_frames,
-                  &constellation, &options_composite, &text_record});
+                  &button_record, &text_carrier, &text_code, &text_sync, &text_marker, &text_offset,
+                  &text_frames, &constellation, &options_composite, &options_mode, &text_record});
 
     options_frequency.on_change = [](size_t, OptionsField::value_t f) {
         receiver_model.set_target_frequency(f);
@@ -91,6 +120,16 @@ LrptRxView::LrptRxView(NavigationView& nav)
     set_composite(composite_);
     options_composite.on_change = [this](size_t, OptionsField::value_t v) {
         set_composite(v);
+    };
+
+    options_mode.set_selected_index(0, false);
+    options_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        const auto mode = (v == (int32_t)lrpt::Mode::M80K) ? lrpt::Mode::M80K : lrpt::Mode::M72K;
+        set_mode(mode);
+        if (mode == lrpt::Mode::M80K && !warned_80k_) {
+            warned_80k_ = true;
+            nav_.display_modal("80k mode", warning_80k, INFO, nullptr, true);
+        }
     };
 
     button_record.on_select = [this](Button&) {
@@ -112,6 +151,51 @@ LrptRxView::~LrptRxView() {
     decoder_.set_planes(nullptr);
     receiver_model.disable();
     baseband::shutdown();
+    if (deint_open_) {
+        deint_file_.close();
+        delete_file(deint_path);
+    }
+}
+
+// The radio's rate, the M4's demodulator and, for 80k, the file of the deinterleaver.
+void LrptRxView::set_mode(lrpt::Mode mode) {
+    if (mode == mode_) return;
+    mode_ = mode;
+    receiver_model.set_sampling_rate(lrpt::baseband_rate(mode_));
+    if (shared_) shared_->mode_request = (uint8_t)mode_;
+    decoder_.restart();
+    deint_.reset();
+    if (mode_ == lrpt::Mode::M80K && !deint_open_) {
+        ensure_directory(u"/LRPT");
+        delete_file(deint_path);
+        deint_open_ = !deint_file_.open(deint_path, false, true);
+    } else if (mode_ == lrpt::Mode::M72K && deint_open_) {
+        deint_file_.close();
+        delete_file(deint_path);
+        deint_open_ = false;
+    }
+    text_marker.set_style(Theme::getInstance()->fg_dark);
+}
+
+bool LrptRxView::deint_write(void* context, uint32_t offset, const uint8_t* data, size_t length) {
+    auto& self = *static_cast<LrptRxView*>(context);
+    if (!self.deint_open_ || self.deint_file_.seek(offset).is_error()) return false;
+    const auto r = self.deint_file_.write(data, length);
+    if (r.is_error() || r.value() != length) return false;
+    if (deint_pad && self.deint_file_.write(zeros, deint_pad).is_error()) return false;
+    return true;
+}
+
+bool LrptRxView::deint_read(void* context, uint32_t offset, uint8_t* data, size_t length) {
+    auto& self = *static_cast<LrptRxView*>(context);
+    if (!self.deint_open_ || self.deint_file_.seek(offset).is_error()) return false;
+    const auto r = self.deint_file_.read(data, length);
+    return !r.is_error() && r.value() == length;
+}
+
+// 80k: whatever the M4 waits for from the card. Called on each message and in long jobs.
+void LrptRxView::service() {
+    if (mode_ == lrpt::Mode::M80K && shared_) deint_.service(shared_);
 }
 
 void LrptRxView::focus() {
@@ -128,6 +212,7 @@ void LrptRxView::set_shared(lrpt::Shared* shared) {
     if (shared == shared_) return;
     shared_ = shared;
     decoder_.set_planes(shared_ ? &shared_->planes[0][0] : nullptr);
+    if (shared_) shared_->mode_request = (uint8_t)mode_;
 }
 
 void LrptRxView::on_status(const LrptRxStatusMessage& message) {
@@ -141,15 +226,24 @@ void LrptRxView::on_status(const LrptRxStatusMessage& message) {
         text_carrier.set_style((flags_ & LrptRxStatusMessage::FLAG_CARRIER) ? on : off);
         text_code.set_style((flags_ & LrptRxStatusMessage::FLAG_CODE) ? on : off);
         text_sync.set_style((flags_ & LrptRxStatusMessage::FLAG_SYNC) ? on : off);
+        text_marker.set_style((flags_ & LrptRxStatusMessage::FLAG_MARKER) ? on : off);
     }
+    service();
 
     text_offset.set(to_string_dec_int(message.offset_hz) + "Hz BER " +
                     to_string_dec_uint(message.ber_permille / 10) + "." +
                     to_string_dec_uint(message.ber_permille % 10) + "%");
 
     const auto& st = decoder_.stats();
-    text_frames.set("F" + to_string_dec_uint(st.frames) + " C" + to_string_dec_uint(st.rs_fixed) +
-                    " X" + to_string_dec_uint(st.rs_failed) + " O" + to_string_dec_uint(message.overruns));
+    std::string frames = "F" + to_string_dec_uint(st.frames) + " C" + to_string_dec_uint(st.rs_fixed) +
+                         " X" + to_string_dec_uint(st.rs_failed) + " O" + to_string_dec_uint(message.overruns);
+    if (message.mode == (uint8_t)lrpt::Mode::M80K) {
+        // blocks lost to the card, and the deinterleaver filling up
+        frames += " S" + to_string_dec_uint(message.late + message.lost + deint_.errors());
+        if (deint_.fill_percent() < 100) frames += " B" + to_string_dec_uint(deint_.fill_percent()) + "%";
+        if (!deint_open_) frames = "No file on the SD card";
+    }
+    text_frames.set(frames);
 
     if (shared_) constellation.update(&shared_->constellation[0][0]);
 }
@@ -160,6 +254,7 @@ void LrptRxView::on_frame(const LrptRxFrameMessage& message) {
     if (!shared_ || message.slot >= lrpt::RING_SLOTS) return;
     decoder_.frame(shared_->frames[message.slot]);
     shared_->busy[message.slot] = 0;
+    service();
 }
 
 void LrptRxView::on_strip(void* context) {
@@ -189,7 +284,8 @@ Dim LrptRxView::preview_height() {
 
 // The image scaled to the screen width, keeping its aspect, from the top again when full.
 void LrptRxView::preview_strip() {
-    if (!shared_) return;
+    // not while a dialog is over the view
+    if (!shared_ || !parent()) return;
     const size_t width = (screen_width < PREVIEW_MAX_WIDTH) ? screen_width : PREVIEW_MAX_WIDTH;
     const Dim height = preview_height();
     if (height <= 0) return;
@@ -231,6 +327,7 @@ bool LrptRxView::record_strip() {
             *d++ = red[k];
         }
         if (!bmp_.append_rows(chunk_, sizeof(chunk_))) return false;
+        service();
     }
     rows_written_ += lrpt::STRIP_ROWS;
     return true;

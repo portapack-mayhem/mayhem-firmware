@@ -30,23 +30,28 @@
 
 #include "message.hpp"
 
-// Meteor-M LRPT, 72k: CADUs out to the M0 through a ring of slots in M4 RAM.
+// Meteor-M LRPT, 72k or 80k: CADUs out to the M0 through a ring of slots in M4 RAM. The M0
+// asks for the mode through the shared buffer; the demodulator is built again for it.
 class LrptRxProcessor : public BasebandProcessor {
    public:
     LrptRxProcessor();
+    LrptRxProcessor(const LrptRxProcessor&) = delete;
+    LrptRxProcessor& operator=(const LrptRxProcessor&) = delete;
 
     void execute(const buffer_c8_t& buffer) override;
 
    private:
-    // 2304 kS/s in, 288 kS/s to the demodulator, 4 samples a symbol
-    static constexpr size_t baseband_fs = lrpt::INPUT_RATE * 8;
-    static constexpr size_t status_samples = lrpt::INPUT_RATE / 4;
+    // 2304 (2560) kS/s in, 288 (320) kS/s to the demodulator, 4 samples a symbol
+    static constexpr size_t baseband_fs = lrpt::baseband_rate(lrpt::Mode::M72K);
 
-    std::array<complex16_t, 512> dst{};
+    // a buffer of 2048 samples, decimated by 8
+    std::array<complex16_t, 256> dst{};
     const buffer_c16_t dst_buffer{dst.data(), dst.size()};
 
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-    lrpt::Demodulator demod{on_frame, this};
+    lrpt::Mode mode_{lrpt::Mode::M72K};
+    alignas(lrpt::Demodulator) uint8_t demod_storage_[sizeof(lrpt::Demodulator)];
+    lrpt::Demodulator* demod_{nullptr};
 
     uint8_t next_slot_{0};
     uint32_t frames_{0};
@@ -55,6 +60,8 @@ class LrptRxProcessor : public BasebandProcessor {
     LrptRxStatusMessage status_message_{};
 
     static void on_frame(void* context, const uint8_t* frame);
+    static void on_block(void* context);
+    void start_demod();
     void send_status();
 
     /* NB: Threads should be the last members in the class definition. */

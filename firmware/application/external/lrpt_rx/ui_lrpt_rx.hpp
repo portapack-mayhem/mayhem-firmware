@@ -27,10 +27,12 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "bmpfile.hpp"
+#include "file.hpp"
 #include "message.hpp"
 #include "lrpt_shared.hpp"
 
 #include "lrpt_decoder.hpp"
+#include "lrpt_deinterleaver.hpp"
 
 namespace ui::external_app::lrpt_rx {
 
@@ -77,6 +79,13 @@ class LrptRxView : public View {
     lrpt::Shared* shared_{nullptr};
     Decoder decoder_{on_strip, this};
 
+    // 72k at each start: the 80k warning comes each time 80k is chosen in a run of the app
+    lrpt::Mode mode_{lrpt::Mode::M72K};
+    bool warned_80k_{false};
+    File deint_file_{};
+    bool deint_open_{false};
+    Deinterleaver deint_{deint_write, deint_read, this};
+
     BMPFile bmp_{};
     bool recording_{false};
     std::string file_name_{};
@@ -122,6 +131,10 @@ class LrptRxView : public View {
     Text text_sync{
         {UI_POS_X(16), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
         "SYN"};
+    // 80k: the interleaver markers
+    Text text_marker{
+        {UI_POS_X(20), UI_POS_Y(1), UI_POS_WIDTH(3), UI_POS_HEIGHT(1)},
+        "MRK"};
     Text text_offset{
         {UI_POS_X(8), UI_POS_Y(2), UI_POS_WIDTH(15), UI_POS_HEIGHT(1)},
         ""};
@@ -146,11 +159,22 @@ class LrptRxView : public View {
             {"Ch 5", 7},
             {"Ch 6", 8},
         }};
+    OptionsField options_mode{
+        {UI_POS_X(5), UI_POS_Y(4)},
+        3,
+        {
+            {"72k", (int32_t)lrpt::Mode::M72K},
+            {"80k", (int32_t)lrpt::Mode::M80K},
+        }};
     Text text_record{
-        {UI_POS_X(5), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(5), UI_POS_HEIGHT(1)},
+        {UI_POS_X(9), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)},
         ""};
 
     static void on_strip(void* context);
+    static bool deint_write(void* context, uint32_t offset, const uint8_t* data, size_t length);
+    static bool deint_read(void* context, uint32_t offset, uint8_t* data, size_t length);
+    void set_mode(lrpt::Mode mode);
+    void service();
     void on_status(const LrptRxStatusMessage& message);
     void on_frame(const LrptRxFrameMessage& message);
     void set_shared(lrpt::Shared* shared);
@@ -167,6 +191,13 @@ class LrptRxView : public View {
         Message::ID::LrptRxStatus,
         [this](Message* const p) {
             this->on_status(*static_cast<const LrptRxStatusMessage*>(p));
+        }};
+    MessageHandlerRegistration message_handler_block{
+        Message::ID::LrptRxBlock,
+        [this](Message* const p) {
+            if (stopping_) return;
+            set_shared(static_cast<const LrptRxBlockMessage*>(p)->shared);
+            service();
         }};
     MessageHandlerRegistration message_handler_frame{
         Message::ID::LrptRxFrame,

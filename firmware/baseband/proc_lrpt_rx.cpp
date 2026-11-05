@@ -23,24 +23,43 @@
 #include "event_m4.hpp"
 
 #include <cstring>
+#include <new>
 
 // In .bss rather than in the processor, so the link checks that it fits the M4 RAM.
 static lrpt::Shared shared;
 
 LrptRxProcessor::LrptRxProcessor() {
-    // fs=2304000: flat to 67 kHz, the channel is 54 kHz and the Doppler and the tuning error
-    // a few kHz; what folds back onto it is down 43 dB.
+    // At 2304 kS/s flat to 67 kHz, the 72k channel is 54 kHz and the Doppler and the tuning
+    // error a few kHz; what folds back onto it is down 43 dB. At 2560 kS/s, for 80k, the same
+    // scaled by 10/9.
     decim_0.configure(taps_25k0_tetra_decim_0.taps);
+    start_demod();
     baseband_thread.start();
 }
 
+void LrptRxProcessor::start_demod() {
+    if (demod_) demod_->~Demodulator();
+    demod_ = new (demod_storage_) lrpt::Demodulator(mode_, on_frame, this, &shared, on_block);
+    status_count_ = 0;
+}
+
 void LrptRxProcessor::execute(const buffer_c8_t& buffer) {
+    const auto requested = (lrpt::Mode)shared.mode_request;
+    if (requested != mode_ && (requested == lrpt::Mode::M72K || requested == lrpt::Mode::M80K)) {
+        mode_ = requested;
+        baseband_thread.set_sampling_rate(lrpt::baseband_rate(mode_));
+        start_demod();
+    }
+
     const auto out = decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(out);
 
+    auto& demod = *demod_;
     for (size_t i = 0; i < out.count; i++)
         demod.execute({(float)out.p[i].real(), (float)out.p[i].imag()});
 
+    // 4 times a second
+    const size_t status_samples = lrpt::input_rate(mode_) / 4;
     status_count_ += out.count;
     if (status_count_ >= status_samples) {
         status_count_ -= status_samples;
@@ -48,17 +67,29 @@ void LrptRxProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
+// 80k: an input block for the card. If the queue is full the M0 still finds it at its next
+// message.
+void LrptRxProcessor::on_block(void*) {
+    const LrptRxBlockMessage m{&shared};
+    shared_memory.application_queue.push(m);
+}
+
 void LrptRxProcessor::send_status() {
+    const auto& demod = *demod_;
     demod.constellation(&shared.constellation[0][0]);
     auto& m = status_message_;
     m.shared = &shared;
     m.offset_hz = demod.frequency_offset_hz();
     m.frames = frames_;
     m.overruns = overruns_;
+    m.late = demod.late_blocks();
+    m.lost = demod.lost_blocks();
     m.ber_permille = demod.ber_permille();
     m.flags = (demod.carrier_locked() ? LrptRxStatusMessage::FLAG_CARRIER : 0) |
               (demod.code_locked() ? LrptRxStatusMessage::FLAG_CODE : 0) |
-              (demod.frame_synced() ? LrptRxStatusMessage::FLAG_SYNC : 0);
+              (demod.frame_synced() ? LrptRxStatusMessage::FLAG_SYNC : 0) |
+              (demod.marker_locked() ? LrptRxStatusMessage::FLAG_MARKER : 0);
+    m.mode = (uint8_t)mode_;
     shared_memory.application_queue.push(m);
 }
 
