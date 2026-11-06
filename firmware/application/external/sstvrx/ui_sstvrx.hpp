@@ -211,6 +211,7 @@ class SstvRxView : public ui::View {
     void on_calibration(int16_t suggested_phase, int16_t suggested_slant, uint16_t sync_count);
     void write_bmp_header();
     void write_line_to_file(uint16_t line_num, const uint8_t* rgb_line);
+    void write_file_row(uint16_t row, const uint8_t* rgb_line);
     void finish_image();
 };
 

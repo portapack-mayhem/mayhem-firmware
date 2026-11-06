@@ -397,23 +397,28 @@ void SstvRxView::on_mode_changed(const size_t index) {
 }
 
 void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
-    (void)line_num;
-    if (!bmp.is_loaded()) return;
-    // Ensure BMP height is sufficient
-    if (bmp.get_real_height() <= file_line_num) {
-        bmp.expand_y(file_line_num + 1);
+    if (!bmp.is_loaded() || line_num >= image_height) return;
+    // Rows the baseband had to drop stay black, so every row keeps its place in the picture
+    while (file_line_num < line_num) {
+        write_file_row(file_line_num, nullptr);
+        file_line_num++;
     }
-    bmp.seek(0, file_line_num);
+    write_file_row(line_num, rgb_line);
+    if (file_line_num <= line_num) file_line_num = line_num + 1;
+}
+
+// One row of the BMP; black when rgb_line is null
+void SstvRxView::write_file_row(uint16_t row, const uint8_t* rgb_line) {
+    if (bmp.get_real_height() <= row) {
+        bmp.expand_y(row + 1);
+    }
+    bmp.seek(0, row);
 
     // Write RGB data in BGR order
     for (uint16_t x = 0; x < image_width; x++) {
-        uint8_t r = rgb_line[x * 3 + 0];
-        uint8_t g = rgb_line[x * 3 + 1];
-        uint8_t b = rgb_line[x * 3 + 2];
-        Color px(r, g, b);
+        Color px = rgb_line ? Color(rgb_line[x * 3 + 0], rgb_line[x * 3 + 1], rgb_line[x * 3 + 2]) : Color::black();
         bmp.write_next_px(px);
     }
-    file_line_num++;
 }
 
 void SstvRxView::fit_display() {

@@ -56,6 +56,7 @@ class SSTVRXProcessor : public BasebandProcessor {
     static constexpr int32_t FREQ_BLACK = 1500;
     static constexpr int32_t FREQ_WHITE = 2300;
     static constexpr int32_t FREQ_SYNC = 1200;
+    static constexpr int32_t MAX_FREQ_OFFSET = 250;  // Hz, mistuning the sync range may follow
     static constexpr int32_t FREQ_VIS_BIT0 = 1300;
     static constexpr int32_t FREQ_VIS_BIT1 = 1100;
 
@@ -199,6 +200,7 @@ class SSTVRXProcessor : public BasebandProcessor {
 
     // Frequency offset compensation (auto-calibrated from sync pulses)
     int32_t freq_offset{0};
+    int32_t offset_window_center{0};  // the first offset found: where the syncs are measured
     bool freq_offset_calibrated{false};
     int32_t sync_freq_accumulator{0};
     uint32_t sync_freq_count{0};

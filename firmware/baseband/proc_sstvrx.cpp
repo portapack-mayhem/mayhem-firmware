@@ -223,12 +223,20 @@ void SSTVRXProcessor::detect_sync(int32_t freq) {
     // Sync pulse is 1200 Hz for ~9ms
     const int32_t sync_tolerance = 150;  // Hz - tolerance for sync detection
 
+    // Against the tuning offset measured so far (0 until then), so the sync range sits
+    // around the received sync and its end is seen sync_detect_lag samples late, as assumed
+    freq -= freq_offset;
+
     // Check for sync frequency (1200 Hz ± 150 Hz)
     if (freq > (FREQ_SYNC - sync_tolerance) && freq < (FREQ_SYNC + sync_tolerance)) {
         sync_sample_count++;
         in_sync = true;
-        // For the tuning offset: the sync tone itself, not the edges the average still has
-        if (current_freq > (FREQ_SYNC - sync_tolerance) && current_freq < (FREQ_SYNC + sync_tolerance)) {
+        // For the tuning offset: the sync tone itself, not the edges the average still has.
+        // Taken around the first offset found, not the running one: noise pulls the
+        // estimates towards the 1900 Hz middle, and a window that follows its own result
+        // would let that walk the offset away.
+        const int32_t tone = current_freq - offset_window_center;
+        if (tone > (FREQ_SYNC - sync_tolerance) && tone < (FREQ_SYNC + sync_tolerance)) {
             sync_freq_sum += current_freq;
             sync_freq_samples++;
         }
@@ -320,10 +328,13 @@ void SSTVRXProcessor::update_freq_offset() {
     const int32_t measured = sync_freq_sum / static_cast<int32_t>(sync_freq_samples) - FREQ_SYNC;
     if (!freq_offset_calibrated) {
         freq_offset = measured;
+        offset_window_center = measured;
         freq_offset_calibrated = true;
     } else {
         freq_offset += (measured - freq_offset) / 4;
     }
+    // The sync range follows the offset: keep noise from walking it away
+    freq_offset = std::max(-MAX_FREQ_OFFSET, std::min(MAX_FREQ_OFFSET, freq_offset));
 }
 
 // Calculate phase and slant calibration from sync timing
@@ -573,6 +584,7 @@ void SSTVRXProcessor::restart_image(const bool wait_for_two_syncs) {
     reset_pixel_state();
 
     freq_offset = 0;
+    offset_window_center = 0;
     freq_offset_calibrated = false;
     sync_history_count = 0;
     memset(sync_positions, 0, sizeof(sync_positions));
@@ -629,9 +641,11 @@ void SSTVRXProcessor::detect_vis() {
     if (!mode || !set_mode(mode)) return;
     vis_holdoff = 1000 / VIS_BIN_MS;  // a second
 
-    // The stop bit runs into line 0's sync
-    restart_image(false);
+    // The stop bit runs into line 0's sync. Scottie sends one extra sync there, before
+    // the G and B of line 0; its lines are read from the sync before R, the second one.
+    restart_image(mode->sync_index > 0);
     freq_offset = reference - FREQ_SYNC;
+    offset_window_center = freq_offset;
     freq_offset_calibrated = true;
 
     SSTVRXProgressMessage vis_message{0xFFF3, code};
