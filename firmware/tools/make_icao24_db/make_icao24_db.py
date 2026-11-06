@@ -17,24 +17,30 @@
 # along with this program; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-#
 
-# -------------------------------------------------------------------------------------
-# Create icao24.db, used for ADS-B receiver application, using
-# https://opensky-network.org/datasets/metadata/aircraftDatabase.csv
-# as a source.
-# -------------------------------------------------------------------------------------
+"""Create icao24.db from the OpenSky and Mictronics aircraft databases."""
+
 import csv
 import os
 import shutil
 import urllib.request
+import zipfile
 from dataclasses import dataclass
 from typing import Dict, Set, Tuple
 
 
+OPENSKY_CSV_URL = (
+    "https://opensky-network.org/datasets/metadata/aircraftDatabase.csv"
+)
+MICRONICS_ZIP_URL = (
+    "https://github.com/Mictronics/aircraft-database/"
+    "raw/refs/heads/main/icao24plus.zip"
+)
+
+
 @dataclass
 class AircraftRecord:
-    """Represents an aircraft record with all relevant fields"""
+    """Represents an aircraft record with all relevant fields."""
 
     icao24: str
     registration: str
@@ -44,16 +50,8 @@ class AircraftRecord:
     owner: str
     operator: str
 
-    def __hash__(self):
-        return hash(self.icao24)
-
-    def __eq__(self, other):
-        if not isinstance(other, AircraftRecord):
-            return False
-        return self.icao24 == other.icao24
-
-    def data_equals(self, other):
-        """Check if all data fields are equal (excluding ICAO24 which is the key)"""
+    def data_equals(self, other: "AircraftRecord") -> bool:
+        """Check whether all fields other than ICAO24 are equal."""
         if not isinstance(other, AircraftRecord):
             return False
         return (
@@ -67,7 +65,7 @@ class AircraftRecord:
 
 
 def backup_previous_csv() -> bool:
-    """Backup the existing CSV file if it exists. Returns True if backup was made."""
+    """Back up the existing OpenSky CSV file, if present."""
     if os.path.exists("aircraftDatabase.csv"):
         shutil.copy2("aircraftDatabase.csv", "aircraftDatabase_previous.csv")
         print("Backed up previous CSV file")
@@ -75,27 +73,23 @@ def backup_previous_csv() -> bool:
     return False
 
 
-def download_aircraft_database() -> None:
-    """Download the aircraft database file from OpenSky Network"""
-    url = "https://opensky-network.org/datasets/metadata/aircraftDatabase.csv"
-    print(f"Downloading aircraft database from {url}...")
-    try:
-        urllib.request.urlretrieve(url, "aircraftDatabase.csv")
-        print("Download completed successfully.")
-    except Exception as e:
-        print(f"Error downloading aircraft database file: {e}")
-        raise
+def download_file(url: str, filename: str) -> None:
+    """Download a file from a URL."""
+    print(f"Downloading {filename} from {url}...")
+    urllib.request.urlretrieve(url, filename)
+    print(f"Download completed: {filename}")
 
 
-def parse_csv_file(filename: str) -> Dict[str, AircraftRecord]:
-    """Parse CSV file and return a dictionary of records"""
-    records = {}
+def parse_opensky_csv(filename: str) -> Dict[str, AircraftRecord]:
+    """Parse the OpenSky CSV file."""
+    records: Dict[str, AircraftRecord] = {}
 
     if not os.path.exists(filename):
         return records
 
     try:
-        with open(filename, "rt", encoding="utf-8") as csv_file:
+        with open(filename, "rt", encoding="utf-8", newline="") as csv_file:
+            # Keep the source's existing ordering behavior.
             sorted_lines = sorted(csv_file.readlines()[1:])
             for row in csv.reader(
                 sorted_lines,
@@ -104,192 +98,260 @@ def parse_csv_file(filename: str) -> Dict[str, AircraftRecord]:
                 quoting=csv.QUOTE_ALL,
                 skipinitialspace=True,
             ):
-                # only store in case enough info is available
-                if len(row) == 27 and len(row[0]) == 6 and len(row[1]) > 0:
-                    icao24_code = row[0][:6].upper()
-                    registration = row[1][:8]
-                    manufacturer = row[3][:32]
-                    model = row[4][:32]
-                    # in case icao aircraft type isn't, use ac type like BALL for balloon
-                    if len(row[8]) == 3:
-                        actype = row[8][:3]
-                    else:
-                        actype = row[5][:4]
-                    owner = row[13][:32]
-                    operator = row[9][:32]
+                if len(row) != 27 or len(row[0]) != 6 or not row[1]:
+                    continue
 
-                    records[icao24_code] = AircraftRecord(
-                        icao24=icao24_code,
-                        registration=registration,
-                        manufacturer=manufacturer,
-                        model=model,
-                        actype=actype,
-                        owner=owner,
-                        operator=operator,
-                    )
-    except Exception as e:
-        print(f"Warning: Could not parse CSV file {filename}: {e}")
+                icao24_code = row[0][:6].strip().upper()
+                if len(icao24_code) != 6:
+                    continue
+
+                # Use the ICAO aircraft type when available; otherwise use
+                # the aircraft type field (for example, BALL for a balloon).
+                actype = row[8][:3] if len(row[8]) == 3 else row[5][:4]
+
+                records[icao24_code] = AircraftRecord(
+                    icao24=icao24_code,
+                    registration=row[1][:8],
+                    manufacturer=row[3][:32],
+                    model=row[4][:32],
+                    actype=actype,
+                    owner=row[13][:32],
+                    operator=row[9][:32],
+                )
+    except Exception as exc:
+        print(f"Warning: Could not parse CSV file {filename}: {exc}")
         return {}
 
     return records
 
 
+def extract_micronics_tsv(zip_filename: str) -> str:
+    """Extract the TSV data file from the Mictronics ZIP archive."""
+    extracted_filename = "icao24plus.tsv"
+
+    with zipfile.ZipFile(zip_filename, "r") as archive:
+        members = [name for name in archive.namelist() if not name.endswith("/")]
+        if not members:
+            raise ValueError(f"No files found in {zip_filename}")
+
+        # Prefer a member named icao24plus, otherwise use the first file.
+        member = next(
+            (
+                name
+                for name in members
+                if os.path.basename(name).lower().startswith("icao24plus")
+            ),
+            members[0],
+        )
+
+        with archive.open(member, "r") as source:
+            with open(extracted_filename, "wb") as destination:
+                shutil.copyfileobj(source, destination)
+
+    print(f"Extracted {member} to {extracted_filename}")
+    return extracted_filename
+
+
+def parse_micronics_tsv(filename: str) -> Dict[str, AircraftRecord]:
+    """Parse the Mictronics tab-separated file.
+
+    Its columns are ICAO24, registration, aircraft type, and an ignored
+    fourth column. A header row, if present, is skipped.
+    """
+    records: Dict[str, AircraftRecord] = {}
+
+    with open(filename, "rt", encoding="utf-8-sig", errors="replace", newline="") as tsv_file:
+        for row in csv.reader(tsv_file, delimiter="\t"):
+            if len(row) < 3:
+                continue
+
+            icao24_code = row[0].strip().upper()
+            if icao24_code.lower() == "icao24":
+                continue
+            if len(icao24_code) != 6:
+                continue
+
+            registration = row[1].strip()[:8]
+            actype = row[2].strip()[:4]
+
+            records[icao24_code] = AircraftRecord(
+                icao24=icao24_code,
+                registration=registration,
+                manufacturer="",
+                model="",
+                actype=actype,
+                owner="",
+                operator="",
+            )
+
+    return records
+
+
+def merge_records(
+    opensky_records: Dict[str, AircraftRecord],
+    micronics_records: Dict[str, AircraftRecord],
+) -> Dict[str, AircraftRecord]:
+    """Merge both sources, using Mictronics registration/type when provided.
+
+    OpenSky records retain their manufacturer, model, owner, and operator
+    fields. Mictronics records with no OpenSky match are added with those
+    fields empty.
+    """
+    merged = dict(opensky_records)
+
+    for icao24_code, micronics_record in micronics_records.items():
+        opensky_record = merged.get(icao24_code)
+
+        if opensky_record is None:
+            merged[icao24_code] = micronics_record
+            continue
+
+        if micronics_record.registration:
+            opensky_record.registration = micronics_record.registration
+        if micronics_record.actype:
+            opensky_record.actype = micronics_record.actype
+
+    return merged
+
+
 def compare_records(
-    old_records: Dict[str, AircraftRecord], new_records: Dict[str, AircraftRecord]
+    old_records: Dict[str, AircraftRecord],
+    new_records: Dict[str, AircraftRecord],
 ) -> Tuple[Set[str], Set[str], Set[str]]:
-    """Compare old and new records, return sets of new, deleted, and changed ICAO codes"""
-    old_keys = set(old_records.keys())
-    new_keys = set(new_records.keys())
+    """Return the sets of new, deleted, and changed ICAO24 codes."""
+    old_keys = set(old_records)
+    new_keys = set(new_records)
 
     new_icao_codes = new_keys - old_keys
     deleted_icao_codes = old_keys - new_keys
-
-    # Check for changes in existing records
-    changed_icao_codes = set()
-    for icao in old_keys & new_keys:
-        if not old_records[icao].data_equals(new_records[icao]):
-            changed_icao_codes.add(icao)
+    changed_icao_codes = {
+        icao24_code
+        for icao24_code in old_keys & new_keys
+        if not old_records[icao24_code].data_equals(new_records[icao24_code])
+    }
 
     return new_icao_codes, deleted_icao_codes, changed_icao_codes
 
 
 def write_database(records: Dict[str, AircraftRecord]) -> int:
-    """Write records to database file using original format"""
-    # bytearrays to store icao24 codes and data
+    """Write records to icao24.db in the existing binary format."""
     icao24_codes = bytearray()
     data = bytearray()
-    row_count = 0
 
-    # Sort by ICAO code for consistency
-    sorted_records = sorted(records.values(), key=lambda r: r.icao24)
+    for record in sorted(records.values(), key=lambda item: item.icao24):
+        registration = record.registration.encode("ascii", "ignore")[:8]
+        manufacturer = record.manufacturer.encode("ascii", "ignore")[:32]
+        model = record.model.encode("ascii", "ignore")[:32]
+        actype = record.actype.encode("ascii", "ignore")[:4]
+        owner = record.owner.encode("ascii", "ignore")[:32]
+        operator = record.operator.encode("ascii", "ignore")[:32]
 
-    for record in sorted_records:
-        # Encode data fields
-        registration = record.registration.encode("ascii", "ignore")
-        manufacturer = record.manufacturer.encode("ascii", "ignore")
-        model = record.model.encode("ascii", "ignore")
-        actype = record.actype.encode("ascii", "ignore")
-        owner = record.owner.encode("ascii", "ignore")
-        operator = record.operator.encode("ascii", "ignore")
+        icao24_codes.extend(record.icao24.encode("ascii") + b"\0")
 
-        # Add ICAO code with null terminator (original format)
-        icao24_codes.extend(bytearray(record.icao24 + "\0", encoding="ascii"))
-
-        # Add padded data fields (original format)
-        registration_padding = bytearray(
-            "\0" * (9 - len(registration)), encoding="ascii"
+        fields = (
+            (registration, 9),
+            (manufacturer, 33),
+            (model, 33),
+            (actype, 5),
+            (owner, 33),
+            (operator, 33),
         )
-        manufacturer_padding = bytearray(
-            "\0" * (33 - len(manufacturer)), encoding="ascii"
-        )
-        model_padding = bytearray("\0" * (33 - len(model)), encoding="ascii")
-        actype_padding = bytearray("\0" * (5 - len(actype)), encoding="ascii")
-        owner_padding = bytearray("\0" * (33 - len(owner)), encoding="ascii")
-        operator_padding = bytearray("\0" * (33 - len(operator)), encoding="ascii")
-
-        data.extend(
-            bytearray(
-                registration
-                + registration_padding
-                + manufacturer
-                + manufacturer_padding
-                + model
-                + model_padding
-                + actype
-                + actype_padding
-                + owner
-                + owner_padding
-                + operator
-                + operator_padding
-            )
-        )
-        row_count += 1
+        for value, field_size in fields:
+            data.extend(value)
+            data.extend(b"\0" * (field_size - len(value)))
 
     with open("icao24.db", "wb") as database:
         database.write(icao24_codes + data)
 
-    return row_count
+    return len(records)
+
+
+def print_change_summary(
+    old_records: Dict[str, AircraftRecord],
+    new_records: Dict[str, AircraftRecord],
+) -> None:
+    """Print a summary of changes between two record sets."""
+    new_codes, deleted_codes, changed_codes = compare_records(
+        old_records, new_records
+    )
+
+    print("\n" + "=" * 50)
+    print("DATABASE CHANGE SUMMARY")
+    print("=" * 50)
+    print(f"New records:     {len(new_codes):>8}")
+    print(f"Deleted records: {len(deleted_codes):>8}")
+    print(f"Changed records: {len(changed_codes):>8}")
+    print(f"Total records:   {len(new_records):>8}")
+    print("=" * 50)
+
+    for label, codes in (
+        ("New", new_codes),
+        ("Deleted", deleted_codes),
+        ("Changed", changed_codes),
+    ):
+        if not codes:
+            continue
+
+        sorted_codes = sorted(codes)
+        if len(sorted_codes) <= 10:
+            print(f"{label} ICAO24 codes: {', '.join(sorted_codes)}")
+        else:
+            sample = ", ".join(sorted_codes[:5])
+            print(f"Sample {label.lower()} ICAO24 codes: {sample} "
+                  f"(and {len(sorted_codes) - 5} more)")
 
 
 def create_database() -> None:
-    """Create the ICAO24 database from the downloaded file"""
-    # Backup existing CSV before downloading new one
+    """Download both sources, merge them, and create the database."""
     has_previous = backup_previous_csv()
 
-    # Download new CSV
-    download_aircraft_database()
+    download_file(OPENSKY_CSV_URL, "aircraftDatabase.csv")
+    download_file(MICRONICS_ZIP_URL, "icao24plus.zip")
 
-    # Parse both CSV files for comparison
-    old_records = {}
+    old_records: Dict[str, AircraftRecord] = {}
     if has_previous:
-        print("Parsing previous CSV file...")
-        old_records = parse_csv_file("aircraftDatabase_previous.csv")
+        print("Parsing previous OpenSky CSV file...")
+        old_records = parse_opensky_csv("aircraftDatabase_previous.csv")
         print(f"Found {len(old_records)} records in previous CSV")
 
-    print("Parsing new CSV file...")
-    new_records = parse_csv_file("aircraftDatabase.csv")
-    print(f"Found {len(new_records)} records in new CSV")
+    print("Parsing new OpenSky CSV file...")
+    opensky_records = parse_opensky_csv("aircraftDatabase.csv")
+    print(f"Found {len(opensky_records)} OpenSky records")
 
-    # Compare records if we have a previous version
+    tsv_filename = extract_micronics_tsv("icao24plus.zip")
+    print("Parsing Mictronics TSV file...")
+    micronics_records = parse_micronics_tsv(tsv_filename)
+    print(f"Found {len(micronics_records)} Mictronics records")
+
+    merged_records = merge_records(opensky_records, micronics_records)
+    print(f"Found {len(merged_records)} records after merging")
+
     if old_records:
-        new_icao_codes, deleted_icao_codes, changed_icao_codes = compare_records(
-            old_records, new_records
-        )
-
-        # Print change statistics
-        print("\n" + "=" * 50)
-        print("CSV CHANGE SUMMARY")
-        print("=" * 50)
-        print(f"New records:     {len(new_icao_codes):>8}")
-        print(f"Deleted records: {len(deleted_icao_codes):>8}")
-        print(f"Changed records: {len(changed_icao_codes):>8}")
-        print(f"Total records:   {len(new_records):>8}")
-        print("=" * 50)
-
-        # Show examples of changes (limited to avoid spam)
-        if new_icao_codes and len(new_icao_codes) <= 10:
-            print(f"\nNew ICAO24 codes: {', '.join(sorted(new_icao_codes))}")
-        elif new_icao_codes:
-            sample_new = sorted(list(new_icao_codes))[:5]
-            print(
-                f"\nSample new ICAO24 codes: {', '.join(sample_new)} (and {len(new_icao_codes)-5} more)"
-            )
-
-        if deleted_icao_codes and len(deleted_icao_codes) <= 10:
-            print(f"Deleted ICAO24 codes: {', '.join(sorted(deleted_icao_codes))}")
-        elif deleted_icao_codes:
-            sample_deleted = sorted(list(deleted_icao_codes))[:5]
-            print(
-                f"Sample deleted ICAO24 codes: {', '.join(sample_deleted)} (and {len(deleted_icao_codes)-5} more)"
-            )
-
-        if changed_icao_codes and len(changed_icao_codes) <= 10:
-            print(f"Changed ICAO24 codes: {', '.join(sorted(changed_icao_codes))}")
-        elif changed_icao_codes:
-            sample_changed = sorted(list(changed_icao_codes))[:5]
-            print(
-                f"Sample changed ICAO24 codes: {', '.join(sample_changed)} (and {len(changed_icao_codes)-5} more)"
-            )
+        print_change_summary(old_records, merged_records)
     else:
         print("\nNo previous CSV found - this appears to be the first run")
 
-    # Create database from new records
     print("\nCreating ICAO24 database...")
-    row_count = write_database(new_records)
-    print("Total of", row_count, "ICAO codes stored in database")
+    row_count = write_database(merged_records)
+    print(f"Total of {row_count} ICAO codes stored in database")
 
 
-def cleanup_previous_csv() -> None:
-    """Remove the previous CSV file if it exists"""
-    if os.path.exists("aircraftDatabase_previous.csv"):
-        os.remove("aircraftDatabase_previous.csv")
+def cleanup_previous_files() -> None:
+    """Remove temporary/previous input files if they exist."""
+    for filename in (
+        "aircraftDatabase_previous.csv",
+        "icao24plus.zip",
+        "icao24plus.tsv",
+    ):
+        if os.path.exists(filename):
+            os.remove(filename)
 
 
 if __name__ == "__main__":
     try:
         create_database()
-        cleanup_previous_csv()
-    except Exception as e:
-        print(f"Error creating ICAO24 database: {e}")
+        cleanup_previous_files()
+    except Exception as exc:
+        print(f"Error creating ICAO24 database: {exc}")
     else:
         print("ICAO24 database created successfully.")
