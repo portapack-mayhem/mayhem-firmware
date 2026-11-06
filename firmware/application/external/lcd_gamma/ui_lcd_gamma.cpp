@@ -415,7 +415,11 @@ void LCDGammaView::save() {
         show_status("Save failed, check SD card");
         return;
     }
+    // The saved tables already include the Easy offsets; zero them so they are not applied twice.
     base_ = work_;
+    field_low.set_value(0, false);
+    field_mid.set_value(0, false);
+    field_high.set_value(0, false);
 }
 
 /* Back to a clean state: no file, no override, built-in tuning, Easy mode,
