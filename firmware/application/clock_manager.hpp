@@ -120,6 +120,11 @@ class ClockManager {
     void portapack_tcxo_disable();
 
    private:
+#ifdef PRALINE
+    // The AFE (CLK0) and FPGA (CLK1) clocks run on PLL A, by themselves, so that PLL can be
+    // reset after every rate change - see set_sampling_frequency().
+    bool _datapath_pll_a{false};
+#endif
     I2C& i2c0;
     si5351::Si5351& clock_generator;
     Reference reference;

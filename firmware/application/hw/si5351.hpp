@@ -398,6 +398,13 @@ class Si5351 {
         write_register(Register::FanoutEnable, 0b11010000);
     }
 
+    // PLL A only (register 177 bit 5). Resetting a PLL restarts every multisynth and output
+    // divider it drives in step, which is the only way the Si5351 offers to fix the phase
+    // between two of its outputs.
+    void reset_pll_a() {
+        write_register(Register::PLLReset, 0x20);
+    }
+
     void reset_plls() {
 #ifdef PRALINE
         // Reset both PLLA and PLLB. Use 0xA0 to match HackRF reference firmware.

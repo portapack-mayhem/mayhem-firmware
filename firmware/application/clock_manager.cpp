@@ -476,9 +476,22 @@ void ClockManager::init_clock_generator() {
     const auto ref_pll =
         get_si5351c_reference_clock_generator_pll(reference.source);
 
+    /* The DAC/ADC clock (CLK0) and the FPGA clock (CLK1) have to keep a fixed phase to each
+     * other: the FPGA hands I and Q over on opposite edges, and in TX CLK0 comes out of a /2
+     * output divider while CLK1 does not. Reprogramming the multisynths at a rate change
+     * leaves that relation to chance unless the PLL driving them is reset afterwards, which is
+     * what the reference firmware does (clock_gen.c: "Reset PLL to synchronize output clock
+     * phase"). Here the MCU clock (CLK2) shares the reference PLL, so that PLL must not be
+     * reset at run time. When the reference is CLKIN (PLL B), PLL A - the local crystal, which
+     * nothing else uses then - is given to CLK0 and CLK1 alone and reset on every rate change.
+     * Without this every other start of the radio came up with I and Q swapped: a mirrored
+     * spectrum, invisible to AM/FM, fatal to LoRa (half of all packets never detected). */
+    _datapath_pll_a = (ref_pll == ClockControl::MultiSynthSource::PLLB);
+    const auto datapath_pll = _datapath_pll_a ? ClockControl::MultiSynthSource::PLLA : ref_pll;
+
     const ClockControls si5351_clock_control = ClockControls{{
-        si5351_clock_control_common[0].ms_src(ref_pll),
-        si5351_clock_control_common[1].ms_src(ref_pll),
+        si5351_clock_control_common[0].ms_src(datapath_pll),
+        si5351_clock_control_common[1].ms_src(datapath_pll),
         si5351_clock_control_common[2].ms_src(ref_pll),
         si5351_clock_control_common[3].ms_src(ref_pll),
         si5351_clock_control_common[4].ms_src(ref_pll),
@@ -928,6 +941,22 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 
         // Re-enable FPGA processing with clean state ===
         fpga_debug_register_write(1, 0x01);
+    }
+
+    if (_datapath_pll_a) {
+        // The reference delays FPGA_CLK against AFE_CLK (clock_gen.c si5351c_set_phase(1, ...))
+        // so the FPGA's DDR data to the DAC changes half a clock away from where the MAX5864
+        // samples it. Register 166 = CLK1 phase offset in quarter VCO periods (0.3125 ns at
+        // 800 MHz); 42 = ~13 ns, the value the reference arrives at for the 80 MHz multisynth
+        // behind a 40 MHz AFE clock. Takes effect at the PLL reset below.
+        // Restart CLK0 and CLK1 in step (see init_clock_generator), wait for the lock.
+        clock_generator.reset_pll_a();
+        uint32_t pll_timeout = 100000;
+        while ((clock_generator.device_status() & 0x20) && pll_timeout) --pll_timeout;
+        if (radio::debug::get_cached_direction() != rf::Direction::Transmit) {
+            fpga_debug_register_write(1, 0x00);  // flush the decimators across the clock restart
+            fpga_debug_register_write(1, 0x01);
+        }
     }
 
 #else
