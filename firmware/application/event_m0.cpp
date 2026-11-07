@@ -107,6 +107,7 @@ static MessageHandlerMap message_map;
 Thread* EventDispatcher::thread_event_loop = nullptr;
 bool EventDispatcher::is_running = false;
 bool EventDispatcher::display_sleep = false;
+uint8_t EventDispatcher::chords_suppressed = 0;
 
 EventDispatcher::EventDispatcher(
     ui::Widget* const top_widget,
@@ -132,6 +133,13 @@ void EventDispatcher::run() {
 
 void EventDispatcher::request_stop() {
     is_running = false;
+}
+
+void EventDispatcher::set_chords_suppressed(const bool suppressed) {
+    if (suppressed)
+        chords_suppressed++;
+    else if (chords_suppressed > 0)
+        chords_suppressed--;
 }
 
 void EventDispatcher::set_display_sleep(const bool sleep) {
@@ -557,6 +565,16 @@ void EventDispatcher::exit_shell_working_mode() {
 }
 
 void EventDispatcher::handle_switches() {
+    // Without the chord gestures (off by default, and while a game or the keyboard is
+    // open) the keys are handled as they always were, and nothing more is done.
+    if (chords_suppressed || !portapack::persistent_memory::chord_gestures()) {
+        handle_switches_plain();
+        return;
+    }
+    handle_switches_chords();
+}
+
+void EventDispatcher::handle_switches_plain() {
     const auto switches_state = get_switches_state();
 
     portapack::bl_tick_counter = 0;
@@ -586,6 +604,118 @@ void EventDispatcher::handle_switches() {
         }
         return;
     }
+
+    for (size_t i = 0; i < switches_state.size(); i++) {
+        // TODO: Ignore multiple keys at the same time?
+        if (switches_state[i]) {
+            const auto event = static_cast<ui::KeyEvent>(i);
+            if (!event_bubble_key(event)) {
+                if (switches_state[(size_t)ui::KeyEvent::Dfu]) {
+                    static_cast<ui::SystemView*>(top_widget)->toggle_overlay();
+                } else {
+                    context.focus_manager().update(top_widget, event);
+                }
+            }
+
+            in_key_event = true;
+        }
+    }
+}
+
+void EventDispatcher::handle_switches_chords() {
+    const auto switches_state = get_switches_state();
+
+    portapack::bl_tick_counter = 0;
+
+    // The physical key state; get_switches_state() is the auto-repeat state, which
+    // toggles low between repeat pulses while a key is held.
+    const auto pressed = get_switches_pressed();
+
+    // A completed chord owns the keys until they are physically released: nothing is
+    // dispatched meanwhile, not even the repeat pulses of the keys still held.
+    if (combo_fired_) {
+        if (pressed.any())
+            return;
+        combo_fired_ = false;
+        in_key_event = false;
+        return;
+    }
+
+    if (switches_state.count() == 0) {
+        // If all keys are released, we are no longer in a key event.
+        in_key_event = false;
+    }
+
+    // Global chord gestures, recognised on the physical key state. Returns true when one
+    // fired; it then owns the keys until they are physically released (see above).
+    // Diagonals only: the PortaPack d-pad is a rocker that tilts cleanly into a corner,
+    // while opposite directions (Left+Right, Up+Down) also close the keys in between.
+    //   Left + Up    -> Back  (the existing chord)
+    //   Left + Down  -> Home  (straight back to the main menu from any app)
+    const auto fire_chord = [this, &pressed]() {
+        const bool left = pressed[(size_t)ui::KeyEvent::Left];
+        const bool up = pressed[(size_t)ui::KeyEvent::Up];
+        const bool down = pressed[(size_t)ui::KeyEvent::Down];
+
+        if (!left)
+            return false;
+        if (up && down) {
+            // Ambiguous: hold everything off until all keys are released, so letting go
+            // of one of them can't turn it into Back or Home on the way out.
+            combo_fired_ = true;
+            in_key_event = true;
+            return true;
+        }
+        if (!up && !down)  // needs Left and exactly one of Up / Down
+            return false;
+        auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+
+        // Like the status bar's back button: keep the settings when they live on the
+        // card, then leave the app.
+        if (portapack::persistent_memory::should_use_sdcard_for_pmem())
+            portapack::persistent_memory::save_persistent_settings_to_file();
+
+        if (down) {
+            if (nav) nav->home(true);
+        } else {
+            // A view that handles Back itself (e.g. to leave a sub-mode) gets it first;
+            // otherwise go back a screen, as the back button does.
+            if (!event_bubble_key(ui::KeyEvent::Back) && nav)
+                nav->pop();
+        }
+        combo_fired_ = true;
+        in_key_event = true;
+        return true;
+    };
+
+    if (in_key_event) {
+        // A chord pressed key by key: the first key already generated its own event.
+        fire_chord();
+
+        // If we're in a key event, return. We will ignore all additional key
+        // presses until the first key is released. We also want to ignore events
+        // where the last key held generates a key event when other pressed keys
+        // are released.
+        return;
+    }
+
+    if (EventDispatcher::display_sleep) {
+        // Swallow event, wake up display.
+        if (switches_state.any()) {
+            set_display_sleep(false);
+            // Keys that wake the display are not a gesture either, also when a second
+            // one follows while the first is still down: hold them off until released.
+            combo_fired_ = true;
+        }
+        return;
+    }
+
+    // A chord that is already complete with no key event in progress: both keys went
+    // down within one switch event (a simultaneous press, or debounced transitions the
+    // timer ISR signalled together), or the first key was in an auto-repeat low phase
+    // as the second one arrived. Recognise it rather than dispatch the keys one by one.
+    if (fire_chord())
+        return;
 
     for (size_t i = 0; i < switches_state.size(); i++) {
         // TODO: Ignore multiple keys at the same time?

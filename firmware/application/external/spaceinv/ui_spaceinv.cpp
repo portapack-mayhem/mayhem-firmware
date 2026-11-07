@@ -7,6 +7,7 @@
  */
 
 #include "ui_spaceinv.hpp"
+#include "event_m0.hpp"
 
 namespace ui::external_app::spaceinv {
 
@@ -768,6 +769,7 @@ void game_timer_check() {
 
 SpaceInvadersView::SpaceInvadersView(NavigationView& nav)
     : nav_{nav} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     add_children({&dummy, &button_difficulty});
 
     // Initialize dimensions first
@@ -791,6 +793,7 @@ SpaceInvadersView::SpaceInvadersView(NavigationView& nav)
 }
 
 SpaceInvadersView::~SpaceInvadersView() {
+    EventDispatcher::set_chords_suppressed(false);
     current_instance = nullptr;
 }
 
