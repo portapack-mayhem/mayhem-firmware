@@ -75,7 +75,7 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
             } else if (state == STATE_PIXELS) {
                 // Many times per scanline
                 tone_delta = SSTV_F2D(1500 + ((current_scanline->luma[pixel_index] * 800) / 256));
-                sample_count = pixel_duration;
+                sample_count = current_scanline->pixel_duration ? current_scanline->pixel_duration : pixel_duration;
                 pixel_index++;
 
                 if (pixel_index >= 320) {
@@ -93,14 +93,20 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
         tone_sample = (sine_table_i8[(tone_phase & 0xFF000000U) >> 24]);
         tone_phase += tone_delta;
 
-        // FM
-        delta = tone_sample * fm_delta;
+        if (modulation == SSTV_MOD_FM) {
+            delta = tone_sample * fm_delta;
 
-        phase += delta;
-        sphase = phase + (64 << 24);
+            phase += delta;
+            sphase = phase + (64 << 24);
 
-        re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
-        im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+            re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
+            im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
+        } else {
+            // SSB of one tone is that tone as a phasor: at +f for USB, at -f for LSB
+            re = (sine_table_i8[((tone_phase + (64 << 24)) & 0xFF000000U) >> 24]);
+            im = (sine_table_i8[(tone_phase & 0xFF000000U) >> 24]);
+            if (modulation == SSTV_MOD_LSB) im = -im;
+        }
 
         buffer.p[i] = {re, im};
     }
@@ -120,6 +126,7 @@ void SSTVTXProcessor::on_message(const Message* const msg) {
             }
 
             vis_code = message.vis_code;
+            modulation = (message.modulation <= SSTV_MOD_LSB) ? static_cast<sstv_modulation>(message.modulation) : SSTV_MOD_FM;
 
             // VIS code:
             // 1200, (0=1300, 1=1100), 1200

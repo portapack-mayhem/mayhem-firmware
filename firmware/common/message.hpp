@@ -1304,25 +1304,31 @@ class SSTVConfigureMessage : public Message {
    public:
     constexpr SSTVConfigureMessage(
         const uint8_t vis_code,
-        const uint32_t pixel_duration)
+        const uint32_t pixel_duration,
+        const uint8_t modulation)
         : Message{ID::SSTVConfigure},
           vis_code(vis_code),
-          pixel_duration(pixel_duration) {
+          pixel_duration(pixel_duration),
+          modulation(modulation) {
     }
 
     const uint8_t vis_code;
     const uint32_t pixel_duration;
+    const uint8_t modulation;  // sstv::sstv_modulation
 };
 
 class SSTVRXConfigureMessage : public Message {
    public:
     constexpr SSTVRXConfigureMessage(
-        const uint8_t code)
+        const uint8_t code,
+        const uint8_t modulation)
         : Message{ID::SSTVRXConfigure},
-          code(code) {
+          code(code),
+          modulation(modulation) {
     }
 
     const uint8_t code;
+    const uint8_t modulation;  // sstv::sstv_modulation
 };
 
 class SSTVRXProgressMessage : public Message {
