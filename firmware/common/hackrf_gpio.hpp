@@ -39,8 +39,6 @@ constexpr GPIO gpio_max5864_select = gpio[GPIO6_30];  // PD_16: PRALINE MAX5864 
 constexpr GPIO gpio_max5864_select = gpio[GPIO2_7];
 #endif
 
-constexpr GPIO gpio_q_invert = gpio[GPIO0_13];
-
 } /* namespace one */
 } /* namespace hackrf */
 

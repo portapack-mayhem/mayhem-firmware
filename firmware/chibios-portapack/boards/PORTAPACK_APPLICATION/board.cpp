@@ -62,6 +62,7 @@ const PALConfig pal_default_config = {
 #else
             = boot_bit(amp_bypass, 1)        // P2_10: AMP_BYPASS
               | boot_bit(max283x_select, 1)  // P1_20: !CS_XCVR
+              | boot_bit(q_invert, 0)        // CLPD invert
 #endif
               | boot_bit(dfu_boot_0, 0)  // P1_1:  10K PU, BOOT0
               | boot_bit(dfu_boot_1, 0)  // P1_2:  10K PD, BOOT1
@@ -85,6 +86,7 @@ const PALConfig pal_default_config = {
 #else
             = boot_bit(amp_bypass, 1)        // P2_10: AMP_BYPASS
               | boot_bit(max283x_select, 1)  // P1_20: !CS_XCVR
+              | boot_bit(q_invert, 1)        // CLPD invert
 #endif
               | boot_bit(dfu_boot_0, 0)  // P1_1:  10K PU, BOOT0
               | boot_bit(dfu_boot_1, 0)  // P1_2:  10K PD, BOOT1
@@ -516,6 +518,7 @@ const PALConfig pal_default_config = {
         {map_rx_amp.scu_port, map_rx_amp.scu_pin, scu_config_normal_drive_t{.mode = map_rx_amp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // P2_11 RX_AMP
         {map_rx_amp_pwr.scu_port, map_rx_amp_pwr.scu_pin, scu_config_normal_drive_t{.mode = map_rx_amp_pwr.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                    // P2_12 !RX_AMP_PWR
         {map_tx_mix_bp.scu_port, map_tx_mix_bp.scu_pin, scu_config_normal_drive_t{.mode = map_tx_mix_bp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                       // P5_2 TX_MIX_BP
+        {map_q_invert.scu_port, map_q_invert.scu_pin, scu_config_normal_drive_t{.mode = map_q_invert.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                          // q invert
 #endif
 
         // RADIO & RF PATH (MAX2831, RFFC5072, Mixers, Switches, Amps)

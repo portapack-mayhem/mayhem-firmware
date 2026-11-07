@@ -34,7 +34,6 @@ using namespace hackrf::one;
 using namespace lpc43xx;
 
 #ifdef PRALINE
-#include "hackrf_gpio.hpp"
 #include "gpio.hpp"
 #endif
 
@@ -438,9 +437,6 @@ void ClockManager::portapack_tcxo_disable() {
 #endif
     portapack::io.reference_oscillator(false);
 }
-
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
 
 void ClockManager::init_clock_generator() {
     clock_generator.reset();

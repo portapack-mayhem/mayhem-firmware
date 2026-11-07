@@ -451,6 +451,8 @@ constexpr PinMap map_max2839_rxtx{4, 5, 2, 5, 0};
 constexpr PinMap map_cpld_tdo{9, 5, 5, 18, 4};
 constexpr PinMap map_cpld_tms{6, 5, 3, 4, 0};
 
+constexpr PinMap map_q_invert{1, 18, 0, 13, 0};
+
 #endif
 
 constexpr PinMap map_sgpio_0{0, 0, 0, 0, 3};
@@ -664,6 +666,9 @@ constexpr GPIO cpld_tdo{pin_cpld_tdo, map_cpld_tdo.gpio_port, map_cpld_tdo.gpio_
 
 constexpr Pin pin_cpld_tms{map_cpld_tms.scu_port, map_cpld_tms.scu_pin};                                       // SCU: P6_5
 constexpr GPIO cpld_tms{pin_cpld_tms, map_cpld_tms.gpio_port, map_cpld_tms.gpio_pad, map_cpld_tms.gpio_mode};  // GPIO[3]4
+
+constexpr Pin pin_q_invert{map_q_invert.scu_port, map_q_invert.scu_pin};                                       // SCU: P1_18
+constexpr GPIO q_invert{pin_q_invert, map_q_invert.gpio_port, map_q_invert.gpio_pad, map_q_invert.gpio_mode};  // GPIO[0]13
 
 #endif
 
