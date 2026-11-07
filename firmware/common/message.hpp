@@ -181,6 +181,7 @@ class Message {
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
+        SubGhzChatPacket = 125,
         MAX
     };
 
@@ -2140,6 +2141,19 @@ struct VDL2FrameMessage : public Message {
 
     uint16_t length{0};    // as received; the data holds at most MAX_LENGTH of it
     int16_t offset_hz{0};  // carrier offset seen at the sync
+    uint8_t data[MAX_LENGTH]{};
+};
+
+// One CC1101 packet for the Sub-GHz chat (subghz_chat), CRC checked.
+struct SubGhzChatPacketMessage : public Message {
+    static constexpr size_t MAX_LENGTH = 60;
+    // receiver noise for the app's encryption, kept up by the image at the start of bb_data
+    static constexpr size_t NOISE_POOL_BYTES = 32;
+
+    constexpr SubGhzChatPacketMessage()
+        : Message{ID::SubGhzChatPacket} {}
+
+    uint8_t length{0};
     uint8_t data[MAX_LENGTH]{};
 };
 
