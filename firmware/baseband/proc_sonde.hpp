@@ -202,14 +202,13 @@ class SondeProcessor : public BasebandProcessor {
         }};
     // Sync on the whole 44-chip header, "1001" x9 + "10101010", allowing one chip error: the
     // "1001" run alone also matches the AA AA that ends every frame, and a looser match
-    // fires a chip early and loses the frame. Frames follow each other directly, 51 bytes
-    // (816 chips) apart, so the payload must end before the next header: 752 chips reach
-    // past the ECEF CRC (740 needed) and leave room before it (from 768 every second
-    // frame is lost on the recording).
+    // fires a chip early and loses the frame. 800 chips cover the rest of the 51-byte frame.
+    // A shorter 752-chip payload, ending before the next frame's header, caught twice the
+    // frames on a recording, but on a live sonde nothing was received with it any more.
     PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_2400_MRZ{
         {0b10011001100110011001100110011001100110101010ULL, 44, 1},
         {},
-        {752},
+        {800},
         [this](const baseband::Packet& packet) {
             const SondePacketMessage message{sonde::Packet::Type::Meteoradiy_MRZ, packet};
             shared_memory.application_queue.push(message);

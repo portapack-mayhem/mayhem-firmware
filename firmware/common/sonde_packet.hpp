@@ -74,8 +74,14 @@ class Packet {
     Type type() const;
     std::string type_string() const;
 
+    // A value this frame doesn't carry; the UI then keeps showing the last one it got.
+    static constexpr uint32_t NO_VALUE = 0xFFFFFFFF;
+
     std::string serial_number() const;
-    uint32_t battery_voltage() const;
+    // The MRZ serial is two numbers, sent in config subframes 0xC and 0xD of different frames:
+    // part 0 or 1 of it, or NO_VALUE when this frame doesn't carry that part.
+    uint32_t serial_part(const size_t part) const;
+    uint32_t battery_voltage() const;  // mV, or NO_VALUE when this frame doesn't carry it
     GPS_data get_GPS_data() const;
     uint32_t frame() const;
     temp_humid get_temp_humid() const;

@@ -879,6 +879,22 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWMB wmbus_rx)
 
+### VDL2 Rx
+
+set(MODE_CPPSRC
+	proc_vdl2.cpp
+	vdl2_decoder.cpp
+)
+DeclareTargets(PVDL vdl2_rx)
+
+### Sub-GHz chat Rx
+
+set(MODE_CPPSRC
+	proc_subghz_chat.cpp
+	cc1101_decoder.cpp
+)
+DeclareTargets(PCHT subghz_chat)
+
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp

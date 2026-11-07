@@ -26,9 +26,9 @@ class FProtoWeatherFineOffsetOOK : public FProtoWeatherBase {
     }
 
     void feed(bool level, uint32_t duration) override {
-        // A weak signal gets chopped into pieces by the slicer. All valid pulses and gaps are >400us,
-        // so merge the short pieces into the run they are in, and handle a run only when the level really changes.
-        if (duration < min_run || level == run_level) {
+        // WeatherProtos::feed() already adds the short pieces of a weak signal to the run they are in,
+        // here only a long run that came in more parts (the 30 ms pieces) is added up.
+        if (level == run_level) {
             run_duration += duration;
         } else {
             handle_run(run_level, run_duration);
@@ -49,7 +49,6 @@ class FProtoWeatherFineOffsetOOK : public FProtoWeatherBase {
 
    protected:
     static constexpr uint32_t max_bits = 104;
-    static constexpr uint32_t min_run = 100;
     static constexpr uint32_t end_gap = 1400;
     uint8_t bits[max_bits / 8]{};
     uint8_t payload[11]{};
