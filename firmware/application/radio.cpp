@@ -442,7 +442,15 @@ void set_baseband_filter_bandwidth_tx(const uint32_t bandwidth_minimum) {
 
 void set_baseband_rate(const uint32_t rate) {
     portapack::clock_manager.set_sampling_frequency(rate);
-    // TODO: actually set baseband too?
+#ifdef PRALINE
+    /* The reference firmware switches direction (max5864_tx/rx) only after the sample rate
+     * and clocks are final. TransmitterModel::enable() puts the codec into TX first and changes
+     * its clock afterwards, which left the MAX5864's I/Q latching in either phase: about every
+     * other transmission went out with I and Q swapped (mirrored spectrum - LoRa packets lost).
+     * Re-enter the mode on the new clock. */
+    baseband_codec.set_mode(max5864::Mode::Standby);
+    baseband_codec.set_mode((direction == rf::Direction::Transmit) ? max5864::Mode::Transmit : max5864::Mode::Receive);
+#endif
 }
 
 void set_antenna_bias(const bool on) {
