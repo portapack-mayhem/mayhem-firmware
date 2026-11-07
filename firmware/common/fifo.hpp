@@ -124,7 +124,7 @@ class FIFO {
     }
 
     bool skip() {
-        if (is_empty()) {
+        if (is_empty() || !record_valid()) {
             return false;
         }
 
@@ -134,7 +134,7 @@ class FIFO {
     }
 
     size_t peek_r(void* const buf, size_t len) {
-        if (is_empty()) {
+        if (is_empty() || !record_valid()) {
             return 0;
         }
 
@@ -144,7 +144,7 @@ class FIFO {
     }
 
     size_t out_r(void* const buf, size_t len) {
-        if (is_empty()) {
+        if (is_empty() || !record_valid()) {
             return 0;
         }
 
@@ -181,6 +181,20 @@ class FIFO {
             l |= _data[(_out + 1) & mask()] << 8;
         }
         return l;
+    }
+
+    /* A record's length prefix must fit inside the bytes actually queued.
+     * Anything larger means the indices were corrupted -- e.g. the writing core
+     * raced a reset() -- and walking the FIFO would then hand out garbage
+     * records indefinitely, since _out jumps past _in and len() wraps around.
+     * Drop everything instead. Only the record API (used solely by
+     * MessageQueue) goes through here. */
+    bool record_valid() {
+        if (peek_n() + recsize() > len()) {
+            reset();
+            return false;
+        }
+        return true;
     }
 
     void poke_n(const size_t n) {

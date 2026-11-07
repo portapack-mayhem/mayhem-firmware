@@ -93,6 +93,11 @@ struct SharedMemory {
     uint32_t volatile m4_baseband_loops{0};   // Main loop iterations
     uint8_t volatile m4_streaming_marker{0};  // Proves streaming_enable() called
 #endif
+    // Set by the M4 as its very last shared memory write, once its DMA IRQ is disabled.
+    // Before that the baseband can still push into application_queue.
+    bool volatile baseband_halted{false};
+    void clear_baseband_halted() { baseband_halted = false; }
+    void set_baseband_halted() { baseband_halted = true; }
 };
 
 extern SharedMemory& shared_memory;

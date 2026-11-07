@@ -79,6 +79,11 @@ void _default_exit(void) {
 
     shared_memory.baseband_message = nullptr;
 
+    /* Last write the M4 makes to shared memory. Until this point the DMA IRQ
+     * disabled above may still have been pushing into application_queue, so the
+     * M0 must not reset it or overwrite M4 code RAM before seeing this. */
+    shared_memory.set_baseband_halted();
+
     halt();
 }
 }
