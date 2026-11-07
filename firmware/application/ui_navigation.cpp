@@ -26,6 +26,7 @@
 
 #include "event_m0.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "lcd_tuning_file.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack.hpp"
 
@@ -329,9 +330,12 @@ SystemStatusView::SystemStatusView(
 
     ui::load_blacklist();
 
+    // The display starts before the SD card, so panel type and tuning are applied again here.
+    const bool lcd_ips_before = pmem::config_lcd_ips();
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
     }
+    lcd_tuning_file::apply(pmem::config_lcd_ips() != lcd_ips_before);
 
     // configure CLKOUT per pmem setting
     portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());

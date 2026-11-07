@@ -122,8 +122,7 @@ MEMORY
     ram_external_app_rds_rx                (rwx) : org = 0xAE110000, len = 32k
     ram_external_app_wmbus_rx              (rwx) : org = 0xAE120000, len = 32k
     ram_external_app_spec_an               (rwx) : org = 0xAE130000, len = 32k
-    ram_external_app_vdl2_rx               (rwx) : org = 0xAE140000, len = 32k
-    ram_external_app_subghz_chat           (rwx) : org = 0xAE150000, len = 32k
+    ram_external_app_lcd_gamma             (rwx) : org = 0xAE140000, len = 32k
 }
 
 SECTIONS
@@ -722,15 +721,9 @@ SECTIONS
         */external/spec_an/*(*ui*external_app*spec_an*);
     } > ram_external_app_spec_an
 
-    .external_app_vdl2_rx : ALIGN(4) SUBALIGN(4)
+    .external_app_lcd_gamma : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_vdl2_rx.application_information));
-        */external/vdl2_rx/*(*ui*external_app*vdl2_rx*);
-    } > ram_external_app_vdl2_rx
-
-    .external_app_subghz_chat : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_subghz_chat.application_information));
-        */external/subghz_chat/*(*ui*external_app*subghz_chat*);
-    } > ram_external_app_subghz_chat
+        KEEP(*(.external_app.app_lcd_gamma.application_information));
+        */external/lcd_gamma/*(*ui*external_app*lcd_gamma*);
+    } > ram_external_app_lcd_gamma
 }
