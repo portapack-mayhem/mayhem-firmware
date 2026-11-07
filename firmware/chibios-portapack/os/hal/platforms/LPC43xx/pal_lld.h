@@ -52,9 +52,11 @@
  */
 
 #ifdef PRALINE
-#define SCU_ARRAY_SIZE 81
+#define SCU_ARRAY_SIZE 76
+#define PORTAPACK_SCU_ARRAY_SIZE 45
 #else
-#define SCU_ARRAY_SIZE 59
+#define SCU_ARRAY_SIZE 54
+#define PORTAPACK_SCU_ARRAY_SIZE 28
 #endif
 
 typedef struct {
