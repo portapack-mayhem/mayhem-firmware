@@ -26,7 +26,6 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "hackrf_hal.hpp"
-#include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 #include "jtag_target_gpio.hpp"
 

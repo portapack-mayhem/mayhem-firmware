@@ -26,8 +26,6 @@
 #include "utility.hpp"
 
 #include "hackrf_hal.hpp"
-
-#include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
 #include "gpio.hpp"

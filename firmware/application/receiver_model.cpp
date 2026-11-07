@@ -25,7 +25,6 @@
 #include "baseband_api.hpp"
 
 #include "portapack_persistent_memory.hpp"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
 #include "audio.hpp"

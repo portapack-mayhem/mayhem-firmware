@@ -43,7 +43,6 @@ extern "C" {
 #include "spi_arbiter.hpp"
 
 #include "hackrf_hal.hpp"
-#include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
 #include "cpld_update.hpp"
@@ -105,8 +104,8 @@ static constexpr SPIConfig ssp_config_max283x = {
 
 static constexpr SPIConfig ssp_config_max5864 = {
     .end_cb = NULL,
-    .ssport = gpio_max5864_select.port(),
-    .sspad = gpio_max5864_select.pad(),
+    .ssport = map_max5864_select.gpio_port,
+    .sspad = map_max5864_select.gpio_pad,
     .cr0 =
         CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max5864_spi_f)) | CR0_FRFSPI | CR0_DSS8BIT,
     .cpsr = ssp1_cpsr,
