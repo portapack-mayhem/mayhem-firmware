@@ -52,11 +52,15 @@ class RttyRxView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{};
     uint32_t baud_conf = 0;
+    uint32_t pol_conf = 0;  // 0 auto, 1 normal, 2 reverse
+    uint32_t sq_conf = 0;   // 0 legacy, else dB above noise floor
     app_settings::SettingsManager settings_{
         "rx_rtty",
         app_settings::Mode::RX,
         {
             {"baud_conf"sv, &baud_conf},
+            {"pol_conf"sv, &pol_conf},
+            {"sq_conf"sv, &sq_conf},
         }};
 
     RxFrequencyField field_frequency{
@@ -73,10 +77,29 @@ class RttyRxView : public View {
     AudioVolumeField field_volume{{UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
     Labels labels{
-        {{UI_POS_X(0), UI_POS_Y(1)}, "Baud:", Theme::getInstance()->fg_light->foreground}};
+        {{UI_POS_X(0), UI_POS_Y(1)}, "Baud:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(12), UI_POS_Y(1)}, "Pol:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(21), UI_POS_Y(1)}, "Sq:", Theme::getInstance()->fg_light->foreground}};
+
+    OptionsField options_polarity{
+        {UI_POS_X(16), UI_POS_Y(1)},
+        4,
+        {{"Auto", 0},
+         {"Norm", 1},
+         {"Rev", 2}}};
+
+    OptionsField options_squelch{
+        {UI_POS_X(24), UI_POS_Y(1)},
+        4,
+        {{"Off", 0},
+         {"6dB", 6},
+         {"10dB", 10},
+         {"15dB", 15}}};
+
+    void send_config();
 
     OptionsField options_baud{
-        {UI_POS_X(7), UI_POS_Y(1)},
+        {UI_POS_X(6), UI_POS_Y(1)},
         5,
         {{"Auto", 0},
          {"45", 4500},

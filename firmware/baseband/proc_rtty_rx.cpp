@@ -54,7 +54,11 @@ void RTTYRxProcessor::configure() {
 
     uart_state = WAIT_START;
 
-    inverted_polarity = false;
+    inverted_polarity = fixed_inverted();
+    power_fast = 0;
+    noise_floor = 0;
+    level_open = false;
+    warmup_blocks = 0;
     // Default to standard 45.45 baud
     estimated_bit_width = 528;
     samples_per_bit = 528;
@@ -81,11 +85,44 @@ void RTTYRxProcessor::execute(const buffer_c8_t& buffer) {
 
     feed_channel_stats(channel_out);
 
+    if (squelch_db) {
+        const bool was_open = level_open;
+        update_level_squelch(channel_out);
+        if (level_open && !was_open) {
+            // new transmission: learn its mark tone again, resync the UART
+            mark_learn = 0;
+            mark_sign_known = fixed_polarity();
+            mark_sign = fixed_inverted() ? -1 : 1;
+            uart_state = WAIT_START;
+            decoded_since_open = false;
+        } else if (!level_open && was_open && decoded_since_open) {
+            append_data(0x02);  // line feed between transmissions
+        }
+    }
+
     for (size_t i = 0; i < audio.count; i++) {
         int16_t sample = audio.p[i];
 
         // DECODER INPUT
         int32_t fm_val = (int32_t)sample * 32;
+
+        if (squelch_db) {
+            // Level squelch: mark-referenced slicer, then the usual UART
+            is_squelched = !level_open;
+            const int32_t rel = mark_relative_sample(fm_val);
+            const int32_t half = expected_spread() / 2;
+            val_max = half;  // hysteresis in process_demodulated_sample() = shift / 8
+            val_min = -half;
+            inverted_polarity = false;
+            process_demodulated_sample(rel);
+            if (is_squelched) {
+                audio.p[i] = 0;
+            } else {
+                int32_t audio_boost = sample * 48;
+                audio.p[i] = (int16_t)(audio_boost > 32767 ? 32767 : (audio_boost < -32768 ? -32768 : audio_boost));
+            }
+            continue;
+        }
 
         // 1. ENVELOPE TRACKING (Floating)
         if (fm_val > val_max) val_max = fm_val;
@@ -171,7 +208,7 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
             uart_state = WAIT_START;
             current_slicer_bit = 1;
             pulse_measure_counter = 0;
-            inverted_polarity = false;
+            inverted_polarity = fixed_inverted();
             if (baud_rate == 0) {
                 estimated_bit_width = 528;
                 samples_per_bit = 528;
@@ -193,8 +230,10 @@ void RTTYRxProcessor::process_demodulated_sample(int32_t sample) {
     else if (sample < -hysteresis)
         raw_bit = 0;
 
-    // Polarity Check
-    if (raw_bit == 0) {
+    // Polarity Check (auto mode with the legacy squelch only)
+    if (fixed_polarity() || squelch_db) {
+        polarity_timer = 0;
+    } else if (raw_bit == 0) {
         if (++polarity_timer > 7200) {
             inverted_polarity = !inverted_polarity;
             polarity_timer = 0;
@@ -295,7 +334,92 @@ void RTTYRxProcessor::update_baud_estimation(uint32_t pulse_width) {
     }
 }
 
+int32_t RTTYRxProcessor::mark_relative_sample(int32_t fm_val) {
+    // Returns > 0 for mark, < 0 for space, about +/- shift/2.
+    fm_lp += (fm_val - fm_lp) >> LEVEL_LPF_SHIFT;
+    const int32_t E = expected_spread();
+    if (!level_open) return E / 2;  // idle
+
+    if (mark_learn < MARK_LEARN_SAMPLES) {
+        // the transmission starts with idle mark: average it
+        mark_level = mark_learn ? mark_level + ((fm_lp - mark_level) >> 5) : fm_lp;
+        mark_learn++;
+        return E / 2;
+    }
+
+    const int32_t d = fm_lp - mark_level;
+    if (!mark_sign_known && (d > (E * 6) / 10 || d < -(E * 6) / 10)) {
+        // first excursion to the other tone: it is the space, so the mark is on the other side
+        mark_sign = d < 0 ? 1 : -1;
+        mark_sign_known = true;
+    }
+
+    const int32_t rel = mark_sign * d + E / 2;
+    if (rel > 0) {
+        mark_level += d >> 9;  // follow the drift of the mark tone slowly
+    }
+    return rel;
+}
+
+void RTTYRxProcessor::set_squelch_db(uint8_t db) {
+    squelch_db = db;
+    if (!db) return;
+    // ratio = 10^(dB/10), close 3 dB lower (hysteresis)
+    float r = 1.0f;
+    for (uint8_t i = 0; i < db / 10; i++) r *= 10.0f;
+    static constexpr float frac[10] = {1.00f, 1.26f, 1.58f, 2.00f, 2.51f, 3.16f, 3.98f, 5.01f, 6.31f, 7.94f};
+    squelch_ratio_open = r * frac[db % 10];
+    if (squelch_ratio_open < 2.0f) squelch_ratio_open = 2.0f;
+    squelch_ratio_close = squelch_ratio_open / 2.0f;
+    level_open = false;
+    warmup_blocks = 0;
+}
+
+void RTTYRxProcessor::update_level_squelch(const buffer_c16_t& channel) {
+    static constexpr float MIN_FLOOR = 1e-9f;
+    if (channel.count == 0) return;
+    float acc = 0.0f;
+    for (size_t i = 0; i < channel.count; i++) {
+        const float re = channel.p[i].real();
+        const float im = channel.p[i].imag();
+        acc += re * re + im * im;
+    }
+    const float block = acc / channel.count;
+
+    if (warmup_blocks < WARMUP_BLOCKS) {
+        // warm-up: learn the noise floor from the real power, the squelch stays closed
+        warmup_blocks++;
+        if (warmup_blocks == 1) {
+            power_fast = block;
+            noise_floor = block;
+        } else {
+            power_fast += (block - power_fast) * (1.0f / 8.0f);
+            noise_floor += (power_fast - noise_floor) * (1.0f / 16.0f);
+        }
+        if (noise_floor < MIN_FLOOR) noise_floor = MIN_FLOOR;
+        level_open = false;
+        return;
+    }
+
+    // ~5 ms smoothing of the channel power
+    power_fast += (block - power_fast) * (1.0f / 8.0f);
+
+    if (power_fast < noise_floor) {
+        noise_floor += (power_fast - noise_floor) * (1.0f / 16.0f);  // falls fast
+    } else if (!level_open) {
+        noise_floor += (power_fast - noise_floor) * (1.0f / 1024.0f);  // rises slowly, frozen while a signal is present
+    }
+    if (noise_floor < MIN_FLOOR) noise_floor = MIN_FLOOR;
+
+    if (level_open) {
+        if (power_fast < noise_floor * squelch_ratio_close) level_open = false;
+    } else {
+        if (power_fast > noise_floor * squelch_ratio_open) level_open = true;
+    }
+}
+
 void RTTYRxProcessor::append_data(uint8_t raw_baudot_code) {
+    if (raw_baudot_code != 0x02) decoded_since_open = true;
     if (tx_message.data_len < tx_message.max_len) {
         tx_message.data[tx_message.data_len] = raw_baudot_code;
         tx_message.data_len++;
@@ -315,11 +439,20 @@ void RTTYRxProcessor::on_message(const Message* const message) {
             } else {
                 estimated_bit_width = 528;
                 samples_per_bit = 528;
-                inverted_polarity = false;
+                inverted_polarity = fixed_inverted();
             }
             uart_state = WAIT_START;
         }
         shift_hz = rtty_msg.shift;
+        if (rtty_msg.rx_polarity != polarity_mode) {
+            polarity_mode = rtty_msg.rx_polarity > 2 ? 0 : rtty_msg.rx_polarity;
+            inverted_polarity = fixed_inverted();
+            polarity_timer = 0;
+            uart_state = WAIT_START;
+        }
+        if (rtty_msg.rx_squelch != squelch_db) {
+            set_squelch_db(rtty_msg.rx_squelch);
+        }
         if (!configured) {
             configure();
         }
