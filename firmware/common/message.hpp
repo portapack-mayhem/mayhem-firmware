@@ -181,6 +181,7 @@ class Message {
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
+        SubGhzChatPacket = 125,
         MAX
     };
 
@@ -1303,25 +1304,31 @@ class SSTVConfigureMessage : public Message {
    public:
     constexpr SSTVConfigureMessage(
         const uint8_t vis_code,
-        const uint32_t pixel_duration)
+        const uint32_t pixel_duration,
+        const uint8_t modulation)
         : Message{ID::SSTVConfigure},
           vis_code(vis_code),
-          pixel_duration(pixel_duration) {
+          pixel_duration(pixel_duration),
+          modulation(modulation) {
     }
 
     const uint8_t vis_code;
     const uint32_t pixel_duration;
+    const uint8_t modulation;  // sstv::sstv_modulation
 };
 
 class SSTVRXConfigureMessage : public Message {
    public:
     constexpr SSTVRXConfigureMessage(
-        const uint8_t code)
+        const uint8_t code,
+        const uint8_t modulation)
         : Message{ID::SSTVRXConfigure},
-          code(code) {
+          code(code),
+          modulation(modulation) {
     }
 
     const uint8_t code;
+    const uint8_t modulation;  // sstv::sstv_modulation
 };
 
 class SSTVRXProgressMessage : public Message {
@@ -2140,6 +2147,19 @@ struct VDL2FrameMessage : public Message {
 
     uint16_t length{0};    // as received; the data holds at most MAX_LENGTH of it
     int16_t offset_hz{0};  // carrier offset seen at the sync
+    uint8_t data[MAX_LENGTH]{};
+};
+
+// One CC1101 packet for the Sub-GHz chat (subghz_chat), CRC checked.
+struct SubGhzChatPacketMessage : public Message {
+    static constexpr size_t MAX_LENGTH = 60;
+    // receiver noise for the app's encryption, kept up by the image at the start of bb_data
+    static constexpr size_t NOISE_POOL_BYTES = 32;
+
+    constexpr SubGhzChatPacketMessage()
+        : Message{ID::SubGhzChatPacket} {}
+
+    uint8_t length{0};
     uint8_t data[MAX_LENGTH]{};
 };
 

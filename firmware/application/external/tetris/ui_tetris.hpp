@@ -139,6 +139,7 @@ void pause_game();
 class TetrisView : public View {
    public:
     TetrisView(NavigationView& nav);
+    ~TetrisView();
     void on_show() override;
 
     std::string title() const override { return "Tetris"; }
