@@ -408,16 +408,34 @@ constexpr PinMap map_max2831_ld{9, 6, 4, 11, 0};
 
 constexpr PinMap map_max5864_select{13, 16, 6, 30, 4};
 
-// constexpr PinMap map_unused_1{2, 7, 0, 7, 0};
+// touch adc pins
 
+constexpr PinMap map_touch_yp{11, 6, 5, 26, 7};  // PB_6:  ADC0_0 yp (Mode 7: Reserved / Analog)
+constexpr PinMap map_touch_yn{4, 5, 2, 5, 3};    // P4_5:  ADC0_2 yn (Mode 3: Reserved / Analog)
+constexpr PinMap map_touch_xp{4, 4, 2, 4, 0};    // P4_4:  ADC0_5 xp (Mode 0: GPIO)
+constexpr PinMap map_touch_xn{15, 4, 2, 4, 3};   // PF_4:  ADC0_6 xn (Mode 3: Reserved / Analog)
+
+constexpr PinMap map_fpga_creset{5, 2, 2, 11, 0};
+constexpr PinMap map_fpga_spi_cs{5, 1, 2, 10, 0};
+constexpr PinMap map_vbusctrl{4, 3, 2, 3, 0};
+
+constexpr PinMap map_cpld_tck{11, 0, 5, 20, 4};
+
+// unused pins
 constexpr PinMap map_unused_p1_7{1, 7, 1, 0, 0};
+constexpr PinMap map_unused_p4_6{4, 6, 2, 6, 0};
+constexpr PinMap map_unused_p5_6{5, 6, 2, 15, 0};
+constexpr PinMap map_unused_p5_3{5, 3, 2, 12, 0};
+constexpr PinMap map_unused_p4_0{4, 0, 2, 0, 0};
+constexpr PinMap map_unused_p5_0{5, 0, 2, 9, 0};
 
 #else
 constexpr PinMap map_sgpio_4{6, 3, 3, 2, 2};
 constexpr PinMap map_sgpio_8{9, 6, 4, 11, 6};
 constexpr PinMap map_sgpio_9{4, 3, 2, 3, 7};
 constexpr PinMap map_sgpio_10{1, 14, 1, 7, 6};
-constexpr PinMap map_sgpio_13{4, 8, 5, 12, 4};
+constexpr PinMap map_sgpio_13_og{4, 8, 5, 12, 7};
+constexpr PinMap map_sgpio_13_r9{2, 5, 5, 5, 0};
 constexpr PinMap map_og_1v8_en{6, 10, 3, 6, 0};
 constexpr PinMap map_r9_1v8_en{5, 0, 2, 9, 0};
 constexpr PinMap map_vregmode{6, 11, 3, 7, 0};
@@ -459,6 +477,8 @@ constexpr PinMap map_q_invert{1, 18, 0, 13, 0};
 
 constexpr PinMap map_max5864_select{5, 7, 2, 7, 0};
 
+constexpr PinMap map_cpld_tck{6, 0, 3, 0, 0};
+
 #endif
 
 constexpr PinMap map_sgpio_0{0, 0, 0, 0, 3};
@@ -483,7 +503,6 @@ constexpr PinMap map_isp{2, 7, 0, 7, 0};
 constexpr PinMap map_rffc5072_select{5, 4, 2, 13, 0};
 constexpr PinMap map_rffc5072_resetx{5, 5, 2, 14, 0};
 
-constexpr PinMap map_cpld_tck{6, 0, 3, 0, 0};  // praine PB0 és nem megy sehova
 constexpr PinMap map_cpld_tdi{6, 1, 3, 1, 0};
 constexpr PinMap map_portapack_cpld_tms{1, 8, 1, 1, 0};
 constexpr PinMap map_portapack_cpld_tdo{1, 5, 1, 13, 0};
@@ -592,13 +611,52 @@ constexpr GPIO max2831_rxhp{pin_max2831_rxhp, map_max2831_rxhp.gpio_port, map_ma
 constexpr Pin pin_max2831_ld{map_max2831_ld.scu_port, map_max2831_ld.scu_pin};                                           // SCU: P9_6
 constexpr GPIO max2831_ld{pin_max2831_ld, map_max2831_ld.gpio_port, map_max2831_ld.gpio_pad, map_max2831_ld.gpio_mode};  // GPIO[4]11
 
+constexpr Pin pin_touch_xp{map_touch_xp.scu_port, map_touch_xp.scu_pin};                                       // SCU: P4_4
+constexpr GPIO touch_xp{pin_touch_xp, map_touch_xp.gpio_port, map_touch_xp.gpio_pad, map_touch_xp.gpio_mode};  // GPIO[2]4
+
+constexpr Pin pin_touch_yp{map_touch_yp.scu_port, map_touch_yp.scu_pin};                                       // SCU: PB_6
+constexpr GPIO touch_yp{pin_touch_yp, map_touch_yp.gpio_port, map_touch_yp.gpio_pad, map_touch_yp.gpio_mode};  // GPIO[0]26
+
+constexpr Pin pin_touch_yn{map_touch_yn.scu_port, map_touch_yn.scu_pin};                                       // SCU: P4_5
+constexpr GPIO touch_yn{pin_touch_yn, map_touch_yn.gpio_port, map_touch_yn.gpio_pad, map_touch_yn.gpio_mode};  // GPIO[2]5
+
+constexpr Pin pin_touch_xn{map_touch_xn.scu_port, map_touch_xn.scu_pin};                                       // SCU: PF_4
+constexpr GPIO touch_xn{pin_touch_xn, map_touch_xn.gpio_port, map_touch_xn.gpio_pad, map_touch_xn.gpio_mode};  // GPIO[2]4
+
+constexpr Pin pin_fpga_creset{map_fpga_creset.scu_port, map_fpga_creset.scu_pin};                                             // SCU: P5_2
+constexpr GPIO fpga_creset{pin_fpga_creset, map_fpga_creset.gpio_port, map_fpga_creset.gpio_pad, map_fpga_creset.gpio_mode};  // GPIO[2]11
+
+constexpr Pin pin_fpga_spi_cs{map_fpga_spi_cs.scu_port, map_fpga_spi_cs.scu_pin};                                             // SCU: P5_2
+constexpr GPIO fpga_spi_cs{pin_fpga_spi_cs, map_fpga_spi_cs.gpio_port, map_fpga_spi_cs.gpio_pad, map_fpga_spi_cs.gpio_mode};  // GPIO[2]10
+
+constexpr Pin pin_vbusctrl{map_vbusctrl.scu_port, map_vbusctrl.scu_pin};                                       // SCU: P4_3
+constexpr GPIO vbusctrl{pin_vbusctrl, map_vbusctrl.gpio_port, map_vbusctrl.gpio_pad, map_vbusctrl.gpio_mode};  // GPIO[2]3
+
 // unused for praline
 constexpr Pin pin_unused_p1_7{map_unused_p1_7.scu_port, map_unused_p1_7.scu_pin};                                             // SCU: P1_7
 constexpr GPIO unused_p1_7{pin_unused_p1_7, map_unused_p1_7.gpio_port, map_unused_p1_7.gpio_pad, map_unused_p1_7.gpio_mode};  // GPIO[1]0
 
+constexpr Pin pin_unused_p4_6{map_unused_p4_6.scu_port, map_unused_p4_6.scu_pin};                                             // SCU: P4_6
+constexpr GPIO unused_p4_6{pin_unused_p4_6, map_unused_p4_6.gpio_port, map_unused_p4_6.gpio_pad, map_unused_p4_6.gpio_mode};  // GPIO[2]6
+
+constexpr Pin pin_unused_p5_6{map_unused_p5_6.scu_port, map_unused_p5_6.scu_pin};                                             // SCU: P5_6
+constexpr GPIO unused_p5_6{pin_unused_p5_6, map_unused_p5_6.gpio_port, map_unused_p5_6.gpio_pad, map_unused_p5_6.gpio_mode};  // GPIO[2]15
+
+constexpr Pin pin_unused_p5_3{map_unused_p5_3.scu_port, map_unused_p5_3.scu_pin};                                             // SCU: P5_3
+constexpr GPIO unused_p5_3{pin_unused_p5_3, map_unused_p5_3.gpio_port, map_unused_p5_3.gpio_pad, map_unused_p5_3.gpio_mode};  // GPIO[2]12
+
+constexpr Pin pin_unused_p4_0{map_unused_p4_0.scu_port, map_unused_p4_0.scu_pin};                                             // SCU: P4_0
+constexpr GPIO unused_p4_0{pin_unused_p4_0, map_unused_p4_0.gpio_port, map_unused_p4_0.gpio_pad, map_unused_p4_0.gpio_mode};  // GPIO[2]0
+
+constexpr Pin pin_unused_p5_0{map_unused_p5_0.scu_port, map_unused_p5_0.scu_pin};                                             // SCU: P5_0
+constexpr GPIO unused_p5_0{pin_unused_p5_0, map_unused_p5_0.gpio_port, map_unused_p5_0.gpio_pad, map_unused_p5_0.gpio_mode};  // GPIO[2]9
+
 #else
-constexpr Pin pin_sgpio_13{map_sgpio_13.scu_port, map_sgpio_13.scu_pin};                                       // SCU: P4_8
-constexpr GPIO sgpio_13{pin_sgpio_13, map_sgpio_13.gpio_port, map_sgpio_13.gpio_pad, map_sgpio_13.gpio_mode};  // GPIO[5]12
+constexpr Pin pin_sgpio_13_og{map_sgpio_13_og.scu_port, map_sgpio_13_og.scu_pin};                                             // SCU: P4_8
+constexpr GPIO sgpio_13_og{pin_sgpio_13_og, map_sgpio_13_og.gpio_port, map_sgpio_13_og.gpio_pad, map_sgpio_13_og.gpio_mode};  // GPIO[5]12
+
+constexpr Pin pin_sgpio_13_r9{map_sgpio_13_r9.scu_port, map_sgpio_13_r9.scu_pin};                                             // SCU: P2_5
+constexpr GPIO sgpio_13_r9{pin_sgpio_13_r9, map_sgpio_13_r9.gpio_port, map_sgpio_13_r9.gpio_pad, map_sgpio_13_r9.gpio_mode};  // GPIO[5]5
 
 constexpr Pin pin_og_1v8_en{map_og_1v8_en.scu_port, map_og_1v8_en.scu_pin};                                         // SCU: P6_10
 constexpr GPIO og_1v8_en{pin_og_1v8_en, map_og_1v8_en.gpio_port, map_og_1v8_en.gpio_pad, map_og_1v8_en.gpio_mode};  // GPIO[3]6
