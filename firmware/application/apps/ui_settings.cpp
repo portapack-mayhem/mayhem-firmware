@@ -38,6 +38,7 @@
 #include "ui_sd_card_debug.hpp"
 
 #include "portapack_persistent_memory.hpp"
+#include "lcd_tuning_file.hpp"
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
@@ -840,16 +841,19 @@ SetButtonsView::SetButtonsView(NavigationView& nav) {
                   &button_cancel,
                   &field_repeat_delay,
                   &field_repeat_speed,
-                  &field_long_press_delay});
+                  &field_long_press_delay,
+                  &field_chord_gestures});
 
     field_repeat_delay.set_by_value(pmem::ui_button_repeat_delay());
     field_repeat_speed.set_by_value(pmem::ui_button_repeat_speed());
     field_long_press_delay.set_by_value(pmem::ui_button_long_press_delay());
+    field_chord_gestures.set_by_value(pmem::chord_gestures());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_ui_button_repeat_delay(field_repeat_delay.selected_index_value());
         pmem::set_ui_button_repeat_speed(field_repeat_speed.selected_index_value());
         pmem::set_ui_button_long_press_delay(field_long_press_delay.selected_index_value());
+        pmem::set_chord_gestures(field_chord_gestures.selected_index_value());
         nav.pop();
     };
 
@@ -922,14 +926,15 @@ SetDisplayView::SetDisplayView(NavigationView& nav) {
                   &button_cancel});
 
     if (portapack::device_type == portapack::DeviceType::DEV_PORTAPACK) {
-        add_child(&checkbox_ips_screen_switch);
+        add_child(&checkbox_lcd_ips);
     }
 
-    checkbox_ips_screen_switch.set_value(pmem::config_lcd_normally_black());
+    checkbox_lcd_ips.set_value(pmem::config_lcd_ips());
 
     button_save.on_select = [&nav, this](Button&) {
-        if (checkbox_ips_screen_switch.value() != pmem::config_lcd_normally_black()) {
-            pmem::set_lcd_normally_black(checkbox_ips_screen_switch.value());
+        if (checkbox_lcd_ips.value() != pmem::config_lcd_ips()) {
+            pmem::set_config_lcd_ips(checkbox_lcd_ips.value());
+            lcd_tuning_file::apply(true);
         }
         send_system_refresh();
         nav.pop();
@@ -1279,7 +1284,7 @@ void SettingsMenuView::on_populate() {
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
         {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetEncoderDialView>(); }},
-        {"Button Speed", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<SetButtonsView>(); }},
+        {"Buttons", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<SetButtonsView>(); }},
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},

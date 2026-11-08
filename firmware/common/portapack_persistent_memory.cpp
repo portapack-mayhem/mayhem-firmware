@@ -210,10 +210,10 @@ struct data_t {
     bool updown_converter;
     bool updown_frequency_rx_correction;
     bool updown_frequency_tx_correction;
-    bool lcd_normally_black : 1;
+    bool lcd_ips : 1;                 // was lcd_normally_black
     bool encoder_dial_direction : 1;  // false = normal, true = reverse
     bool battery_replaceable : 1;
-    bool UNUSED_7 : 1;
+    bool chord_gestures : 1;  // Left+Up = Back, Left+Down = Home; off by default
 
     // up/down converter offset
     int64_t converter_frequency_offset;
@@ -287,10 +287,10 @@ struct data_t {
           updown_converter(false),
           updown_frequency_rx_correction(false),
           updown_frequency_tx_correction(false),
-          lcd_normally_black(false),
+          lcd_ips(false),
           encoder_dial_direction(false),
           battery_replaceable(false),
-          UNUSED_7(false),
+          chord_gestures(false),
 
           converter_frequency_offset(0),
 
@@ -446,6 +446,7 @@ void defaults() {
 
     set_battery_cap_mah(0);
     set_battery_replaceable(false);
+    set_chord_gestures(false);
 }
 
 void init() {
@@ -1104,12 +1105,12 @@ void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
-// IPS vs TFT
-bool config_lcd_normally_black() {
-    return data->lcd_normally_black;
+// IPS vs TN
+bool config_lcd_ips() {
+    return data->lcd_ips;
 }
-void set_lcd_normally_black(bool v) {
-    data->lcd_normally_black = v;
+void set_config_lcd_ips(bool v) {
+    data->lcd_ips = v;
 }
 
 // Rotary encoder dial settings
@@ -1230,6 +1231,13 @@ void set_battery_replaceable(bool v) {
 
 bool battery_replaceable() {
     return data->battery_replaceable;
+}
+
+void set_chord_gestures(bool v) {
+    data->chord_gestures = v;
+}
+bool chord_gestures() {
+    return data->chord_gestures;
 }
 
 uint32_t battery_cap_mah() {

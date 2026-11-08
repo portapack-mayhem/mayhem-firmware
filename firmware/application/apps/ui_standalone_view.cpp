@@ -245,6 +245,11 @@ StandaloneView::StandaloneView(NavigationView& nav, uint8_t* app_image)
         chDbgPanic("Invalid application image");
     }
 
+    // A standalone game can't reach the firmware itself; turn the chord gestures off
+    // for it here, as the built-in games do.
+    if (get_application_information()->menu_location == app_location_t::GAMES)
+        EventDispatcher::set_chords_suppressed(true);
+
     set_focusable(true);
 
     standaloneView = this;

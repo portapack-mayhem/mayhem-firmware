@@ -47,6 +47,7 @@ enum GameState {
 class Game2048View : public View {
    public:
     Game2048View(NavigationView& nav);
+    ~Game2048View();
     void on_show() override;
 
     std::string title() const override { return "2048"; }

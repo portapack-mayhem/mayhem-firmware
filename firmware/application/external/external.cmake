@@ -233,6 +233,10 @@ set(EXTCPPSRC
 	external/debug_pmem/main.cpp
 	external/debug_pmem/ui_debug_pmem.cpp
 
+	#lcd_gamma
+	external/lcd_gamma/main.cpp
+	external/lcd_gamma/ui_lcd_gamma.cpp
+
 	#scanner 520 byte
 	external/scanner/main.cpp
 	external/scanner/ui_scanner.cpp
@@ -433,6 +437,10 @@ set(EXTCPPSRC
 	external/vdl2_rx/main.cpp
 	external/vdl2_rx/ui_vdl2_rx.cpp
 	external/vdl2_rx/vdl2_frame.cpp
+	#subghz_chat
+	external/subghz_chat/main.cpp
+	external/subghz_chat/ui_subghz_chat.cpp
+	external/subghz_chat/chat_crypto.cpp
 )
 
 set(EXTAPPLIST
@@ -491,6 +499,7 @@ set(EXTAPPLIST
 	dinogame
 	doom
 	debug_pmem
+	lcd_gamma
 	scanner
 	level
 	gfxeq
@@ -538,5 +547,6 @@ set(EXTAPPLIST
   	rds_rx
 	wmbus_rx
 	vdl2_rx
+	subghz_chat
 )
 

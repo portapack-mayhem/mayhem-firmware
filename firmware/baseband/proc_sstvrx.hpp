@@ -50,12 +50,13 @@ class SSTVRXProcessor : public BasebandProcessor {
     };
 
     static constexpr uint32_t MAX_SAMPLES_PER_LINE = 4096;
-    static constexpr uint16_t PIXELS_PER_LINE = 320;
+    static constexpr uint16_t MAX_PIXELS_PER_LINE = 800;  // PD290
 
     // Frequency ranges for SSTV (in Hz)
     static constexpr int32_t FREQ_BLACK = 1500;
     static constexpr int32_t FREQ_WHITE = 2300;
     static constexpr int32_t FREQ_SYNC = 1200;
+    static constexpr int32_t MAX_FREQ_OFFSET = 250;  // Hz, mistuning the sync range may follow
     static constexpr int32_t FREQ_VIS_BIT0 = 1300;
     static constexpr int32_t FREQ_VIS_BIT1 = 1100;
 
@@ -64,6 +65,8 @@ class SSTVRXProcessor : public BasebandProcessor {
     uint8_t vis_code{0};
     const sstv_mode* active_mode{nullptr};
     uint16_t mode_total_lines{256};
+    uint16_t pixels_per_line{320};
+    sstv_modulation modulation{SSTV_MOD_FM};
 
     static constexpr size_t baseband_fs = 3072000;
 
@@ -79,28 +82,78 @@ class SSTVRXProcessor : public BasebandProcessor {
     const buffer_c16_t dst_buffer{
         dst.data(),
         dst.size()};
+    std::array<int16_t, 32> ssb_audio{};  // the real part of the channel, to listen to
     // work_audio_buffer and dst_buffer use the same data pointer
     const buffer_s16_t work_audio_buffer{
         (int16_t*)dst.data(),
         sizeof(dst) / sizeof(int16_t)};
 
-    // State variables for Goertzel frequency estimation
+    // Tone frequency, a value per audio sample: the audio is mixed down around the middle of
+    // the SSTV tones, low passed, and the phase step between samples gives the frequency
     int32_t current_freq{1200};  // Current frequency in Hz
+    int32_t sync_freq{1200};     // Smoothed over ~1 ms, for the sync detection
 
-    // Goertzel filters for SSTV frequencies; configured at runtime (48kHz today)
-    // We'll detect 1200Hz, 1500Hz, 1900Hz, and 2300Hz
-    // Larger block size = better frequency discrimination but slower response
-    // At 48kHz: 48 samples ≈ 1ms, a little over one cycle of a 1200Hz tone
-    static constexpr size_t GOERTZEL_N = 48;  // Increased from 16 for better accuracy
-    float goertzel_Q1[4]{0, 0, 0, 0};
-    float goertzel_Q2[4]{0, 0, 0, 0};
-    float goertzel_coeff[4];  // Calculated in configure
-    size_t goertzel_count{0};
+    struct Biquad {
+        float b0{1}, b1{0}, b2{0}, a1{0}, a2{0};
+        float z1{0}, z2{0};
+        void low_pass(float cutoff, float q, float sample_rate);
+        float execute(float x) {
+            const float y = b0 * x + z1;
+            z1 = b1 * x - a1 * y + z2;
+            z2 = b2 * x - a2 * y;
+            return y;
+        }
+    };
+    static constexpr float MIX_FREQ = 1900.0f;          // middle of 1100..2300 Hz
+    static constexpr float TONE_LOW_PASS = 1500.0f;     // keeps the tones, drops the image at 2x1900 Hz
+    static constexpr float SYNC_SMOOTHING = 1.0f / 32;  // ~0.7 ms at 48 kHz
+    Biquad lpf_i[2]{}, lpf_q[2]{};                      // 4th order Butterworth
+    float mix_re{1}, mix_im{0}, mix_step_re{1}, mix_step_im{0};
+    uint32_t mix_count{0};
+    float prev_i{0}, prev_q{0};
+    float hz_per_radian{0};
+    float sync_freq_avg{1200};
+    uint32_t sync_detect_lag{0};  // samples the smoothing makes the end of a sync late
+    float audio_rate{48000.0f};
+
+    // VIS header search, in bins of the tone frequency
+    static constexpr uint32_t VIS_BIN_MS = 5;
+    static constexpr size_t VIS_BINS_PER_BIT = 30 / VIS_BIN_MS;
+    static constexpr size_t VIS_LEADER_BINS = 200 / VIS_BIN_MS;                  // of the 300 ms leader
+    static constexpr size_t VIS_BINS = VIS_LEADER_BINS + 10 * VIS_BINS_PER_BIT;  // start, 8 bits, stop
+    int16_t vis_bins[VIS_BINS]{};
+    size_t vis_bin_pos{0};
+    int32_t vis_sum{0};
+    uint32_t vis_count{0};
+    uint32_t vis_bin_samples{240};
+    uint32_t vis_holdoff{0};
 
     // Line decoding state
-    uint8_t line_buffer_r[PIXELS_PER_LINE];
-    uint8_t line_buffer_g[PIXELS_PER_LINE];
-    uint8_t line_buffer_b[PIXELS_PER_LINE];
+    uint8_t line_buffer_r[MAX_PIXELS_PER_LINE];
+    uint8_t line_buffer_g[MAX_PIXELS_PER_LINE];
+    uint8_t line_buffer_b[MAX_PIXELS_PER_LINE];
+
+    // PD modes store Y / (R-Y) / (B-Y) / Y (double-line)
+    uint8_t pd_y0[MAX_PIXELS_PER_LINE];
+    uint8_t pd_ry[MAX_PIXELS_PER_LINE];
+    uint8_t pd_by[MAX_PIXELS_PER_LINE];
+    uint8_t pd_y1[MAX_PIXELS_PER_LINE];
+
+    // Finished lines as RGB, handed to the M0 a chunk per execute()
+    static constexpr uint8_t MAX_OUT_LINES = 2;  // PD finishes two at once
+    uint8_t out_rgb[MAX_OUT_LINES][MAX_PIXELS_PER_LINE * 3];
+    uint16_t out_line[MAX_OUT_LINES]{};
+    uint8_t out_count{0};
+    uint16_t out_next_chunk{0};
+
+    // Robot 36: Y in pd_y0, the chroma of this and the line before in pd_ry/pd_by.
+    // The separator before the chroma says which one it is (1500 Hz R-Y, 2300 Hz B-Y).
+    bool robot36{false};
+    bool robot36_chroma_by{false};
+    int32_t robot36_separator_sum{0};
+    uint32_t robot36_separator_count{0};
+    uint32_t robot36_separator_from{0};  // part of the gap measured, in samples
+    uint32_t robot36_separator_to{0};
 
     uint32_t sample_count{0};
     uint32_t pixel_index{0};
@@ -147,6 +200,7 @@ class SSTVRXProcessor : public BasebandProcessor {
 
     // Frequency offset compensation (auto-calibrated from sync pulses)
     int32_t freq_offset{0};
+    int32_t offset_window_center{0};  // the first offset found: where the syncs are measured
     bool freq_offset_calibrated{false};
     int32_t sync_freq_accumulator{0};
     uint32_t sync_freq_count{0};
@@ -156,14 +210,23 @@ class SSTVRXProcessor : public BasebandProcessor {
     void process_pixel_sample(int32_t freq);
     void process_line();
     void detect_sync(int32_t freq);
+    void update_freq_offset();
+    bool set_mode(const sstv_mode* mode);
+    void restart_image(bool wait_for_two_syncs);
+    void detect_vis();
     void calculate_calibration();
     uint32_t compute_nominal_line_interval() const;
-    void estimate_frequency_goertzel(int32_t audio_sample);
+    void estimate_frequency(float re, float im);
+    void decode_sample(float re, float im);
     void capture_config(const CaptureConfigMessage& message);
     void reset_pixel_state();
     void start_gap(uint32_t duration);
     void begin_line_after_sync();
-    void clear_line_buffers();
+    void clear_line_buffers(bool keep_chroma = false);
+    void ycbcr_to_line(const uint8_t* y, const uint8_t* cr, const uint8_t* cb);
+    void queue_line(uint16_t line);
+    void send_pending_chunk();
+    void measure_robot36_separator();
     void store_pixel_value(uint32_t channel, uint16_t pixel, uint8_t value);
 
     RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
