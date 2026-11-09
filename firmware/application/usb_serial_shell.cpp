@@ -420,12 +420,13 @@ static void cmd_rtcset(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
-#ifndef PRALINE
 static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_info <device>\r\n"
         "  supported modes:\r\n"
+#ifndef PRALINE
         "    cpld_info hackrf\r\n"
+#endif
         "    cpld_info portapack\r\n";
     if (argc != 1) {
         chprintf(chp, usage);
@@ -433,6 +434,7 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     if (strncmp(argv[0], "hackrf", 5) == 0) {
+#ifndef PRALINE
         jtag::GPIOTarget jtag_target_hackrf_cpld{
             cpld_tck,
             cpld_tms,
@@ -476,13 +478,16 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
             hackrf_cpld.finalize_read_sram(hackrf::one::cpld::verify_blocks[0].id);
             chprintf(chp, "CPLD sram firmware checksum: 0x%08X\r\n", crc.checksum());
         }
+#else
+        chprintf(chp, "HackRF CPLD not present on PRALINE\r\n");
+#endif
 
     } else if (strncmp(argv[0], "portapack", 5) == 0) {
         jtag::GPIOTarget target{
-            portapack::gpio_cpld_tck,
-            portapack::gpio_cpld_tms,
-            portapack::gpio_cpld_tdi,
-            portapack::gpio_cpld_tdo};
+            cpld_tck,
+            portapack_cpld_tms,
+            cpld_tdi,
+            portapack_cpld_tdo};
         jtag::JTAG jtag{target};
         portapack::cpld::CPLD cpld{jtag};
 
@@ -567,7 +572,6 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
     }
 }
-#endif
 
 // walks throught the given widget's childs in recurse to get all support text and pass it to a callback function
 static void widget_collect_accessibility(BaseSequentialStream* chp, ui::Widget* w, void (*callback)(BaseSequentialStream*, const std::string&, const std::string&), ui::Widget* focusedWidget) {
@@ -754,7 +758,6 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
-#ifndef PRALINE
 static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_read <device> <target>\r\n"
@@ -767,6 +770,7 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     if (strncmp(argv[0], "hackrf", 5) == 0) {
+#ifndef PRALINE
         if (strncmp(argv[1], "eeprom", 5) == 0) {
             jtag::GPIOTarget jtag_target_hackrf_cpld{
                 cpld_tck,
@@ -832,12 +836,15 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
             hackrf_cpld.finalize_read_sram(hackrf::one::cpld::verify_blocks[0].id);
         }
+#else
+        chprintf(chp, "HackRF CPLD not present on PRALINE\r\n");
+#endif
     } else if (strncmp(argv[0], "portapack", 5) == 0) {
         jtag::GPIOTarget target{
-            portapack::gpio_cpld_tck,
-            portapack::gpio_cpld_tms,
-            portapack::gpio_cpld_tdi,
-            portapack::gpio_cpld_tdo};
+            cpld_tck,
+            portapack_cpld_tms,
+            cpld_tdi,
+            portapack_cpld_tdo};
         jtag::JTAG jtag{target};
         portapack::cpld::CPLD cpld{jtag};
 
@@ -942,10 +949,10 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
     } else if (strncmp(argv[0], "portapack", 5) == 0) {
         if (strncmp(argv[1], "eeprom", 5) == 0) {
             jtag::GPIOTarget target{
-                portapack::gpio_cpld_tck,
-                portapack::gpio_cpld_tms,
-                portapack::gpio_cpld_tdi,
-                portapack::gpio_cpld_tdo};
+                cpld_tck,
+                portapack_cpld_tms,
+                cpld_tdi,
+                portapack_cpld_tdo};
             jtag::JTAG jtag{target};
             portapack::cpld::CPLD cpld{jtag};
 
@@ -1100,7 +1107,6 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
     }
 }
-#endif
 
 static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage = "usage: gotgps <lat> <lon> [altitude] [speed] [satinuse]\r\n";
@@ -1537,11 +1543,9 @@ static const ShellCommand commands[] = {
     USB_SERIAL_SHELL_SD_COMMANDS,
     {"rtcget", cmd_rtcget},
     {"rtcset", cmd_rtcset},
-#ifndef PRALINE
     {"cpld_info", cpld_info},
     {"cpld_read", cmd_cpld_read},
     {"cpld_write", cmd_cpld_write},
-#endif
     {"accessibility_readall", cmd_accessibility_readall},
     {"accessibility_readcurr", cmd_accessibility_readcurr},
     {"applist", cmd_applist},

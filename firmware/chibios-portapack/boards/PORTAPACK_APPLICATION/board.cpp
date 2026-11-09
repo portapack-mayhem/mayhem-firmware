@@ -237,8 +237,6 @@ const PALConfig pal_default_config = {
                     | boot_bit(aux_power_oc, 0)  // P6_11: AUX overcurrent
                     | boot_bit(sct_clk_in, 0)    // P6_4:  SCT clock input
 #else
-                    | boot_bit(cpld_tck, 0)        // P6_0
-                    | boot_bit(cpld_tdi, 0)        // P6_1
                     | boot_bit(sgpio_4, 1)         // P6_3:  SGPIO4
                     | boot_bit(rffc5072_sdata, 0)  // P6_4:  MIXER_SDATA
                     | boot_bit(cpld_tms, 1)        // P6_5:  HackRF CPLD.TMS(I)
@@ -247,8 +245,8 @@ const PALConfig pal_default_config = {
                     | boot_bit(tx_amp_pwr, 1)      // P6_9:  !TX_AMP_PWR, 10K PU
 
 #endif
-                    | (1 << 1)  // P6_2:  HackRF CPLD.TDI(I)
-                    | (1 << 0)  // P6_1:  HackRF CPLD.TCK(I)
+                    | boot_bit(cpld_tdi, 1)  // P6_2: HackRF CPLD.TDI(I)
+                    | boot_bit(cpld_tck, 1)  // P6_1:  HackRF CPLD.TCK(I)
             ,
             .dir = (1 << 15)    // P7_7:  PortaPack GPIO3_15(IO)
                    | (1 << 14)  // P7_6:  PortaPack GPIO3_14(IO)
@@ -266,8 +264,6 @@ const PALConfig pal_default_config = {
                    | boot_bit(p1_ctrl2, 1)      // P6_9:  P1_CTRL2
                    | boot_bit(sct_clk_in, 0)    // P6_4:  SCT clock input
 #else
-                   | boot_bit(cpld_tck, 1)        // P6_0
-                   | boot_bit(cpld_tdi, 1)        // P6_1
                    | boot_bit(sgpio_4, 0)         // P6_3:  SGPIO4
                    | boot_bit(rffc5072_sdata, 1)  // P6_4:  MIXER_SDATA
                    | boot_bit(cpld_tms, 0)        // P6_5:  HackRF CPLD.TMS(I)
@@ -276,8 +272,8 @@ const PALConfig pal_default_config = {
                    | boot_bit(tx_amp_pwr, 1)      // P6_9:  !TX_AMP_PWR, 10K PU
 #endif
 
-                   | (0 << 1)  // P6_2:  HackRF CPLD.TDI(I)
-                   | (0 << 0)  // P6_1:  HackRF CPLD.TCK(I)
+                   | boot_bit(cpld_tdi, 0)  // P6_2: HackRF CPLD.TDI(I)
+                   | boot_bit(cpld_tck, 0)  // P6_1:  HackRF CPLD.TCK(I)
         },
         {
             // GPIO4
@@ -332,7 +328,7 @@ const PALConfig pal_default_config = {
                 | boot_bit(p1_ctrl1, 0)          // P6_8: P1_CTRL1
                 | boot_bit(sgpio_4, 1)           // P9_4: FPGA SGPIO4
                 | (0 << 19)                      // PA_4: Output GND
-                | boot_bit(cpld_tck, 0)          // PB_0: Output GND
+                | boot_bit(unused_pb_0, 0)       // PB_0: Output GND
                 | (0 << 21)                      // PB_1: Output GND
                 | (0 << 22)                      // PB_2: Unused IN
                 | (0 << 23)                      // PB_3: Output GND
@@ -370,7 +366,7 @@ const PALConfig pal_default_config = {
                 | boot_bit(p1_ctrl1, 1)          // P6_8: P1_CTRL1
                 | boot_bit(sgpio_4, 0)           // P9_4: FPGA SGPIO
                 | (1 << 19)                      // PA_4: Output
-                | boot_bit(cpld_tck, 0)          // PB_0: Output GND
+                | boot_bit(unused_pb_0, 0)       // PB_0: Output GND
                 | (1 << 21)                      // PB_1: Output GND
                 | (0 << 22)                      // PB_2: Unused
                 | (1 << 23)                      // PB_3: Output
@@ -583,7 +579,7 @@ const PALConfig pal_default_config = {
 
         // PORTAPACK SPECIFIC & JTAG (CPLD, UI, Audio, SD)
 
-        {map_cpld_tck.scu_port, map_cpld_tck.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tck.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_0 :I2S0_RX_MCLK, PRALINE: PB_0 (Unused)
+        {map_cpld_tck.scu_port, map_cpld_tck.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tck.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_1 :I2S0_RX_MCLK
 
 #ifndef PRALINE
         {map_cpld_tdo.scu_port, map_cpld_tdo.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tdo.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  // CPLD_TDO: HackRF CPLD.TDO(O)
@@ -674,13 +670,13 @@ static const std::array<gpio_setup_t, 6> gpio_setup_r9{{
      .dir = 0},
     {
         // GPIO5
-        .data = boot_bit(r9_clkin_en, 0)  // P6_7:  CLKIN_EN
-                | (0 << 12)               // P4_8:  CLKIN_DETECT
-                | (0 << 5)                // P2_5:  HOST_SYNC_EN
+        .data = boot_bit(r9_clkin_en, 0)    // P6_7:  CLKIN_EN
+                | (0 << 12)                 // P4_8:  CLKIN_DETECT
+                | boot_bit(sgpio_13_r9, 0)  // P2_5:  HOST_SYNC_EN
         ,
-        .dir = boot_bit(r9_clkin_en, 1)  // P6_7:  CLKIN_EN
-               | (0 << 12)               // P4_8:  CLKIN_DETECT
-               | (0 << 5)                // P2_5:  HOST_SYNC_EN
+        .dir = boot_bit(r9_clkin_en, 1)    // P6_7:  CLKIN_EN
+               | (0 << 12)                 // P4_8:  CLKIN_DETECT
+               | boot_bit(sgpio_13_r9, 0)  // P2_5:  HOST_SYNC_EN
     },
 }};
 
