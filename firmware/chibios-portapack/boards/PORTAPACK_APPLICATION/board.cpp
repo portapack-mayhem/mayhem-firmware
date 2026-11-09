@@ -740,6 +740,7 @@ static const std::array<scu_setup_t, PORTAPACK_SCU_ARRAY_SIZE> pins_setup_portap
     {9, 1, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                       // P9_1: Output GND
     {10, 3, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PA_3: Output GND
     {10, 4, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PA_4: Output GND
+    {map_unused_pb_0.scu_port, map_unused_pb_0.scu_pin, scu_config_normal_drive_t{.mode = map_unused_pb_0.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_0: Output GND
     {11, 1, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PB_1: Output GND
     {11, 3, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PB_3: Output GND
     {11, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PB_5: Output GND
