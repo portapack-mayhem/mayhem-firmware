@@ -508,9 +508,9 @@ class Demod {
 
         if ((frames_ & 3) != 0) return;  // every 4 frames = 128 ms
 
-        // Noise floor: 30 % percentile of the whole 8 kHz wide spectrum.
-        for (size_t i = 0; i < FFT_N; i++) scratch_[i] = spec_avg_[i];
-        float noise = select_kth(scratch_, FFT_N, (FFT_N * 3) / 10);
+        // Noise floor: 30th percentile within the displayed passband.
+        for (size_t i = 0; i < SPEC_BINS; i++) scratch_[i] = spec_avg_[FFT_N / 2 - SPEC_BINS / 2 + i];
+        float noise = select_kth(scratch_, SPEC_BINS, (SPEC_BINS * 3) / 10);
         if (noise < 1e-20f) noise = 1e-20f;
 
         // Display bins around the centre.
@@ -526,8 +526,8 @@ class Demod {
 
         if ((frames_ & 7) != 0) return;  // AFC every 256 ms
 
-        for (size_t i = 0; i < FFT_N; i++) scratch_[i] = afc_avg_[i];
-        noise = select_kth(scratch_, FFT_N, (FFT_N * 3) / 10);
+        for (size_t i = 0; i < SPEC_BINS; i++) scratch_[i] = afc_avg_[FFT_N / 2 - SPEC_BINS / 2 + i];
+        noise = select_kth(scratch_, SPEC_BINS, (SPEC_BINS * 3) / 10);
         if (noise < 1e-20f) noise = 1e-20f;
 
         // Two tone template search: maximise sqrt(P(c+h) * P(c-h)).
