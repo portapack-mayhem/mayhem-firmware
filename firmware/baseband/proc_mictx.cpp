@@ -29,9 +29,20 @@
 
 #include <cstdint>
 
+namespace {
+class MicTXStateLock {
+   public:
+    explicit MicTXStateLock(Mutex& mutex) { chMtxLock(&mutex); }
+    ~MicTXStateLock() { chMtxUnlock(); }
+    MicTXStateLock(const MicTXStateLock&) = delete;
+    MicTXStateLock& operator=(const MicTXStateLock&) = delete;
+};
+}  // namespace
+
 void MicTXProcessor::execute(const buffer_c8_t& buffer) {
     // This is called at 1536000/2048 = 750Hz
 
+    const MicTXStateLock lock{state_mutex.mutex};
     if (!configured) return;
 
     audio_input.read_audio_buffer(audio_buffer);
@@ -100,7 +111,15 @@ void MicTXProcessor::on_message(const Message* const msg) {
     const RequestSignalMessage request_message = *reinterpret_cast<const RequestSignalMessage*>(msg);
 
     switch (msg->id) {
-        case Message::ID::AudioTXConfig:
+        case Message::ID::AudioTXConfig: {
+            const MicTXStateLock lock{state_mutex.mutex};
+            // Select from this message. WFM/NFM have all four mode flags clear.
+            am_enabled = config_message.am_enabled;
+            usb_enabled = config_message.usb_enabled;
+            lsb_enabled = config_message.lsb_enabled;
+            dsb_enabled = config_message.dsb_enabled;
+            fm_enabled = !(am_enabled || usb_enabled || lsb_enabled || dsb_enabled);
+
             if (modulator) {
                 delete modulator;
                 modulator = NULL;
@@ -114,9 +133,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
                 // Config properly the private tone_gen function parameters inside DSP modulate.cpp
                 fm->set_tone_gen_configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);
                 modulator = fm;
-            }
-
-            if (usb_enabled) {
+            } else if (usb_enabled) {
                 dsp::modulate::SSB* ssb = new dsp::modulate::SSB();
 
                 // Config fs_div_factor  private var inside DSP modulate.cpp
@@ -126,9 +143,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 
                 // modulator = new dsp::modulate::SSB();             // Keeping previous code as ref., when not passing deviation_hz parameter.
                 // modulator->set_mode(dsp::modulate::Mode::USB);
-            }
-
-            if (lsb_enabled) {
+            } else if (lsb_enabled) {
                 dsp::modulate::SSB* ssb = new dsp::modulate::SSB();
 
                 // Config fs_div_factor  private var inside DSP modulate.cpp
@@ -138,25 +153,15 @@ void MicTXProcessor::on_message(const Message* const msg) {
 
                 // modulator = new dsp::modulate::SSB();             // Keeping previous code as ref., when not passing deviation_hz parameter.
                 // modulator->set_mode(dsp::modulate::Mode::LSB);
-            }
-            if (am_enabled) {
+            } else if (am_enabled) {
                 modulator = new dsp::modulate::AM();
                 modulator->set_mode(dsp::modulate::Mode::AM);
-            }
-            if (dsb_enabled) {
+            } else if (dsb_enabled) {
                 modulator = new dsp::modulate::AM();
                 modulator->set_mode(dsp::modulate::Mode::DSB);
             }
 
             modulator->set_over(baseband_fs / 24000);  // "over" is calculated based on relationship fs_transceiver / fs_audio_mic_capture, to be used in dsp_modulate.cpp
-
-            am_enabled = config_message.am_enabled;
-            usb_enabled = config_message.usb_enabled;
-            lsb_enabled = config_message.lsb_enabled;
-            dsb_enabled = config_message.dsb_enabled;
-            if (!am_enabled || !usb_enabled || !lsb_enabled || !dsb_enabled) {
-                fm_enabled = true;
-            }
 
             audio_gain = config_message.audio_gain;
             audio_shift_bits_s16 = config_message.audio_shift_bits_s16;
@@ -171,14 +176,17 @@ void MicTXProcessor::on_message(const Message* const msg) {
             play_beep = false;
             configured = true;
             break;
+        }
 
-        case Message::ID::RequestSignal:
+        case Message::ID::RequestSignal: {
+            const MicTXStateLock lock{state_mutex.mutex};
             if (request_message.signal == RequestSignalMessage::Signal::RogerBeepRequest) {
                 beep_index = 0;
                 beep_timer = 0;
                 play_beep = true;
             }
             break;
+        }
 
         default:
             break;

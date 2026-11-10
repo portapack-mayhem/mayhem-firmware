@@ -117,6 +117,7 @@ class Ticker {
 class DinoGameView : public View {
    public:
     DinoGameView(NavigationView& nav);
+    ~DinoGameView();
     void on_show() override;
 
     std::string title() const override { return "Dino Game"; }

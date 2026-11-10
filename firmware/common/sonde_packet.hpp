@@ -62,6 +62,7 @@ class Packet {
         Meteomodem_M2K2 = 3,
         Vaisala_RS41_SG = 4,
         Meteomodem_M20 = 5,
+        Meteoradiy_MRZ = 6,  // MRZ-N1 / MP3-H1, 403 MHz (issue #3309)
     };
 
     Packet(const baseband::Packet& packet, const Type type);
@@ -73,8 +74,14 @@ class Packet {
     Type type() const;
     std::string type_string() const;
 
+    // A value this frame doesn't carry; the UI then keeps showing the last one it got.
+    static constexpr uint32_t NO_VALUE = 0xFFFFFFFF;
+
     std::string serial_number() const;
-    uint32_t battery_voltage() const;
+    // The MRZ serial is two numbers, sent in config subframes 0xC and 0xD of different frames:
+    // part 0 or 1 of it, or NO_VALUE when this frame doesn't carry that part.
+    uint32_t serial_part(const size_t part) const;
+    uint32_t battery_voltage() const;  // mV, or NO_VALUE when this frame doesn't carry it
     GPS_data get_GPS_data() const;
     uint32_t frame() const;
     temp_humid get_temp_humid() const;
@@ -166,6 +173,11 @@ class Packet {
     bool crc_ok_M10() const;
     bool crc_ok_RS41() const;
     bool check_ok_M20() const;
+    bool crc_ok_MRZ() const;
+    uint8_t mrz_byte(size_t k) const;
+    int32_t mrz_i32(size_t k) const;
+    int16_t mrz_i16(size_t k) const;
+    bool mrz_latlon() const;
     bool crc16rs41(uint32_t field_start) const;
 };
 

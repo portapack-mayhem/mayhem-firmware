@@ -223,6 +223,7 @@ set(CPPSRC
 	freqman_db.cpp
 	freqman.cpp
 	io_convert.cpp
+	lcd_tuning_file.cpp
 	io_file.cpp
 	io_wave.cpp
 	iq_trim.cpp
@@ -246,6 +247,7 @@ set(CPPSRC
 	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
+	spec_an_sweep.cpp
 	recent_entries.cpp
 	replay_thread.cpp
 	rf_path.cpp

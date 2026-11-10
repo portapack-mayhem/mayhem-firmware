@@ -1,0 +1,26 @@
+name: Master PR Warning
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited]
+
+jobs:
+  add-comment:
+    # release PRs come from this repo's next branch; anything else targeting master is probably a mistake
+    if: >-
+      github.event.pull_request.base.ref == 'master' &&
+      !(github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'next') &&
+      (github.event.action != 'edited' || github.event.changes.base)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Add warning comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            > [!WARNING]
+            This PR targets `master`, which is only used for **stable releases**.
+            Unless you are releasing a new stable version, please change the base branch to `next` (click **Edit** next to the PR title).
+            Please don't merge this into `master` otherwise.

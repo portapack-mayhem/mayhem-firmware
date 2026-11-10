@@ -91,6 +91,7 @@ class SondeView : public View {
     sonde::GPS_data gps_info{};
     sonde::temp_humid temp_humid_info{};
     std::string sonde_id{};
+    uint32_t serial_parts_[2]{};  // MRZ: the two halves of the serial, from different frames
 
     // AudioOutput audio_output { };
 

@@ -25,6 +25,11 @@ class FProtoWeatherBase {
 
     uint8_t getSensorType() { return sensorType; }
     uint64_t getData() { return decode_data; }
+    // Raw frame for protocols that don't fit into 64 bits. The app parses it the same way as decode_data.
+    virtual const uint8_t* getPayload(uint8_t& len) {
+        len = 0;
+        return nullptr;
+    }
 
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.

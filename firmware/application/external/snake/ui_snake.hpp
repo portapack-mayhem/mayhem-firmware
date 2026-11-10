@@ -49,6 +49,7 @@ enum {
 class SnakeView : public View {
    public:
     SnakeView(NavigationView& nav);
+    ~SnakeView();
     void on_show() override;
 
     std::string title() const override { return "Snake"; }

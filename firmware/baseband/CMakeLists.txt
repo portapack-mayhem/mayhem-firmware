@@ -470,6 +470,7 @@ DeclareTargets(PREP replay)
 
 set(MODE_CPPSRC
 	proc_wideband_spectrum.cpp
+	spec_an_engine.cpp
 )
 DeclareTargets(PSPE wideband_spectrum)
 
@@ -837,6 +838,7 @@ DeclareTargets(PTSK time_sink)
 
 set(MODE_CPPSRC
 	proc_spec_an.cpp
+	spec_an_engine.cpp
 )
 DeclareTargets(PSAN spec_an)
 
@@ -884,6 +886,22 @@ set(MODE_CPPSRC
 	proc_wmbus.cpp
 )
 DeclareTargets(PWMB wmbus_rx)
+
+### VDL2 Rx
+
+set(MODE_CPPSRC
+	proc_vdl2.cpp
+	vdl2_decoder.cpp
+)
+DeclareTargets(PVDL vdl2_rx)
+
+### Sub-GHz chat Rx
+
+set(MODE_CPPSRC
+	proc_subghz_chat.cpp
+	cc1101_decoder.cpp
+)
+DeclareTargets(PCHT subghz_chat)
 
 
 set(MODE_CPPSRC

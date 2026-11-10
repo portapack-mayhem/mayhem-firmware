@@ -9,21 +9,6 @@
 // #define LOG_LEVEL LOG_DEBUG
 // #include "debug.h"
 
-// Lookup table for y = 10*log10(1 + 10^(x/10)), where
-//   y - increase in signal level dB when adding a weaker independent signal
-//   x - specific relative strength of the weaker signal in dB
-// Table index corresponds to x in dB (index 0: 0 dB, index 1: -1 dB etc)
-static const float db_power_sum[40] = {
-    3.01029995663981f, 2.53901891043867f, 2.1244260279434f, 1.76434862436485f, 1.45540463109294f,
-    1.19331048066095f, 0.973227937086954f, 0.790097496525665f, 0.638920341433796f, 0.514969420252302f,
-    0.413926851582251f, 0.331956199884278f, 0.265723755961025f, 0.212384019142551f, 0.16954289279533f,
-    0.135209221080382f, 0.10774225511957f, 0.085799992300358f, 0.06829128312453f, 0.054333142200458f,
-    0.043213737826426f, 0.034360947517284f, 0.027316043349389f, 0.021711921641451f, 0.017255250287928f,
-    0.013711928326833f, 0.010895305999614f, 0.008656680827934f, 0.006877654943187f, 0.005464004928574f,
-    0.004340774793186f, 0.003448354310253f, 0.002739348814965f, 0.002176083232619f, 0.001728613409904f,
-    0.001373142636584f, 0.001090761428665f, 0.000866444976964f, 0.000688255828734f, 0.000546709946839f
-};
-
 /// Compute log likelihood log(p(1) / p(0)) of 174 message bits for later use in soft-decision LDPC decoding
 /// @param[in] wf Waterfall data collected during message slot
 /// @param[in] cand Candidate to extract the message from
@@ -47,7 +32,6 @@ static void heapify_up(ftx_candidate_t heap[], int heap_size);
 static void ftx_normalize_logl(float* log174);
 static void ft4_extract_symbol(const WF_ELEM_T* wf, float* logl);
 static void ft8_extract_symbol(const WF_ELEM_T* wf, float* logl);
-static void ft8_decode_multi_symbols(const WF_ELEM_T* wf, int num_bins, int n_syms, int bit_idx, float* log174);
 
 static const WF_ELEM_T* get_cand_mag(const ftx_waterfall_t* wf, const ftx_candidate_t* candidate)
 {
@@ -511,63 +495,6 @@ static void ft8_extract_symbol(const WF_ELEM_T* wf, float* logl)
     // for (int i = 0; i < 3; ++i)
     //     printf("%.1f ", logl[i]);
     // printf("\n");
-}
-
-// Compute unnormalized log likelihood log(p(1) / p(0)) of bits corresponding to several FSK symbols at once
-static void ft8_decode_multi_symbols(const WF_ELEM_T* wf, int num_bins, int n_syms, int bit_idx, float* log174)
-{
-    const int n_bits = 3 * n_syms;
-    const int n_tones = (1 << n_bits);
-
-    float s2[n_tones];
-
-    for (int j = 0; j < n_tones; ++j)
-    {
-        int j1 = j & 0x07;
-        if (n_syms == 1)
-        {
-            s2[j] = WF_ELEM_MAG(wf[kFT8_Gray_map[j1]]);
-            continue;
-        }
-        int j2 = (j >> 3) & 0x07;
-        if (n_syms == 2)
-        {
-            s2[j] = WF_ELEM_MAG(wf[kFT8_Gray_map[j2]]);
-            s2[j] += WF_ELEM_MAG(wf[kFT8_Gray_map[j1] + 4 * num_bins]);
-            continue;
-        }
-        int j3 = (j >> 6) & 0x07;
-        s2[j] = WF_ELEM_MAG(wf[kFT8_Gray_map[j3]]);
-        s2[j] += WF_ELEM_MAG(wf[kFT8_Gray_map[j2] + 4 * num_bins]);
-        s2[j] += WF_ELEM_MAG(wf[kFT8_Gray_map[j1] + 8 * num_bins]);
-    }
-
-    // Extract bit significance (and convert them to float)
-    // 8 FSK tones = 3 bits
-    for (int i = 0; i < n_bits; ++i)
-    {
-        if (bit_idx + i >= FTX_LDPC_N)
-        {
-            // Respect array size
-            break;
-        }
-
-        uint16_t mask = (n_tones >> (i + 1));
-        float max_zero = -1000, max_one = -1000;
-        for (int n = 0; n < n_tones; ++n)
-        {
-            if (n & mask)
-            {
-                max_one = max2(max_one, s2[n]);
-            }
-            else
-            {
-                max_zero = max2(max_zero, s2[n]);
-            }
-        }
-
-        log174[bit_idx + i] = max_one - max_zero;
-    }
 }
 
 // Packs a string of bits each represented as a zero/non-zero byte in plain[],

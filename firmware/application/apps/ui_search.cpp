@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +28,10 @@
 #include "string_format.hpp"
 #include "ui_freqman.hpp"
 #include "audio.hpp"
+#include "radio.hpp"
+
+#include <algorithm>
+#include <array>
 
 using namespace portapack;
 namespace pmem = portapack::persistent_memory;
@@ -62,8 +67,13 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
 SearchView::SearchView(
     NavigationView& nav)
     : nav_(nav) {
-    spectrum_row.resize(240);
+    sweep_power.resize(points);
+    hold_power.resize(points);
+    spectrum_row.resize(points);
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+    // The sweep waits for the M4 to discard samples until the synthesizers settle.
+    radio::set_fast_retune(true);
+    receiver_model.enable();
 
     if (!gradient.load_file(default_gradient_file)) {
         gradient.set_default();
@@ -75,7 +85,7 @@ SearchView::SearchView(
                   &field_lna,
                   &field_vga,
                   &field_threshold,
-                  &text_mean,
+                  &text_noise,
                   &text_slices,
                   &text_rate,
                   &text_infos,
@@ -87,14 +97,12 @@ SearchView::SearchView(
                   &check_log,
                   &recent_entries_view});
 
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
-
     recent_entries_view.set_parent_rect({0, 28 * 8, screen_width, screen_height - 28 * 8});
     recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
         nav.push<FrequencySaveView>(entry.frequency);
     };
 
-    text_mean.set_style(Theme::getInstance()->fg_medium);
+    text_noise.set_style(Theme::getInstance()->fg_medium);
     text_slices.set_style(Theme::getInstance()->fg_medium);
     text_rate.set_style(Theme::getInstance()->fg_medium);
     progress_timers.set_style(Theme::getInstance()->fg_medium);
@@ -125,7 +133,6 @@ SearchView::SearchView(
     progress_timers.set_max(DETECT_DELAY);
 
     on_range_changed();
-    receiver_model.enable();
 
     if (pmem::beep_on_packets()) {
         audio::set_rate(audio::Rate::Hz_24000);
@@ -134,124 +141,248 @@ SearchView::SearchView(
 }
 
 SearchView::~SearchView() {
+    sweep.stop();
     audio::output::stop();
+    radio::set_fast_retune(false);
+    receiver_model.set_sampling_rate(3072000);  // as Looking Glass: the sweep may leave 20 MHz
     receiver_model.disable();
     baseband::shutdown();
 }
 
 void SearchView::on_show() {
-    baseband::spectrum_streaming_start();
+    shown = true;
+    std::fill(sweep_power.begin(), sweep_power.end(), 0);
+    sweep.resume();
 }
 
 void SearchView::on_hide() {
-    baseband::spectrum_streaming_stop();
+    shown = false;
+    sweep.stop();
+    row_ready = false;
 }
 
 void SearchView::focus() {
     field_frequency_min.focus();
 }
 
-void SearchView::do_detection() {
-    uint8_t power_max = 0;
-    int32_t bin_max = -1;
-    uint32_t slice_max = 0;
-    uint32_t snap_value;
-    uint8_t power;
+void SearchView::start_sweep(rf::Frequency start, rf::Frequency span) {
+    spec_an::Sweep::Params params{};
+    params.start = start;
+    params.span = span;
+    params.points = points;
+    params.avg = kAverage;
+    // Narrow bins as the classic Search: the noise in a bin grows with its
+    // width, a narrowband signal does not.
+    params.rbw_idx = kRbwIdx;
+    // The zoom stages fit one tune: unpaced, the replies would starve the
+    // frame sync that runs the detection timers.
+    params.frame_paced = true;
+
+    std::fill(sweep_power.begin(), sweep_power.end(), 0);
+    std::fill(hold_power.begin(), hold_power.end(), 0);
+    hold_count = 0;
+    sweep.start(params);
+    if (!shown)
+        sweep.stop();  // on_show() resumes it
+}
+
+void SearchView::sweep_range() {
+    const rf::Frequency f_lo = std::min(settings_.freq_min, settings_.freq_max);
+    const rf::Frequency f_hi = std::max(settings_.freq_min, settings_.freq_max);
+    start_sweep(f_lo, f_hi - f_lo);
+
+    const uint16_t slices = sweep.plan().slices;
+    text_slices.set(slices > 999 ? "!!!" : to_string_dec_uint(slices, 3, ' '));
+}
+
+void SearchView::start_scan() {
+    stage = Stage::Scan;
+    detect_timer = 0;
+    last_index = -1;
+    sweep_range();
+}
+
+void SearchView::zoom(uint16_t x) {
+    // A few points of the current span either side of x: the signal may sit
+    // anywhere in the point, and drift a little until the next period.
+    const rf::Frequency spacing = sweep.params().span / (points - 1);
+    const rf::Frequency span = std::max<rf::Frequency>(kZoomPoints * spacing, kZoomMinSpan);
+    const rf::Frequency center = sweep.point_freq(x);
+
+    stage = Stage::Resolve;
+    start_sweep(std::max<rf::Frequency>(center - span / 2, 0), span);
+}
+
+void SearchView::lock(rf::Frequency frequency) {
     rtc::RTC datetime;
-    std::string str_approx, str_timestamp;
+    std::string str_timestamp;
 
-    // Display spectrum
-    bin_skip_acc = 0;
-    pixel_index = 0;
-    uint16_t center_align_start = (screen_width - spectrum_row.size()) / 2;
-    display.draw_pixels({{center_align_start, 88}, {(Dim)spectrum_row.size(), 1}}, spectrum_row);
+    resolved_frequency = frequency;
+    if (check_snap.value()) {
+        const rf::Frequency snap_value = options_snap.selected_index_value();
+        resolved_frequency = ((resolved_frequency + snap_value / 2) / snap_value) * snap_value;  // nearest step
+    }
+    big_display.set(resolved_frequency);
 
-    mean_power = mean_acc / (SEARCH_BIN_NB_NO_DC * slices_nb);
-    mean_acc = 0;
+    // Check range
+    if ((resolved_frequency < std::min(settings_.freq_min, settings_.freq_max)) ||
+        (resolved_frequency > std::max(settings_.freq_min, settings_.freq_max))) {
+        text_infos.set("Out of range");
+        start_scan();
+        return;
+    }
 
-    overall_power_max = 0;
+    duration = 0;
+    release_timer = 0;
 
-    // Find max power over threshold for all slices
-    for (size_t slice = 0; slice < slices_nb; slice++) {
-        power = slices[slice].max_power;
-        if (power > overall_power_max)
-            overall_power_max = power;
+    auto& entry = ::on_packet(recent, resolved_frequency);
 
-        if ((power >= mean_power + settings_.power_threshold) && (power > power_max)) {
+    rtcGetTime(&RTCD1, &datetime);
+    str_timestamp = to_string_dec_uint(datetime.hour(), 2, '0') + ":" +
+                    to_string_dec_uint(datetime.minute(), 2, '0') + ":" +
+                    to_string_dec_uint(datetime.second(), 2, '0');
+    entry.set_time(str_timestamp);
+    recent_entries_view.set_dirty();
+
+    text_infos.set("Locked ! ");
+    big_display.set_style(Theme::getInstance()->fg_green);
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
+    // TODO: open Audio.
+
+    // Watch it, and the rest of the range, from the range sweep.
+    stage = Stage::Locked;
+    sweep_range();
+}
+
+void SearchView::unlock() {
+    auto& entry = ::on_packet(recent, resolved_frequency);
+    entry.set_duration(duration);
+    if (logging) logger.log_data(entry);
+    recent_entries_view.set_dirty();
+
+    text_infos.set("Listening");
+    big_display.set_style(Theme::getInstance()->fg_medium);
+
+    // Already sweeping the range.
+    stage = Stage::Scan;
+    detect_timer = 0;
+    last_index = -1;
+}
+
+void SearchView::on_slice(const SpecAnSliceMessage& message) {
+    if (!sweep.sweeping()) return;  // late reply after a hide
+    const int16_t* const src = sweep.accept(message);
+    if (!src) return;
+
+    const uint16_t end = std::min<uint16_t>(message.px_end, points);
+    for (uint16_t x = message.px_begin; x < end; x++)
+        sweep_power[x] = std::max(sweep_power[x], sweep.power(src[x]));
+
+    if (message.last) {
+        // Only whole sweeps go into the hold, the slices of the next one are
+        // still to come. A sweep missing a slice is dropped.
+        const bool complete = sweep.sweep_complete();
+        for (uint16_t x = 0; x < points; x++) {
+            if (complete)
+                hold_power[x] = std::max(hold_power[x], sweep_power[x]);
+            sweep_power[x] = 0;
+        }
+        if (complete) {
+            hold_count++;
+            search_counter++;
+        }
+    }
+}
+
+void SearchView::evaluate() {
+    std::array<uint8_t, 256> histogram{};  // points per power level
+    uint8_t power_max = 0;
+    uint16_t index_max = 0;
+
+    for (uint16_t x = 0; x < points; x++) {
+        const uint8_t power = hold_power[x];
+        histogram[power]++;
+        if (power > power_max) {
             power_max = power;
-            bin_max = slices[slice].max_index;
-            slice_max = slice;
+            index_max = x;
         }
     }
 
-    // Lock / release
-    if ((bin_max >= last_bin - 2) && (bin_max <= last_bin + 2) && (bin_max > -1) && (slice_max == last_slice)) {
-        // Staying around the same bin
-        if (detect_timer >= DETECT_DELAY) {
-            if ((bin_max != locked_bin) || (!locked)) {
-                if (!locked) {
-                    resolved_frequency = slices[slice_max].center_frequency + (SEARCH_BIN_WIDTH * (bin_max - 128));
+    // The noise floor is the lower quartile of the points, not their mean: in
+    // a busy band (FM broadcast) the signals would raise the mean above the
+    // noise they have to stand out from.
+    uint32_t noise = 0;
+    for (uint16_t below = 0; noise < 255; noise++) {
+        below += histogram[noise];
+        if (below > points / 4)
+            break;
+    }
+    const bool over = power_max >= noise + settings_.power_threshold;
+    const int16_t index = over ? index_max : -1;
 
-                    if (check_snap.value()) {
-                        snap_value = options_snap.selected_index_value();
-                        resolved_frequency = round(resolved_frequency / snap_value) * snap_value;
-                    }
+    if (stage != Stage::Resolve) {
+        // A period of the whole range: show it.
+        for (uint16_t x = 0; x < points; x++)
+            spectrum_row[x] = gradient.lut[hold_power[x]];
+        row_tick = index;
+        row_ready = true;
+        noise_power = noise;
+        overall_power_max = power_max;
+    }
 
-                    // Check range
-                    if ((resolved_frequency >= settings_.freq_min) && (resolved_frequency <= settings_.freq_max)) {
-                        duration = 0;
+    std::fill(hold_power.begin(), hold_power.end(), 0);
+    hold_count = 0;
 
-                        auto& entry = ::on_packet(recent, resolved_frequency);
-
-                        rtcGetTime(&RTCD1, &datetime);
-                        str_timestamp = to_string_dec_uint(datetime.hour(), 2, '0') + ":" +
-                                        to_string_dec_uint(datetime.minute(), 2, '0') + ":" +
-                                        to_string_dec_uint(datetime.second(), 2, '0');
-                        entry.set_time(str_timestamp);
-                        recent_entries_view.set_dirty();
-
-                        text_infos.set("Locked ! ");
-                        big_display.set_style(Theme::getInstance()->fg_green);
-
-                        locked = true;
-                        locked_bin = bin_max;
-                        if (pmem::beep_on_packets()) {
-                            baseband::request_audio_beep(1000, 24000, 60);
-                        }
-                        // TODO: open Audio.
-                    } else
-                        text_infos.set("Out of range");
+    switch (stage) {
+        case Stage::Scan:
+            // Staying around the same point
+            if ((index > -1) && (last_index > -1) && (abs(index - last_index) <= 2)) {
+                if (detect_timer >= DETECT_DELAY) {
+                    locked_index = index;
+                    estimate = sweep.point_freq(index);
+                    zoom(index);
                 }
-
-                big_display.set(resolved_frequency);
+            } else {
+                detect_timer = 0;
             }
-        }
-        release_timer = 0;
-    } else {
-        detect_timer = 0;
-        if (locked) {
-            if (release_timer >= RELEASE_DELAY) {
-                locked = false;
+            last_index = index;
+            break;
 
-                auto& entry = ::on_packet(recent, resolved_frequency);
-                entry.set_duration(duration);
-                if (logging) logger.log_data(entry);
-                recent_entries_view.set_dirty();
-
-                text_infos.set("Listening");
-                big_display.set_style(Theme::getInstance()->fg_medium);
+        case Stage::Resolve:
+            if (index < 0) {
+                lock(estimate);  // no peak: a wideband signal fills the zoom, keep what we have
+            } else {
+                estimate = sweep.point_freq(index);
+                if (sweep.params().span / (points - 1) > kResolvedSpacing)
+                    zoom(index);
+                else
+                    lock(estimate);
             }
-        }
+            break;
+
+        case Stage::Locked:
+            if ((index > -1) && (abs(index - locked_index) <= 2)) {
+                locked_index = index;  // follows a slow drift
+                release_timer = 0;
+            } else if (release_timer >= RELEASE_DELAY) {
+                unlock();
+            }
+            break;
     }
+}
 
-    last_bin = bin_max;
-    last_slice = slice_max;
-    search_counter++;
+void SearchView::draw_row() {
+    const uint16_t center_align_start = (screen_width - points) / 2;
+    display.draw_pixels({{center_align_start, 88}, {points, 1}}, spectrum_row);
+    row_ready = false;
 
     // Refresh red tick
     portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->background);
-    if (bin_max > -1) {
-        last_tick_pos = (Coord)(bin_max / slices_nb) + center_align_start;
+    if (row_tick > -1) {
+        last_tick_pos = row_tick + center_align_start;
         portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance()->fg_red->foreground);
     }
 }
@@ -262,8 +393,8 @@ void SearchView::do_timers() {
 
         timing_div = 0;
 
-        // Update scan rate
-        text_rate.set(to_string_dec_uint(search_counter, 3));
+        // Update scan rate (whole sweeps per second)
+        text_rate.set(to_string_dec_uint(std::min<uint16_t>(search_counter, 999), 3));
         search_counter = 0;
     }
 
@@ -271,17 +402,21 @@ void SearchView::do_timers() {
         // ~5Hz
 
         // Update power levels
-        text_mean.set(to_string_dec_uint(mean_power, 3));
+        text_noise.set(to_string_dec_uint(noise_power, 3));
 
         vu_max.set_value(overall_power_max);
-        vu_max.set_mark(mean_power + settings_.power_threshold);
+        vu_max.set_mark(noise_power + settings_.power_threshold);
     }
 
     if (timing_div % 6 == 0) {
         // ~10Hz
 
+        // Look at the sweeps of this period (none yet: a wide range takes longer)
+        if (hold_count)
+            evaluate();
+
         // Update timing indicator
-        if (locked) {
+        if (stage == Stage::Locked) {
             progress_timers.set_max(RELEASE_DELAY);
             progress_timers.set_value(RELEASE_DELAY - release_timer);
         } else {
@@ -293,115 +428,16 @@ void SearchView::do_timers() {
         if (detect_timer < DETECT_DELAY) detect_timer++;
         if (release_timer < RELEASE_DELAY) release_timer++;
 
-        if (locked) duration++;
+        if (stage == Stage::Locked) duration++;
     }
 
     timing_div++;
 }
 
-void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    uint8_t max_power = 0;
-    int16_t max_bin = 0;
-    uint8_t power;
-    size_t bin;
-
-    baseband::spectrum_streaming_stop();
-
-    // Add pixels to spectrum display and find max power for this slice
-    // Center 12 bins are ignored (DC spike is blanked)
-    // Leftmost and rightmost 2 bins are ignored
-    for (bin = 0; bin < 256; bin++) {
-        if ((bin < 2) || (bin > 253) || ((bin >= 122) && (bin < 134))) {
-            power = 0;
-        } else {
-            if (bin < 128)
-                power = spectrum.db[128 + bin];
-            else
-                power = spectrum.db[bin - 128];
-        }
-
-        add_spectrum_pixel(gradient.lut[power]);
-
-        mean_acc += power;
-        if (power > max_power) {
-            max_power = power;
-            max_bin = bin;
-        }
-    }
-
-    slices[slice_counter].max_power = max_power;
-    slices[slice_counter].max_index = max_bin;
-
-    if (slices_nb > 1) {
-        // Slice sequence
-        if (slice_counter >= slices_nb) {
-            do_detection();
-            slice_counter = 0;
-        } else
-            slice_counter++;
-        receiver_model.set_target_frequency(slices[slice_counter].center_frequency);
-        baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);  // Clear
-    } else {
-        // Unique slice
-        do_detection();
-    }
-
-    baseband::spectrum_streaming_start();
-}
-
 void SearchView::on_range_changed() {
-    rf::Frequency slices_span;
-    rf::Frequency center_frequency;
-    int64_t offset;
-    size_t slice;
-
-    // TODO: enforce min < max?
-    search_span = abs(settings_.freq_max - settings_.freq_min);
-
-    if (search_span > SEARCH_SLICE_WIDTH) {
-        // ex: 100M~115M (15M span):
-        // slices_nb = (115M-100M)/2.5M = 6
-        slices_nb = (search_span + SEARCH_SLICE_WIDTH - 1) / SEARCH_SLICE_WIDTH;
-        if (slices_nb > 32) {
-            text_slices.set("!!");
-            slices_nb = 32;
-        } else {
-            text_slices.set(to_string_dec_uint(slices_nb, 2, ' '));
-        }
-        // slices_span = 6 * 2.5M = 15M
-        slices_span = slices_nb * SEARCH_SLICE_WIDTH;
-        // offset = 0 + 2.5/2 = 1.25M
-        offset = ((search_span - slices_span) / 2) + (SEARCH_SLICE_WIDTH / 2);
-        // slice_start = 100M + 1.25M = 101.25M
-        center_frequency = std::min(settings_.freq_min, settings_.freq_max) + offset;
-
-        for (slice = 0; slice < slices_nb; slice++) {
-            slices[slice].center_frequency = center_frequency;
-            center_frequency += SEARCH_SLICE_WIDTH;
-        }
-    } else {
-        slices[0].center_frequency = (settings_.freq_max + settings_.freq_min) / 2;
-        receiver_model.set_target_frequency(slices[0].center_frequency);
-
-        slices_nb = 1;
-        text_slices.set(" 1");
-    }
-
-    bin_skip_frac = 0xF000 / slices_nb;
-
-    slice_counter = 0;
-}
-
-void SearchView::add_spectrum_pixel(Color color) {
-    // Is avoiding floats really necessary?
-    bin_skip_acc += bin_skip_frac;
-    if (bin_skip_acc < 0x10000)
-        return;
-
-    bin_skip_acc -= 0x10000;
-
-    if (pixel_index < spectrum_row.size())
-        spectrum_row[pixel_index++] = color;
+    if (stage == Stage::Locked)
+        unlock();  // logs the signal
+    start_scan();
 }
 
 } /* namespace ui */

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2026 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -32,6 +33,11 @@
 void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
     // 2048 complex8_t samples per buffer.
     // 102.4us per buffer. 20480 instruction cycles per buffer.
+
+    if (sweep_engine.active()) {
+        sweep_engine.execute(buffer);
+        return;
+    }
 
     if (!configured) return;
 
@@ -80,6 +86,18 @@ void WidebandSpectrum::on_message(const Message* const msg) {
             on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(msg));
             return;
 
+        case Message::ID::SpecAnConfig:
+            configured = false;
+            sweep_engine.configure(*reinterpret_cast<const SpecAnConfigMessage*>(msg), nullptr, baseband_thread);
+            return;
+
+        case Message::ID::UpdateSpectrum:
+            if (sweep_engine.active()) {
+                sweep_engine.process_pending();
+                return;
+            }
+            break;
+
         default:
             break;
     }
@@ -93,6 +111,7 @@ void WidebandSpectrum::on_message(const Message* const msg) {
             break;
 
         case Message::ID::WidebandSpectrumConfig:
+            sweep_engine.stop();
             baseband_fs = message.sampling_rate;
             trigger = message.trigger;
             baseband_thread.set_sampling_rate(baseband_fs);

@@ -41,7 +41,10 @@ class ReplayThread {
         size_t read_size,
         size_t buffer_count,
         bool* ready_signal,
-        std::function<void(uint32_t return_code)> terminate_callback);
+        std::function<void(uint32_t return_code)> terminate_callback,
+        // Opt into IQ sample alignment and EOF drain; does not select DSP filtering.
+        bool iq_reconstruction = false,
+        bool input_is_c8 = false);
     ~ReplayThread();
 
     ReplayThread(const ReplayThread&) = delete;
@@ -64,6 +67,7 @@ class ReplayThread {
     std::unique_ptr<stream::Reader> reader;
     bool* ready_sig;
     std::function<void(uint32_t return_code)> terminate_callback;
+    const bool iq_reconstruction;
     Thread* thread{nullptr};
 
     static msg_t static_fn(void* arg);

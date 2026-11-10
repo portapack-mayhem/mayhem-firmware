@@ -425,9 +425,12 @@ static size_t build_frame(uint8_t* buf, uint64_t capcode, int msg_type, const st
     if (bp.send_ssid1 && extra_count < 3)
         extra_biw[extra_count++] = flex_biw_ssid1(bp.local_id, bp.coverage_zone);
     if (bp.send_time && extra_count < 3) {
-        uint32_t sec_step = (uint32_t)(bp.second * 2 / 15);  // 7.5s steps
-        if (sec_step > 7) sec_step = 7;
-        extra_biw[extra_count++] = flex_biw_time(bp.hour, bp.minute, sec_step);
+        // Standard mode (osmocom-analog default, ARIB STD-43A §3.7.2):
+        // BIW TIME encodes the time at Frame 0 of the current cycle.
+        // Pager adds frame*1.875s internally to recover the real time.
+        // Frame 0 of a cycle is always on a 4-minute boundary:
+        //   minute = cycle * 4,  second = 0,  hour from wall clock.
+        extra_biw[extra_count++] = flex_biw_time(bp.hour, cycle * 4, 0);
     }
     if (bp.send_date && extra_count < 3) {
         uint32_t year_field = (uint32_t)(bp.year - 1994);
@@ -439,7 +442,13 @@ static size_t build_frame(uint8_t* buf, uint64_t capcode, int msg_type, const st
             tz_info |= (0U << 5);  // L0=0 means DST active
         else
             tz_info |= (1U << 5);  // L0=1 means standard time
-        extra_biw[extra_count++] = flex_biw_sysinfo(0x04, tz_info);
+        // I7-I9: extended seconds (0-7, 0.9375s steps). Clock-sync trim;
+        // use 0 when the frame grid is clock-synchronized (the default).
+        tz_info |= ((uint32_t)bp.ext_sec & 0x07) << 7;
+        // A=0x05 = Additional Time Instruction (BIW_SYSINFO_A_TIME_ADD).
+        // A=0x04 would imply an Operator Messaging Address in the frame
+        // (§3.7.2 Table 3.7.2-2) — we never send one, so 0x05 is correct.
+        extra_biw[extra_count++] = flex_biw_sysinfo(0x05, tz_info);
     }
     if (bp.send_ssid2 && extra_count < 3)
         extra_biw[extra_count++] = flex_biw_ssid2(bp.country_code, 0);
@@ -558,6 +567,7 @@ FlexParamsView::FlexParamsView(NavigationView& nav, FlexBIWParams& params)
                   &check_date, &field_year, &field_month, &field_day,
                   &check_time, &field_hour, &field_minute, &field_second,
                   &check_tz, &options_tz, &check_dst,
+                  &labels_extsec, &field_ext_sec,
                   &check_ssid1, &field_local_id, &labels_cz, &field_coverage,
                   &check_ssid2, &field_country, &check_roaming,
                   &labels_msg, &field_msg_number,
@@ -578,6 +588,7 @@ FlexParamsView::FlexParamsView(NavigationView& nav, FlexBIWParams& params)
     check_tz.set_value(params_.send_tz);
     options_tz.set_by_value(params_.tz_code);
     check_dst.set_value(params_.send_dst);
+    field_ext_sec.set_value(params_.ext_sec);
 
     check_ssid1.set_value(params_.send_ssid1);
     field_local_id.set_value(params_.local_id);
@@ -618,6 +629,7 @@ FlexParamsView::FlexParamsView(NavigationView& nav, FlexBIWParams& params)
         params_.send_tz = check_tz.value();
         params_.tz_code = options_tz.selected_index_value();
         params_.send_dst = check_dst.value();
+        params_.ext_sec = field_ext_sec.value();
         params_.send_ssid1 = check_ssid1.value();
         params_.local_id = field_local_id.value();
         params_.coverage_zone = field_coverage.value();
@@ -765,8 +777,23 @@ void FlexTXView::send_frame(uint32_t msg_r) {
     uint8_t* data = shared_memory.bb_data.data;
     size_t total = 0;
 
+    // Derive the real FLEX cycle/frame from the wall clock at the moment of
+    // transmit.  The frame grid is locked to the top of the hour:
+    //   1920 frames/hour, each 1.875 s  (32 frames/min, 128 frames/cycle).
+    //   abs_frame = floor(secs_in_hour / 1.875) = secs_in_hour * 8 / 15
+    //   cycle = abs_frame / 128  (0-14)
+    //   frame = abs_frame % 128  (0-127)
+    rtc::RTC rtc_now;
+    rtc_time::now(rtc_now);
+    uint32_t secs_in_hour = (uint32_t)rtc_now.minute() * 60 + rtc_now.second();
+    uint32_t abs_frame = secs_in_hour * 8 / 15;
+    uint32_t cycle = abs_frame / 128;
+    uint32_t frame = abs_frame % 128;
+    // Use hour from the same clock sample so the Frame-0 Time BIW is coherent.
+    biw_params_.hour = rtc_now.hour();
+
     total += build_ers(data + total, 8);
-    total += build_frame(data + total, capcode, msg_type, message, 0, 0, msg_r, biw_params_);
+    total += build_frame(data + total, capcode, msg_type, message, cycle, frame, msg_r, biw_params_);
 
     uint32_t total_bits = total * 8;
     progressbar.set_max(total_bits / 64);

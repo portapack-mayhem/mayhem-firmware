@@ -26,6 +26,8 @@
 #include "event_m4.hpp"
 #include "utility.hpp"
 
+#include <algorithm>
+
 using namespace dsp::decimate;
 
 CaptureProcessor::CaptureProcessor() {
@@ -38,6 +40,7 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     if (direction != applied_fs4_direction_) {
         decim_0.configure_fs4(decim_0_taps_, direction);
         applied_fs4_direction_ = direction;
+        reset_spectrum_capture();
     }
 
     auto decim_0_out = decim_0.execute(buffer, dst_buffer);
@@ -55,9 +58,37 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
 
     spectrum_samples += out_buffer.count;
     if (spectrum_samples >= spectrum_interval_samples) {
-        spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.feed(out_buffer, channel_filter_low_f,
-                              channel_filter_high_f, channel_filter_transition);
+        // Bound the residual when one callback exceeds the update interval.
+        spectrum_samples = std::min(spectrum_samples - spectrum_interval_samples, spectrum_interval_samples);
+        spectrum_capture_credit = std::min<size_t>(256, spectrum_capture_credit + std::min<size_t>(out_buffer.count, 256));
+    }
+    // Preserve the old frame cadence, but collect each frame contiguously.
+    if (!spectrum_capture_remaining && spectrum_capture_credit == 256) {
+        spectrum_capture_credit = 0;
+        spectrum_capture_remaining = 256;
+    }
+    feed_spectrum(out_buffer);
+}
+
+void CaptureProcessor::reset_spectrum_capture() {
+    // Message handling can be preempted by the baseband processing thread.
+    chSysLock();
+    channel_spectrum.discard_partial();
+    spectrum_capture_remaining = 0;
+    spectrum_capture_credit = 0;
+    spectrum_samples = 0;
+    chSysUnlock();
+}
+
+void CaptureProcessor::feed_spectrum(const buffer_c16_t& buffer) {
+    if (!spectrum_capture_remaining || !buffer.count) return;
+    const size_t take = std::min<size_t>(buffer.count, spectrum_capture_remaining);
+    // No surplus samples enter a second frame, even with 512-sample buffers.
+    if (channel_spectrum.feed({buffer.p, take, buffer.sampling_rate},
+                              channel_filter_low_f, channel_filter_high_f, channel_filter_transition)) {
+        spectrum_capture_remaining = 0;
+    } else {
+        spectrum_capture_remaining -= take;
     }
 }
 
@@ -80,7 +111,11 @@ void CaptureProcessor::on_message(const Message* const message) {
             break;
 
         case Message::ID::UpdateSpectrum:
+            channel_spectrum.on_message(message);
+            break;
+
         case Message::ID::SpectrumStreamingConfig:
+            reset_spectrum_capture();
             channel_spectrum.on_message(message);
             break;
 
@@ -126,7 +161,6 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
 
     // The spectrum update interval controls how often the waterfall is fed new samples.
     spectrum_interval_samples = sample_rate / (spectrum_rate_hz * oversample_correction);
-    spectrum_samples = 0;
 
     // For high sample rates, the M4 is busy collecting samples so the
     // waterfall runs slower. Reduce the update interval so it runs faster.
@@ -172,6 +206,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             chDbgPanic("Unhandled OversampleRate");
             break;
     }
+    reset_spectrum_capture();
 }
 
 void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {

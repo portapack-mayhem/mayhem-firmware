@@ -40,6 +40,8 @@ class SpectrumCollector {
     void on_message(const Message* const message);
 
     void set_decimation_factor(const size_t decimation_factor);
+    // Leave completed/pending spectra, streaming state and configuration intact.
+    void discard_partial() { channel_spectrum_decimator.reset(); }
     void set_channel_filter_offset(const int32_t offset) {
         channel_filter_offset = offset;
     }
