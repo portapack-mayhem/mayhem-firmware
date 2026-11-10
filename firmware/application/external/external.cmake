@@ -335,6 +335,10 @@ set(EXTCPPSRC
 	external/rtty_rx/ui_rtty_rx.cpp
 	external/rtty_rx/baudot.cpp
 
+	#seewetter
+	external/seewetter/main.cpp
+	external/seewetter/ui_seewetter.cpp
+
 	#rtty_tx
 	external/rtty_tx/main.cpp
 	external/rtty_tx/ui_rtty_tx.cpp
@@ -524,6 +528,7 @@ set(EXTAPPLIST
 	morseradiotx
 	keeloqtx
 	rtty_rx
+	seewetter
 	rtty_tx
 	pocsag_tx
 	flex_tx

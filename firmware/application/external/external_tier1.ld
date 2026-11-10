@@ -118,7 +118,7 @@ MEMORY
     ram_external_app_rds_rx                (rwx) : org = 0xAE0D0000, len = 32k
     ram_external_app_wmbus_rx              (rwx) : org = 0xAE0E0000, len = 32k
     ram_external_app_spec_an               (rwx) : org = 0xAE0F0000, len = 32k
-    ram_external_app_lcd_gamma             (rwx) : org = 0xAE100000, len = 32k
+    ram_external_app_seewetter             (rwx) : org = 0xAE100000, len = 32k
 }
 
 SECTIONS
@@ -693,9 +693,9 @@ SECTIONS
         */external/spec_an/*(*ui*external_app*spec_an*);
     } > ram_external_app_spec_an
 
-    .external_app_lcd_gamma : ALIGN(4) SUBALIGN(4)
+    .external_app_seewetter : ALIGN(4) SUBALIGN(4)
     {
-        KEEP(*(.external_app.app_lcd_gamma.application_information));
-        */external/lcd_gamma/*(*ui*external_app*lcd_gamma*);
-    } > ram_external_app_lcd_gamma
+        KEEP(*(.external_app.app_seewetter.application_information));
+        */external/seewetter/*(*ui*external_app*seewetter*);
+    } > ram_external_app_seewetter
 }
