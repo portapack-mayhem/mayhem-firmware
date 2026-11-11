@@ -604,17 +604,27 @@ void sdc_lld_start(SDCDriver* sdcp) {
             | (1U << 25) /* USE_INTERNAL_DMAC */
             ;
 
+        /* The IDMAC must use single transfers, not bursts. A burst starts at
+         * the buffer address and is not split at 1 KiB boundaries, so with a
+         * buffer that is not 16-byte aligned (e.g. FatFs FIL.buf) it can run
+         * across the boundary between two AHB SRAM banks (0x20008000,
+         * 0x2000C000). The beats past the boundary then go to the start of
+         * the bank the burst began in: a card write sends the words at
+         * 0x20000000 (or 0x20008000) instead of the buffer contents, and a
+         * card read also writes the data there. Buffers only need to be word
+         * aligned, so any buffer address can reach this driver.
+         */
         const uint32_t fifo_depth = 32;
         LPC_SDMMC->FIFOTH =
             (((fifo_depth / 2) - 0) << 0)    /* TX watermark */
             | (((fifo_depth / 2) - 1) << 16) /* RX watermark */
-            | (1U << 28)                     /* DMA multiple transaction burst size: 4 transfers */
+            | (0U << 28)                     /* DMA multiple transaction size: 1 transfer (no bursts) */
             ;
 
         LPC_SDMMC->BMOD =
             (4U << 2)   /* Descriptor skip length = 4 */
             | (1U << 7) /* DE: DMA Enable */
-            | (1U << 8) /* Burst length = 4 */
+            | (0U << 8) /* PBL: 1 transfer, mirrors FIFOTH MSIZE */
             ;
 
         sdio_cclk_set_400khz();
