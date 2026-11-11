@@ -62,15 +62,15 @@ const PALConfig pal_default_config = {
 #else
             = boot_bit(amp_bypass, 1)        // P2_10: AMP_BYPASS
               | boot_bit(max283x_select, 1)  // P1_20: !CS_XCVR
+              | boot_bit(q_invert, 0)        // CLPD invert
 #endif
               | boot_bit(dfu_boot_0, 0)  // P1_1:  10K PU, BOOT0
               | boot_bit(dfu_boot_1, 0)  // P1_2:  10K PD, BOOT1
               | boot_bit(dfu_isp, 0)     // P2_7:  10K PU, ISP
-              | (1 << 11)                // P1_4:  SSP1_MOSI
+              | boot_bit(ssp1_mosi, 1)   // P1_4:  SSP1_MOSI
               | boot_bit(sgpio_12, 0)    // P1_18: SGPIO12, HOST_Q_INVERT
               | boot_bit(sgpio_11, 0)    // P1_17: SGPIO11, HOST_DIRECTION, Praline: FPGA HOST_DIRECTION
-              | (1 << 10)                // P1_3:  SSP1_MISO
-              | (0 << 6)                 // P3_6:  SPIFI_MISO
+              | boot_bit(spifi_miso, 0)  // P3_6:  SPIFI_MISO
               | boot_bit(sgpio_5, 1)     // P6_6:  SGPIO5, HOST_DATA5, Praline: FPGA HOST_DATA5
               | boot_bit(sgpio_7, 1)     // P1_0:  SGPIO7, HOST_DATA7, Praline: FPGA HOST_DATA7
               | boot_bit(sgpio_3, 1)     // P1_16: SGPIO3, HOST_DATA3, Praline: FPGA HOST_DATA3
@@ -85,15 +85,16 @@ const PALConfig pal_default_config = {
 #else
             = boot_bit(amp_bypass, 1)        // P2_10: AMP_BYPASS
               | boot_bit(max283x_select, 1)  // P1_20: !CS_XCVR
+              | boot_bit(q_invert, 1)        // CLPD invert
 #endif
               | boot_bit(dfu_boot_0, 0)  // P1_1:  10K PU, BOOT0
               | boot_bit(dfu_boot_1, 0)  // P1_2:  10K PD, BOOT1
               | boot_bit(dfu_isp, 0)     // P2_7:  10K PU, ISP
-              | (0 << 10)                // P1_3:  SSP1_MISO
-              | (0 << 11)                // P1_4:  SSP1_MOSI
+              | boot_bit(ssp1_miso, 0)   // P1_3:  SSP1_MISO
+              | boot_bit(ssp1_mosi, 0)   // P1_4:  SSP1_MOSI
               | boot_bit(sgpio_12, 1)    // P1_18: SGPIO12, HOST_Q_INVERT
               | boot_bit(sgpio_11, 0)    // P1_17: SGPIO11, HOST_DIRECTION, Praline: FPGA HOST_DIRECTION
-              | (0 << 6)                 // P3_6:  SPIFI_MISO
+              | boot_bit(spifi_miso, 0)  // P3_6:  SPIFI_MISO
               | boot_bit(sgpio_5, 1)     // P6_6:  SGPIO5, HOST_DATA5
               | boot_bit(sgpio_7, 1)     // P1_0:  SGPIO7, HOST_DATA7
               | boot_bit(sgpio_3, 0)     // P1_16: SGPIO3, HOST_DATA3
@@ -103,114 +104,118 @@ const PALConfig pal_default_config = {
         },
         {
             // GPIO1
-            .data = (1 << 15)    // P3_5:  SPIFI_SIO2
-                    | (1 << 14)  // P3_4:  SPIFI_SIO3
-                    | (1 << 13)  // P2_13: PortaPack DIR
+            .data = boot_bit(spifi_sio2, 1)       // P3_5:  SPIFI_SIO2
+                    | boot_bit(spifi_sio3, 1)     // P3_4:  SPIFI_SIO3
+                    | boot_bit(portapack_dir, 1)  // P2_13: PortaPack DIR
 #ifdef PRALINE
                     | boot_bit(ant_bias, 1)     // P2_12: !BIAS_EN
                     | boot_bit(ant_bias_oc, 0)  // P2_11: BIAS_OC
                     | boot_bit(aa_en, 0)        // P1_14: AA_EN
-                    | (0 << 0)                  // P1_7:  Output GND
+                    | boot_bit(unused_p1_7, 0)  // P1_7: unused Output GND
 #else
                     | boot_bit(rx_amp_pwr, 1)     // P2_12: !RX_AMP_PWR
                     | boot_bit(rx_amp, 0)         // P2_11: RX_AMP
                     | boot_bit(sgpio_10, 1)       // P1_14: SGPIO10, HOST_DISABLE
                     | boot_bit(tx_mix_bypass, 1)  // P1_7:  !TX MIX BYPASS
 #endif
-                    | boot_bit(lcd_wrx, 0)  // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
-                    | (1 << 9)              // P1_6:  SD_CMD
-                    | (1 << 8)              // P1_5:  SD_POW, PortaPack CPLD.TDO(O)
-                    | (1 << 6)              // P1_13: SD_CD
-                    | (1 << 5)              // P1_12: SD_DAT3
-                    | (1 << 4)              // P1_11: SD_DAT2
-                    | (1 << 3)              // P1_10: SD_DAT1
-                    | (1 << 2)              // P1_9:  SD_DAT0
-                    | (1 << 1)              // P1_8:  PortaPack CPLD.TMS(I)
+                    | boot_bit(lcd_wrx, 0)             // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
+                    | boot_bit(sd_cmd, 1)              // P1_6:  SD_CMD
+                    | boot_bit(portapack_cpld_tdo, 1)  // P1_5:  PortaPack CPLD.TDO(O)
+                    | boot_bit(sd_cd, 1)               // P1_13: SD_CD
+                    | boot_bit(sd_dat3, 1)             // P1_12: SD_DAT3
+                    | boot_bit(sd_dat2, 1)             // P1_11: SD_DAT2
+                    | boot_bit(sd_dat1, 1)             // P1_10: SD_DAT1
+                    | boot_bit(sd_dat0, 1)             // P1_9:  SD_DAT0
+                    | boot_bit(portapack_cpld_tms, 1)  // P1_8:  PortaPack CPLD.TMS(I)
             ,
-            .dir = (0 << 15)    // P3_5:  SPIFI_SIO2
-                   | (0 << 14)  // P3_4:  SPIFI_SIO3
-                   | (1 << 13)  // P2_13: PortaPack DIR
+            .dir = boot_bit(spifi_sio2, 0)       // P3_5:  SPIFI_SIO2
+                   | boot_bit(spifi_sio3, 0)     // P3_4:  SPIFI_SIO3
+                   | boot_bit(portapack_dir, 0)  // P2_13: PortaPack DIR
 #ifdef PRALINE
                    | boot_bit(ant_bias, 1)     // P2_12: !BIAS_EN
                    | boot_bit(ant_bias_oc, 0)  // P2_11: BIAS_OC
                    | boot_bit(aa_en, 1)        // P1_14: AA_EN
-                   | (1 << 0)                  // P1_7:  Output
+                   | boot_bit(unused_p1_7, 1)  // P1_7:  Output
 #else
                    | boot_bit(rx_amp_pwr, 1)     // P2_12: !RX_AMP_PWR
                    | boot_bit(rx_amp, 1)         // P2_11: RX_AMP
                    | boot_bit(sgpio_10, 0)       // P1_14: SGPIO10, HOST_DISABLE
                    | boot_bit(tx_mix_bypass, 1)  // P1_7:  !TX MIX BYPASS
 #endif
-                   | boot_bit(lcd_wrx, 1)  // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
-                   | (0 << 9)              // P1_6:  SD_CMD
-                   | (0 << 8)              // P1_5:  SD_POW, PortaPack CPLD.TDO(O)
-                   | (0 << 6)              // P1_13: SD_CD
-                   | (0 << 5)              // P1_12: SD_DAT3
-                   | (0 << 4)              // P1_11: SD_DAT2
-                   | (0 << 3)              // P1_10: SD_DAT1
-                   | (0 << 2)              // P1_9:  SD_DAT0
-                   | (0 << 1)              // P1_8:  PortaPack CPLD.TMS(I)
+                   | boot_bit(lcd_wrx, 1)             // P2_9:  10K PD, BOOT3, PortaPack LCD_WRX
+                   | boot_bit(sd_cmd, 0)              // P1_6:  SD_CMD
+                   | boot_bit(portapack_cpld_tdo, 0)  // P1_5:  PortaPack CPLD.TDO(O)
+                   | boot_bit(sd_cd, 0)               // P1_13: SD_CD
+                   | boot_bit(sd_dat3, 0)             // P1_12: SD_DAT3
+                   | boot_bit(sd_dat2, 0)             // P1_11: SD_DAT2
+                   | boot_bit(sd_dat1, 0)             // P1_10: SD_DAT1
+                   | boot_bit(sd_dat0, 0)             // P1_9:  SD_DAT0
+                   | boot_bit(portapack_cpld_tms, 0)  // P1_8:  PortaPack CPLD.TMS(I)
         },
         {
             // GPIO2
             .data = boot_bit(rffc5072_resetx, 1)  // P5_5:  !MIXER_RESETX
 #ifdef PRALINE
-                    | (0 << 15)             // P5_6:  unused on PRALINE
-                    | (0 << 12)             // P5_3:  unused on PRALINE
-                    | (0 << 11)             // P5_2:  FPGA_CRESET
-                    | (1 << 10)             // P5_1:  FPGA_SPI_CS
-                    | (0 << 4)              // P4_4:  unused on PRALINE
-                    | (0 << 0)              // P4_0:  unused on PRALINE
-                    | (0 << 9)              // P5_0:  unused on PRALINE
-                    | (0 << 3)              // P4_3:  VBUSCTRL input GND
-                    | (1 << 6)              // P4_6:  Input VCC (10K PU)
-                    | boot_bit(led_tx, 1)   // P6_12: LED3 (TX)
-                    | boot_bit(led_rx, 1)   // P4_2:  LED2 (RX)
-                    | boot_bit(led_usb, 1)  // P4_1:  LED1 (USB)
+                    | boot_bit(unused_p5_6, 0)  // P5_6:  unused on PRALINE
+                    | boot_bit(unused_p5_3, 0)  // P5_3:  unused on PRALINE
+                    | boot_bit(fpga_creset, 0)  // P5_2:  FPGA_CRESET
+                    | boot_bit(fpga_spi_cs, 1)  // P5_1:  FPGA_SPI_CS
+                    | boot_bit(touch_xp, 0)     // P4_4:  ADC0_5 xp
+                    | boot_bit(touch_yn, 0)     // P4_5:  ADC0_2 yn
+                    | boot_bit(unused_p4_0, 0)  // P4_0:  unused on PRALINE
+                    | boot_bit(unused_p5_0, 0)  // P5_0:  unused on PRALINE
+                    | boot_bit(vbusctrl, 0)     // P4_3:  VBUSCTRL input GND
+                    | boot_bit(unused_p4_6, 1)  // P4_6:  Input
+                    | boot_bit(led_tx, 1)       // P6_12: LED3 (TX)
+                    | boot_bit(led_rx, 1)       // P4_2:  LED2 (RX)
+                    | boot_bit(led_usb, 1)      // P4_1:  LED1 (USB)
 #else
-                    | boot_bit(tx_amp, 0)     // P5_6:  TX_AMP
-                    | boot_bit(rx_mix_bp, 1)  // P5_3:  RX_MIX_BP
-                    | boot_bit(tx_mix_bp, 0)  // P5_2:  TX_MIX_BP
-                    | boot_bit(lpf, 0)        // P5_1:  LPF
-                    | (0 << 9)                // P5_0:  Varies by revision
-                    | boot_bit(hpf, 0)        // P4_0:  HPF
-                    | boot_bit(sgpio_9, 1)    // P4_3:  SGPIO9, HOST_CAPTURE
-                    | (0 << 6)                // P4_6:  XCVR_EN, 10K PD
-                    | boot_bit(led_tx, 0)     // P6_12: LED3 (TX)
-                    | boot_bit(led_rx, 0)     // P4_2:  LED2 (RX)
-                    | boot_bit(led_usb, 0)    // P4_1:  LED1 (USB)
+                    | boot_bit(tx_amp, 0)            // P5_6:  TX_AMP
+                    | boot_bit(rx_mix_bp, 1)         // P5_3:  RX_MIX_BP
+                    | boot_bit(tx_mix_bp, 0)         // P5_2:  TX_MIX_BP
+                    | boot_bit(lpf, 0)               // P5_1:  LPF
+                    | (0 << 9)                       // P5_0:  Varies by revision
+                    | boot_bit(hpf, 0)               // P4_0:  HPF
+                    | boot_bit(sgpio_9, 1)           // P4_3:  SGPIO9, HOST_CAPTURE
+                    | boot_bit(max2837_txenable, 0)  // P4_4:  TXENABLE
+                    | (0 << 6)                       // P4_6:  XCVR_EN, 10K PD
+                    | boot_bit(led_tx, 0)            // P6_12: LED3 (TX)
+                    | boot_bit(led_rx, 0)            // P4_2:  LED2 (RX)
+                    | boot_bit(led_usb, 0)           // P4_1:  LED1 (USB)
+                    | boot_bit(max2837_rxenable, 0)  // P4_5:  RXENABLE
+                    | boot_bit(max5864_select, 1)    // P5_7: MAX5865 chip select
 #endif
 
                     | boot_bit(rffc5072_select, 1)  // P5_4:  !MIXER_ENX
-                    | (1 << 7)                      // P5_7:  CS_AD
-                    | (0 << 5)                      // P4_5:  RXENABLE
             ,
             .dir =
 #ifdef PRALINE
-                (1 << 15)    // P5_6:  unused on PRALINE
-                | (1 << 12)  // P5_3:  unused on PRALINE
-                | (1 << 11)  // P5_2:  FPGA_CRESET
-                | (1 << 10)  // P5_1:  FPGA_SPI_CS
-                | (1 << 4)   // P4_4:  unused on PRALINE
-                | (1 << 9)   // P5_0:  unused on PRALINE
-                | (1 << 0)   // P4_0:  unused on PRALINE
-                | (0 << 3)   // P4_3:  VBUSCTRL input
-                | (0 << 6)   // P4_6:  Input
+                boot_bit(unused_p5_6, 1)    // P5_6:  unused on PRALINE
+                | boot_bit(unused_p5_3, 0)  // P5_3:  unused on PRALINE
+                | boot_bit(fpga_creset, 1)  // P5_2:  FPGA_CRESET
+                | boot_bit(fpga_spi_cs, 1)  // P5_1:  FPGA_SPI_CS
+                | boot_bit(touch_xp, 0)     // P4_4:  ADC0_5 xp
+                | boot_bit(touch_yn, 0)     // P4_5:  ADC0_2 yn
+                | boot_bit(unused_p5_0, 1)  // P5_0:  unused on PRALINE
+                | boot_bit(unused_p4_0, 1)  // P4_0:  unused on PRALINE
+                | boot_bit(vbusctrl, 0)     // P4_3:  VBUSCTRL input
+                | boot_bit(unused_p4_6, 0)  // P4_6:  Input
 #else
-                boot_bit(tx_amp, 1)            // P5_6:  TX_AMP
-                | boot_bit(rx_mix_bp, 1)       // P5_3:  RX_MIX_BP
-                | boot_bit(tx_mix_bp, 1)       // P5_2:  TX_MIX_BP
-                | boot_bit(lpf, 1)             // P5_1:  LPF
-                | (0 << 9)                     // P5_0:  Varies by revision
-                | boot_bit(hpf, 1)             // P4_0:  HPF
-                | boot_bit(sgpio_9, 0)         // P4_3:  SGPIO9, HOST_CAPTURE
-                | boot_bit(max283x_enable, 1)  // P4_6:  XCVR_EN, 10K PD
+                boot_bit(tx_amp, 1)              // P5_6:  TX_AMP
+                | boot_bit(rx_mix_bp, 1)         // P5_3:  RX_MIX_BP
+                | boot_bit(tx_mix_bp, 1)         // P5_2:  TX_MIX_BP
+                | boot_bit(lpf, 1)               // P5_1:  LPF
+                | (0 << 9)                       // P5_0:  Varies by revision
+                | boot_bit(hpf, 1)               // P4_0:  HPF
+                | boot_bit(sgpio_9, 0)           // P4_3:  SGPIO9, HOST_CAPTURE
+                | boot_bit(max2837_txenable, 1)  // P4_4:  TXENABLE
+                | boot_bit(max2837_rxenable, 1)  // P4_5:  RXENABLE
+                | boot_bit(max283x_enable, 1)    // P4_6:  XCVR_EN, 10K PD
+                | boot_bit(max5864_select, 1)    // P5_7: MAX5865 chip select
 #endif
                 | boot_bit(rffc5072_select, 1)  // P5_4:  !MIXER_ENX
                 | boot_bit(rffc5072_resetx, 1)  // P5_5:  !MIXER_RESETX
                 | boot_bit(led_tx, 1)           // P6_12: LED3 (TX)
-                | (1 << 7)                      // P5_7:  CS_AD
-                | (1 << 5)                      // P4_5:  RXENABLE
                 | boot_bit(led_rx, 1)           // P4_2:  LED2 (RX)
                 | boot_bit(led_usb, 1)          // P4_1:  LED1 (USB)
         },
@@ -232,15 +237,16 @@ const PALConfig pal_default_config = {
                     | boot_bit(aux_power_oc, 0)  // P6_11: AUX overcurrent
                     | boot_bit(sct_clk_in, 0)    // P6_4:  SCT clock input
 #else
-                    | (1 << 4)                     // P6_5:  HackRF CPLD.TMS(I)
+                    | boot_bit(sgpio_4, 1)         // P6_3:  SGPIO4
+                    | boot_bit(rffc5072_sdata, 0)  // P6_4:  MIXER_SDATA
+                    | boot_bit(cpld_tms, 1)        // P6_5:  HackRF CPLD.TMS(I)
                     | boot_bit(vregmode, 1)        // P6_11: VREGMODE
                     | (0 << 6)                     // P6_10: Varies by revision
-                    | boot_bit(sgpio_4, 1)         // P6_3:  SGPIO4
                     | boot_bit(tx_amp_pwr, 1)      // P6_9:  !TX_AMP_PWR, 10K PU
-                    | boot_bit(rffc5072_sdata, 0)  // P6_4:  MIXER_SDATA
+
 #endif
-                    | (1 << 1)  // P6_2:  HackRF CPLD.TDI(I)
-                    | (1 << 0)  // P6_1:  HackRF CPLD.TCK(I)
+                    | boot_bit(cpld_tdi, 1)  // P6_2: HackRF CPLD.TDI(I)
+                    | boot_bit(cpld_tck, 1)  // P6_1:  HackRF CPLD.TCK(I)
             ,
             .dir = (1 << 15)    // P7_7:  PortaPack GPIO3_15(IO)
                    | (1 << 14)  // P7_6:  PortaPack GPIO3_14(IO)
@@ -258,15 +264,16 @@ const PALConfig pal_default_config = {
                    | boot_bit(p1_ctrl2, 1)      // P6_9:  P1_CTRL2
                    | boot_bit(sct_clk_in, 0)    // P6_4:  SCT clock input
 #else
+                   | boot_bit(sgpio_4, 0)         // P6_3:  SGPIO4
+                   | boot_bit(rffc5072_sdata, 1)  // P6_4:  MIXER_SDATA
+                   | boot_bit(cpld_tms, 0)        // P6_5:  HackRF CPLD.TMS(I)
                    | boot_bit(vregmode, 1)        // P6_11: VREGMODE
                    | (0 << 6)                     // P6_10: Varies by revision
-                   | boot_bit(sgpio_4, 0)         // P6_3:  SGPIO4
                    | boot_bit(tx_amp_pwr, 1)      // P6_9:  !TX_AMP_PWR, 10K PU
-                   | boot_bit(rffc5072_sdata, 1)  // P6_4:  MIXER_SDATA
 #endif
-                   | (0 << 4)  // P6_5:  HackRF CPLD.TMS(I)
-                   | (0 << 1)  // P6_2:  HackRF CPLD.TDI(I)
-                   | (0 << 0)  // P6_1:  HackRF CPLD.TCK(I)
+
+                   | boot_bit(cpld_tdi, 0)  // P6_2: HackRF CPLD.TDI(I)
+                   | boot_bit(cpld_tck, 0)  // P6_1:  HackRF CPLD.TCK(I)
         },
         {
             // GPIO4
@@ -282,7 +289,7 @@ const PALConfig pal_default_config = {
                 | (0 << 4)                     // P8_4: VBUS_IN_EN
                 | boot_bit(VAA_en, 1)          // P8_1: !VAA_EN
                 | (0 << 10)                    // PA_3: Output GND
-                | (0 << 11)                    // P9_6: MAX2831 LD
+                | boot_bit(max2831_ld, 0)      // P9_6: MAX2831 LD
                 | boot_bit(rf5072_mix_en, 0)   // P9_0: RF5072 enable
                 | (0 << 13)                    // P9_1: Output GND
                 | boot_bit(rffc5072_sdata, 0)  // P9_2: RFFC5072 SDATA
@@ -302,7 +309,7 @@ const PALConfig pal_default_config = {
                 | (1 << 4)                     // P8_4: VBUS_IN_EN
                 | boot_bit(VAA_en, 1)          // P8_1: !VAA_EN
                 | (1 << 10)                    // PA_3: Output
-                | (0 << 11)                    // P9_6: MAX2831 LD
+                | boot_bit(max2831_ld, 0)      // P9_6: MAX2831 LD
                 | boot_bit(rf5072_mix_en, 1)   // P9_0: RF5072 enable
                 | (1 << 13)                    // P9_1: Output
                 | boot_bit(rffc5072_sdata, 1)  // P9_2: RFFC5072 SDATA (Bidirectional)
@@ -321,17 +328,18 @@ const PALConfig pal_default_config = {
                 | boot_bit(p1_ctrl1, 0)          // P6_8: P1_CTRL1
                 | boot_bit(sgpio_4, 1)           // P9_4: FPGA SGPIO4
                 | (0 << 19)                      // PA_4: Output GND
-                | (0 << 20)                      // PB_0: Output GND
+                | boot_bit(unused_pb_0, 0)       // PB_0: Output GND
                 | (0 << 21)                      // PB_1: Output GND
                 | (0 << 22)                      // PB_2: Unused IN
                 | (0 << 23)                      // PB_3: Output GND
                 | (0 << 24)                      // PB_4: Unused IN
                 | (0 << 25)                      // PB_5: Output GND
+                | boot_bit(touch_yp, 0)          // PB_6: ADC0_0 yp
                 | boot_bit(pps_in_out, 0)        // P2_5: PPS OUT/IN
                 | (0 << 12)                      // P4_8: Output GND
                 | boot_bit(vregmode, 1)          // P4_9: TPS62410 VREGMODE
 #else
-                (1 << 18)                      // P9_5: HackRF CPLD.TDO(O)
+                boot_bit(cpld_tdo, 1)          // P9_5: HackRF CPLD.TDO(O)
                 | boot_bit(rffc5072_clock, 0)  // P2_6: MIXER_SCLK
                 | (1 << 14)                    // P4_10: SGPIO15, CPLD (unused)
                 | boot_bit(rx_mix_bypass, 1)   // P6_8: RX MIX BYPASS
@@ -358,17 +366,18 @@ const PALConfig pal_default_config = {
                 | boot_bit(p1_ctrl1, 1)          // P6_8: P1_CTRL1
                 | boot_bit(sgpio_4, 0)           // P9_4: FPGA SGPIO
                 | (1 << 19)                      // PA_4: Output
-                | (1 << 20)                      // PB_0: Output GND
+                | boot_bit(unused_pb_0, 1)       // PB_0: Output GND
                 | (1 << 21)                      // PB_1: Output GND
                 | (0 << 22)                      // PB_2: Unused
                 | (1 << 23)                      // PB_3: Output
                 | (0 << 24)                      // PB_4: Unused
                 | (1 << 25)                      // PB_5: Output
+                | boot_bit(touch_yp, 0)          // PB_6: ADC0_0 yp
                 | boot_bit(pps_in_out, 0)        // P2_5: PPS (Bidirectional)
                 | (1 << 12)                      // P4_8: Output
                 | boot_bit(vregmode, 1)          // P4_9: TPS62410 VREGMODE
 #else
-                (0 << 18)                      // P9_5: HackRF CPLD.TDO(O)
+                boot_bit(cpld_tdo, 0)          // P9_5: HackRF CPLD.TDO(O)
                 | boot_bit(rffc5072_clock, 1)  // P2_6: MIXER_SCLK
                 | (0 << 14)                    // P4_10: SGPIO15, CPLD
                 | boot_bit(rx_mix_bypass, 1)   // P6_8: RX MIX BYPASS
@@ -389,17 +398,17 @@ const PALConfig pal_default_config = {
         {
 // GPIO6
 #ifdef PRALINE
-            .data = boot_bit(max283x_select, 1)  // PD_14: !MAX2831 chip select
-                    | boot_bit(max2831_rxhp, 0)  // PD_15: MAX2831 RXHP control RXHP low = 100 Hz HPF
-                    | (1 << 30)                  // PD_16: MAX5865 chip select
-                    | (1 << 25)                  // PD_11: RFFC5072 Lock Detect
-                    | boot_bit(trigger_in, 0)    // PD_12: TRIGGER IN
+            .data = boot_bit(max283x_select, 1)    // PD_14: !MAX2831 chip select
+                    | boot_bit(max2831_rxhp, 0)    // PD_15: MAX2831 RXHP control RXHP low = 100 Hz HPF
+                    | boot_bit(max5864_select, 1)  // PD_16: MAX5865 chip select
+                    | (1 << 25)                    // PD_11: RFFC5072 Lock Detect
+                    | boot_bit(trigger_in, 0)      // PD_12: TRIGGER IN
             ,
-            .dir = boot_bit(max283x_select, 1)  // PD_14: !MAX2831 chip select
-                   | boot_bit(max2831_rxhp, 1)  // PD_15: MAX2831 RXHP control
-                   | (1 << 30)                  // PD_16: MAX5865 chip select
-                   | (0 << 25)                  // PD_11: RFFC5072 Lock Detect
-                   | boot_bit(trigger_in, 0)    // PD_12: TRIGGER IN
+            .dir = boot_bit(max283x_select, 1)    // PD_14: !MAX2831 chip select
+                   | boot_bit(max2831_rxhp, 1)    // PD_15: MAX2831 RXHP control
+                   | boot_bit(max5864_select, 1)  // PD_16: MAX5865 chip select
+                   | (0 << 25)                    // PD_11: RFFC5072 Lock Detect
+                   | boot_bit(trigger_in, 0)      // PD_12: TRIGGER IN
 #else
             .data = 0,
             .dir = 0
@@ -495,24 +504,27 @@ const PALConfig pal_default_config = {
 
         {map_sct_clk_in.scu_port, map_sct_clk_in.scu_pin, scu_config_normal_drive_t{.mode = map_sct_clk_in.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},     // P6_4: SCT_CLK IN (Fast clock input, Mode 1)
         {4, 10, scu_config_normal_drive_t{.mode = 7, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                                                      // P4_10: FPGA Config Done (Input GND)
+        {map_fpga_creset.scu_port, map_fpga_creset.scu_pin, scu_config_normal_drive_t{.mode = map_fpga_creset.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_2: FPGA CRESET
+        {map_fpga_spi_cs.scu_port, map_fpga_spi_cs.scu_pin, scu_config_normal_drive_t{.mode = map_fpga_spi_cs.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_1: FPGA SPI CS
         {map_trigger_in.scu_port, map_trigger_in.scu_pin, scu_config_normal_drive_t{.mode = map_trigger_in.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},     // PD_12: TRIGGER IN (Input GND, Mode 4)
         {map_trigger_out.scu_port, map_trigger_out.scu_pin, scu_config_normal_drive_t{.mode = map_trigger_out.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},  // P2_6: TRIGGER
         {map_pps_in_out.scu_port, map_pps_in_out.scu_pin, scu_config_normal_drive_t{.mode = map_pps_in_out.gpio_mode, .epd = 0, .epun = 0, .ehs = 1, .ezi = 1, .zif = 0}},     // P2_5 PPS bidirectional
         {map_clkin_ctrl.scu_port, map_clkin_ctrl.scu_pin, scu_config_normal_drive_t{.mode = map_clkin_ctrl.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},     // P1_20  CLKIN_ctrl
 #else
 
-        {4, 9, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                    // SGPIO14/BANK2F3M4: CPLD_P81
-        {4, 10, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                   // SGPIO15/BANK2F3M6: CPLD_P78
-        {4, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                    // RXENABLE
-        {map_hpf.scu_port, map_hpf.scu_pin, scu_config_normal_drive_t{.mode = map_hpf.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                       // P4_0 HPF
-        {map_rx_amp.scu_port, map_rx_amp.scu_pin, scu_config_normal_drive_t{.mode = map_rx_amp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},              // P2_11 RX_AMP
-        {map_rx_amp_pwr.scu_port, map_rx_amp_pwr.scu_pin, scu_config_normal_drive_t{.mode = map_rx_amp_pwr.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_12 !RX_AMP_PWR
-        {map_tx_mix_bp.scu_port, map_tx_mix_bp.scu_pin, scu_config_normal_drive_t{.mode = map_tx_mix_bp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},     // P5_2 TX_MIX_BP
+        {4, 9, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                                      // SGPIO14/BANK2F3M4: CPLD_P81
+        {4, 10, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                                     // SGPIO15/BANK2F3M6: CPLD_P78
+        {map_max2837_rxenable.scu_port, map_max2837_rxenable.scu_pin, scu_config_normal_drive_t{.mode = map_max2837_rxenable.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // RXENABLE / MAX2839 RT+TX enable
+        {map_hpf.scu_port, map_hpf.scu_pin, scu_config_normal_drive_t{.mode = map_hpf.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                         // P4_0 HPF
+        {map_rx_amp.scu_port, map_rx_amp.scu_pin, scu_config_normal_drive_t{.mode = map_rx_amp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // P2_11 RX_AMP
+        {map_rx_amp_pwr.scu_port, map_rx_amp_pwr.scu_pin, scu_config_normal_drive_t{.mode = map_rx_amp_pwr.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                    // P2_12 !RX_AMP_PWR
+        {map_tx_mix_bp.scu_port, map_tx_mix_bp.scu_pin, scu_config_normal_drive_t{.mode = map_tx_mix_bp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                       // P5_2 TX_MIX_BP
+        {map_q_invert.scu_port, map_q_invert.scu_pin, scu_config_normal_drive_t{.mode = map_q_invert.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                          // q invert
 #endif
 
         // RADIO & RF PATH (MAX2831, RFFC5072, Mixers, Switches, Amps)
-        {1, 3, scu_config_normal_drive_t{.mode = 5, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},                                                                                // P1_3 SSP1_MISO: MAX2837.DOUT(O)
-        {1, 4, scu_config_normal_drive_t{.mode = 5, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                                // P1_4 SSP1_MOSI: MAX2837.DIN(I)
+        {map_ssp1_miso.scu_port, map_ssp1_miso.scu_pin, scu_config_normal_drive_t{.mode = map_ssp1_miso.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},                 // P1_3 SSP1_MISO: MAX2837.DOUT(O)
+        {map_ssp1_mosi.scu_port, map_ssp1_mosi.scu_pin, scu_config_normal_drive_t{.mode = map_ssp1_mosi.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                 // P1_4 SSP1_MOSI: MAX2837.DIN(I)
         {1, 19, scu_config_normal_drive_t{.mode = 1, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},                                                                               // P1_19 SSP1_SCK: MAX2837.SCLK(I)
         {map_lpf.scu_port, map_lpf.scu_pin, scu_config_normal_drive_t{.mode = map_lpf.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                   // P5_1 LPF
         {map_rffc5072_clock.scu_port, map_rffc5072_clock.scu_pin, scu_config_normal_drive_t{.mode = map_rffc5072_clock.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 1}},  // P2_6: MIXER_SCLK/P31: 33pF, RFFC5072.SCLK(I) PRALINE: P9_5: RFFC5072 SCLK
@@ -522,12 +534,11 @@ const PALConfig pal_default_config = {
 #ifdef PRALINE
         {13, 11, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},                                                                                             // PD_11: RFFC Lock Detect
         {map_max2831_rxhp.scu_port, map_max2831_rxhp.scu_pin, scu_config_normal_drive_t{.mode = map_max2831_rxhp.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                       // PD_15: MAX2831 RXHP
-        {13, 16, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                                             // PD_16: MAX5864 CS
         {map_max2831_rxtx_enable.scu_port, map_max2831_rxtx_enable.scu_pin, scu_config_normal_drive_t{.mode = map_max2831_rxtx_enable.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},  // PE_2: MAX2831 RXTX
         {map_p1_ctrl1.scu_port, map_p1_ctrl1.scu_pin, scu_config_normal_drive_t{.mode = map_p1_ctrl1.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                   // P6_8 P1_CTRL1 (Output GND, Mode 4)
         {map_aa_en.scu_port, map_aa_en.scu_pin, scu_config_normal_drive_t{.mode = map_aa_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 0}},                                            // P1_14: AA_EN
         {map_rf5072_mix_en.scu_port, map_rf5072_mix_en.scu_pin, scu_config_normal_drive_t{.mode = map_rf5072_mix_en.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                    // P9_0: RF5072 MIX EN
-        {9, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                                                               // P9_6: MAX2831 LD Input
+        {map_max2831_ld.scu_port, map_max2831_ld.scu_pin, scu_config_normal_drive_t{.mode = map_max2831_ld.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                             // P9_6: MAX2831 LD Input
         {map_tx_enable.scu_port, map_tx_enable.scu_pin, scu_config_normal_drive_t{.mode = map_tx_enable.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                // P6_5: TX enable
         {10, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                                              // PA_1: LPF enable
         {10, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},                                                                                              // PA_2: RF amp enable
@@ -537,7 +548,6 @@ const PALConfig pal_default_config = {
         {map_rx_mix_bp.scu_port, map_rx_mix_bp.scu_pin, scu_config_normal_drive_t{.mode = map_rx_mix_bp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_3 RX_MIX_BP
 
         {map_tx_amp.scu_port, map_tx_amp.scu_pin, scu_config_normal_drive_t{.mode = map_tx_amp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_6 TX_AMP
-        {5, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                        // P5_7 CS_AD, PRALINE: RFFC5072 CS
 
         {map_tx_mix_bypass.scu_port, map_tx_mix_bypass.scu_pin, scu_config_normal_drive_t{.mode = map_tx_mix_bypass.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_8 !TX MIX BYPASS
         {map_amp_bypass.scu_port, map_amp_bypass.scu_pin, scu_config_normal_drive_t{.mode = map_amp_bypass.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},           // P2_10 AMP_BYPASS
@@ -548,35 +558,34 @@ const PALConfig pal_default_config = {
         {map_rffc5072_select.scu_port, map_rffc5072_select.scu_pin, scu_config_normal_drive_t{.mode = map_rffc5072_select.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_4: MIXER_ENX
         {map_rffc5072_resetx.scu_port, map_rffc5072_resetx.scu_pin, scu_config_normal_drive_t{.mode = map_rffc5072_resetx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // MIXER_RESETX
         {map_rffc5072_sdata.scu_port, map_rffc5072_sdata.scu_pin, scu_config_normal_drive_t{.mode = map_rffc5072_sdata.gpio_mode, .epd = 0, .epun = 0, .ehs = 1, .ezi = 1, .zif = 0}},     // P6_4: RFFC5072 DATA (Bidirectional) PRALINE P9_2
+        {map_max5864_select.scu_port, map_max5864_select.scu_pin, scu_config_normal_drive_t{.mode = map_max5864_select.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 0, .zif = 0}},     // MAX5864 CS, P5_7, PRALINE: PD_16
 
 // SAFE TERMINATION (Unused pins grounded to prevent noise & save power)
 
 #ifdef PRALINE
-        {4, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},   // P4_6: Input VCC
-        {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_10: Output GND
-        {4, 8, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P4_8: Output GND
-        {8, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P8_3: Output GND
-        {8, 8, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P8_8: Unused
-        {10, 0, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PA_0: Unused
-        {11, 2, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // PB_2: Unused IN
-        {11, 4, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // PB_4: Unused IN
+        {map_unused_p4_6.scu_port, map_unused_p4_6.scu_pin, scu_config_normal_drive_t{.mode = map_unused_p4_6.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  // P4_6: Input VCC
+        {map_unused_p4_0.scu_port, map_unused_p4_0.scu_pin, scu_config_normal_drive_t{.mode = map_unused_p4_0.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P4_0: Unused
+        {map_unused_p5_0.scu_port, map_unused_p5_0.scu_pin, scu_config_normal_drive_t{.mode = map_unused_p5_0.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_0: Unused
+        {6, 10, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // P6_10: Output GND
+        {4, 8, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                       // P4_8: Output GND
+        {8, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                       // P8_3: Output GND
+        {8, 8, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                       // P8_8: Unused
+        {10, 0, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PA_0: Unused
+        {11, 2, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                                                      // PB_2: Unused IN
+        {11, 4, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                                                      // PB_4: Unused IN
 #else
         {4, 8, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P4_8
 #endif
 
         // PORTAPACK SPECIFIC & JTAG (CPLD, UI, Audio, SD)
 
-        {6, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // I2S0_RX_MCLK: Unused
+        {map_cpld_tck.scu_port, map_cpld_tck.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tck.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_1 :I2S0_RX_MCLK
 
 #ifndef PRALINE
-        {9, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},   // CPLD_TDO: HackRF CPLD.TDO(O)
-        {6, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // CPLD_TMS: HackRF CPLD.TMS(I)
-        {15, 4, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // I2S0_RX_SCK: Unused
+        {map_cpld_tdo.scu_port, map_cpld_tdo.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tdo.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  // CPLD_TDO: HackRF CPLD.TDO(O)
+        {map_cpld_tms.scu_port, map_cpld_tms.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tms.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // CPLD_TMS: HackRF CPLD.TMS(I)
+        {15, 4, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                                                             // I2S0_RX_SCK: Unused
 #endif
-        {1, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  // SD_POW: PortaPack CPLD.TDO(O)
-        {1, 8, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // SD_VOLT0: PortaPack CPLD.TMS(I)
-        {6, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // CPLD_TCK: PortaPack CPLD.TCK(I)
-        {6, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // CPLD_TDI: PortaPack CPLD.TDI(I)
 
         {map_isp.scu_port, map_isp.scu_pin, scu_config_normal_drive_t{.mode = map_isp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                       // P2_7: ISP: 10K PU, Unused
         {map_dfu_boot_0.scu_port, map_dfu_boot_0.scu_pin, scu_config_normal_drive_t{.mode = map_dfu_boot_0.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_1: 10K PU, BOOT0
@@ -599,11 +608,11 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
      .dir = 0},
     {
         // GPIO2
-        .data = boot_bit(og_VAA_en, 1)  // P5_0:  !VAA_ENABLE
-                | (0 << 4)              // P4_4:  TXENABLE
+        .data = boot_bit(og_VAA_en, 1)           // P5_0:  !VAA_ENABLE
+                | boot_bit(max2837_txenable, 0)  // P4_4:  TXENABLE
         ,
-        .dir = boot_bit(og_VAA_en, 1)  // P5_0:  !VAA_ENABLE
-               | (1 << 4)              // P4_4:  TXENABLE
+        .dir = boot_bit(og_VAA_en, 1)           // P5_0:  !VAA_ENABLE
+               | boot_bit(max2837_txenable, 1)  // P4_4:  TXENABLE
     },
     {
         // GPIO3
@@ -616,13 +625,13 @@ static const std::array<gpio_setup_t, 6> gpio_setup_og{{
      .dir = 0},
     {
         // GPIO5
-        .data = boot_bit(og_tx, 0)       // P6_7:  TX
-                | boot_bit(sgpio_13, 0)  // P4_8:  SGPIO13, HOST_SYNC_EN
-                | boot_bit(og_rx, 1)     // P2_5:  RX
+        .data = boot_bit(og_tx, 0)          // P6_7:  TX
+                | boot_bit(sgpio_13_og, 0)  // P4_8:  SGPIO13, HOST_SYNC_EN
+                | boot_bit(og_rx, 1)        // P2_5:  RX
         ,
-        .dir = boot_bit(og_tx, 1)       // P6_7:  TX
-               | boot_bit(sgpio_13, 0)  // P4_8:  SGPIO13, HOST_SYNC_EN
-               | boot_bit(og_rx, 1)     // P2_5:  RX
+        .dir = boot_bit(og_tx, 1)          // P6_7:  TX
+               | boot_bit(sgpio_13_og, 0)  // P4_8:  SGPIO13, HOST_SYNC_EN
+               | boot_bit(og_rx, 1)        // P2_5:  RX
     },
 
 }};
@@ -661,34 +670,34 @@ static const std::array<gpio_setup_t, 6> gpio_setup_r9{{
      .dir = 0},
     {
         // GPIO5
-        .data = boot_bit(r9_clkin_en, 0)  // P6_7:  CLKIN_EN
-                | (0 << 12)               // P4_8:  CLKIN_DETECT
-                | (0 << 5)                // P2_5:  HOST_SYNC_EN
+        .data = boot_bit(r9_clkin_en, 0)    // P6_7:  CLKIN_EN
+                | (0 << 12)                 // P4_8:  CLKIN_DETECT
+                | boot_bit(sgpio_13_r9, 0)  // P2_5:  HOST_SYNC_EN
         ,
-        .dir = boot_bit(r9_clkin_en, 1)  // P6_7:  CLKIN_EN
-               | (0 << 12)               // P4_8:  CLKIN_DETECT
-               | (0 << 5)                // P2_5:  HOST_SYNC_EN
+        .dir = boot_bit(r9_clkin_en, 1)    // P6_7:  CLKIN_EN
+               | (0 << 12)                 // P4_8:  CLKIN_DETECT
+               | boot_bit(sgpio_13_r9, 0)  // P2_5:  HOST_SYNC_EN
     },
 }};
 
 /* Additional SCU configuration for HackRF OG */
-static const std::array<scu_setup_t, 7> pins_setup_og{{
+static const std::array<scu_setup_t, SCU_ARRAY_SIZE_OG> pins_setup_og{{
 
     /* Power control */
     {map_og_VAA_en.scu_port, map_og_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA */
     {map_og_1v8_en.scu_port, map_og_1v8_en.scu_pin, scu_config_normal_drive_t{.mode = map_og_1v8_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* EN1V8/P70: 10K PD, TPS62410.EN2(I), 1V8LED.A(I) */
 
     /* Radio section control */
-    {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                     /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
-    {4, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                     /* TXENABLE/P55: MAX2837.TXENABLE(I) */
-    {map_og_tx.scu_port, map_og_tx.scu_pin, scu_config_normal_drive_t{.mode = map_og_tx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  /* TX/P42: U7.VCTL2(I), U10.VCTL2(I), U2.VCTL2(I) */
-    {map_og_rx.scu_port, map_og_rx.scu_pin, scu_config_normal_drive_t{.mode = map_og_rx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_5
+    {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                                     /* RX/P43: U7.VCTL1(I), U10.VCTL1(I), U2.VCTL1(I) */
+    {map_max2837_txenable.scu_port, map_max2837_txenable.scu_pin, scu_config_normal_drive_t{.mode = map_max2837_txenable.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* TXENABLE/P55: MAX2837.TXENABLE(I) */
+    {map_og_tx.scu_port, map_og_tx.scu_pin, scu_config_normal_drive_t{.mode = map_og_tx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                  /* TX/P42: U7.VCTL2(I), U10.VCTL2(I), U2.VCTL2(I) */
+    {map_og_rx.scu_port, map_og_rx.scu_pin, scu_config_normal_drive_t{.mode = map_og_rx.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                  // P2_5
     /* SGPIO for sample transfer interface to HackRF CPLD. */
-    {map_sgpio_13.scu_port, map_sgpio_13.scu_pin, scu_config_normal_drive_t{.mode = map_sgpio_13.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* SGPIO13/BANK2F3M2: CPLD.90/HOST_SYNC_EN(I) */
+    {map_sgpio_13_og.scu_port, map_sgpio_13_og.scu_pin, scu_config_normal_drive_t{.mode = map_sgpio_13_og.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* SGPIO13/BANK2F3M2: CPLD.90/HOST_SYNC_EN(I) */
 }};
 
 /* Additional SCU configuration for HackRF r9 */
-static const std::array<scu_setup_t, 9> pins_setup_r9{{
+static const std::array<scu_setup_t, SCU_ARRAY_SIZE_R9> pins_setup_r9{{
     /* Power control */
     {map_r9_VAA_en.scu_port, map_r9_VAA_en.scu_pin, scu_config_normal_drive_t{.mode = map_r9_VAA_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // !VAA_ENABLE: 10K PU, Q3.G(I), power to VAA
     {map_r9_1v8_en.scu_port, map_r9_1v8_en.scu_pin, scu_config_normal_drive_t{.mode = map_r9_1v8_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // EN1V8: 10K PD, TPS62410.EN2(I), 1V8LED.A(I)
@@ -698,7 +707,7 @@ static const std::array<scu_setup_t, 9> pins_setup_r9{{
     {map_ant_bias.scu_port, map_ant_bias.scu_pin, scu_config_normal_drive_t{.mode = map_ant_bias.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // !ANT_BIAS: 10K PU, Q4.G(I)
 
     /* SGPIO for sample transfer interface to HackRF CPLD. */
-    {2, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* BANK2F3M2: CPLD.90/HOST_SYNC_EN(I) */
+    {map_sgpio_13_r9.scu_port, map_sgpio_13_r9.scu_pin, scu_config_normal_drive_t{.mode = map_sgpio_13_r9.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P2_5 BANK2F3M2: CPLD.90/HOST_SYNC_EN(I)
 
     /* Clock control */
     {map_r9_mcu_clk_en.scu_port, map_r9_mcu_clk_en.scu_pin, scu_config_normal_drive_t{.mode = map_r9_mcu_clk_en.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_1: MCU_CLK_EN/BOOT0: 10K PU, U28.1A(I)
@@ -712,77 +721,45 @@ static const std::array<scu_setup_t, 9> pins_setup_r9{{
 
 #endif
 
+static const std::array<scu_setup_t, PORTAPACK_SCU_ARRAY_SIZE> pins_setup_portapack{{
+
 #ifdef PRALINE
-
-static const std::array<scu_setup_t, 41> pins_setup_portapack{{
-    {2, 0, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* U0_TXD: PortaPack P2_0/IO_STBX */
-    {2, 1, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* U0_RXD: PortaPack P2_1/ADDR */
-    {2, 3, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}},  /* I2C1_SDA: PortaPack P2_3/LCD_TE */
-    {2, 4, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}},  /* I2C1_SCL: PortaPack P2_4/LCD_RDX */
-    {2, 13, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* P2_13: PortaPack P2_13/DIR */
-    {7, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_8: PortaPack GPIO3_8(IO) */
-    {7, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_9: PortaPack GPIO3_9(IO) */
-    {7, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_10: PortaPack GPIO3_10(IO) */
-    {7, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_11: PortaPack GPIO3_11(IO) */
-    {7, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_12: PortaPack GPIO3_12(IO) */
-    {7, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_13: PortaPack GPIO3_13(IO) */
-    {7, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_14: PortaPack GPIO3_14(IO) */
-    {7, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_15: PortaPack GPIO3_15(IO) */
-
-    /* PortaPack: Audio */
-    {3, 0, scu_config_normal_drive_t{.mode = 2, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  /* I2S0_TX_SCK: PortaPack I2S0_TX_SCK(I) */
-    {3, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  /* I2S0_RX_WS: PortaPack I2S0_TX_WS(I). Input enabled to fold back into RX. */
-    {3, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  /* I2S0_RX_SDA: PortaPack I2S0_TX_SDA(I) */
-    {24, 2, scu_config_normal_drive_t{.mode = 6, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* I2S0_TX_CLK: PortaPack I2S0_TX_MCLK */
-
-    /* PortaPack: SD card socket */
-    {24, 0, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
-    {1, 6, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  /* SD_CMD: PortaPack SD.CMD(IO)  */
-    {1, 9, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  /* SD_DAT0: PortaPack SD.DAT0(IO) */
-    {1, 10, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_DAT1: PortaPack SD.DAT1(IO) */
-    {1, 11, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_DAT2: PortaPack SD.DAT2(IO) */
-    {1, 12, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_DAT3: PortaPack SD.DAT3(IO) */
-    {1, 13, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}}, /* SD_CD: PortaPack SD.CD(O) */
-
     // for pro touch
     // those pins should choose reserved function mode
     // and the behavior same as hackrf one(YN YP XN XP)
-    {11, 6, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}}, /* PB_6:  ADC0_0 yp*/
-    {4, 5, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  /* P4_5:  ADC0_2 yn*/
-    {4, 4, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  /* P4_4:  ADC0_5 xp */
-    {15, 4, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}}, /* PF_4:  ADC0_6 xn*/
 
-    {1, 7, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P1_7: Output GND
-    {5, 3, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P5_3 Output GND
-    {5, 6, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P5_6 Output GND
-    {5, 7, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P5_7 Output GND
-    {9, 1, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},   // P9_1: Output GND
-    {10, 3, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PA_3: Output GND
-    {10, 4, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PA_4: Output GND
-    {11, 0, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_0: Output GND
-    {11, 1, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_1: Output GND
-    {11, 3, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_3: Output GND
-    {11, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_5: Output GND
-    {14, 0, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PE_0: Output GND
-    {4, 3, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},   // P4_3: VBUSCTRL Input GND
+    {map_touch_yp.scu_port, map_touch_yp.scu_pin, scu_config_normal_drive_t{.mode = map_touch_yp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_6: ADC0_0 yp
+    {map_touch_yn.scu_port, map_touch_yn.scu_pin, scu_config_normal_drive_t{.mode = map_touch_yn.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P4_5: ADC0_2 yn
+    {map_touch_xp.scu_port, map_touch_xp.scu_pin, scu_config_normal_drive_t{.mode = map_touch_xp.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P4_4: ADC0_5 xp
+    {map_touch_xn.scu_port, map_touch_xn.scu_pin, scu_config_normal_drive_t{.mode = map_touch_xn.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PF_4: ADC0_6 xn
 
-}};
+    {map_unused_p1_7.scu_port, map_unused_p1_7.scu_pin, scu_config_normal_drive_t{.mode = map_unused_p1_7.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_7: Output GND
+    {map_unused_p5_3.scu_port, map_unused_p5_3.scu_pin, scu_config_normal_drive_t{.mode = map_unused_p5_3.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_3 Output GND
+    {map_unused_p5_6.scu_port, map_unused_p5_6.scu_pin, scu_config_normal_drive_t{.mode = map_unused_p5_6.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P5_6 Output GND
+    {5, 7, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                       // P5_7 Output GND
+    {9, 1, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                       // P9_1: Output GND
+    {10, 3, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PA_3: Output GND
+    {10, 4, scu_config_normal_drive_t{.mode = 0, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PA_4: Output GND
+    {map_unused_pb_0.scu_port, map_unused_pb_0.scu_pin, scu_config_normal_drive_t{.mode = map_unused_pb_0.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // PB_0: Output GND
+    {11, 1, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PB_1: Output GND
+    {11, 3, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PB_3: Output GND
+    {11, 5, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PB_5: Output GND
+    {14, 0, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                      // PE_0: Output GND
+    {map_vbusctrl.scu_port, map_vbusctrl.scu_pin, scu_config_normal_drive_t{.mode = map_vbusctrl.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},           // P4_3: VBUSCTRL Input GND
+#endif
 
-#else
-static const std::array<scu_setup_t, 24> pins_setup_portapack{{
-    {2, 0, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* U0_TXD: PortaPack P2_0/IO_STBX */
-    {2, 1, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* U0_RXD: PortaPack P2_1/ADDR */
-    {2, 3, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* I2C1_SDA: PortaPack P2_3/LCD_TE */
-    {2, 4, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* I2C1_SCL: PortaPack P2_4/LCD_RDX */
-    {2, 13, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* P2_13: PortaPack P2_13/DIR */
-    {7, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_8: PortaPack GPIO3_8(IO) */
-    {7, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_9: PortaPack GPIO3_9(IO) */
-    {7, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_10: PortaPack GPIO3_10(IO) */
-    {7, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_11: PortaPack GPIO3_11(IO) */
-    {7, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_12: PortaPack GPIO3_12(IO) */
-    {7, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_13: PortaPack GPIO3_13(IO) */
-    {7, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_14: PortaPack GPIO3_14(IO) */
-    {7, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  /* GPIO3_15: PortaPack GPIO3_15(IO) */
+    {2, 0, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* U0_TXD: PortaPack P2_0/IO_STBX */
+    {2, 1, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* U0_RXD: PortaPack P2_1/ADDR */
+    {2, 3, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}}, /* I2C1_SDA: PortaPack P2_3/LCD_TE */
+    {2, 4, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}}, /* I2C1_SCL: PortaPack P2_4/LCD_RDX */
+    {7, 0, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_8: PortaPack GPIO3_8(IO) */
+    {7, 1, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_9: PortaPack GPIO3_9(IO) */
+    {7, 2, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_10: PortaPack GPIO3_10(IO) */
+    {7, 3, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_11: PortaPack GPIO3_11(IO) */
+    {7, 4, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_12: PortaPack GPIO3_12(IO) */
+    {7, 5, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_13: PortaPack GPIO3_13(IO) */
+    {7, 6, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_14: PortaPack GPIO3_14(IO) */
+    {7, 7, scu_config_normal_drive_t{.mode = 0, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}}, /* GPIO3_15: PortaPack GPIO3_15(IO) */
 
     /* PortaPack: Audio */
     {3, 0, scu_config_normal_drive_t{.mode = 2, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  /* I2S0_TX_SCK: PortaPack I2S0_TX_SCK(I) */
@@ -791,23 +768,29 @@ static const std::array<scu_setup_t, 24> pins_setup_portapack{{
     {24, 2, scu_config_normal_drive_t{.mode = 6, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}}, /* I2S0_TX_CLK: PortaPack I2S0_TX_MCLK */
 
     /* PortaPack: SD card socket */
-    {24, 0, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
-    {1, 6, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  /* SD_CMD: PortaPack SD.CMD(IO)  */
-    {1, 9, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  /* SD_DAT0: PortaPack SD.DAT0(IO) */
-    {1, 10, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_DAT1: PortaPack SD.DAT1(IO) */
-    {1, 11, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_DAT2: PortaPack SD.DAT2(IO) */
-    {1, 12, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}}, /* SD_DAT3: PortaPack SD.DAT3(IO) */
-    {1, 13, scu_config_normal_drive_t{.mode = 7, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}}, /* SD_CD: PortaPack SD.CD(O) */
+    {24, 0, scu_config_normal_drive_t{.mode = 4, .epd = 1, .epun = 1, .ehs = 0, .ezi = 1, .zif = 1}},                                                          /* SD_CLK: PortaPack SD.CLK, enable input buffer for timing feedback? */
+    {map_sd_cmd.scu_port, map_sd_cmd.scu_pin, scu_config_normal_drive_t{.mode = map_sd_cmd.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},     // P1_6 SD_CMD: PortaPack SD.CMD(IO)
+    {map_sd_cd.scu_port, map_sd_cd.scu_pin, scu_config_normal_drive_t{.mode = map_sd_cd.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},        // P1_13 SD_CD: PortaPack SD.CD(O)
+    {map_sd_dat0.scu_port, map_sd_dat0.scu_pin, scu_config_normal_drive_t{.mode = map_sd_dat0.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  // P1_9 SD_DAT0: PortaPack SD.DAT0(IO)
+    {map_sd_dat1.scu_port, map_sd_dat1.scu_pin, scu_config_normal_drive_t{.mode = map_sd_dat1.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  // P1_10 SD_DAT1: PortaPack SD.DAT1(IO)
+    {map_sd_dat2.scu_port, map_sd_dat2.scu_pin, scu_config_normal_drive_t{.mode = map_sd_dat2.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  // P1_11 SD_DAT2: PortaPack SD.DAT2(IO)
+    {map_sd_dat3.scu_port, map_sd_dat3.scu_pin, scu_config_normal_drive_t{.mode = map_sd_dat3.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 1}},  // P1_12 SD_DAT3: PortaPack SD.DAT3(IO)
+
+    {map_portapack_cpld_tms.scu_port, map_portapack_cpld_tms.scu_pin, scu_config_normal_drive_t{.mode = map_portapack_cpld_tms.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_8 SD_VOLT0: PortaPack CPLD.TMS(I)
+    {map_cpld_tck.scu_port, map_cpld_tck.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tck.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // P6_1 CPLD_TCK: PortaPack CPLD.TCK(I)
+    {map_portapack_cpld_tdo.scu_port, map_portapack_cpld_tdo.scu_pin, scu_config_normal_drive_t{.mode = map_portapack_cpld_tdo.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  // P1_5 PortaPack CPLD.TDO(O)
+    {map_cpld_tdi.scu_port, map_cpld_tdi.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tdi.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // CPLD_TDI: PortaPack CPLD.TDI(I)
+
+    {map_portapack_dir.scu_port, map_portapack_dir.scu_pin, scu_config_normal_drive_t{.mode = map_portapack_dir.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // P2_13: PortaPack DIR
 }};
-#endif
 
 static const std::array<scu_setup_t, 6> pins_setup_spifi{{
-    {3, 3, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_SCK: W25Q80BV.CLK(I), enable input buffer for timing feedback */
-    {3, 4, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_SIO3/P82: W25Q80BV.HOLD(IO) */
-    {3, 5, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_SIO2/P81: W25Q80BV.WP(IO) */
-    {3, 6, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_MISO: W25Q80BV.DO(IO) */
-    {3, 7, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_MOSI: W25Q80BV.DI(IO) */
-    {3, 8, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}}, /* SPIFI_CS/P68: W25Q80BV.CS(I) */
+    {3, 3, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                    /* SPIFI_SCK: W25Q80BV.CLK(I), enable input buffer for timing feedback */
+    {map_spifi_sio3.scu_port, map_spifi_sio3.scu_pin, scu_config_normal_drive_t{.mode = map_spifi_sio3.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},  // P3_4 SPIFI_SIO3/P82: W25Q80BV.HOLD(IO)
+    {map_spifi_sio2.scu_port, map_spifi_sio2.scu_pin, scu_config_normal_drive_t{.mode = map_spifi_sio2.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},  // P3_5 SPIFI_SIO2/P81: W25Q80BV.WP(IO)
+    {map_spifi_miso.scu_port, map_spifi_miso.scu_pin, scu_config_normal_drive_t{.mode = map_spifi_miso.gpio_mode, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},  // P3_6 SPIFI_MISO: W25Q80BV.DO(IO)
+    {3, 7, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                    /* SPIFI_MOSI: W25Q80BV.DI(IO) */
+    {3, 8, scu_config_normal_drive_t{.mode = 3, .epd = 0, .epun = 1, .ehs = 1, .ezi = 1, .zif = 1}},                                                                    /* SPIFI_CS/P68: W25Q80BV.CS(I) */
 }};
 
 /*

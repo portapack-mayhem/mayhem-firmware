@@ -24,7 +24,6 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-#include "hackrf_gpio.hpp"
 #include <string>
 
 void __debug_log(const std::string& msg);

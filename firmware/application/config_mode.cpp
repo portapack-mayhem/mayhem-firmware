@@ -21,7 +21,6 @@
 
 #include "config_mode.hpp"
 #include "core_control.hpp"
-#include "hackrf_gpio.hpp"
 #include "portapack_hal.hpp"
 
 #include "board.h"

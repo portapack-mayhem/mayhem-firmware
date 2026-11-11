@@ -21,7 +21,8 @@
 
 #include "cpld_update.hpp"
 
-#include "hackrf_gpio.hpp"
+#include "gpio.hpp"
+using namespace gpio_control;
 #include "portapack_hal.hpp"
 #include "portapack.hpp"
 
@@ -41,10 +42,10 @@ namespace cpld {
 
 CpldUpdateStatus update_if_necessary(const Config config) {
     jtag::GPIOTarget target{
-        portapack::gpio_cpld_tck,
-        portapack::gpio_cpld_tms,
-        portapack::gpio_cpld_tdi,
-        portapack::gpio_cpld_tdo};
+        cpld_tck,
+        portapack_cpld_tms,
+        cpld_tdi,
+        portapack_cpld_tdo};
     jtag::JTAG jtag{target};
     CPLD cpld{jtag};
 
@@ -153,10 +154,10 @@ static uint32_t get_firmware_crc(CPLD& cpld) {
 
 CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Config config_rev_20170522) {
     jtag::GPIOTarget target{
-        portapack::gpio_cpld_tck,
-        portapack::gpio_cpld_tms,
-        portapack::gpio_cpld_tdi,
-        portapack::gpio_cpld_tdo};
+        cpld_tck,
+        portapack_cpld_tms,
+        cpld_tdi,
+        portapack_cpld_tdo};
     jtag::JTAG jtag{target};
     CPLD cpld{jtag};
 
@@ -233,10 +234,10 @@ void init_from_eeprom() {
 
 static jtag::GPIOTarget jtag_target_hackrf() {
     return {
-        hackrf::one::gpio_cpld_tck,
-        hackrf::one::gpio_cpld_tms,
-        hackrf::one::gpio_cpld_tdi,
-        hackrf::one::gpio_cpld_tdo,
+        cpld_tck,
+        cpld_tms,
+        cpld_tdi,
+        cpld_tdo,
     };
 }
 

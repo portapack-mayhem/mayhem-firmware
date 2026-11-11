@@ -24,7 +24,6 @@
 #include "max2837.hpp"
 
 #include "hackrf_hal.hpp"
-#include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
 #include "gpio.hpp"
@@ -208,8 +207,8 @@ void MAX2837::set_mode(const Mode mode) {  // We set up the 3 Logic Pins ENABLE,
 
     Mask mask = mode_mask(mode);
     max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
-    gpio_max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));
-    gpio_max2837_txenable.write(toUType(mask) & toUType(Mask::TxEnable));
+    max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));
+    max2837_txenable.write(toUType(mask) & toUType(Mask::TxEnable));
 }
 
 Mode MAX2837::get_mode() {

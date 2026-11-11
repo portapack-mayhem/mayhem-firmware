@@ -24,7 +24,6 @@
 #include "max2839.hpp"
 
 #include "hackrf_hal.hpp"
-#include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 
 #include "gpio.hpp"
@@ -202,7 +201,7 @@ void MAX2839::set_mode(const Mode mode) {
 
     Mask mask = mode_mask(mode);
     max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
-    gpio_max2839_rxtx.write(toUType(mask) & toUType(Mask::RxTx));
+    max2839_rxtx.write(toUType(mask) & toUType(Mask::RxTx));
 }
 
 Mode MAX2839::get_mode() {
