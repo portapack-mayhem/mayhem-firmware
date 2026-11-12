@@ -1,4 +1,4 @@
-# copyleft 2024 zxkmm
+# Copyright (C) 2024 zxkmm
 
 import sys
 import re
