@@ -689,7 +689,7 @@ void ClockManager::init_clock_generator() {
     }
 
     if (!_datapath_pll_a && (!xtal_clock_routing_verified(clock_generator) ||
-                            !xtal_pll_b_locked(clock_generator)))
+                             !xtal_pll_b_locked(clock_generator)))
         xtal_clock_failure("XTAL PLL B init failed");
 
     clock_generator.enable_output(clock_generator_output_pro_mcu_clkin);
