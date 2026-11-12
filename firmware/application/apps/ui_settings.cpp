@@ -6,7 +6,7 @@
  * Copyright (C) 2024 Mark Thompson
  * Copyright (C) 2024 u-foka
  * Copyright (C) 2024 HTotoo
- * copyleft 2024 zxkmm
+ * Copyright (C) 2024 zxkmm
  *
  * This file is part of PortaPack.
  *

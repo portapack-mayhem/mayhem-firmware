@@ -4,7 +4,7 @@
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
  * Copyright (C) 2023 Mark Thompson
  * Copyright (C) 2024 u-foka
- * copyleft 2024 zxkmm
+ * Copyright (C) 2024 zxkmm
  *
  * This file is part of PortaPack.
  *

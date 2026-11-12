@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# copyleft 2026 zxkmm co author with AI
+# Copyright (C) 2026 zxkmm
 #
 # This file is part of PortaPack.
 #
