@@ -779,7 +779,7 @@ static const std::array<scu_setup_t, PORTAPACK_SCU_ARRAY_SIZE> pins_setup_portap
     {map_portapack_cpld_tms.scu_port, map_portapack_cpld_tms.scu_pin, scu_config_normal_drive_t{.mode = map_portapack_cpld_tms.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},  // P1_8 SD_VOLT0: PortaPack CPLD.TMS(I)
     {map_cpld_tck.scu_port, map_cpld_tck.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tck.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // P6_1 CPLD_TCK: PortaPack CPLD.TCK(I)
     {map_portapack_cpld_tdo.scu_port, map_portapack_cpld_tdo.scu_pin, scu_config_normal_drive_t{.mode = map_portapack_cpld_tdo.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},  // P1_5 PortaPack CPLD.TDO(O)
-    {map_cpld_tdi.scu_port, map_cpld_tdi.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tdi.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // CPLD_TDI: PortaPack CPLD.TDI(I)
+    {map_cpld_tdi.scu_port, map_cpld_tdi.scu_pin, scu_config_normal_drive_t{.mode = map_cpld_tdi.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},                                // P6_2 CPLD_TDI: PortaPack CPLD.TDI(I)
 
     {map_portapack_dir.scu_port, map_portapack_dir.scu_pin, scu_config_normal_drive_t{.mode = map_portapack_dir.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 1, .zif = 0}},  // P2_13: PortaPack DIR
 }};
