@@ -52,6 +52,7 @@
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_terminal.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
@@ -145,6 +146,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
     {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
     {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
+    {"terminal", "Terminal", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<TerminalView>()},
     {nullptr, "Debug", UTILITIES, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
     //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
     // Dangerous apps.
