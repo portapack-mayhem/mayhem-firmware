@@ -121,8 +121,8 @@ class ClockManager {
 
    private:
 #ifdef PRALINE
-    // The AFE (CLK0) and FPGA (CLK1) clocks run on PLL A, by themselves, so that PLL can be
-    // reset after every rate change - see set_sampling_frequency().
+    // CLKIN: datapath on A, system on B. XTAL: datapath on B, system on A.
+    // Only the datapath PLL may be reset after a rate change.
     bool _datapath_pll_a{false};
 #endif
     I2C& i2c0;

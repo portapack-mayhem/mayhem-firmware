@@ -76,6 +76,36 @@ Si5351::regvalue_t Si5351::read_register(const uint8_t reg) {
     return rx[0];
 }
 
+#ifdef PRALINE
+bool Si5351::read_register_checked(uint8_t reg, uint8_t& value) {
+    return _bus.transmit(_address, &reg, 1, MS2ST(20)) &&
+           _bus.receive(_address, &value, 1, MS2ST(20));
+}
+
+bool Si5351::write_register_checked(uint8_t reg, uint8_t value) {
+    const std::array<uint8_t, 2> tx{{reg, value}};
+    return _bus.transmit(_address, tx.data(), tx.size(), MS2ST(20));
+}
+
+bool Si5351::write_pll_checked(uint8_t pll_n, const PLL& config) {
+    if (pll_n > 1)
+        return false;
+    const auto regs = config.reg(pll_n);
+    // Preserve the Pro's single-register transactions. Stop on the first
+    // failed transfer; never retry or reset a PLL to conceal partial writes.
+    for (size_t i = 1; i < regs.size(); ++i) {
+        if (!write_register_checked(regs[0] + i - 1, regs[i]))
+            return false;
+    }
+    for (size_t i = 1; i < regs.size(); ++i) {
+        uint8_t value = 0;
+        if (!read_register_checked(regs[0] + i - 1, value) || value != regs[i])
+            return false;
+    }
+    return true;
+}
+#endif
+
 void Si5351::set_ms_frequency(
     const size_t ms_number,
     const uint32_t frequency,
