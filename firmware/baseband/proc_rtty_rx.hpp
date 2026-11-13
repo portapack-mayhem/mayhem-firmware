@@ -106,8 +106,37 @@ class RTTYRxProcessor : public BasebandProcessor {
     // Polarity
     bool inverted_polarity = true;
     uint32_t polarity_timer = 0;
+    uint8_t polarity_mode = 0;  // 0 = auto, 1 = normal, 2 = reverse
+
+    // Level squelch (channel power against a tracked noise floor)
+    // Float: the channel samples can be only a few counts, integer power would quantize to 0.
+    uint8_t squelch_db = 0;  // 0 = legacy FM-spread squelch
+    float squelch_ratio_open = 10.0f;
+    float squelch_ratio_close = 5.0f;
+    float power_fast = 0.0f;
+    float noise_floor = 0.0f;
+    bool level_open = false;
+    bool decoded_since_open = false;
+
+    // Mark-referenced slicer (used with the level squelch): the idle tone heard first is the mark,
+    // the decision threshold sits half a shift away from it.
+    static constexpr uint32_t MARK_LEARN_SAMPLES = 2400;  // 100 ms of the idle preamble
+    static constexpr int32_t LEVEL_LPF_SHIFT = 5;         // 1/32 smoothing (1.3 ms): the 11 kHz channel lets a lot of FM noise in
+    static constexpr uint32_t WARMUP_BLOCKS = 750;        // ~0.5 s to learn the noise floor before the squelch may open
+    uint32_t warmup_blocks = 0;
+    int32_t fm_lp = 0;
+    int32_t mark_level = 0;
+    uint32_t mark_learn = 0;
+    int8_t mark_sign = 1;  // +1: mark is the higher tone, -1: the lower one
+    bool mark_sign_known = false;
+    int32_t expected_spread() const { return (int32_t)shift_hz * (32767 * 32 / 9000); }  // FM demod: 32767 = 9 kHz, x32 below
+    int32_t mark_relative_sample(int32_t fm_val);
 
     void configure();
+    void update_level_squelch(const buffer_c16_t& channel);
+    void set_squelch_db(uint8_t db);
+    bool fixed_polarity() const { return polarity_mode != 0; }
+    bool fixed_inverted() const { return polarity_mode == 2; }
     void process_demodulated_sample(int32_t sample);
     void update_baud_estimation(uint32_t pulse_width);
     void append_data(uint8_t raw_baudot_code);
