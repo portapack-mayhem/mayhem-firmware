@@ -138,6 +138,25 @@ void GeoPos::set_speed(int32_t speed) {
     field_speed.set_value(speed);
 }
 
+void GeoPos::set_custom_labels(const std::string& alt_label, const std::string& spd_label) {
+    labels_position.set_labels({
+        {{1 * 8, UI_POS_Y(0)}, alt_label, Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Theme::getInstance()->fg_light->foreground},
+    });
+    label_spd_position.set_labels({
+        {{15 * 8, UI_POS_Y(0)}, spd_label, Theme::getInstance()->fg_light->foreground},
+    });
+}
+
+void GeoPos::set_alt_unit(const std::string& unit_text) {
+    text_alt_unit.set(unit_text);
+}
+
+void GeoPos::set_speed_unit(const std::string& unit_text) {
+    text_speed_unit.set(unit_text);
+}
+
 void GeoPos::set_lat(float lat) {
     bool south = lat < 0;
     float magnitude = south ? -lat : lat;
@@ -1145,6 +1164,18 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
 
 void GeoMapView::update_tag(const std::string tag) {
     geomap.set_tag(tag);
+}
+
+void GeoMapView::set_custom_labels(const std::string& alt_label, const std::string& spd_label) {
+    geopos.set_custom_labels(alt_label, spd_label);
+}
+
+void GeoMapView::set_alt_unit(const std::string& unit_text) {
+    geopos.set_alt_unit(unit_text);
+}
+
+void GeoMapView::set_speed_unit(const std::string& unit_text) {
+    geopos.set_speed_unit(unit_text);
 }
 
 void GeoMapView::setup() {
