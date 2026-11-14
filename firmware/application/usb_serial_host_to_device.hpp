@@ -24,9 +24,7 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "usb_serial_device_to_host.h"
-
-#define USB_BULK_BUFFER_SIZE 64
+#include "usb_serial_device_to_host.h" /* provides USB_BULK_BUFFER_SIZE */
 
 void init_host_to_device();
 void reset_transfer_queues();
