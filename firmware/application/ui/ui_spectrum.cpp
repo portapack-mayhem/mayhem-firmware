@@ -455,9 +455,15 @@ void WaterfallView::stop() {
     }
     this->channel_fifo = nullptr;
     this->audio_spectrum_data = nullptr;
+    this->audio_spectrum_update = false;
 }
 
 void WaterfallView::show_audio_spectrum_view(const bool show) {
+    if (!show) {
+        audio_spectrum_update = false;
+        audio_spectrum_data = nullptr;
+    }
+
     if ((audio_spectrum_view && show) || (!audio_spectrum_view && !show)) return;
 
     if (show) {
@@ -465,7 +471,6 @@ void WaterfallView::show_audio_spectrum_view(const bool show) {
         add_child(audio_spectrum_view.get());
         update_widgets_rect();
     } else {
-        audio_spectrum_update = false;
         remove_child(audio_spectrum_view.get());
         audio_spectrum_view.reset();
         update_widgets_rect();
@@ -504,6 +509,8 @@ void WaterfallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 }
 
 void WaterfallView::on_audio_spectrum() {
+    if (!audio_spectrum_view || !audio_spectrum_data)
+        return;
     audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
 }
 
