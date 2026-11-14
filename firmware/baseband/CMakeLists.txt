@@ -862,6 +862,24 @@ set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
 DeclareTargets(PFT8 ft8_rx)
 set(MODE_FLAGS "-O3")
 
+### WSPR RX
+
+set(MODE_CPPSRC
+	proc_wspr_rx.cpp
+	wspr_portapack.c
+	wspr_lib/wspr_constants.c
+	wspr_lib/wspr_encode.c
+	wspr_lib/wspr_unpack.c
+	wspr_lib/wspr_decode.c
+)
+# The 120 s capture and the 14-row candidate search sit close to the 32k external app
+# ceiling, so this image is built for size rather than speed, like the FT8 image above.
+# The LOG_PRINTF define is the same guard: if wspr_lib ever grows ft8_lib-style debug.h
+# logging, stdio stays out of the image and the vendored headers stay untouched.
+set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
+DeclareTargets(PWSR wspr_rx)
+set(MODE_FLAGS "-O3")
+
 ### SD over USB
 
 set(MODE_INCDIR

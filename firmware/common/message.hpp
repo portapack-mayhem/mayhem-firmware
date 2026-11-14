@@ -182,6 +182,8 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        WSPRPacket = 126,
+        WSPRRxStatus = 127,
         MAX
     };
 
@@ -485,6 +487,70 @@ class FT8RxStatusMessage : public Message {
         SyncState sync_state,
         uint8_t decodes)
         : Message{ID::FT8RxStatus},
+          state{sync_state},
+          decode_count{decodes} {
+    }
+
+    SyncState state;
+    uint8_t decode_count;
+};
+
+/* One decoded WSPR transmission, already unpacked to text by the baseband. */
+class WSPRPacketMessage : public Message {
+   public:
+    constexpr WSPRPacketMessage(
+        const char* message_callsign,
+        const char* message_grid,
+        int8_t message_dbm,
+        int8_t message_snr_db,
+        int16_t message_freq_hz,
+        int16_t message_drift_bins)
+        : Message{ID::WSPRPacket},
+          callsign{},
+          grid{},
+          dbm{message_dbm},
+          snr_db{message_snr_db},
+          freq_hz{message_freq_hz},
+          drift_bins{message_drift_bins} {
+        /* Callsign is up to 12 characters and grid 4; both stop at the source terminator
+         * and are always terminated here, however short the source ran. */
+        size_t i = 0;
+        for (; i < sizeof(callsign) - 1 && message_callsign[i] != '\0'; i++)
+            callsign[i] = message_callsign[i];
+        callsign[i] = '\0';
+        for (i = 0; i < sizeof(grid) - 1 && message_grid[i] != '\0'; i++)
+            grid[i] = message_grid[i];
+        grid[i] = '\0';
+    }
+
+    char callsign[13];  // up to 12 characters plus terminator
+    char grid[5];       // 4 characters plus terminator
+    /* 0..60 dBm as transmitted; the report the station sent. */
+    int8_t dbm;
+    /* Rough estimate from the decoder, for display only. */
+    int8_t snr_db;
+    /* Audio frequency of the transmission's tone 0 inside the 1400-1600 Hz passband, and
+     * the total drift over the window in tone steps, so a drifting station is visible. */
+    int16_t freq_hz;
+    int16_t drift_bins;
+};
+
+/* Sent once per 120 s capture window so the UI can tell the user the receiver is alive;
+ * a WSPR window is silent for two minutes before anything decodes, which otherwise looks
+ * identical to a dead band. */
+class WSPRRxStatusMessage : public Message {
+   public:
+    enum class SyncState : uint8_t {
+        Searching = 0,  // Capturing back-to-back windows; nothing decoded yet
+        Heard = 1,      // A transmission is in the passband but has not decoded
+        Syncing = 2,    // Slot phase acquisition in progress
+        Locked = 3,     // Slot phase locked
+    };
+
+    constexpr WSPRRxStatusMessage(
+        SyncState sync_state,
+        uint8_t decodes)
+        : Message{ID::WSPRRxStatus},
           state{sync_state},
           decode_count{decodes} {
     }
