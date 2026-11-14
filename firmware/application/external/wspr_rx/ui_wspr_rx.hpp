@@ -32,6 +32,7 @@
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
 #include "ui_widget.hpp"
+#include "log_file.hpp"
 
 namespace ui::external_app::wspr_rx {
 
@@ -133,6 +134,11 @@ class WSPRRxView : public View {
         {0, 2 * 16, screen_width, screen_height - 3 * 16}};
 
     uint32_t decodes_total{0};
+
+    /* Decodes land in LOGS/WSPR.TXT, one line per report, the same logger the
+     * AIS and VDL2 receivers use. Appending at construction opens the file once;
+     * a missing SD card surfaces as an error return the app ignores. */
+    LogFile log_file_{};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::WSPRPacket,

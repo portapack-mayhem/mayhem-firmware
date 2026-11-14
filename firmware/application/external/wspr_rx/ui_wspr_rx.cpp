@@ -23,6 +23,8 @@
 
 #include "audio.hpp"
 #include "baseband_api.hpp"
+#include "file_path.hpp"
+#include "rtc_time.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -79,6 +81,8 @@ WSPRRxView::WSPRRxView(NavigationView& nav)
     receiver_model.enable();
 
     audio::output::start();
+
+    log_file_.append(logs_dir / u"WSPR.TXT");
 }
 
 void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
@@ -113,6 +117,17 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
 
     decodes_total++;
     text_decodes.set(to_string_dec_uint(decodes_total) + (decodes_total < 10000 ? " RX" : "RX"));
+
+    /* One line per report: callsign, grid, the station's own dBm, the decoder's rough
+     * SNR and the audio frequency, prefixed by the logger with the RTC timestamp — the
+     * fields wsprnet.org reports are built from, minus the upload. */
+    rtc::RTC datetime;
+    rtcGetTime(&RTCD1, &datetime);
+    const std::string entry = std::string{message->callsign} + " " + message->grid + " " +
+                              to_string_dec_int(message->dbm) + " " +
+                              to_string_dec_int(message->snr_db) + " " +
+                              to_string_dec_uint(message->freq_hz);
+    log_file_.write_entry(datetime, entry);
 }
 
 void WSPRRxView::on_status(const WSPRRxStatusMessage* message) {
