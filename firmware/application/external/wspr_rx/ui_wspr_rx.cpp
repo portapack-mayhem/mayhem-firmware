@@ -53,6 +53,8 @@ WSPRRxView::WSPRRxView(NavigationView& nav)
                   &options_band,
                   &text_status,
                   &text_decodes,
+                  &text_min,
+                  &field_min_agr,
                   &console});
 
     channel.set_overload_threshold(-3);
@@ -86,6 +88,11 @@ WSPRRxView::WSPRRxView(NavigationView& nav)
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 
+    field_min_agr.set_value(min_agreement_, false);
+    field_min_agr.on_change = [this](int32_t v) {
+        min_agreement_ = v;
+    };
+
     audio::output::start();
 
     log_file_.append(logs_dir / u"WSPR.TXT");
@@ -99,22 +106,34 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
     if (message->callsign[0] == '\0')
         return;
 
-    /* Acceptance gate before anything the user sees: an unconfirmed decode is logged
-     * raw to the debug file only, so one structural false positive cannot plant a
-     * phantom station on the console or in WSPR.TXT. */
-    if (!confirm_decode(message)) {
-        if (debug_log_ok_) {
-            rtc::RTC datetime;
-            rtcGetTime(&RTCD1, &datetime);
-            const std::string entry = std::string{"unconf "} + message->callsign + " " +
-                                      message->grid + " " +
-                                      to_string_dec_int(message->dbm) + " " +
-                                      to_string_dec_int(message->snr_db) + " " +
-                                      to_string_dec_uint(message->freq_hz);
-            debug_log_file_.write_entry(datetime, entry);
-        }
-        return;
+    /* The confirmation table first: a repeat of the same station turns this
+     * decode into a confirmed one. Everything is displayed, at three trust
+     * levels - confirmed repeats in green and logged to WSPR.TXT, strong
+     * single decodes (high re-encode agreement) in the plain colour, weak
+     * singles in grey with a question mark. An empty screen reads as a dead
+     * band; a grey line reads as "something is there, text not stable yet";
+     * only the green lines are station reports. Unconfirmed decodes are also
+     * logged raw to the debug file for the session analysis. */
+    const bool confirmed = confirm_decode(message);
+    if (!confirmed && debug_log_ok_) {
+        rtc::RTC datetime;
+        rtcGetTime(&RTCD1, &datetime);
+        const std::string entry = std::string{"unconf "} + message->callsign + " " +
+                                  message->grid + " " +
+                                  to_string_dec_int(message->dbm) + " " +
+                                  to_string_dec_int(message->snr_db) + " " +
+                                  to_string_dec_uint(message->freq_hz);
+        debug_log_file_.write_entry(datetime, entry);
     }
+
+    /* Display threshold: confirmed repeats always show (physical evidence);
+     * singles below the user's agreement floor stay off the screen - but they
+     * were stored above, so a later repeat still confirms and appears. */
+    if (!confirmed && message->agreement_pct < min_agreement_)
+        return;
+
+    /* Strong singles: high re-encode agreement, trusted without a repeat. */
+    const bool strong = message->agreement_pct >= 85;
 
     /* "callsign grid report SNR" takes the left of the line and the audio frequency the
      * right, so the frequencies line up in a column down the screen and the passband can
@@ -133,6 +152,10 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
      * fixed at compile time. The font is the 8 px fixed one the rest of the layout uses. */
     const size_t columns = screen_width / 8;
 
+    /* Weak singles carry the question mark: two columns, counted in the padding. */
+    if (!confirmed && !strong)
+        text += " ?";
+
     /* Padding is measured before any colour escape would go on, because an escape
      * occupies bytes of the string and no columns on screen. */
     if (text.length() + freq.length() < columns)
@@ -140,7 +163,14 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
     else
         text += '\n' + std::string(columns - freq.length(), ' ');
 
-    console.writeln(text + freq);
+    /* Trust levels: confirmed repeats in green, strong singles plain, weak
+     * singles in grey with their question mark. */
+    if (confirmed)
+        console.writeln(STR_COLOR_GREEN + text + STR_COLOR_WHITE + freq);
+    else if (strong)
+        console.writeln(text + freq);
+    else
+        console.writeln(STR_COLOR_LIGHT_GREY + text + " ?" + STR_COLOR_WHITE + freq);
 
     decodes_total++;
     text_decodes.set(to_string_dec_uint(decodes_total) + (decodes_total < 10000 ? " RX" : "RX"));

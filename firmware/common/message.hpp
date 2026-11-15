@@ -505,14 +505,16 @@ class WSPRPacketMessage : public Message {
         int8_t message_dbm,
         int8_t message_snr_db,
         int16_t message_freq_hz,
-        int16_t message_drift_bins)
+        int16_t message_drift_bins,
+        int8_t message_agreement_pct)
         : Message{ID::WSPRPacket},
           callsign{},
           grid{},
           dbm{message_dbm},
           snr_db{message_snr_db},
           freq_hz{message_freq_hz},
-          drift_bins{message_drift_bins} {
+          drift_bins{message_drift_bins},
+          agreement_pct{message_agreement_pct} {
         /* Callsign is up to 12 characters and grid 4; both stop at the source terminator
          * and are always terminated here, however short the source ran. */
         size_t i = 0;
@@ -534,6 +536,9 @@ class WSPRPacketMessage : public Message {
      * the total drift over the window in tone steps, so a drifting station is visible. */
     int16_t freq_hz;
     int16_t drift_bins;
+    /* Re-encode agreement of this decode, percent: the live trust readout the UI
+     * colors the line by (strong singles trusted, weak ones marked). */
+    int8_t agreement_pct;
 };
 
 /* Sent once per 120 s capture window so the UI can tell the user the receiver is alive;

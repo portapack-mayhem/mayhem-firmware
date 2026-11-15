@@ -55,6 +55,10 @@ class WSPRRxView : public View {
 
     NavigationView& nav_;
 
+    /* Display threshold for unconfirmed decodes, percent of re-encode
+     * agreement; bound to the settings store and rotated on screen. */
+    int32_t min_agreement_{0};
+
     RxRadioState radio_state_{
         7078600 /* 40 m WSPR dial frequency */,
         baseband_bandwidth,
@@ -62,7 +66,8 @@ class WSPRRxView : public View {
 
     app_settings::SettingsManager settings_{
         "rx_wspr",
-        app_settings::Mode::RX};
+        app_settings::Mode::RX,
+        {{"min_agr", &min_agreement_}}};
 
     void on_packet(const WSPRPacketMessage* message);
     void on_status(const WSPRRxStatusMessage* message);
@@ -160,8 +165,24 @@ class WSPRRxView : public View {
      * screen rect straight to the display's hardware scroll region, so a rect that runs
      * past that row sets the region's bottom fixed area negative and the panel then shows
      * frame rows nothing has written. */
+    /* The console gives its last row to the confidence threshold: the field
+     * sits in the bottom 16 px row, below the scroll region, where the ft8
+     * comment's rule (a rect must not run past screen_height - 16) keeps the
+     * console's own bottom fixed area legal. */
     Console console{
-        {0, 2 * 16, screen_width, screen_height - 3 * 16}};
+        {0, 2 * 16, screen_width, screen_height - 4 * 16}};
+
+    Text text_min{
+        {0, screen_height - 4 * 16 + 2 * 16, 3 * 8, 16},
+        "MIN"};
+
+    NumberField field_min_agr{
+        {3 * 8 + 4, screen_height - 4 * 16 + 2 * 16},
+        4 * 8,
+        {0, 100},
+        5,
+        ' ',
+        true};
 
     uint32_t decodes_total{0};
 

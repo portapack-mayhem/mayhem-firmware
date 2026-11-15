@@ -115,7 +115,8 @@ void WSPRDecodeThread::run() {
                 results[i].dbm,
                 results[i].snr_db,
                 results[i].freq_hz,
-                results[i].drift_bins});
+                results[i].drift_bins,
+                results[i].agreement_pct});
         }
 
         // One update per window, so the UI can show that the two-minute capture is alive.
