@@ -23,7 +23,7 @@ __main_stack_size__     = 0x0400;   /* Exceptions/interrupts stack */
  * shell commands (sd_over_usb boots the whole MSC stack) ran the UI thread off
  * the stack into M0 Meditation on every attempt. 6 KB restores the headroom;
  * the cost is 2 KB of the 44 KB M0 heap. */
-__process_stack_size__  = 0x1800;
+__process_stack_size__  = 0x2800;
 
 MEMORY
 {
