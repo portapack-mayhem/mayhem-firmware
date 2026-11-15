@@ -286,10 +286,24 @@ int16_t WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decod
             skip = DITHER_STEP;
         } else {
             // Four empty windows in a row: the band went quiet or the alignment is
-            // gone either way. Start over; acquisition costs nothing (a longer window
-            // sees the whole slot regardless of phase).
+            // gone either way. Start over; the tracker jumps back to the top of the
+            // slack until a decode re-locks it.
             locked = false;
             quiet_windows = 0;
+        }
+    } else {
+        // Unlocked, nothing decoded. The window is longer than the slot, but the sync
+        // scan only finds transmissions that start at or after row 0, and the row
+        // offset drifts down by the overhang plus the decode overrun every window -
+        // once a transmission starts before the window, back-to-back capture never
+        // recovers on its own. FT8 sweeps its shorter window through the slot; the
+        // WSPR window already spans every position, so the sweep is a periodic jump
+        // back to the top of the slack: about 110 s of dead air every third window,
+        // after which the transmission re-appears near row TRACK_LAND_ROW.
+        if (++acquire_quiet >= ACQUIRE_JUMP_QUIET) {
+            acquire_quiet = 0;
+            skip = SLOT_SAMPLES - WINDOW_OVERHANG -
+                   (int32_t)TRACK_LAND_ROW * WSPR_SAMPLES_PER_SYMBOL;
         }
     }
 

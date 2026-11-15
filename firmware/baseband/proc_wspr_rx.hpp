@@ -138,7 +138,8 @@ class WSPRRxProcessor : public BasebandProcessor {
     // every symbol across two tones.
     static constexpr int16_t TRACK_LAND_ROW = 13;
     static constexpr int32_t DITHER_STEP = WSPR_SAMPLES_PER_SYMBOL / 6;
-    static constexpr uint8_t QUIET_LIMIT = 4;  // locked -> reacquire after this many empty windows
+    static constexpr uint8_t QUIET_LIMIT = 4;         // locked -> reacquire after this many empty windows
+    static constexpr uint8_t ACQUIRE_JUMP_QUIET = 3;  // unlocked -> phase jump after this many empty windows
 
     std::atomic<int32_t> pending_skip{0};  // decode thread -> baseband thread, in samples
     uint32_t skip_samples{0};              // consumed at 12 kHz by the baseband thread
@@ -146,6 +147,7 @@ class WSPRRxProcessor : public BasebandProcessor {
     // Written only by the decode thread.
     bool locked{false};
     uint8_t quiet_windows{0};
+    uint8_t acquire_quiet{0};  // empty windows since the last acquisition jump
     // Best sync score seen while decodes kept coming: the reference the sub-row
     // phase chase steers toward (see on_window_decoded).
     int16_t best_score_seen{0};
