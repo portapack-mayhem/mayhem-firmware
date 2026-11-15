@@ -271,13 +271,20 @@ int16_t WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decod
         // genuine decline cannot keep the loop stepping forever. The one-value dead
         // band between the two thresholds keeps bin-edge jitter from toggling the
         // branch on consecutive windows.
-        const int16_t score = results[0].sync_score;
-        if (score >= best_score_seen - 2) {
-            best_score_seen = score;
-        } else if (score < best_score_seen - 3) {
-            // In addition to any correction above: the jump re-lands the transmission
-            // mid-slack with an arbitrary sub-row phase, and the walk has to find the
-            // good one from there too.
+        // Sub-row chase on decode quality, not on the sync score: the sync excess
+        // barely moves with the sub-row phase (band noise dominates it - on air it
+        // sat at 6-7 for every window, aligned or not), but the re-encode agreement
+        // tracks alignment directly: an aligned window decodes with high agreement,
+        // a misaligned one completes into impostors at 50-70%. Walk the phase on
+        // weak agreement, hold on strong; the natural overhang drift moves the phase
+        // anyway, so the hold is a jitter around the good spot. (The acquisition jump
+        // re-lands mid-slack with an arbitrary phase, and this walk has to find the
+        // good one from there too.)
+        int best_agr = 0;
+        for (int i = 0; i < num_results; i++) {
+            if (results[i].agreement_pct > best_agr) best_agr = results[i].agreement_pct;
+        }
+        if (best_agr < WSPR_AGREEMENT_HOLD) {
             skip += DITHER_STEP;
         }
     } else if (locked) {

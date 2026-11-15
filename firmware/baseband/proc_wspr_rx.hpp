@@ -140,6 +140,8 @@ class WSPRRxProcessor : public BasebandProcessor {
     static constexpr int32_t DITHER_STEP = WSPR_SAMPLES_PER_SYMBOL / 6;
     static constexpr uint8_t QUIET_LIMIT = 4;         // locked -> reacquire after this many empty windows
     static constexpr uint8_t ACQUIRE_JUMP_QUIET = 3;  // unlocked -> phase jump after this many empty windows
+    // Sub-row chase thresholds: a window whose best decode agreement reaches this    // holds the capture phase; weaker windows walk one dither step.
+    static constexpr int8_t WSPR_AGREEMENT_HOLD = 80;
 
     std::atomic<int32_t> pending_skip{0};  // decode thread -> baseband thread, in samples
     uint32_t skip_samples{0};              // consumed at 12 kHz by the baseband thread
