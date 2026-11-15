@@ -175,6 +175,9 @@ WSPRRxProcessor::WSPRRxProcessor() {
     audio_output.configure(false);
 
     wspr_portapack_init(&decoder_state);
+    // Fresh accumulation clusters per app launch: the multi-slot integration
+    // must not inherit weights from a previous session's band/frequency.
+    wspr_decode_reset_aggregation();
 
     configured = true;
 }
