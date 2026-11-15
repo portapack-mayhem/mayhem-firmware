@@ -189,6 +189,9 @@ TEST_CASE("clean signal decodes at exact alignment") {
     const int count = decode_capture(cap, results);
     REQUIRE(count >= 1);
     CHECK(contains(results, count, "K1ABC", "FN20", 37));
+    // The clean capture's tone bins sit far above the pair-bin noise mean;
+    // the status line surfaces this as the live signal-quality readout.
+    CHECK(results[0].sync_score > 20);
 }
 
 TEST_CASE("decodes at wspr-level noise") {
@@ -216,6 +219,9 @@ TEST_CASE("decodes with time and frequency offsets") {
             // The transmission starts at capture row 3; the slot tracker
             // steers this offset.
             CHECK_EQ(results[i].row_offset, 3);
+            // At -24 dB the tone bins still rise above the pair-bin noise
+            // mean, just barely: the status line readout stays positive.
+            CHECK(results[i].sync_score > 0);
         }
     }
 }

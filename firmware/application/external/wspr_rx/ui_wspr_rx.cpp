@@ -57,6 +57,12 @@ WSPRRxView::WSPRRxView(NavigationView& nav)
 
     channel.set_overload_threshold(-3);
 
+    // A WSPR window is two minutes, so the console stays mostly empty and any
+    // rows the hardware scroll region inherited from the previous screen show
+    // through as frame rows nothing has written. Clear the whole region once
+    // at startup.
+    console.clear(false);
+
     field_frequency.set_step(100);
 
     /* Going through the frequency field rather than the model keeps the two in step:
@@ -131,6 +137,11 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
 }
 
 void WSPRRxView::on_status(const WSPRRxStatusMessage* message) {
+    /* The sync score is the only live signal-quality readout: noise windows
+     * score a couple of units, a real transmission several times that. It is
+     * the number to watch when deciding whether a decode is believable. */
+    const std::string score = " s=" + to_string_dec_int(message->sync_score);
+
     switch (message->state) {
         case WSPRRxStatusMessage::SyncState::Searching:
             text_status.set_style(Theme::getInstance()->fg_red);
@@ -138,15 +149,15 @@ void WSPRRxView::on_status(const WSPRRxStatusMessage* message) {
             break;
         case WSPRRxStatusMessage::SyncState::Heard:
             text_status.set_style(Theme::getInstance()->fg_yellow);
-            text_status.set("Heard, no decode");
+            text_status.set("Heard" + score);
             break;
         case WSPRRxStatusMessage::SyncState::Syncing:
             text_status.set_style(Theme::getInstance()->fg_yellow);
-            text_status.set("Syncing");
+            text_status.set("Syncing" + score);
             break;
         case WSPRRxStatusMessage::SyncState::Locked:
             text_status.set_style(Theme::getInstance()->fg_green);
-            text_status.set("Locked");
+            text_status.set("Locked" + score);
             break;
     }
 }

@@ -70,6 +70,10 @@ bool WSPRDecodeThread::signal_decode() {
 }
 
 void WSPRDecodeThread::run() {
+    // The last known sync score rides on every status message; a quiet band
+    // keeps the previous value instead of flickering to zero.
+    int16_t last_sync_score = 0;
+
     while (true) {
         chBSemWait(&sem_);
         if (terminate_.load(std::memory_order_acquire)) break;
@@ -102,9 +106,14 @@ void WSPRDecodeThread::run() {
         }
 
         // One update per window, so the UI can show that the two-minute capture is alive.
+        // The sync score rides along only on decoding windows; a quiet band keeps the
+        // last known value so the status line does not flicker to zero.
+        if (num_results > 0)
+            last_sync_score = results[0].sync_score;
         WSPRRxStatusMessage status{
             (WSPRRxStatusMessage::SyncState)processor_->sync_state_code(),
-            (uint8_t)num_results};
+            (uint8_t)num_results,
+            last_sync_score};
         shared_memory.application_queue.push(status);
 
         // Release the window so the baseband thread can start the next capture.

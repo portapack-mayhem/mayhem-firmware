@@ -549,14 +549,20 @@ class WSPRRxStatusMessage : public Message {
 
     constexpr WSPRRxStatusMessage(
         SyncState sync_state,
-        uint8_t decodes)
+        uint8_t decodes,
+        int16_t message_sync_score)
         : Message{ID::WSPRRxStatus},
           state{sync_state},
-          decode_count{decodes} {
+          decode_count{decodes},
+          sync_score{message_sync_score} {
     }
 
     SyncState state;
     uint8_t decode_count;
+    /* Mean sync-bin excess over the pair-bin noise mean, in 0.5 dB bytes: the
+     * live signal-quality readout for the status line (noise scores a couple
+     * of units, a real transmission several times that). */
+    int16_t sync_score;
 };
 
 class TPMSPacketMessage : public Message {

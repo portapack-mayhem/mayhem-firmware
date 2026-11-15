@@ -49,6 +49,8 @@ typedef struct {
     int16_t drift_bins;  // total frequency walk over the window, in bins
     int16_t row_offset;  // window row the transmission starts in; the slot
                          // tracker steers this toward the middle of the slack
+    int16_t sync_score;  // raw sync-sum of this candidate, for display: a
+                         // quiet band scores a fraction of a noisy-signal one
 } wspr_decode_result_t;
 
 #ifdef __cplusplus

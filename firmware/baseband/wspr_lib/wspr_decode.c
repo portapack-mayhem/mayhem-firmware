@@ -447,12 +447,25 @@ int wspr_decode_window(const uint8_t* mag,
         wspr_message_t message;
         if (!wspr_unpack_message(source, &message)) continue;
 
-        // Duplicate suppression across candidates.
+        // Audio frequency of this candidate's tone 0.
+        const int16_t out_freq = (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
+
+        // Duplicate suppression across candidates: an identical payload is the
+        // same station found twice, and so is a different payload at the same
+        // audio frequency - the no-CRC code lets one transmission decode into
+        // two valid-shaped impostors, and wsprnet has no room for either the
+        // second copy or the misprint. Keep the first (candidates come in
+        // sync-score order, so the first is the strongest).
         bool duplicate = false;
         for (int i = 0; i < count; i++) {
             if (strcmp(results[i].callsign, message.callsign) == 0 &&
                 strcmp(results[i].grid, message.grid) == 0 &&
                 results[i].dbm == message.dbm) {
+                duplicate = true;
+                break;
+            }
+            const int df = results[i].freq_hz - out_freq;
+            if (df > -3 && df < 3) {
                 duplicate = true;
                 break;
             }
@@ -474,9 +487,12 @@ int wspr_decode_window(const uint8_t* mag,
             signal_sum += mag[row * num_bins + col];
         }
         out->snr_db = (int8_t)((signal_sum / WSPR_CODED_BITS - mean) / 2);
-        // Column spacing is 12000/8192 Hz; column 0 sits at bin0_hz.
-        out->freq_hz = (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
+        out->freq_hz = out_freq;
         out->drift_bins = (int16_t)best_drift;
+        // Display metric: mean sync-bin excess over the pair-bin noise mean,
+        // in 0.5 dB bytes. Noise windows score a couple of units, a real
+        // transmission several times that.
+        out->sync_score = (int16_t)(best_score[k] / WSPR_CODED_BITS - mean);
         // Where in the window the transmission started, for the slot tracker.
         out->row_offset = (int16_t)best_row[k];
     }
