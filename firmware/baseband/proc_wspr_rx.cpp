@@ -35,6 +35,15 @@ WORKING_AREA(wspr_decode_thread_wa, 4096);
 
 Thread* WSPRDecodeThread::thread_ = nullptr;
 
+// Saturate an int16 into the byte-sized debug message slots: real row offsets stay
+// 0..14 and sync scores reach only a few dozen, so the clamp only catches values that
+// are pathological anyway.
+static inline int8_t saturate_i8(const int16_t value) {
+    if (value > 127) return 127;
+    if (value < -128) return -128;
+    return (int8_t)value;
+}
+
 WSPRDecodeThread::WSPRDecodeThread(wspr_portapack_state_t* state, WSPRRxProcessor* processor)
     : state_{state}, processor_{processor} {
     chBSemInit(&sem_, TRUE);  // start taken
@@ -70,9 +79,11 @@ bool WSPRDecodeThread::signal_decode() {
 }
 
 void WSPRDecodeThread::run() {
-    // The last known sync score rides on every status message; a quiet band
-    // keeps the previous value instead of flickering to zero.
+    // The last known sync score and path metric ride on every status/debug message; a
+    // quiet band keeps the previous values instead of flickering to zero.
     int16_t last_sync_score = 0;
+    int16_t last_best_metric = 0;
+    uint8_t window_index = 0;
 
     while (true) {
         chBSemWait(&sem_);
@@ -91,8 +102,9 @@ void WSPRDecodeThread::run() {
 
         // Close the tracking loop first: the row offset is only valid for the window
         // that was just decoded, and the correction it computes is consumed when the
-        // NEXT window fills (one window of lag, as in FT8).
-        processor_->on_window_decoded(
+        // NEXT window fills (one window of lag, as in FT8). The correction comes back
+        // saturated for the debug telemetry below.
+        const int16_t last_skip = processor_->on_window_decoded(
             (uint8_t)(num_results > 255 ? 255 : num_results), results);
 
         for (int i = 0; i < num_results; i++) {
@@ -108,8 +120,38 @@ void WSPRDecodeThread::run() {
         // One update per window, so the UI can show that the two-minute capture is alive.
         // The sync score rides along only on decoding windows; a quiet band keeps the
         // last known value so the status line does not flicker to zero.
-        if (num_results > 0)
+        if (num_results > 0) {
             last_sync_score = results[0].sync_score;
+            last_best_metric = results[0].metric;
+        }
+
+        // Rich per-window telemetry, pushed just before the status message so the UI
+        // writes one debug line carrying both. The decoder offers no candidate count
+        // (wspr_decode_window returns only the accepted results), so num_candidates
+        // conservatively mirrors num_results until the decoder grows a real output for
+        // it. The slots are the byte-sized view of each result; on a quiet window the
+        // score and metric hold their last known values.
+        WSPRDebugMessage::Candidate slots[WSPRDebugMessage::max_candidates]{};
+        for (int i = 0; i < num_results && i < (int)WSPRDebugMessage::max_candidates; i++) {
+            slots[i].sync_excess = saturate_i8(results[i].sync_score);
+            slots[i].row_offset = saturate_i8(results[i].row_offset);
+            slots[i].freq_hz = results[i].freq_hz;
+        }
+        const WSPRDebugMessage debug{
+            window_index,
+            (uint8_t)num_results,
+            (uint8_t)num_results,
+            processor_->sync_state_code(),
+            last_sync_score,
+            last_best_metric,
+            last_skip,
+            processor_->tracker_best_score(),
+            slots,
+            (size_t)(num_results > (int)WSPRDebugMessage::max_candidates
+                         ? WSPRDebugMessage::max_candidates
+                         : num_results)};
+        shared_memory.application_queue.push(debug);
+
         WSPRRxStatusMessage status{
             (WSPRRxStatusMessage::SyncState)processor_->sync_state_code(),
             (uint8_t)num_results,
@@ -120,6 +162,7 @@ void WSPRDecodeThread::run() {
         wspr_portapack_reset_window(state_);
 
         busy_.store(false, std::memory_order_release);
+        window_index++;
     }
 }
 
@@ -198,7 +241,7 @@ void WSPRRxProcessor::process_wspr_audio(const buffer_f32_t& audio) {
     }
 }
 
-void WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decode_result_t* results) {
+int16_t WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decode_result_t* results) {
     int32_t skip = 0;
 
     if (num_results > 0) {
@@ -212,6 +255,29 @@ void WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decode_r
         if (row <= 1) {
             skip = SLOT_SAMPLES - WINDOW_OVERHANG -
                    (int32_t)(TRACK_LAND_ROW - row) * WSPR_SAMPLES_PER_SYMBOL;
+        }
+
+        // A decode proves the alignment only coarsely: WSPR has no CRC and a strong
+        // enough transmission unpacks even with its symbols smeared across two rows,
+        // so impostor decodes keep quiet_windows at 0 and the empty-window dither
+        // below never runs - the sub-row phase then stays wherever it walked to. Score
+        // the phase instead. The best score seen is the reference for where the row
+        // grid last sat on the symbol boundaries; a window scoring well below it means
+        // the phase has drifted off that spot, so one dither step walks the capture
+        // back toward it. A score back within a couple of units of the reference
+        // re-arms the reference instead, which stops the walk as soon as the good
+        // phase is recovered and lets it follow a slowly changing signal level, so a
+        // genuine decline cannot keep the loop stepping forever. The one-value dead
+        // band between the two thresholds keeps bin-edge jitter from toggling the
+        // branch on consecutive windows.
+        const int16_t score = results[0].sync_score;
+        if (score >= best_score_seen - 2) {
+            best_score_seen = score;
+        } else if (score < best_score_seen - 3) {
+            // In addition to any correction above: the jump re-lands the transmission
+            // mid-slack with an arbitrary sub-row phase, and the walk has to find the
+            // good one from there too.
+            skip += DITHER_STEP;
         }
     } else if (locked) {
         if (++quiet_windows < QUIET_LIMIT) {
@@ -228,6 +294,12 @@ void WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decode_r
     }
 
     pending_skip.store(skip, std::memory_order_release);
+
+    // The debug message wants the correction as an int16; the slot jump is about
+    // 1.33M samples, so saturate rather than wrap.
+    if (skip > 32767) skip = 32767;
+    if (skip < -32768) skip = -32768;
+    return (int16_t)skip;
 }
 
 uint8_t WSPRRxProcessor::sync_state_code() const {

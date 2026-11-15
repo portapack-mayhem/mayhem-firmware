@@ -66,6 +66,36 @@ class WSPRRxView : public View {
 
     void on_packet(const WSPRPacketMessage* message);
     void on_status(const WSPRRxStatusMessage* message);
+    void on_debug(const WSPRDebugMessage* message);
+
+    /* WSPR has no CRC: roughly one in seven random payloads unpacks into a
+     * structurally valid message, so the decoder hands over a steady drip of
+     * impostors, and a decode alone proves little. Real stations transmit the same
+     * message every slot for hours, impostors are essentially random, so the
+     * two-slot correlation in this table is the acceptance gate: a decode is only
+     * believed when the same callsign, grid, dBm and a near-same frequency already
+     * came out of an earlier window. A first-time decode is stored and logged raw to
+     * the debug file, but stays off the console and WSPR.TXT until a later window
+     * repeats it. */
+    struct ConfirmSlot {
+        char callsign[13];
+        char grid[5];
+        int8_t dbm;
+        int16_t freq_hz;
+        uint8_t age;  // windows since this slot was written, 0 = fresh
+    };
+
+    static constexpr size_t CONFIRM_SLOTS = 12;
+    static constexpr uint8_t CONFIRM_MAX_AGE = 6;  // 6 windows = 12 minutes
+    static constexpr int16_t CONFIRM_FREQ_TOLERANCE = 3;
+
+    ConfirmSlot confirm_slots_[CONFIRM_SLOTS]{};  // zeroed = free
+
+    bool confirm_match(const ConfirmSlot& slot, const WSPRPacketMessage* message) const;
+    bool confirm_decode(const WSPRPacketMessage* message);
+    ConfirmSlot* confirm_stale_slot(const WSPRPacketMessage* message);
+    void confirm_store(const WSPRPacketMessage* message);
+    void confirm_age_all();
 
     RFAmpField field_rf_amp{
         {11 * 8, 0}};
@@ -140,18 +170,39 @@ class WSPRRxView : public View {
      * a missing SD card surfaces as an error return the app ignores. */
     LogFile log_file_{};
 
-    /* Temporary debug file: one line per 120 s window in LOGS/WSPR_DEBUG.TXT,
-     * the sync state, how many decodes the window produced and the sync score,
-     * so per-window decoder behaviour can be read back without a serial console.
+    /* Temporary debug file in LOGS/WSPR_DEBUG.TXT: one line per 120 s window with the
+     * sync state, the decode count, the sync score and the rich per-window telemetry
+     * the baseband sends alongside the status (candidate count, best path metric, the
+     * tracker's phase correction and the candidate slots), plus one raw line per
+     * decode the confirmation gate has not accepted yet, so per-window decoder
+     * behaviour and impostor patterns can be read back without a serial console.
      * debug_log_ok_ records whether the file opened; when it did not, every
      * write would just return a FatFs error, so the writes are skipped. */
     LogFile debug_log_file_{};
     bool debug_log_ok_{false};
 
+    /* The rich telemetry message arrives just before the status message of the same
+     * window, so stashing it here lets on_status fold its fields into the debug line
+     * it already writes. A plain struct, not the message itself: messages carry a
+     * const id and cannot be assigned. */
+    struct DebugSnapshot {
+        uint8_t num_candidates;
+        int16_t best_metric;
+        int16_t last_skip;
+        WSPRDebugMessage::Candidate candidates[WSPRDebugMessage::max_candidates];
+    };
+    DebugSnapshot last_debug_{};
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::WSPRPacket,
         [this](const Message* const p) {
             this->on_packet(static_cast<const WSPRPacketMessage*>(p));
+        }};
+
+    MessageHandlerRegistration message_handler_debug{
+        Message::ID::WSPRDebug,
+        [this](const Message* const p) {
+            this->on_debug(static_cast<const WSPRDebugMessage*>(p));
         }};
 
     MessageHandlerRegistration message_handler_status{

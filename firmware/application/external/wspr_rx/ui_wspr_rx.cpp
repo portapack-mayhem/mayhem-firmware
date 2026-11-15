@@ -99,6 +99,23 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
     if (message->callsign[0] == '\0')
         return;
 
+    /* Acceptance gate before anything the user sees: an unconfirmed decode is logged
+     * raw to the debug file only, so one structural false positive cannot plant a
+     * phantom station on the console or in WSPR.TXT. */
+    if (!confirm_decode(message)) {
+        if (debug_log_ok_) {
+            rtc::RTC datetime;
+            rtcGetTime(&RTCD1, &datetime);
+            const std::string entry = std::string{"unconf "} + message->callsign + " " +
+                                      message->grid + " " +
+                                      to_string_dec_int(message->dbm) + " " +
+                                      to_string_dec_int(message->snr_db) + " " +
+                                      to_string_dec_uint(message->freq_hz);
+            debug_log_file_.write_entry(datetime, entry);
+        }
+        return;
+    }
+
     /* "callsign grid report SNR" takes the left of the line and the audio frequency the
      * right, so the frequencies line up in a column down the screen and the passband can
      * be read at a glance. A line too long to leave room for the column keeps its text,
@@ -141,6 +158,11 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
 }
 
 void WSPRRxView::on_status(const WSPRRxStatusMessage* message) {
+    /* One status message arrives per window, so this is where the confirmation table
+     * ages: every occupied slot counts one window older, and slots past the limit are
+     * freed - a station that stopped repeating can no longer be confirmed. */
+    confirm_age_all();
+
     /* The sync score is the only live signal-quality readout: noise windows
      * score a couple of units, a real transmission several times that. It is
      * the number to watch when deciding whether a decode is believable. */
@@ -173,17 +195,126 @@ void WSPRRxView::on_status(const WSPRRxStatusMessage* message) {
             break;
     }
 
-    /* One line per 120 s window into WSPR_DEBUG.TXT: the state, the decode
-     * count and the sync score, with the RTC timestamp prefixed by the logger
-     * exactly as the decode lines in WSPR.TXT get one. */
+    /* One line per 120 s window into WSPR_DEBUG.TXT: the state, the decode count and
+     * the sync score, plus the rich telemetry of the same window - the candidate
+     * count, the best path metric, the tracker's phase correction and every non-zero
+     * candidate slot - which arrives on the WSPRDebugMessage just ahead of this
+     * status message. The RTC timestamp is prefixed by the logger exactly as the
+     * decode lines in WSPR.TXT get one. */
     if (debug_log_ok_) {
         rtc::RTC datetime;
         rtcGetTime(&RTCD1, &datetime);
-        const std::string entry = std::string{"win "} + state_name +
-                                  " decodes=" + to_string_dec_uint(message->decode_count) +
-                                  " score=" + to_string_dec_int(message->sync_score);
+        std::string entry = std::string{"win "} + state_name +
+                            " decodes=" + to_string_dec_uint(message->decode_count) +
+                            " score=" + to_string_dec_int(message->sync_score) +
+                            " cand=" + to_string_dec_uint(last_debug_.num_candidates) +
+                            " metric=" + to_string_dec_int(last_debug_.best_metric) +
+                            " skip=" + to_string_dec_int(last_debug_.last_skip);
+        /* Only slots backed by a result are printed: an unused slot is zero-filled,
+         * and a real decode always sits in the 1400-1600 Hz passband, never at
+         * frequency zero. Kept on one line so a session reads as one row per window. */
+        for (size_t i = 0; i < WSPRDebugMessage::max_candidates; i++) {
+            const auto& candidate = last_debug_.candidates[i];
+            if (candidate.freq_hz == 0)
+                continue;
+            entry += " c" + to_string_dec_uint(i) + "=" +
+                     to_string_dec_int(candidate.sync_excess) + "/" +
+                     to_string_dec_int(candidate.row_offset) + "/" +
+                     to_string_dec_int(candidate.freq_hz);
+        }
         debug_log_file_.write_entry(datetime, entry);
     }
+}
+
+/* The decode's key matches a table slot when callsign, grid and dBm are exact and the
+ * audio frequency stayed within the tolerance a stable station holds between slots. */
+bool WSPRRxView::confirm_match(const ConfirmSlot& slot, const WSPRPacketMessage* message) const {
+    if (slot.callsign[0] == '\0')
+        return false;
+    if (std::strncmp(slot.callsign, message->callsign, sizeof(slot.callsign)) != 0)
+        return false;
+    if (std::strncmp(slot.grid, message->grid, sizeof(slot.grid)) != 0)
+        return false;
+    if (slot.dbm != message->dbm)
+        return false;
+    const int16_t diff = message->freq_hz - slot.freq_hz;
+    return diff >= -CONFIRM_FREQ_TOLERANCE && diff <= CONFIRM_FREQ_TOLERANCE;
+}
+
+/* Second look at a decode that did not match outright: same station, drifted
+ * frequency. Updating that slot in place keeps one wandering station from multiplying
+ * across the table and evicting the others. */
+WSPRRxView::ConfirmSlot* WSPRRxView::confirm_stale_slot(const WSPRPacketMessage* message) {
+    for (size_t i = 0; i < CONFIRM_SLOTS; i++) {
+        ConfirmSlot& slot = confirm_slots_[i];
+        if (slot.callsign[0] != '\0' &&
+            std::strncmp(slot.callsign, message->callsign, sizeof(slot.callsign)) == 0 &&
+            std::strncmp(slot.grid, message->grid, sizeof(slot.grid)) == 0 &&
+            slot.dbm == message->dbm)
+            return &slot;
+    }
+    return nullptr;
+}
+
+/* A decode that matched nothing: a free slot takes it, else the oldest entry is
+ * replaced, so a table full of recently heard stations still makes room. */
+void WSPRRxView::confirm_store(const WSPRPacketMessage* message) {
+    ConfirmSlot* slot = nullptr;
+    ConfirmSlot* oldest = &confirm_slots_[0];
+    for (size_t i = 0; i < CONFIRM_SLOTS; i++) {
+        ConfirmSlot& candidate = confirm_slots_[i];
+        if (candidate.callsign[0] == '\0') {
+            slot = &candidate;
+            break;
+        }
+        if (candidate.age > oldest->age)
+            oldest = &candidate;
+    }
+    if (slot == nullptr) {
+        slot = confirm_stale_slot(message);
+        if (slot == nullptr) slot = oldest;
+    }
+
+    /* strncpy pads the remainder with terminators, and the source arrays are always
+     * terminated within their sizes, so the slots stay valid C strings. */
+    std::strncpy(slot->callsign, message->callsign, sizeof(slot->callsign));
+    std::strncpy(slot->grid, message->grid, sizeof(slot->grid));
+    slot->dbm = message->dbm;
+    slot->freq_hz = message->freq_hz;
+    slot->age = 0;
+}
+
+/* The gate itself: a hit re-arms the slot and confirms the decode; a miss is stored
+ * unconfirmed and waits for a later window to repeat it. */
+bool WSPRRxView::confirm_decode(const WSPRPacketMessage* message) {
+    for (size_t i = 0; i < CONFIRM_SLOTS; i++) {
+        if (confirm_match(confirm_slots_[i], message)) {
+            confirm_slots_[i].age = 0;
+            return true;
+        }
+    }
+    confirm_store(message);
+    return false;
+}
+
+void WSPRRxView::confirm_age_all() {
+    for (size_t i = 0; i < CONFIRM_SLOTS; i++) {
+        ConfirmSlot& slot = confirm_slots_[i];
+        if (slot.callsign[0] == '\0')
+            continue;
+        if (++slot.age > CONFIRM_MAX_AGE)
+            slot.callsign[0] = '\0';  // zeroed callsign marks the slot free again
+    }
+}
+
+void WSPRRxView::on_debug(const WSPRDebugMessage* message) {
+    /* The rich telemetry rides one message ahead of the status message that writes
+     * it; stashing here keeps on_status the single place the debug line is built. */
+    last_debug_.num_candidates = message->num_candidates;
+    last_debug_.best_metric = message->best_metric;
+    last_debug_.last_skip = message->last_skip;
+    for (size_t i = 0; i < WSPRDebugMessage::max_candidates; i++)
+        last_debug_.candidates[i] = message->candidates[i];
 }
 
 }  // namespace ui::external_app::wspr_rx

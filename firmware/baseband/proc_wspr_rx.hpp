@@ -146,15 +146,23 @@ class WSPRRxProcessor : public BasebandProcessor {
     // Written only by the decode thread.
     bool locked{false};
     uint8_t quiet_windows{0};
+    // Best sync score seen while decodes kept coming: the reference the sub-row
+    // phase chase steers toward (see on_window_decoded).
+    int16_t best_score_seen{0};
 
     void capture_config(const CaptureConfigMessage& message);
     void process_wspr_audio(const buffer_f32_t& audio);
 
    public:
     // Runs on the decode thread: turns the reported row offset into the next capture
-    // phase correction and the status the UI sees.
-    void on_window_decoded(uint8_t num_results, const wspr_decode_result_t* results);
+    // phase correction and the status the UI sees. Returns the correction stored to
+    // pending_skip (0, a dither step, or the slot jump saturated to int16), so the
+    // debug telemetry can carry it without a second shared-memory round trip.
+    int16_t on_window_decoded(uint8_t num_results, const wspr_decode_result_t* results);
     uint8_t sync_state_code() const;
+    // The phase chase reference for the debug telemetry; the decode thread just
+    // updated it when this is read, so the value is current.
+    int16_t tracker_best_score() const { return best_score_seen; }
 
    private:
     /* NB: Threads should be the last members in the class definition. */
