@@ -89,6 +89,10 @@ WSPRRxView::WSPRRxView(NavigationView& nav)
     audio::output::start();
 
     log_file_.append(logs_dir / u"WSPR.TXT");
+
+    /* Debug log opened once like WSPR.TXT; if it fails (no SD card), the flag
+     * keeps the per-window writes from hitting a never-opened file. */
+    debug_log_ok_ = !debug_log_file_.append(logs_dir / u"WSPR_DEBUG.TXT");
 }
 
 void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
@@ -142,23 +146,43 @@ void WSPRRxView::on_status(const WSPRRxStatusMessage* message) {
      * the number to watch when deciding whether a decode is believable. */
     const std::string score = " s=" + to_string_dec_int(message->sync_score);
 
+    /* The state name is reused verbatim for the debug log line, so the file
+     * reads the same words the screen shows. */
+    const char* state_name = "Searching";
+
     switch (message->state) {
         case WSPRRxStatusMessage::SyncState::Searching:
+            state_name = "Searching";
             text_status.set_style(Theme::getInstance()->fg_red);
             text_status.set("Searching");
             break;
         case WSPRRxStatusMessage::SyncState::Heard:
+            state_name = "Heard";
             text_status.set_style(Theme::getInstance()->fg_yellow);
             text_status.set("Heard" + score);
             break;
         case WSPRRxStatusMessage::SyncState::Syncing:
+            state_name = "Syncing";
             text_status.set_style(Theme::getInstance()->fg_yellow);
             text_status.set("Syncing" + score);
             break;
         case WSPRRxStatusMessage::SyncState::Locked:
+            state_name = "Locked";
             text_status.set_style(Theme::getInstance()->fg_green);
             text_status.set("Locked" + score);
             break;
+    }
+
+    /* One line per 120 s window into WSPR_DEBUG.TXT: the state, the decode
+     * count and the sync score, with the RTC timestamp prefixed by the logger
+     * exactly as the decode lines in WSPR.TXT get one. */
+    if (debug_log_ok_) {
+        rtc::RTC datetime;
+        rtcGetTime(&RTCD1, &datetime);
+        const std::string entry = std::string{"win "} + state_name +
+                                  " decodes=" + to_string_dec_uint(message->decode_count) +
+                                  " score=" + to_string_dec_int(message->sync_score);
+        debug_log_file_.write_entry(datetime, entry);
     }
 }
 

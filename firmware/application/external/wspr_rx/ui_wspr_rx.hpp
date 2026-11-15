@@ -140,6 +140,14 @@ class WSPRRxView : public View {
      * a missing SD card surfaces as an error return the app ignores. */
     LogFile log_file_{};
 
+    /* Temporary debug file: one line per 120 s window in LOGS/WSPR_DEBUG.TXT,
+     * the sync state, how many decodes the window produced and the sync score,
+     * so per-window decoder behaviour can be read back without a serial console.
+     * debug_log_ok_ records whether the file opened; when it did not, every
+     * write would just return a FatFs error, so the writes are skipped. */
+    LogFile debug_log_file_{};
+    bool debug_log_ok_{false};
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::WSPRPacket,
         [this](const Message* const p) {
