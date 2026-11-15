@@ -31,7 +31,10 @@
  *    bits: symbol n's tone sits at base + sync[n] + 2*data[n], so the sum of
  *    the better bin of the pair {base+sync[n], base+sync[n]+2} peaks sharply
  *    at the true alignment. No drift on this pass; it is a two-dimensional
- *    scan of only (num_rows - 162) * num_bins positions.
+ *    scan of only (num_rows - 162) * num_bins positions. The scan runs once
+ *    per sub-row bank: each bank is a full view of the window on its own row
+ *    grid (time_osr banks half a symbol apart cover every sub-row phase to
+ *    within a quarter symbol).
  * 2. Drift refinement of the strongest coarse positions over a small linear
  *    drift grid.
  * 3. Soft demodulation: with the sync bit known, the data bit of symbol n is
@@ -43,14 +46,18 @@
  *    survive wspr_unpack_message to be reported.
  */
 
-// 1024 nodes x 16 bytes: sized so the M4 still has the 16 KiB heap the
-// baseband DMA buffer needs after the pool, the banks and the stacks.
-#define WSPR_STACK_NODES 1024
+// 256 nodes x 16 bytes: sized so the M4 still has the 16 KiB heap the baseband DMA
+// buffer needs after the dual-bank matrix doubled the glue's watermark. The evict-min
+// push keeps a full pool usable, but a flooded search now thrashes the frontier four
+// times sooner than the old 1024-node pool: effort spent re-pushing evicted low-metric
+// nodes is effort the WSPR_STACK_EFFORT budget no longer spends on fresh branches. Watch
+// the weak-signal test cases if the budget or the pool size changes again.
+#define WSPR_STACK_NODES 256
 #define WSPR_STACK_EFFORT 40000
 #define WSPR_METRIC_LIMIT 250
 // Crowded-band budget: eight stations in one real-ether recording out-compete
 // each other for six slots, so the weaker true peaks never reach the decode.
-#define WSPR_MAX_CANDIDATES 10
+#define WSPR_MAX_CANDIDATES 12
 #define WSPR_DRIFT_MIN (-3)
 #define WSPR_DRIFT_MAX 3
 
@@ -309,14 +316,22 @@ static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYT
  * sync-selected pair. The transmitted tone of symbol n is
  * col0 + sync[n] + 2*data[n] (wspr_merge_sync), so the sync bit picks the
  * pair {col0+sync[n], col0+sync[n]+2} and the data bit picks which bin of
- * the pair carries the tone.
+ * the pair carries the tone. base/stride implement the time_osr view:
+ * address of (row, col) = row * stride + base + col, with base = bank *
+ * num_bins and stride = time_osr * num_bins. out_mean (optional) receives
+ * the mean of both bins of every pair, the local noise reference the raw
+ * score has to be read against.
  */
 static int32_t sync_score(const uint8_t* mag,
                           int num_bins,
+                          int base,
+                          int stride,
                           int row0,
                           int col0,
-                          int drift) {
+                          int drift,
+                          int32_t* out_mean) {
     int32_t score = 0;
+    int32_t sum_pair = 0;
     for (int n = 0; n < WSPR_CODED_BITS; n++) {
         const int row = row0 + n;
         int col = col0;
@@ -325,10 +340,12 @@ static int32_t sync_score(const uint8_t* mag,
         }
         col += wspr_sync_vector[n];
         if (col < 0 || col + 2 >= num_bins) return -1;
-        const uint8_t e0 = mag[row * num_bins + col];
-        const uint8_t e1 = mag[row * num_bins + col + 2];
+        const uint8_t e0 = mag[row * stride + base + col];
+        const uint8_t e1 = mag[row * stride + base + col + 2];
         score += (e0 > e1) ? e0 : e1;
+        sum_pair += e0 + e1;
     }
+    if (out_mean) *out_mean = sum_pair / (2 * WSPR_CODED_BITS);
     return score;
 }
 
@@ -337,194 +354,252 @@ int wspr_decode_window(const uint8_t* mag,
                        int num_bins,
                        int bin0_hz,
                        wspr_decode_result_t* results,
-                       int max_results) {
+                       int max_results,
+                       int time_osr) {
     if (mag == NULL || results == NULL || max_results <= 0) return 0;
     if (num_rows < WSPR_NUM_SYMBOLS || num_bins < 8) return 0;
+    if (time_osr != 1 && time_osr != 2) return 0;
 
-    // Stage 1: coarse scan, no drift. Track the best few, with a simple
-    // non-maximum suppression around each accepted peak.
-    int best_row[WSPR_MAX_CANDIDATES];
-    int best_col[WSPR_MAX_CANDIDATES];
-    int32_t best_score[WSPR_MAX_CANDIDATES];
-    int n_cand = 0;
-    const int t_max = num_rows - WSPR_NUM_SYMBOLS;
+    // Per-bank geometry of the interleaved matrix: the address of (row, col)
+    // in bank `bank` is row * stride + base + col. time_osr = 1 degenerates
+    // to the plain row-major matrix (base 0, stride num_bins).
+    const int stride = time_osr * num_bins;
 
-    for (int t = 0; t <= t_max; t++) {
-        for (int c = 0; c + 3 < num_bins; c++) {
-            const int32_t score = sync_score(mag, num_bins, t, c, 0);
-            if (score < 0) continue;
-            bool suppressed = false;
-            for (int k = 0; k < n_cand; k++) {
-                if (t >= best_row[k] - 1 && t <= best_row[k] + 1 &&
-                    c >= best_col[k] - 3 && c <= best_col[k] + 3 &&
-                    score <= best_score[k]) {
-                    suppressed = true;
-                    break;
+    // Accepted decodes from every bank land here first, get ranked, and only
+    // then go through the duplicate/frequency suppression. The two banks see
+    // the same transmission, and the misaligned bank decodes first with
+    // smeared symbols - a structurally valid impostor at the same audio
+    // frequency (no CRC protects the payload). Alignment sharpness separates
+    // them: the aligned bank's mean sync-bin excess runs about twice the
+    // smeared one's, so the pool is ranked on it before one decode per
+    // station/frequency is kept.
+    wspr_decode_result_t merged[WSPR_MAX_CANDIDATES * 2];
+    int n_merged = 0;
+
+    // Stage 1 + stage 2 run per sub-row bank: each bank is a full view of the
+    // window on its own row grid, with its own candidate list.
+    int count = 0;
+    for (int bank = 0; bank < time_osr; bank++) {
+        const int base = bank * num_bins;
+
+        // Stage 1: coarse scan, no drift. Track the best few, with a simple
+        // non-maximum suppression around each accepted peak. Candidates rank
+        // by EXCESS - the sync score per symbol over the candidate's own
+        // pair-bin mean - not by the raw score: the raw score carries the
+        // local noise background, and on a crowded band a hot patch of
+        // background (a strong neighbour's Goertzel skirts, say) would
+        // otherwise outrank a cooler-background station with the same signal
+        // excess and eat the candidate budget with its ridge.
+        int best_row[WSPR_MAX_CANDIDATES];
+        int best_col[WSPR_MAX_CANDIDATES];
+        int32_t best_excess[WSPR_MAX_CANDIDATES];  // ranking key
+        int n_cand = 0;
+        const int t_max = num_rows - WSPR_NUM_SYMBOLS;
+
+        for (int t = 0; t <= t_max; t++) {
+            for (int c = 0; c + 3 < num_bins; c++) {
+                int32_t mean = 0;
+                const int32_t score = sync_score(mag, num_bins, base, stride, t, c, 0, &mean);
+                if (score < 0) continue;
+                const int32_t excess = score / WSPR_CODED_BITS - mean;
+                bool suppressed = false;
+                for (int k = 0; k < n_cand; k++) {
+                    if (t >= best_row[k] - 1 && t <= best_row[k] + 1 &&
+                        c >= best_col[k] - 1 && c <= best_col[k] + 1 &&
+                        excess <= best_excess[k]) {
+                        suppressed = true;
+                        break;
+                    }
+                }
+                if (suppressed) continue;
+                // Insert into the descending top list. When the list is full the
+                // last entry is the insertion point; otherwise append and bubble
+                // the new score up.
+                int pos;
+                if (n_cand == WSPR_MAX_CANDIDATES) {
+                    if (excess <= best_excess[WSPR_MAX_CANDIDATES - 1]) continue;
+                    pos = WSPR_MAX_CANDIDATES - 1;
+                } else {
+                    pos = n_cand++;
+                }
+                while (pos > 0 && best_excess[pos - 1] < excess) {
+                    best_row[pos] = best_row[pos - 1];
+                    best_col[pos] = best_col[pos - 1];
+                    best_excess[pos] = best_excess[pos - 1];
+                    pos--;
+                }
+                best_row[pos] = t;
+                best_col[pos] = c;
+                best_excess[pos] = excess;
+            }
+        }
+
+        // Stage 2: drift refinement, soft demodulation and decoding, best first.
+        for (int k = 0; k < n_cand && n_merged < (int)(sizeof(merged) / sizeof(merged[0])); k++) {
+            // Drift refinement on the same excess scale as the ranking: a raw
+            // score comparison would walk the alignment toward whatever drift
+            // lands its pair bins on the hottest patch of background, and the
+            // demodulation that follows reads a smeared signal.
+            int best_drift = 0;
+            int32_t drift_excess = best_excess[k];
+            for (int d = WSPR_DRIFT_MIN; d <= WSPR_DRIFT_MAX; d++) {
+                if (d == 0) continue;
+                int32_t dmean = 0;
+                const int32_t s =
+                    sync_score(mag, num_bins, base, stride, best_row[k], best_col[k], d, &dmean);
+                if (s < 0) continue;
+                const int32_t e = s / WSPR_CODED_BITS - dmean;
+                if (e > drift_excess) {
+                    drift_excess = e;
+                    best_drift = d;
                 }
             }
-            if (suppressed) continue;
-            // Insert into the descending top list. When the list is full the
-            // last entry is the insertion point; otherwise append and bubble
-            // the new score up.
-            int pos;
-            if (n_cand == WSPR_MAX_CANDIDATES) {
-                if (score <= best_score[WSPR_MAX_CANDIDATES - 1]) continue;
-                pos = WSPR_MAX_CANDIDATES - 1;
-            } else {
-                pos = n_cand++;
+
+            // Soft demodulation: data bit n is the energy difference between the
+            // two bins of symbol n's sync-selected pair, col0+sync[n] (bit 0) and
+            // col0+sync[n]+2 (bit 1). The pair bins double as the noise
+            // reference: their standard deviation sets the unit of the weights,
+            // so a tone a few bytes above the noise gives a weight of a few
+            // units regardless of the absolute byte scale.
+            int pair_cols[WSPR_CODED_BITS];
+            int32_t sum_pair = 0;
+            int32_t sum_sq = 0;
+            bool in_range = true;
+            for (int n = 0; n < WSPR_CODED_BITS; n++) {
+                int col = best_col[k];
+                if (best_drift != 0) {
+                    col += (best_drift * n) / (WSPR_CODED_BITS - 1);
+                }
+                col += wspr_sync_vector[n];
+                if (col < 0 || col + 2 >= num_bins) {
+                    in_range = false;
+                    break;
+                }
+                pair_cols[n] = col;
+                const int row = best_row[k] + n;
+                const int e0 = mag[row * stride + base + col];
+                const int e1 = mag[row * stride + base + col + 2];
+                sum_pair += e0 + e1;
+                sum_sq += e0 * e0 + e1 * e1;
             }
-            while (pos > 0 && best_score[pos - 1] < score) {
-                best_row[pos] = best_row[pos - 1];
-                best_col[pos] = best_col[pos - 1];
-                best_score[pos] = best_score[pos - 1];
-                pos--;
+            // A drift walk that leaves the matrix disqualifies the alignment.
+            if (!in_range) continue;
+
+            // Mean and standard deviation over both bins of every pair.
+            const int count_pair = 2 * WSPR_CODED_BITS;
+            const int mean = (int)(sum_pair / count_pair);
+            const int32_t variance = sum_sq / count_pair - mean * mean;
+            const int sigma = variance > 1 ? (int)sqrt_i32(variance) : 1;
+
+            // Pre-gate: this candidate's sync bins must rise clearly above its own
+            // pair-bin noise mean before the decoder spends effort on it.
+            if (drift_excess < WSPR_CANDIDATE_MIN_EXCESS) continue;
+
+            for (int n = 0; n < WSPR_CODED_BITS; n++) {
+                const int row = best_row[k] + n;
+                const int e0 = mag[row * stride + base + pair_cols[n]];
+                const int e1 = mag[row * stride + base + pair_cols[n] + 2];
+                // Difference normalized by sigma, rounded to nearest, clipped.
+                int w = e1 - e0;
+                w = (w >= 0) ? ((2 * w + sigma) / (2 * sigma))
+                             : -((2 * -w + sigma) / (2 * sigma));
+                if (w > 6) w = 6;
+                if (w < -6) w = -6;
+                sym_weight[n] = (int8_t)w;
             }
-            best_row[pos] = t;
-            best_col[pos] = c;
-            best_score[pos] = score;
+
+            // The channel symbols carry interleaved coded bits: undo the
+            // bit-reversal interleave so the stack decoder sees them in the
+            // encoder's natural (poly0, poly1) order.
+            {
+                int p = 0;
+                for (unsigned i = 0; i < 256; i++) {
+                    const unsigned j = bit_reverse_8((uint8_t)i);
+                    if (j < WSPR_CODED_BITS) {
+                        bit_weight[p++] = sym_weight[j];
+                    }
+                }
+            }
+
+            uint8_t source[WSPR_SOURCE_BYTES];
+            int16_t metric = 0;
+            if (!stack_decode(bit_weight, source, &metric)) continue;
+            // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
+            if (metric < WSPR_REPORT_METRIC_MIN) continue;
+
+            wspr_message_t message;
+            if (!wspr_unpack_message(source, &message)) continue;
+
+            // Audio frequency of this candidate's tone 0.
+            const int16_t out_freq = (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
+
+            // Park the decode in the merge pool; ranking and duplicate
+            // suppression across candidates and banks happen once every bank
+            // has decoded (see merged above).
+            wspr_decode_result_t* out = &merged[n_merged++];
+            memset(out, 0, sizeof(*out));
+            memcpy(out->callsign, message.callsign, sizeof(message.callsign));
+            memcpy(out->grid, message.grid, sizeof(message.grid));
+            out->dbm = message.dbm;
+            // Rough SNR for display: mean tone-bin excess over the pair mean, in
+            // 0.5 dB bytes converted to dB.
+            int32_t signal_sum = 0;
+            for (int n = 0; n < WSPR_CODED_BITS; n++) {
+                const int row = best_row[k] + n;
+                // The winning bin of symbol n's pair: +2 for data bit 1.
+                const int col = pair_cols[n] + (sym_weight[n] >= 0 ? 2 : 0);
+                signal_sum += mag[row * stride + base + col];
+            }
+            out->snr_db = (int8_t)((signal_sum / WSPR_CODED_BITS - mean) / 2);
+            out->freq_hz = out_freq;
+            out->drift_bins = (int16_t)best_drift;
+            // Display metric: mean sync-bin excess over the pair-bin noise mean,
+            // in 0.5 dB bytes, of the drift-refined alignment. Noise windows
+            // score a couple of units, a real transmission several times that.
+            out->sync_score = (int16_t)drift_excess;
+            // Where in the window the transmission started, in SYMBOL rows of
+            // this bank's grid, for the slot tracker. The bank is reported
+            // alongside; its sub-row phase never leaves the decoder.
+            out->row_offset = (int16_t)best_row[k];
+            out->bank = (int8_t)bank;
+            // Final path metric: the decode-acceptance gate read this already, and
+            // the UI/PR can use it to judge decode quality.
+            out->metric = metric;
         }
     }
 
-    // Stage 2: drift refinement, soft demodulation and decoding, best first.
-    int count = 0;
-    for (int k = 0; k < n_cand && count < max_results; k++) {
-        int best_drift = 0;
-        int32_t drift_score = best_score[k];
-        for (int d = WSPR_DRIFT_MIN; d <= WSPR_DRIFT_MAX; d++) {
-            if (d == 0) continue;
-            const int32_t s = sync_score(mag, num_bins, best_row[k], best_col[k], d);
-            if (s > drift_score) {
-                drift_score = s;
-                best_drift = d;
-            }
+    // Rank the merge pool by alignment sharpness (the mean sync-bin excess
+    // stored in sync_score): the aligned bank of a transmission outranks its
+    // smeared twin, so the duplicate pass below keeps the true decode and
+    // drops the impostor the misaligned bank produced alongside it. Stable
+    // insertion sort over a pool of at most 2 * WSPR_MAX_CANDIDATES.
+    for (int i = 1; i < n_merged; i++) {
+        const wspr_decode_result_t key = merged[i];
+        int j = i - 1;
+        while (j >= 0 && merged[j].sync_score < key.sync_score) {
+            merged[j + 1] = merged[j];
+            j--;
         }
+        merged[j + 1] = key;
+    }
 
-        // Soft demodulation: data bit n is the energy difference between the
-        // two bins of symbol n's sync-selected pair, col0+sync[n] (bit 0) and
-        // col0+sync[n]+2 (bit 1). The pair bins double as the noise
-        // reference: their standard deviation sets the unit of the weights,
-        // so a tone a few bytes above the noise gives a weight of a few
-        // units regardless of the absolute byte scale.
-        int pair_cols[WSPR_CODED_BITS];
-        int32_t sum_pair = 0;
-        int32_t sum_sq = 0;
-        bool in_range = true;
-        for (int n = 0; n < WSPR_CODED_BITS; n++) {
-            int col = best_col[k];
-            if (best_drift != 0) {
-                col += (best_drift * n) / (WSPR_CODED_BITS - 1);
-            }
-            col += wspr_sync_vector[n];
-            if (col < 0 || col + 2 >= num_bins) {
-                in_range = false;
-                break;
-            }
-            pair_cols[n] = col;
-            const int row = best_row[k] + n;
-            const int e0 = mag[row * num_bins + col];
-            const int e1 = mag[row * num_bins + col + 2];
-            sum_pair += e0 + e1;
-            sum_sq += e0 * e0 + e1 * e1;
-        }
-        // A drift walk that leaves the matrix disqualifies the alignment.
-        if (!in_range) continue;
-
-        // Mean and standard deviation over both bins of every pair.
-        const int count_pair = 2 * WSPR_CODED_BITS;
-        const int mean = (int)(sum_pair / count_pair);
-        const int32_t variance = sum_sq / count_pair - mean * mean;
-        const int sigma = variance > 1 ? (int)sqrt_i32(variance) : 1;
-
-        // Pre-gate: this candidate's sync bins must rise clearly above its own
-        // pair-bin noise mean before the decoder spends effort on it.
-        if (best_score[k] / WSPR_CODED_BITS - mean < WSPR_CANDIDATE_MIN_EXCESS) continue;
-
-        for (int n = 0; n < WSPR_CODED_BITS; n++) {
-            const int row = best_row[k] + n;
-            const int e0 = mag[row * num_bins + pair_cols[n]];
-            const int e1 = mag[row * num_bins + pair_cols[n] + 2];
-            // Difference normalized by sigma, rounded to nearest, clipped.
-            int w = e1 - e0;
-            w = (w >= 0) ? ((2 * w + sigma) / (2 * sigma))
-                         : -((2 * -w + sigma) / (2 * sigma));
-            if (w > 6) w = 6;
-            if (w < -6) w = -6;
-            sym_weight[n] = (int8_t)w;
-        }
-
-        // The channel symbols carry interleaved coded bits: undo the
-        // bit-reversal interleave so the stack decoder sees them in the
-        // encoder's natural (poly0, poly1) order.
-        {
-            int p = 0;
-            for (unsigned i = 0; i < 256; i++) {
-                const unsigned j = bit_reverse_8((uint8_t)i);
-                if (j < WSPR_CODED_BITS) {
-                    bit_weight[p++] = sym_weight[j];
-                }
-            }
-        }
-
-        uint8_t source[WSPR_SOURCE_BYTES];
-        int16_t metric = 0;
-        if (!stack_decode(bit_weight, source, &metric)) continue;
-        // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
-        if (metric < WSPR_REPORT_METRIC_MIN) continue;
-
-        wspr_message_t message;
-        if (!wspr_unpack_message(source, &message)) continue;
-
-        // Audio frequency of this candidate's tone 0.
-        const int16_t out_freq = (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
-
-        // Duplicate suppression across candidates: an identical payload is the
-        // same station found twice, and so is a different payload at the same
-        // audio frequency - the no-CRC code lets one transmission decode into
-        // two valid-shaped impostors, and wsprnet has no room for either the
-        // second copy or the misprint. Keep the first (candidates come in
-        // sync-score order, so the first is the strongest).
+    // Duplicate suppression across candidates and banks: an identical payload
+    // is the same station found twice, and so is a different payload at the
+    // same audio frequency - the no-CRC code lets one transmission decode
+    // into two valid-shaped impostors, and wsprnet has no room for either the
+    // second copy or the misprint. Keep the first, now the sharpest aligned.
+    for (int i = 0; i < n_merged && count < max_results; i++) {
         bool duplicate = false;
-        for (int i = 0; i < count; i++) {
-            if (strcmp(results[i].callsign, message.callsign) == 0 &&
-                strcmp(results[i].grid, message.grid) == 0 &&
-                results[i].dbm == message.dbm) {
-                duplicate = true;
-                break;
-            }
-            const int df = results[i].freq_hz - out_freq;
-            if (df > -3 && df < 3) {
+        for (int j = 0; j < count; j++) {
+            if (strcmp(results[j].callsign, merged[i].callsign) == 0 &&
+                strcmp(results[j].grid, merged[i].grid) == 0 &&
+                results[j].dbm == merged[i].dbm) {
                 duplicate = true;
                 break;
             }
         }
         if (duplicate) continue;
-
-        wspr_decode_result_t* out = &results[count++];
-        memset(out, 0, sizeof(*out));
-        memcpy(out->callsign, message.callsign, sizeof(message.callsign));
-        memcpy(out->grid, message.grid, sizeof(message.grid));
-        out->dbm = message.dbm;
-        // Rough SNR for display: mean tone-bin excess over the pair mean, in
-        // 0.5 dB bytes converted to dB.
-        int32_t signal_sum = 0;
-        for (int n = 0; n < WSPR_CODED_BITS; n++) {
-            const int row = best_row[k] + n;
-            // The winning bin of symbol n's pair: +2 for data bit 1.
-            const int col = pair_cols[n] + (sym_weight[n] >= 0 ? 2 : 0);
-            signal_sum += mag[row * num_bins + col];
-        }
-        out->snr_db = (int8_t)((signal_sum / WSPR_CODED_BITS - mean) / 2);
-        out->freq_hz = out_freq;
-        out->drift_bins = (int16_t)best_drift;
-        // Display metric: mean sync-bin excess over the pair-bin noise mean,
-        // in 0.5 dB bytes. Noise windows score a couple of units, a real
-        // transmission several times that.
-        out->sync_score = (int16_t)(best_score[k] / WSPR_CODED_BITS - mean);
-        // Where in the window the transmission started, for the slot tracker.
-        out->row_offset = (int16_t)best_row[k];
-        // Final path metric: the decode-acceptance gate read this already, and
-        // the UI/PR can use it to judge decode quality.
-        out->metric = metric;
+        results[count++] = merged[i];
     }
     return count;
 }

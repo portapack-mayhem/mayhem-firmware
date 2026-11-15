@@ -29,10 +29,21 @@
 /*
  * WSPR decoder, host-first: it works on a magnitude matrix of exactly the
  * shape the baseband receiver produces, so the same code runs in host tests
- * and in firmware. The matrix holds WSPR_NUM_SYMBOLS rows of num_bins bytes,
- * row-major: mag[row * num_bins + col]. Column spacing must be exactly one
- * tone step (12000/8192 = 1.4648 Hz), like the FT8 receiver keeps its bins
+ * and in firmware. The matrix holds num_rows rows of num_bins bytes, row-
+ * major: mag[row * num_bins + col]. Column spacing must be exactly one tone
+ * step (12000/8192 = 1.4648 Hz), like the FT8 receiver keeps its bins
  * aligned to the tone spacing.
+ *
+ * time_osr extends the rows into interleaved sub-row banks: block-row index
+ * = time_osr * row + bank, so mag holds time_osr * num_rows rows and the
+ * address of (row, col) in bank b is mag[(time_osr * row + b) * num_bins +
+ * col]. time_osr = 1 is the plain single-grid matrix; time_osr = 2 is the
+ * dual-bank window the receiver produces, two Goertzel grids half a symbol
+ * apart, so a transmission at an arbitrary sub-row phase is never more than
+ * a quarter symbol away from one bank's symbol boundaries. Stage 1 and
+ * stage 2 run per bank on their own candidate lists and the results merge
+ * through the shared duplicate/frequency suppression; row_offset stays in
+ * symbol rows and the bank that produced the result is reported separately.
  *
  * The decode has no CRC to lean on: a candidate is accepted when its payload
  * unpacks into a valid standard message.
@@ -54,6 +65,8 @@ typedef struct {
     int16_t metric;      // final sequential-decode path metric: real signals
                          // accumulate a clear positive score, noise hovers
                          // around zero - the decode-acceptance gate reads this
+    int8_t bank;         // sub-row bank of the decode, 0..time_osr-1; the
+                         // row_offset is a symbol row of that bank's grid
 } wspr_decode_result_t;
 
 #ifdef __cplusplus
@@ -61,9 +74,10 @@ extern "C" {
 #endif
 
 /*
- * Try to decode one capture window. mag: num_rows * num_bins uint8
- * magnitudes, row-major, with num_rows >= WSPR_NUM_SYMBOLS (a 120 s slot
- * capture has 176 rows for the 162-symbol transmission). bin0_hz: audio
+ * Try to decode one capture window. mag: time_osr * num_rows * num_bins
+ * uint8 magnitudes, row-major, with num_rows >= WSPR_NUM_SYMBOLS (a 120 s
+ * slot capture has 176 rows for the 162-symbol transmission). time_osr: 1
+ * (single row grid) or 2 (two interleaved sub-row banks). bin0_hz: audio
  * frequency of column 0. Returns the number of results written.
  */
 int wspr_decode_window(const uint8_t* mag,
@@ -71,7 +85,8 @@ int wspr_decode_window(const uint8_t* mag,
                        int num_bins,
                        int bin0_hz,
                        wspr_decode_result_t* results,
-                       int max_results);
+                       int max_results,
+                       int time_osr);
 
 #ifdef __cplusplus
 }

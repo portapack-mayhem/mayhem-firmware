@@ -98,7 +98,8 @@ void WSPRDecodeThread::run() {
             wspr_portapack_bins(),
             wspr_portapack_bin0_hz(),
             results,
-            WSPR_MAX_RESULTS);
+            WSPR_MAX_RESULTS,
+            wspr_portapack_time_osr());
 
         // Close the tracking loop first: the row offset is only valid for the window
         // that was just decoded, and the correction it computes is consumed when the

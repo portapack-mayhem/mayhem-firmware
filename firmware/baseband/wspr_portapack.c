@@ -28,13 +28,14 @@
 // (956 * 12000/8192 = 1400.39 Hz).
 #define WSPR_RX_FIRST_BIN 956
 
-// The matrix and the banks are file-static in .bss, like the FT8 waterfall: 26400 matrix
-// bytes plus 3 x 600 bytes of float banks, 28.2 KB against the FT8 glue's 37 KB. Keeping
-// them out of the state struct leaves the state a handful of counters.
+// The matrix and the banks are file-static in .bss, like the FT8 waterfall: 48224 matrix
+// bytes (352 block-rows, two interleaved banks) plus 3 x 600 bytes of shared coefficient
+// bank and 2 x (2 x 600) bytes of per-bank state, 55.4 KB against the FT8 glue's 37 KB.
+// Keeping them out of the state struct leaves the state a handful of counters.
 static uint8_t magnitude[WSPR_RX_MATRIX_SIZE];
 static float goertzel_coeff[WSPR_RX_NUM_BINS];
-static float goertzel_s1[WSPR_RX_NUM_BINS];
-static float goertzel_s2[WSPR_RX_NUM_BINS];
+static float goertzel_s1[WSPR_RX_TIME_OSR][WSPR_RX_NUM_BINS];
+static float goertzel_s2[WSPR_RX_TIME_OSR][WSPR_RX_NUM_BINS];
 
 // Cosine over [0, pi/2], the whole range the coefficient table needs: the highest bin is
 // 1105, giving 2*pi*1105/8192 = 0.85 rad. cosf() would drag in newlib's argument
@@ -81,12 +82,15 @@ static float log2_from_bits(float x) {
 // 39.1 dB hot at N = 8192: a tone above roughly 0.02 of full scale pins at 255 together
 // with its neighbour bins, and the decoder only ever compares bytes against their
 // neighbours, so the scale would collapse. There is no AGC ahead of this stage.
-static void finish_row(wspr_portapack_state_t* state) {
-    const int row_offset = state->rows_filled * WSPR_RX_NUM_BINS;
+static void finish_row(wspr_portapack_state_t* state, int bank) {
+    // Block-row = 2*symbol_row + bank, the interleaved layout wspr_decode_window() walks
+    // with time_osr = 2.
+    const int rows = bank ? state->bank1_rows_filled : state->rows_filled;
+    const int row_offset = (2 * rows + bank) * WSPR_RX_NUM_BINS;
 
     for (int b = 0; b < WSPR_RX_NUM_BINS; b++) {
-        float s1 = goertzel_s1[b];
-        float s2 = goertzel_s2[b];
+        float s1 = goertzel_s1[bank][b];
+        float s2 = goertzel_s2[bank][b];
         float power = s1 * s1 + s2 * s2 - goertzel_coeff[b] * s1 * s2;
         power *= (1.0f / ((float)WSPR_SAMPLES_PER_SYMBOL * (float)WSPR_SAMPLES_PER_SYMBOL));
         if (power < 1e-20f) power = 1e-20f;
@@ -98,13 +102,20 @@ static void finish_row(wspr_portapack_state_t* state) {
         magnitude[row_offset + b] = (uint8_t)m;
     }
 
-    memset(goertzel_s1, 0, sizeof(goertzel_s1));
-    memset(goertzel_s2, 0, sizeof(goertzel_s2));
-    state->samples_in_row = 0;
-
-    state->rows_filled++;
-    if (state->rows_filled >= WSPR_RX_NUM_ROWS) {
-        state->window_full = true;
+    memset(goertzel_s1[bank], 0, sizeof(goertzel_s1[bank]));
+    memset(goertzel_s2[bank], 0, sizeof(goertzel_s2[bank]));
+    if (bank) {
+        state->bank1_samples_in_row = 0;
+        state->bank1_rows_filled++;
+    } else {
+        state->samples_in_row = 0;
+        state->rows_filled++;
+        if (state->rows_filled >= WSPR_RX_NUM_ROWS) {
+            // Bank 1 is still half a symbol short of its own last row boundary here; its
+            // row 175 never closes and its bytes stay zero, which the decoder treats as
+            // an erased symbol for the (at most) t = 14 candidate of that bank.
+            state->window_full = true;
+        }
     }
 }
 
@@ -135,6 +146,16 @@ void wspr_portapack_free(wspr_portapack_state_t* state) {
     memset(state, 0, sizeof(wspr_portapack_state_t));
 }
 
+// One Goertzel pass over all bins for one bank. About 12 instructions per bin, the same
+// loop shape and -Os count as the FT8 bank.
+static void goertzel_pass(float sample, float* s1, float* s2) {
+    for (int b = 0; b < WSPR_RX_NUM_BINS; b++) {
+        const float s0 = sample + goertzel_coeff[b] * s1[b] - s2[b];
+        s2[b] = s1[b];
+        s1[b] = s0;
+    }
+}
+
 bool wspr_portapack_feed_sample(wspr_portapack_state_t* state, float sample) {
     if (!state) return false;
 
@@ -145,25 +166,33 @@ bool wspr_portapack_feed_sample(wspr_portapack_state_t* state, float sample) {
     // Inf passes the NaN check, since Inf == Inf holds.
     if (sample != sample || sample > 1e15f || sample < -1e15f) sample = 0.0f;
 
-    // About 12 instructions per bin, the same loop shape and -Os count as the FT8 bank.
-    // WSPR calls it far less often per chunk: the audio path decimates 3.072 MHz to
-    // 24 kHz and halves that in software to 12 kHz, so one 2048-sample DMA transfer
-    // (666.7 us on the 200 MHz M4) delivers only ~8 audio samples. 8 samples x 150 bins
-    // x ~12 instructions is ~14,400 instructions, some 72 us or about a tenth of the
-    // chunk, against FT8's 2944 bin updates in the same window. The 8192-sample symbol
-    // stretches one bank pass over 1024 chunks, and only one of them also carries the
-    // row-closing quantization.
-    for (int b = 0; b < WSPR_RX_NUM_BINS; b++) {
-        const float s0 = sample + goertzel_coeff[b] * goertzel_s1[b] - goertzel_s2[b];
-        goertzel_s2[b] = goertzel_s1[b];
-        goertzel_s1[b] = s0;
-    }
-
+    // The audio path decimates 3.072 MHz to 24 kHz and halves that in software to 12 kHz,
+    // so one 2048-sample DMA transfer (666.7 us on the 200 MHz M4) delivers only ~8 audio
+    // samples. Two banks now: 8 samples x 2 x 137 bins x ~12 instructions is ~26,300
+    // instructions, some 132 us or a fifth of the chunk, against FT8's 2944 bin updates
+    // in the same window. The 8192-sample symbol stretches each bank pass over 1024
+    // chunks, and only one of them also carries the row-closing quantization (twice, once
+    // per bank, in different chunks half a symbol apart).
+    //
+    // Bank 0 accumulates every sample and closes a row at stream sample 0 (mod 8192).
+    goertzel_pass(sample, goertzel_s1[0], goertzel_s2[0]);
     state->samples_in_row++;
-
     if (state->samples_in_row >= WSPR_SAMPLES_PER_SYMBOL) {
-        finish_row(state);
+        finish_row(state, 0);
     }
+
+    // Bank 1 runs the same stream on a row grid shifted half a symbol: it starts
+    // accumulating at stream sample 4096 and closes its rows at 4096 (mod 8192). A
+    // transmission at an arbitrary sub-row phase is therefore within a quarter symbol of
+    // one bank's grid, which is what keeps the row-quantized decoder on its symbols.
+    if (state->total_samples >= WSPR_RX_BANK1_OFFSET) {
+        goertzel_pass(sample, goertzel_s1[1], goertzel_s2[1]);
+        state->bank1_samples_in_row++;
+        if (state->bank1_samples_in_row >= WSPR_SAMPLES_PER_SYMBOL) {
+            finish_row(state, 1);
+        }
+    }
+    state->total_samples++;
 
     return state->window_full;
 }
@@ -174,6 +203,10 @@ const uint8_t* wspr_portapack_matrix(void) {
 
 int wspr_portapack_rows(void) {
     return WSPR_RX_NUM_ROWS;
+}
+
+int wspr_portapack_time_osr(void) {
+    return WSPR_RX_TIME_OSR;
 }
 
 int wspr_portapack_bins(void) {
