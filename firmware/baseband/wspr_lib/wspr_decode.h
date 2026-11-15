@@ -51,6 +51,9 @@ typedef struct {
                          // tracker steers this toward the middle of the slack
     int16_t sync_score;  // raw sync-sum of this candidate, for display: a
                          // quiet band scores a fraction of a noisy-signal one
+    int16_t metric;      // final sequential-decode path metric: real signals
+                         // accumulate a clear positive score, noise hovers
+                         // around zero - the decode-acceptance gate reads this
 } wspr_decode_result_t;
 
 #ifdef __cplusplus

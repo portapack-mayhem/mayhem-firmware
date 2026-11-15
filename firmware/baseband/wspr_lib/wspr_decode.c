@@ -48,9 +48,28 @@
 #define WSPR_STACK_NODES 1024
 #define WSPR_STACK_EFFORT 40000
 #define WSPR_METRIC_LIMIT 250
-#define WSPR_MAX_CANDIDATES 6
+// Crowded-band budget: eight stations in one real-ether recording out-compete
+// each other for six slots, so the weaker true peaks never reach the decode.
+#define WSPR_MAX_CANDIDATES 10
 #define WSPR_DRIFT_MIN (-3)
 #define WSPR_DRIFT_MAX 3
+
+// Candidates whose sync bins barely rise above the pair-bin noise mean are
+// noise ridges, not transmissions: decoding them only manufactures impostor
+// messages for the report gate to fight. The mean pair-bin byte runs a couple
+// of units below the tone bins of a real signal; anything closer than this to
+// the mean is skipped before the decoder runs on it.
+#define WSPR_CANDIDATE_MIN_EXCESS 6
+
+// Sequential decoding without a CRC completes a path on pure noise roughly
+// one window in six (14% of random payloads unpack as structurally valid
+// standard messages), so a completed path is not a report. A real
+// transmission drives the path metric clearly positive; noise completions
+// hover around zero. The gate sits between the two, calibrated on synthetic
+// captures: real-ether calibration: three true stations survive at 26, impostors
+// drop 15 -> 8 of 18 across the recording sweep; -24 dB synthetic decodes
+// pass, some -26 dB seeds do not.
+#define WSPR_REPORT_METRIC_MIN 20
 
 typedef struct {
     uint8_t path[WSPR_SOURCE_BYTES];  // source bits, MSB-first
@@ -214,7 +233,7 @@ static void heap_pop(wspr_stack_node_t* out) {
  * max-first stack is frequently a near-miss impostor, the best completion
  * is the maximum-likelihood path within the explored effort.
  */
-static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYTES]) {
+static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYTES], int16_t* out_metric) {
     uint8_t path[WSPR_SOURCE_BYTES];
     memset(path, 0, sizeof(path));
 
@@ -255,6 +274,7 @@ static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYT
             best_complete = node.metric;
             have_best = true;
             memcpy(out_bits, node.path, WSPR_SOURCE_BYTES);
+            if (out_metric) *out_metric = node.metric;
             continue;
         }
         effort++;
@@ -415,6 +435,10 @@ int wspr_decode_window(const uint8_t* mag,
         const int32_t variance = sum_sq / count_pair - mean * mean;
         const int sigma = variance > 1 ? (int)sqrt_i32(variance) : 1;
 
+        // Pre-gate: this candidate's sync bins must rise clearly above its own
+        // pair-bin noise mean before the decoder spends effort on it.
+        if (best_score[k] / WSPR_CODED_BITS - mean < WSPR_CANDIDATE_MIN_EXCESS) continue;
+
         for (int n = 0; n < WSPR_CODED_BITS; n++) {
             const int row = best_row[k] + n;
             const int e0 = mag[row * num_bins + pair_cols[n]];
@@ -442,7 +466,10 @@ int wspr_decode_window(const uint8_t* mag,
         }
 
         uint8_t source[WSPR_SOURCE_BYTES];
-        if (!stack_decode(bit_weight, source)) continue;
+        int16_t metric = 0;
+        if (!stack_decode(bit_weight, source, &metric)) continue;
+        // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
+        if (metric < WSPR_REPORT_METRIC_MIN) continue;
 
         wspr_message_t message;
         if (!wspr_unpack_message(source, &message)) continue;
@@ -495,6 +522,9 @@ int wspr_decode_window(const uint8_t* mag,
         out->sync_score = (int16_t)(best_score[k] / WSPR_CODED_BITS - mean);
         // Where in the window the transmission started, for the slot tracker.
         out->row_offset = (int16_t)best_row[k];
+        // Final path metric: the decode-acceptance gate read this already, and
+        // the UI/PR can use it to judge decode quality.
+        out->metric = metric;
     }
     return count;
 }

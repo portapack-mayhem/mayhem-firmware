@@ -247,3 +247,27 @@ TEST_CASE("unpack inverts packing for representative messages") {
     wspr_message_t message;
     CHECK_FALSE(wspr_unpack_message(bits, &message));
 }
+
+TEST_CASE("noise-only window stays bounded") {
+    // Without a CRC, roughly a seventh of random payloads unpack as a
+    // structurally valid standard message, and the sync/metric gates cannot
+    // fully separate that population from threshold-level signals (their
+    // metrics overlap). The decoder therefore hands the app a bounded result
+    // list and the report gate is the two-slot correlation the app applies
+    // (real stations repeat within several windows, impostors are random).
+    // This test pins the flood bound: a noise window must never yield more
+    // results than the candidate budget allows after deduplication.
+    for (const uint32_t seed : {21u, 4242u, 909090u}) {
+        CAPTURE(seed);
+        Noise noise{seed};
+        std::vector<float> samples(kRows * WSPR_SAMPLES_PER_SYMBOL, 0.0f);
+        for (auto& s : samples) s = noise.gaussian();
+        std::vector<uint8_t> mag;
+        goertzel_matrix(samples, mag);
+        wspr_decode_result_t results[WSPR_MAX_RESULTS];
+        const int count = wspr_decode_window(mag.data(), kRows, kNumBins,
+                                             kBin0 * kBinStepNum / kBinStepDen,
+                                             results, WSPR_MAX_RESULTS);
+        CHECK_LE(count, 3);
+    }
+}
