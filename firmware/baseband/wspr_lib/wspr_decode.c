@@ -20,6 +20,7 @@
  */
 
 #include "wspr_decode.h"
+#include "wspr_encode.h"
 #include "wspr_unpack.h"
 
 #include <string.h>
@@ -77,6 +78,12 @@
 // drop 15 -> 8 of 18 across the recording sweep; -24 dB synthetic decodes
 // pass, some -26 dB seeds do not.
 #define WSPR_REPORT_METRIC_MIN 20
+
+// Re-encode agreement floor, in percent of the nonzero received symbols.
+// A true decode regenerates channel symbols that match the received ones
+// almost everywhere; a noise completion (no CRC to fail) disagrees on about
+// half. Calibrated on the real-ether recording.
+#define WSPR_MIN_AGREEMENT_PCT 62
 
 typedef struct {
     uint8_t path[WSPR_SOURCE_BYTES];  // source bits, MSB-first
@@ -527,6 +534,25 @@ int wspr_decode_window(const uint8_t* mag,
             // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
             if (metric < WSPR_REPORT_METRIC_MIN) continue;
 
+            // Re-encode agreement, the impostor gate: regenerate the channel
+            // symbols from the decoded payload and count hard disagreements
+            // with the received hard decisions. WSPR has no CRC, so payload
+            // validity alone admits about one impostor per seven completions;
+            // a true decode agrees with nearly every symbol while a noise
+            // completion disagrees on about half (wsprd's count_hard_errors,
+            // JT65's deep-search acceptance rule).
+            uint8_t reenc[WSPR_CODED_BITS];
+            wspr_encode_bits(source, reenc);
+            int nonzero = 0;
+            int disagree = 0;
+            for (int n = 0; n < WSPR_CODED_BITS; n++) {
+                if (sym_weight[n] == 0) continue;
+                nonzero++;
+                if ((sym_weight[n] > 0) != (reenc[n] != 0)) disagree++;
+            }
+            const int agreement = nonzero > 0 ? (100 * (nonzero - disagree)) / nonzero : 0;
+            if (agreement < WSPR_MIN_AGREEMENT_PCT) continue;
+
             wspr_message_t message;
             if (!wspr_unpack_message(source, &message)) continue;
 
@@ -565,6 +591,7 @@ int wspr_decode_window(const uint8_t* mag,
             // Final path metric: the decode-acceptance gate read this already, and
             // the UI/PR can use it to judge decode quality.
             out->metric = metric;
+            out->agreement_pct = (int8_t)agreement;
         }
     }
 

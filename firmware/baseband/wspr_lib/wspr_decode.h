@@ -52,21 +52,25 @@
 #define WSPR_MAX_RESULTS 4
 
 typedef struct {
-    char callsign[13];   // up to 12 characters plus terminator
-    char grid[5];        // 4 characters plus terminator
-    int8_t dbm;          // 0..60
-    int8_t snr_db;       // rough estimate, for display only
-    int16_t freq_hz;     // audio frequency of tone 0, relative to the dial
-    int16_t drift_bins;  // total frequency walk over the window, in bins
-    int16_t row_offset;  // window row the transmission starts in; the slot
-                         // tracker steers this toward the middle of the slack
-    int16_t sync_score;  // raw sync-sum of this candidate, for display: a
-                         // quiet band scores a fraction of a noisy-signal one
-    int16_t metric;      // final sequential-decode path metric: real signals
-                         // accumulate a clear positive score, noise hovers
-                         // around zero - the decode-acceptance gate reads this
-    int8_t bank;         // sub-row bank of the decode, 0..time_osr-1; the
-                         // row_offset is a symbol row of that bank's grid
+    char callsign[13];     // up to 12 characters plus terminator
+    char grid[5];          // 4 characters plus terminator
+    int8_t dbm;            // 0..60
+    int8_t snr_db;         // rough estimate, for display only
+    int16_t freq_hz;       // audio frequency of tone 0, relative to the dial
+    int16_t drift_bins;    // total frequency walk over the window, in bins
+    int16_t row_offset;    // window row the transmission starts in; the slot
+                           // tracker steers this toward the middle of the slack
+    int16_t sync_score;    // raw sync-sum of this candidate, for display: a
+                           // quiet band scores a fraction of a noisy-signal one
+    int16_t metric;        // final sequential-decode path metric: real signals
+                           // accumulate a clear positive score, noise hovers
+                           // around zero - the decode-acceptance gate reads this
+    int8_t bank;           // sub-row bank of the decode, 0..time_osr-1; the
+                           // row_offset is a symbol row of that bank's grid
+    int8_t agreement_pct;  // re-encode agreement: how many of the received
+                           // symbols match the payload re-encoded back to
+                           // channel symbols; real decodes land near 100,
+                           // impostors near 50 - the impostor gate reads this
 } wspr_decode_result_t;
 
 #ifdef __cplusplus
