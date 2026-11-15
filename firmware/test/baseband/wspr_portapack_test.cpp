@@ -201,57 +201,35 @@ TEST_CASE("a full window lands every tone in its column") {
 
     const uint8_t* mag = wspr_portapack_matrix();
 
-    // Start, middle and end of the transmission: in bank 0 the tone sits in its
-    // own column of its symbol's block-row (2*sym, bank 0 = even block rows) at
-    // the byte the scale promises. Bank 1's rows straddle two symbols, so its
-    // argmax is checked in the dedicated case below.
+    // Start, middle and end of the transmission: the tone sits in its own column at the
+    // byte the scale promises.
     for (const int sym : {0, 80, 161}) {
         const int col = 10 + tones[sym];
-        const size_t block = (size_t)2 * sym;
-        const int byte = mag[block * WSPR_RX_NUM_BINS + col];
+        const int byte = mag[(size_t)sym * WSPR_RX_NUM_BINS + col];
         CAPTURE(sym);
         CAPTURE(tones[sym]);
         CAPTURE(col);
         CAPTURE(byte);
         CHECK(byte >= 185);
         CHECK(byte <= 205);
-        CHECK(row_argmax(mag, (int)block) >= col - 1);
-        CHECK(row_argmax(mag, (int)block) <= col + 1);
+        CHECK(row_argmax(mag, sym) >= col - 1);
+        CHECK(row_argmax(mag, sym) <= col + 1);
     }
 
-    // And every bank-0 signal row: the tone must be the row maximum, so the
-    // decoder's neighbour comparisons find the tones where the protocol put
-    // them. Bank 1's rows straddle two symbols (they start half a row into the
-    // capture), so each straddling row's maximum sits in one of the two
-    // adjacent tone columns.
+    // And every signal row: the tone must be the row maximum, so the decoder's
+    // neighbour comparisons find the tones where the protocol put them.
     for (int n = 0; n < WSPR_CODED_BITS; n++) {
         const int col = 10 + tones[n];
         CAPTURE(n);
         CAPTURE(tones[n]);
         CAPTURE(col);
-        CHECK(row_argmax(mag, 2 * n) >= col - 1);
-        CHECK(row_argmax(mag, 2 * n) <= col + 1);
-    }
-    for (int k = 0; k + 1 < WSPR_CODED_BITS; k++) {
-        const int col_a = 10 + tones[k];
-        const int col_b = 10 + tones[k + 1];
-        const int am = row_argmax(mag, 2 * k + 1);
-        CAPTURE(k);
-        CAPTURE(am);
-        // The straddling row holds half of symbol k and half of symbol k+1;
-        // whichever half-tone is louder wins the argmax, so either column is
-        // a pass (within the +/-1 alignment slack).
-        const bool near_a = am >= col_a - 1 && am <= col_a + 1;
-        const bool near_b = am >= col_b - 1 && am <= col_b + 1;
-        const bool straddle_ok = near_a || near_b;
-        CHECK(straddle_ok);
+        CHECK(row_argmax(mag, n) >= col - 1);
+        CHECK(row_argmax(mag, n) <= col + 1);
     }
 
     // Rows past the transmission carry noise alone: well below the tone bytes and far
-    // from the 255 pin. Bank 0's rows past symbol 161 are the even block rows from
-    // 2*166 on; bank 1's rows straddle, so only even block rows are checked here.
-    for (int sym = 166; sym < WSPR_RX_NUM_ROWS; sym++) {
-        const int row = 2 * sym;
+    // from the 255 pin.
+    for (int row = WSPR_CODED_BITS; row < WSPR_RX_NUM_ROWS; row++) {
         CAPTURE(row);
         CHECK(mag[(size_t)row * WSPR_RX_NUM_BINS + row_argmax(mag, row)] < 190);
     }

@@ -71,9 +71,6 @@ typedef struct {
                            // symbols match the payload re-encoded back to
                            // channel symbols; real decodes land near 100,
                            // impostors near 50 - the impostor gate reads this
-    int8_t agg_windows;    // 0 = plain per-window decode; >= 2 = aggregated
-                           // decode over that many accumulated windows (the
-                           // multi-slot weight integration below)
 } wspr_decode_result_t;
 
 #ifdef __cplusplus
@@ -94,15 +91,6 @@ int wspr_decode_window(const uint8_t* mag,
                        wspr_decode_result_t* results,
                        int max_results,
                        int time_osr);
-
-/*
- * Clear the multi-slot accumulation table. A WSPR station repeats the same
- * message in successive 2-minute slots, and the decoder integrates the soft
- * weights of accepted decodes across those slots in a file-static cluster
- * table; this resets it. The receiver calls it once per app start so a
- * restart never inherits clusters from the previous run.
- */
-void wspr_decode_reset_aggregation(void);
 
 #ifdef __cplusplus
 }

@@ -45,24 +45,15 @@
  *    decoder walks the best paths first under a Fano-style bias and keeps
  *    the best full path a bounded search can reach; the payload then has to
  *    survive wspr_unpack_message to be reported.
- * 5. Multi-slot weight accumulation: every agreement-passing, unpack-valid
- *    completion folds its soft weights into the payload-keyed cluster of its
- *    message (a station repeats the same message across 2-minute slots, and
- *    the weights are transmission-aligned in symbol order), and clusters
- *    holding two or more windows decode on their accumulated weights through
- *    the same gates - the sensitivity extension that reaches stations below
- *    the per-window threshold.
  */
 
-// 188 nodes x 14 bytes (metric/depth lead the path so no alignment padding is
-// paid): sized so the M4 still has the 16 KiB heap the baseband DMA buffer
-// needs after the dual-bank matrix doubled the glue's watermark and the
-// multi-slot cluster table below took its share. The evict-min push keeps a
-// full pool usable, but a flooded search now thrashes the frontier sooner than
-// the old 1024-node pool: effort spent re-pushing evicted low-metric nodes is
-// effort the WSPR_STACK_EFFORT budget no longer spends on fresh branches. Watch
+// 256 nodes x 16 bytes: sized so the M4 still has the 16 KiB heap the baseband DMA
+// buffer needs after the dual-bank matrix doubled the glue's watermark. The evict-min
+// push keeps a full pool usable, but a flooded search now thrashes the frontier four
+// times sooner than the old 1024-node pool: effort spent re-pushing evicted low-metric
+// nodes is effort the WSPR_STACK_EFFORT budget no longer spends on fresh branches. Watch
 // the weak-signal test cases if the budget or the pool size changes again.
-#define WSPR_STACK_NODES 188
+#define WSPR_STACK_NODES 256
 #define WSPR_STACK_EFFORT 40000
 #define WSPR_METRIC_LIMIT 250
 // Crowded-band budget: eight stations in one real-ether recording out-compete
@@ -95,9 +86,9 @@
 #define WSPR_MIN_AGREEMENT_PCT 62
 
 typedef struct {
+    uint8_t path[WSPR_SOURCE_BYTES];  // source bits, MSB-first
     int16_t metric;
     uint8_t depth;
-    uint8_t path[WSPR_SOURCE_BYTES];  // source bits, MSB-first
 } wspr_stack_node_t;
 
 // The node pool and the decoded weights live in .bss: the decode thread's
@@ -108,91 +99,6 @@ static int8_t bit_weight[WSPR_CODED_BITS];
 static int8_t sym_weight[WSPR_CODED_BITS];
 // Best remaining metric gain per depth, for the branch-and-bound prune.
 static int16_t suffix_gain[WSPR_SOURCE_BITS + 1];
-
-/*
- * Multi-slot weight accumulation - the sensitivity extension.
- *
- * A WSPR station repeats the SAME message in successive 2-minute slots
- * (typical duty 20-100%), and every slot's soft demodulation produces
- * sym_weight[] in TRANSMISSION-aligned symbol order (symbol 0 is the start of
- * the transmission, wherever it sits in the capture window: the demod walks
- * best_row[k] + n). Summing N windows' weights adds the signal N times while
- * the independent noise grows only as sqrt(N), so the accumulated decode
- * gains ~sqrt(N) of SNR: a station each of whose windows sits below the
- * per-window acceptance gates can still clear them once enough slots have
- * been integrated.
- *
- * The sub-row PHASE may differ between windows (a different bank may carry
- * the aligned decode, the capture start shifts); that only moves the
- * transmission inside the window, never the symbol indexing - symbol 0 is the
- * transmission start in every window, so the weights sum coherently in symbol
- * index regardless.
- *
- * WHICH completions feed a cluster: every stack-decode completion that passes
- * the re-encode agreement gate AND unpacks into a valid standard message
- * contributes its weights - including completions the metric gate is about to
- * reject. That is the whole point: a station below the per-window threshold
- * still completes at its true alignment with high agreement in most windows
- * (measured at -26 dB: the true payload completes with agreement 97-99 and a
- * path metric of 13-19 against the report gate of 20), and integrating those
- * windows is what lifts it over the gate. The reporting path below keeps the
- * full gate set, so contributing is strictly weaker than reporting. The known
- * limitation: a completion can still be an impostor (WSPR has no CRC). Its
- * weights then do not carry the true transmission's symbol pattern - but
- * clusters are keyed by PAYLOAD (see below), so a poisoning impostor must
- * complete the SAME wrong message twice, which independent noise essentially
- * never does; a noise window contributes nothing that survives.
- *
- * Cluster identity is the 50 payload bits, not the frequency: the same
- * station repeats the same message every slot, while impostor completions are
- * independent random payloads that never repeat. Two completions of one
- * message can still differ in the 31 decoder flush bits (noise moves them;
- * unpacking only reads the payload), so the key masks everything past the
- * payload. Payload identity also survives the few-Hz frequency wander that a
- * +-4 Hz match would clip, and it cannot merge two stations the way a
- * frequency match can.
- *
- * A cluster decodes on the SUM of its accumulated weights (clipped into the
- * int8 the stack decoder reads), not the window average. The sum is the honest
- * evidence accumulator - every window's weight keeps its full magnitude, so
- * coherent symbols grow with N - while an average rounds the signal lean back
- * into the integer grid and, with the stack decoder's r_bias = max(1,
- * mean|w|/2) floor, collapses the path metric below the report gate as count
- * grows (measured: two slots decode at metric 24, adding a third coherent
- * slot drops the averaged decode to 6). On the sum scale the same gates
- * separate harder, not softer: the true path climbs to hundreds while noise
- * completions sink below zero. Decoded clusters are NOT reset - a station
- * keeps transmitting, and every further window sharpens the integration.
- */
-#define WSPR_AGG_CLUSTERS 8
-#define WSPR_AGG_MIN_COUNT 2   // windows accumulated before a decode is attempted
-#define WSPR_AGG_MAX_COUNT 64  // enough integration; drop the slot afterwards
-#define WSPR_AGG_MAX_AGE 15    // windows since the last match before dropping
-
-// The payload key: 50 payload bits = bytes 0..5 plus the top 2 bits of byte 6.
-#define WSPR_AGG_KEY_BYTES 7
-#define WSPR_AGG_KEY_LAST_MASK 0xC0u
-
-typedef struct {
-    int16_t weight[WSPR_CODED_BITS];      // accumulated soft weights, symbol order
-    uint8_t payload[WSPR_AGG_KEY_BYTES];  // the repeated message's payload bits
-    int16_t freq_hz;                      // tone 0 of the first contributing decode
-    int16_t last_row_offset;              // row_offset of the newest contributing
-                                          // decode, so the aggregated result keeps
-                                          // feeding the app's slot tracker
-    int8_t last_snr_db;                   // newest contributing decode's SNR readout
-    int8_t last_sync_score;               // newest contributing decode's sync excess
-    uint8_t count;                        // windows accumulated
-    uint8_t age;                          // windows since the last match
-    uint8_t bank;                         // majority bank of the accumulated windows
-    bool active;
-} wspr_agg_cluster_t;
-
-static wspr_agg_cluster_t agg_clusters[WSPR_AGG_CLUSTERS];
-
-void wspr_decode_reset_aggregation(void) {
-    memset(agg_clusters, 0, sizeof(agg_clusters));
-}
 
 // 8-bit bit-reversal, the address walk of the documented interleave.
 static uint8_t bit_reverse_8(uint8_t v) {
@@ -450,165 +356,6 @@ static int32_t sync_score(const uint8_t* mag,
     return score;
 }
 
-// Undo the bit-reversal interleave: the channel symbols carry the coded bits
-// in the documented interleaved order, and the stack decoder reads them in the
-// encoder's natural (poly0, poly1) order. Used by the per-candidate demod and
-// by the cluster decode, which must walk the interleave the SAME way.
-static void deinterleave_weights(const int8_t* sym, int8_t* bits) {
-    int p = 0;
-    for (unsigned i = 0; i < 256; i++) {
-        const unsigned j = bit_reverse_8((uint8_t)i);
-        if (j < WSPR_CODED_BITS) {
-            bits[p++] = sym[j];
-        }
-    }
-}
-
-// Re-encode agreement, the impostor gate: regenerate the channel symbols from
-// the decoded payload and count hard disagreements with the received hard
-// decisions (static sym_weight, symbol order). WSPR has no CRC, so payload
-// validity alone admits about one impostor per seven completions; a true
-// decode agrees with nearly every symbol while a noise completion disagrees
-// on about half (wsprd's count_hard_errors, JT65's deep-search acceptance
-// rule).
-static int reencode_agreement(const uint8_t* source) {
-    uint8_t reenc[WSPR_CODED_BITS];
-    wspr_encode_bits(source, reenc);
-    int nonzero = 0;
-    int disagree = 0;
-    for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        if (sym_weight[n] == 0) continue;
-        nonzero++;
-        if ((sym_weight[n] > 0) != (reenc[n] != 0)) disagree++;
-    }
-    return nonzero > 0 ? (100 * (nonzero - disagree)) / nonzero : 0;
-}
-
-/*
- * Fold one completed per-window decode into the cluster table. The decode's
- * sym_weight is transmission-aligned in symbol order, so it adds onto the
- * cluster's weights coherently (see the block comment on the cluster table).
- * source carries the completed payload bits; the other fields describe the
- * contributing decode for the aggregated result's display/tracker fields.
- */
-static void agg_accumulate(const uint8_t* source,
-                           const wspr_decode_result_t* contribution,
-                           uint8_t* matched_mask) {
-    wspr_agg_cluster_t* c = NULL;
-
-    // Match by payload: the same station repeats the same message every slot.
-    for (int i = 0; i < WSPR_AGG_CLUSTERS; i++) {
-        if (agg_clusters[i].active &&
-            memcmp(agg_clusters[i].payload, source, WSPR_AGG_KEY_BYTES) == 0) {
-            c = &agg_clusters[i];
-            break;
-        }
-    }
-    if (c == NULL) {
-        // Free slot first, else evict the cluster with the fewest accumulated
-        // windows (age breaks ties): an integrated cluster represents real
-        // evidence and must not be flushed by the churn of one-window impostor
-        // completions.
-        int best = -1;
-        for (int i = 0; i < WSPR_AGG_CLUSTERS; i++) {
-            if (!agg_clusters[i].active) {
-                best = i;
-                break;
-            }
-            if (best < 0 || agg_clusters[i].count < agg_clusters[best].count ||
-                (agg_clusters[i].count == agg_clusters[best].count &&
-                 agg_clusters[i].age > agg_clusters[best].age)) {
-                best = i;
-            }
-        }
-        c = &agg_clusters[best];
-        memset(c, 0, sizeof(*c));
-        memcpy(c->payload, source, WSPR_AGG_KEY_BYTES);
-        // Mask the flush bits out of the key byte: two completions of one
-        // message differ there (noise moves them), the payload does not.
-        c->payload[WSPR_AGG_KEY_BYTES - 1] &= WSPR_AGG_KEY_LAST_MASK;
-        c->freq_hz = contribution->freq_hz;
-        c->bank = (uint8_t)contribution->bank;
-    }
-
-    // One slot per window per cluster: the same payload can complete at more
-    // than one candidate of the same window, and counting it twice would
-    // double that window's signal.
-    const uint8_t bit = (uint8_t)(1u << (c - agg_clusters));
-    if (*matched_mask & bit) return;
-
-    c->active = true;
-    for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        c->weight[n] += sym_weight[n];
-    }
-    // Running majority of the contributing banks: with banks in {0,1} the
-    // rounded running mean is the majority.
-    c->bank = (uint8_t)((c->bank * c->count + contribution->bank) / (c->count + 1));
-    c->count++;
-    c->age = 0;
-    c->last_row_offset = contribution->row_offset;
-    c->last_snr_db = contribution->snr_db;
-    c->last_sync_score = contribution->sync_score;
-    *matched_mask |= bit;
-}
-
-/*
- * Attempt one cluster decode on the SUM of its accumulated weights, clipped
- * into the int8 the stack decoder reads, through the same stack decode and
- * acceptance gates as a per-window decode. Returns true and fills *out
- * (agg_windows NOT set - the caller takes it from the cluster) when the
- * accumulated weights decode.
- */
-static bool agg_decode_cluster(const wspr_agg_cluster_t* c, wspr_decode_result_t* out) {
-    // The raw sum fits int8 while count <= 21 (weights clip at +-6 per
-    // window); past that only repeatedly strong symbols clip, which costs the
-    // tail of the soft scale but keeps every sign. The gates read the sum
-    // scale (see the cluster table's block comment).
-    for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        int32_t w = c->weight[n];
-        if (w > 127) w = 127;
-        if (w < -127) w = -127;
-        sym_weight[n] = (int8_t)w;
-    }
-    deinterleave_weights(sym_weight, bit_weight);
-
-    uint8_t source[WSPR_SOURCE_BYTES];
-    int16_t metric = 0;
-    if (!stack_decode(bit_weight, source, &metric)) return false;
-    if (metric < WSPR_REPORT_METRIC_MIN) return false;
-    const int agreement = reencode_agreement(source);
-    if (agreement < WSPR_MIN_AGREEMENT_PCT) return false;
-
-    wspr_message_t message;
-    if (!wspr_unpack_message(source, &message)) return false;
-
-    memset(out, 0, sizeof(*out));
-    memcpy(out->callsign, message.callsign, sizeof(message.callsign));
-    memcpy(out->grid, message.grid, sizeof(message.grid));
-    out->dbm = message.dbm;
-    // Effective SNR of the integrated decode: the newest contributing
-    // window's readout plus the coherent-integration gain 10*log10(count)
-    // dB, in integer steps of 3 dB per doubling.
-    int shift = 0;
-    for (uint32_t v = c->count; v > 1; v >>= 1) shift++;
-    int snr = c->last_snr_db + 3 * shift;
-    if (snr > 127) snr = 127;
-    out->snr_db = (int8_t)snr;
-    out->freq_hz = c->freq_hz;
-    // The integration spans whole windows, so a per-window drift figure is
-    // meaningless for the accumulated decode.
-    out->drift_bins = 0;
-    // The tracker-relevant fields ride from the newest contributing decode:
-    // the app steers its capture phase on row_offset and shows the sync
-    // excess, and the accumulated weights carry no alignment scan of their own.
-    out->row_offset = c->last_row_offset;
-    out->sync_score = c->last_sync_score;
-    out->metric = metric;
-    out->bank = (int8_t)c->bank;
-    out->agreement_pct = (int8_t)agreement;
-    return true;
-}
-
 int wspr_decode_window(const uint8_t* mag,
                        int num_rows,
                        int num_bins,
@@ -622,7 +369,7 @@ int wspr_decode_window(const uint8_t* mag,
 
     // Per-bank geometry of the interleaved matrix: the address of (row, col)
     // in bank `bank` is row * stride + base + col. time_osr = 1 degenerates
-    // to the plain single-grid matrix (base 0, stride num_bins).
+    // to the plain row-major matrix (base 0, stride num_bins).
     const int stride = time_osr * num_bins;
 
     // Accepted decodes from every bank land here first, get ranked, and only
@@ -632,16 +379,9 @@ int wspr_decode_window(const uint8_t* mag,
     // frequency (no CRC protects the payload). Alignment sharpness separates
     // them: the aligned bank's mean sync-bin excess runs about twice the
     // smeared one's, so the pool is ranked on it before one decode per
-    // station/frequency is kept. Aggregated cluster decodes join the same
-    // pool after the bank loop, so the duplicate suppression below sees one
-    // list: an aggregated decode of a payload already reported per-window
-    // outranks it.
-    wspr_decode_result_t merged[WSPR_MAX_CANDIDATES * 2 + WSPR_AGG_CLUSTERS];
+    // station/frequency is kept.
+    wspr_decode_result_t merged[WSPR_MAX_CANDIDATES * 2];
     int n_merged = 0;
-
-    // Clusters matched (or created) by THIS window's accepted decodes; the
-    // aging pass at the end of the window only increments the others.
-    uint8_t agg_matched = 0;
 
     // Stage 1 + stage 2 run per sub-row bank: each bank is a full view of the
     // window on its own row grid, with its own candidate list.
@@ -778,58 +518,46 @@ int wspr_decode_window(const uint8_t* mag,
             // The channel symbols carry interleaved coded bits: undo the
             // bit-reversal interleave so the stack decoder sees them in the
             // encoder's natural (poly0, poly1) order.
-            deinterleave_weights(sym_weight, bit_weight);
+            {
+                int p = 0;
+                for (unsigned i = 0; i < 256; i++) {
+                    const unsigned j = bit_reverse_8((uint8_t)i);
+                    if (j < WSPR_CODED_BITS) {
+                        bit_weight[p++] = sym_weight[j];
+                    }
+                }
+            }
 
             uint8_t source[WSPR_SOURCE_BYTES];
             int16_t metric = 0;
             if (!stack_decode(bit_weight, source, &metric)) continue;
+            // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
+            if (metric < WSPR_REPORT_METRIC_MIN) continue;
 
             // Re-encode agreement, the impostor gate: regenerate the channel
             // symbols from the decoded payload and count hard disagreements
-            // with the received hard decisions (see reencode_agreement). Read
-            // BEFORE the metric gate: every completion that gets this far is a
-            // candidate contribution for the multi-slot accumulation below,
-            // and the reporting path then applies the metric gate on top.
-            const int agreement = reencode_agreement(source);
+            // with the received hard decisions. WSPR has no CRC, so payload
+            // validity alone admits about one impostor per seven completions;
+            // a true decode agrees with nearly every symbol while a noise
+            // completion disagrees on about half (wsprd's count_hard_errors,
+            // JT65's deep-search acceptance rule).
+            uint8_t reenc[WSPR_CODED_BITS];
+            wspr_encode_bits(source, reenc);
+            int nonzero = 0;
+            int disagree = 0;
+            for (int n = 0; n < WSPR_CODED_BITS; n++) {
+                if (sym_weight[n] == 0) continue;
+                nonzero++;
+                if ((sym_weight[n] > 0) != (reenc[n] != 0)) disagree++;
+            }
+            const int agreement = nonzero > 0 ? (100 * (nonzero - disagree)) / nonzero : 0;
             if (agreement < WSPR_MIN_AGREEMENT_PCT) continue;
 
             wspr_message_t message;
             if (!wspr_unpack_message(source, &message)) continue;
 
             // Audio frequency of this candidate's tone 0.
-            const int16_t cand_freq =
-                (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
-            // Rough SNR for display: mean tone-bin excess over the pair mean, in
-            // 0.5 dB bytes converted to dB.
-            int32_t signal_sum = 0;
-            for (int n = 0; n < WSPR_CODED_BITS; n++) {
-                const int row = best_row[k] + n;
-                // The winning bin of symbol n's pair: +2 for data bit 1.
-                const int col = pair_cols[n] + (sym_weight[n] >= 0 ? 2 : 0);
-                signal_sum += mag[row * stride + base + col];
-            }
-            const int8_t snr_est = (int8_t)((signal_sum / WSPR_CODED_BITS - mean) / 2);
-
-            // Every agreement-passing, unpack-valid completion feeds its
-            // payload's cluster - including the completions the metric gate
-            // rejects below. A station below the per-window threshold still
-            // completes at its true alignment with high agreement in most
-            // windows, and integrating those windows is what the accumulation
-            // is for (see the cluster table's block comment). sym_weight still
-            // holds this candidate's demodulation here.
-            {
-                wspr_decode_result_t contribution;
-                memset(&contribution, 0, sizeof(contribution));
-                contribution.freq_hz = cand_freq;
-                contribution.row_offset = (int16_t)best_row[k];
-                contribution.snr_db = snr_est;
-                contribution.sync_score = (int16_t)drift_excess;
-                contribution.bank = (int8_t)bank;
-                agg_accumulate(source, &contribution, &agg_matched);
-            }
-
-            // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
-            if (metric < WSPR_REPORT_METRIC_MIN) continue;
+            const int16_t out_freq = (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
 
             // Park the decode in the merge pool; ranking and duplicate
             // suppression across candidates and banks happen once every bank
@@ -839,8 +567,17 @@ int wspr_decode_window(const uint8_t* mag,
             memcpy(out->callsign, message.callsign, sizeof(message.callsign));
             memcpy(out->grid, message.grid, sizeof(message.grid));
             out->dbm = message.dbm;
-            out->snr_db = snr_est;
-            out->freq_hz = cand_freq;
+            // Rough SNR for display: mean tone-bin excess over the pair mean, in
+            // 0.5 dB bytes converted to dB.
+            int32_t signal_sum = 0;
+            for (int n = 0; n < WSPR_CODED_BITS; n++) {
+                const int row = best_row[k] + n;
+                // The winning bin of symbol n's pair: +2 for data bit 1.
+                const int col = pair_cols[n] + (sym_weight[n] >= 0 ? 2 : 0);
+                signal_sum += mag[row * stride + base + col];
+            }
+            out->snr_db = (int8_t)((signal_sum / WSPR_CODED_BITS - mean) / 2);
+            out->freq_hz = out_freq;
             out->drift_bins = (int16_t)best_drift;
             // Display metric: mean sync-bin excess over the pair-bin noise mean,
             // in 0.5 dB bytes, of the drift-refined alignment. Noise windows
@@ -858,53 +595,15 @@ int wspr_decode_window(const uint8_t* mag,
         }
     }
 
-    // Multi-slot accumulation: every cluster holding at least two integrated
-    // windows gets a decode attempt on its accumulated weights, through the
-    // same stack decode and acceptance gates as a per-window decode. Decoded
-    // clusters are not reset - they keep integrating, and the deduplication
-    // below plus the app's two-slot confirmation handle repeat reporting.
-    for (int i = 0; i < WSPR_AGG_CLUSTERS && n_merged < (int)(sizeof(merged) / sizeof(merged[0])); i++) {
-        const wspr_agg_cluster_t* c = &agg_clusters[i];
-        if (!c->active || c->count < WSPR_AGG_MIN_COUNT) continue;
-        wspr_decode_result_t agg;
-        if (!agg_decode_cluster(c, &agg)) continue;
-        agg.agg_windows = (int8_t)c->count;
-        merged[n_merged++] = agg;
-    }
-
-    // Age the clusters: windows since the last match; a station that stopped
-    // transmitting frees its slot, and a fully integrated cluster (64 windows,
-    // some two hours of repeats) does too.
-    for (int i = 0; i < WSPR_AGG_CLUSTERS; i++) {
-        wspr_agg_cluster_t* c = &agg_clusters[i];
-        if (!c->active) continue;
-        if (c->count >= WSPR_AGG_MAX_COUNT) {
-            c->active = false;
-            continue;
-        }
-        if (!(agg_matched & (1u << i))) {
-            c->age++;
-            if (c->age > WSPR_AGG_MAX_AGE) c->active = false;
-        }
-    }
-
-    // Rank the merge pool: aggregated decodes (agg_windows >= 2) first - their
-    // weights integrate several windows, so they outrank any per-window decode
-    // of the same station - then by alignment sharpness (the mean sync-bin
-    // excess stored in sync_score): the aligned bank of a transmission
-    // outranks its smeared twin. The duplicate pass below keeps the first
-    // entry, so it keeps the aggregated decode over the per-window one and the
-    // true decode over the impostor the misaligned bank produced alongside it.
-    // Stable insertion sort over a pool of at most
-    // 2 * WSPR_MAX_CANDIDATES + WSPR_AGG_CLUSTERS.
+    // Rank the merge pool by alignment sharpness (the mean sync-bin excess
+    // stored in sync_score): the aligned bank of a transmission outranks its
+    // smeared twin, so the duplicate pass below keeps the true decode and
+    // drops the impostor the misaligned bank produced alongside it. Stable
+    // insertion sort over a pool of at most 2 * WSPR_MAX_CANDIDATES.
     for (int i = 1; i < n_merged; i++) {
         const wspr_decode_result_t key = merged[i];
-        const bool key_agg = key.agg_windows >= 2;
         int j = i - 1;
-        while (j >= 0) {
-            const bool cur_agg = merged[j].agg_windows >= 2;
-            if (cur_agg > key_agg) break;  // aggregated entries never sink
-            if (cur_agg == key_agg && merged[j].sync_score >= key.sync_score) break;
+        while (j >= 0 && merged[j].sync_score < key.sync_score) {
             merged[j + 1] = merged[j];
             j--;
         }

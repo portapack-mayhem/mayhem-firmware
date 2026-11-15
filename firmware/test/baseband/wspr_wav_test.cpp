@@ -334,11 +334,10 @@ int run_capture(const std::vector<int16_t>& samples,
     } else {
         printf("    decode: %d result(s)\n", count);
         for (int i = 0; i < count; i++) {
-            printf("      %s %s %d  snr=%d dB  freq=%d Hz  drift=%d  row_offset=%d  bank=%d  agg=%d\n",
+            printf("      %s %s %d  snr=%d dB  freq=%d Hz  drift=%d  row_offset=%d  bank=%d\n",
                    results[i].callsign, results[i].grid, results[i].dbm,
                    results[i].snr_db, results[i].freq_hz,
-                   results[i].drift_bins, results[i].row_offset, results[i].bank,
-                   results[i].agg_windows);
+                   results[i].drift_bins, results[i].row_offset, results[i].bank);
         }
     }
     return count;
