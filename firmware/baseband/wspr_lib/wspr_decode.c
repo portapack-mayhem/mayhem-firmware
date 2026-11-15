@@ -477,6 +477,8 @@ int wspr_decode_window(const uint8_t* mag,
         // Column spacing is 12000/8192 Hz; column 0 sits at bin0_hz.
         out->freq_hz = (int16_t)(bin0_hz + (best_col[k] * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
         out->drift_bins = (int16_t)best_drift;
+        // Where in the window the transmission started, for the slot tracker.
+        out->row_offset = (int16_t)best_row[k];
     }
     return count;
 }

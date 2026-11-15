@@ -35,8 +35,8 @@ WORKING_AREA(wspr_decode_thread_wa, 4096);
 
 Thread* WSPRDecodeThread::thread_ = nullptr;
 
-WSPRDecodeThread::WSPRDecodeThread(wspr_portapack_state_t* state)
-    : state_{state} {
+WSPRDecodeThread::WSPRDecodeThread(wspr_portapack_state_t* state, WSPRRxProcessor* processor)
+    : state_{state}, processor_{processor} {
     chBSemInit(&sem_, TRUE);  // start taken
     start();
 }
@@ -85,6 +85,12 @@ void WSPRDecodeThread::run() {
             results,
             WSPR_MAX_RESULTS);
 
+        // Close the tracking loop first: the row offset is only valid for the window
+        // that was just decoded, and the correction it computes is consumed when the
+        // NEXT window fills (one window of lag, as in FT8).
+        processor_->on_window_decoded(
+            (uint8_t)(num_results > 255 ? 255 : num_results), results);
+
         for (int i = 0; i < num_results; i++) {
             shared_memory.application_queue.push(WSPRPacketMessage{
                 results[i].callsign,
@@ -96,10 +102,9 @@ void WSPRDecodeThread::run() {
         }
 
         // One update per window, so the UI can show that the two-minute capture is alive.
-        // Fixed-phase v1 has no slot loop to report on, so the state is always Searching.
         WSPRRxStatusMessage status{
-            WSPRRxStatusMessage::SyncState::Searching,
-            (uint8_t)(num_results > 255 ? 255 : num_results)};
+            (WSPRRxStatusMessage::SyncState)processor_->sync_state_code(),
+            (uint8_t)num_results};
         shared_memory.application_queue.push(status);
 
         // Release the window so the baseband thread can start the next capture.
@@ -157,22 +162,70 @@ void WSPRRxProcessor::process_wspr_audio(const buffer_f32_t& audio) {
         decimate_phase = !decimate_phase;
         if (!decimate_phase) continue;
 
+        // Tail of the window: the decoder runs here, and any phase correction the
+        // tracker asked for is already folded into this count.
+        if (skip_samples > 0) {
+            skip_samples--;
+            continue;
+        }
+
         // Inf passes the NaN check, since Inf == Inf holds.
         if (sample != sample || sample > 1e15f || sample < -1e15f) sample = 0.0f;
 
-        // Fixed-phase v1: windows run back to back. Once the matrix is full,
-        // feed_sample keeps reporting a full window until the decode thread calls
-        // reset_window(), and the samples that keep arriving during the decode are
-        // dropped on the floor — so the next window starts when the decoder is done,
-        // and the slot phase walks by the decode time on top of WINDOW_OVERHANG. The
-        // decoder searches the 14-row slack for the transmission start, and the later
-        // slot-tracking task replaces this scheme with real slot sync.
         if (wspr_portapack_feed_sample(&decoder_state, sample)) {
-            // A repeat call while the previous window is still decoding fails the busy
-            // check and is harmless.
-            decode_thread.signal_decode();
+            if (decode_thread.signal_decode()) {
+                // The window just filled. The correction the PREVIOUS window's decode
+                // computed applies from here: normally zero (back-to-back capture), a
+                // ~111 s jump when the transmission reached the bottom of the slack, or
+                // a dither step after failed windows. The decode runs in the dropped
+                // samples that follow.
+                skip_samples = (uint32_t)pending_skip.exchange(0, std::memory_order_acq_rel);
+            } else {
+                // Still decoding the previous window: drop a row at a time until the
+                // reset, then the skip above takes over.
+                skip_samples = WSPR_SAMPLES_PER_SYMBOL;
+            }
         }
     }
+}
+
+void WSPRRxProcessor::on_window_decoded(uint8_t num_results, const wspr_decode_result_t* results) {
+    int32_t skip = 0;
+
+    if (num_results > 0) {
+        locked = true;
+        quiet_windows = 0;
+        const int16_t row = results[0].row_offset;
+        // Sliding out of the bottom of the slack: jump the window phase forward so the
+        // transmission lands near TRACK_LAND_ROW. row' = row + (SLOT - OVERHANG - skip)
+        // / 8192, so the skip below yields row' = TRACK_LAND_ROW; the dead air is one
+        // slot minus the transmission, about 111 s.
+        if (row <= 1) {
+            skip = SLOT_SAMPLES - WINDOW_OVERHANG -
+                   (int32_t)(TRACK_LAND_ROW - row) * WSPR_SAMPLES_PER_SYMBOL;
+        }
+    } else if (locked) {
+        if (++quiet_windows < QUIET_LIMIT) {
+            // Locked but nothing decoded: the row grid has likely walked off the symbol
+            // boundaries, so step the phase a sixth of a row and retry.
+            skip = DITHER_STEP;
+        } else {
+            // Four empty windows in a row: the band went quiet or the alignment is
+            // gone either way. Start over; acquisition costs nothing (a longer window
+            // sees the whole slot regardless of phase).
+            locked = false;
+            quiet_windows = 0;
+        }
+    }
+
+    pending_skip.store(skip, std::memory_order_release);
+}
+
+uint8_t WSPRRxProcessor::sync_state_code() const {
+    if (!locked)
+        return (uint8_t)WSPRRxStatusMessage::SyncState::Searching;
+    return (uint8_t)(quiet_windows > 0 ? WSPRRxStatusMessage::SyncState::Syncing
+                                       : WSPRRxStatusMessage::SyncState::Locked);
 }
 
 void WSPRRxProcessor::on_message(const Message* const message) {

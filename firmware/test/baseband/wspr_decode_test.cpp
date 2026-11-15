@@ -213,6 +213,9 @@ TEST_CASE("decodes with time and frequency offsets") {
             // Tone 0 sits on bin kBin0 + 45 = 1465.9 Hz.
             CHECK(results[i].freq_hz > 1464);
             CHECK(results[i].freq_hz < 1468);
+            // The transmission starts at capture row 3; the slot tracker
+            // steers this offset.
+            CHECK_EQ(results[i].row_offset, 3);
         }
     }
 }

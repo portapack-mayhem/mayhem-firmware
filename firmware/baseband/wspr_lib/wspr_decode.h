@@ -47,6 +47,8 @@ typedef struct {
     int8_t snr_db;       // rough estimate, for display only
     int16_t freq_hz;     // audio frequency of tone 0, relative to the dial
     int16_t drift_bins;  // total frequency walk over the window, in bins
+    int16_t row_offset;  // window row the transmission starts in; the slot
+                         // tracker steers this toward the middle of the slack
 } wspr_decode_result_t;
 
 #ifdef __cplusplus

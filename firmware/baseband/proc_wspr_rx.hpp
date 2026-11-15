@@ -46,7 +46,7 @@ class WSPRRxProcessor;
 // which signals the semaphore once the capture window is full.
 class WSPRDecodeThread : public ThreadBase {
    public:
-    WSPRDecodeThread(wspr_portapack_state_t* state);
+    WSPRDecodeThread(wspr_portapack_state_t* state, WSPRRxProcessor* processor);
     ~WSPRDecodeThread();
 
     WSPRDecodeThread(const WSPRDecodeThread&) = delete;
@@ -63,6 +63,7 @@ class WSPRDecodeThread : public ThreadBase {
     void run() override;
 
     wspr_portapack_state_t* state_;
+    WSPRRxProcessor* processor_;
     BinarySemaphore sem_{};
     std::atomic<bool> busy_{false};
     std::atomic<bool> terminate_{false};
@@ -111,26 +112,53 @@ class WSPRRxProcessor : public BasebandProcessor {
 
     // The T/R slot is 120 s and a transmission about 110.6 s, but the receiver cannot know
     // where in the slot the transmission started, so the capture window is longer than the
-    // slot: 176 rows of 8192 samples = 120.13 s, leaving 14 rows of slack for the decoder
-    // to search for the transmission start.
+    // slot: 176 rows of 8192 samples = 120.13 s. A window that is longer than the slot
+    // contains any transmission completely no matter where it starts, which is what makes
+    // acquisition free: no sweeping is needed, the decoder finds the transmission in the
+    // 14 rows of slack.
     static constexpr int32_t SLOT_SAMPLES = 120 * WSPR_SAMPLE_RATE;  // 1440000
     static constexpr int32_t WINDOW_SAMPLES =
         WSPR_RX_NUM_ROWS * WSPR_SAMPLES_PER_SYMBOL;  // 1441792
-    // How much later in the slot each window starts than the one before it. Windows run
-    // back to back, so the capture phase walks this far per slot, about 2.5 minutes of
-    // phase per day, until the 14-row slack is used up. That is fine for the decoder, but
-    // it is not real slot sync: this is fixed-phase v1, and a later task replaces the
-    // back-to-back scheme with true slot tracking (the status below still reports
-    // Searching for the same reason).
+    // How much later in the slot each back-to-back window starts than the one before it.
+    // The phase walks this far per window plus the decode overrun, so the row offset the
+    // decoder reports slides down by roughly half a row per window, and the tracker below
+    // periodically jumps it back up.
     static constexpr int32_t WINDOW_OVERHANG = WINDOW_SAMPLES - SLOT_SAMPLES;
     static_assert(WINDOW_OVERHANG == 1792, "Window length vs slot length changed");
     static_assert(WINDOW_OVERHANG < SLOT_SAMPLES, "Window must fit near the slot");
 
+    // Slot tracking, the FT8 loop adapted. A confirmed decode is the only alignment
+    // proof, so like FT8 the tracker trusts decodes alone. When the reported row offset
+    // reaches the bottom of the slack the next jump would come too late, so the tracker
+    // jumps the window phase forward by (LAND_ROW - row) rows: the skip is one slot minus
+    // the overhang minus the jump, about 111 s of dead air, and the transmission lands
+    // near the end of the slack with the maximum drift room ahead of it. Between jumps
+    // the loop dithers the sub-row phase by one sixth of a row on failed windows, the
+    // same walk FT8 does, because a row grid that is off the symbol boundaries smears
+    // every symbol across two tones.
+    static constexpr int16_t TRACK_LAND_ROW = 13;
+    static constexpr int32_t DITHER_STEP = WSPR_SAMPLES_PER_SYMBOL / 6;
+    static constexpr uint8_t QUIET_LIMIT = 4;  // locked -> reacquire after this many empty windows
+
+    std::atomic<int32_t> pending_skip{0};  // decode thread -> baseband thread, in samples
+    uint32_t skip_samples{0};              // consumed at 12 kHz by the baseband thread
+
+    // Written only by the decode thread.
+    bool locked{false};
+    uint8_t quiet_windows{0};
+
     void capture_config(const CaptureConfigMessage& message);
     void process_wspr_audio(const buffer_f32_t& audio);
 
+   public:
+    // Runs on the decode thread: turns the reported row offset into the next capture
+    // phase correction and the status the UI sees.
+    void on_window_decoded(uint8_t num_results, const wspr_decode_result_t* results);
+    uint8_t sync_state_code() const;
+
+   private:
     /* NB: Threads should be the last members in the class definition. */
-    WSPRDecodeThread decode_thread{&decoder_state};
+    WSPRDecodeThread decode_thread{&decoder_state, this};
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 };
