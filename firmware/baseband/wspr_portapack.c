@@ -229,4 +229,11 @@ void wspr_portapack_reset_window(wspr_portapack_state_t* state) {
     state->rows_filled = 0;
     state->samples_in_row = 0;
     state->window_full = false;
+    // Bank 1 keeps its own row counters (finish_row derives its matrix row from
+    // bank1_rows_filled); missing these here let the derived offset grow past the
+    // matrix by ~137 bytes per window, writing into the heap arena in window 3 and
+    // past the end of RAM in window 4.
+    state->bank1_rows_filled = 0;
+    state->bank1_samples_in_row = 0;
+    state->total_samples = 0;
 }
