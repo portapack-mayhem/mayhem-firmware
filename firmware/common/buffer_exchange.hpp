@@ -48,6 +48,12 @@ class BufferExchange {
         return get(fifo_buffers_for_application);
     }
 
+    StreamBuffer* get_interruptible() {
+        return get(fifo_buffers_for_application, true);
+    }
+
+    static void wake_waiter(Thread* target);
+
     StreamBuffer* get_prefill() {
         return get_prefill(fifo_buffers_for_application);
     }
@@ -107,7 +113,7 @@ class BufferExchange {
         }
     }
 
-    StreamBuffer* get(FIFO<StreamBuffer*>* fifo);
+    StreamBuffer* get(FIFO<StreamBuffer*>* fifo, bool stop_on_terminate = false);
 
     StreamBuffer* get_prefill(FIFO<StreamBuffer*>* fifo);
 };
