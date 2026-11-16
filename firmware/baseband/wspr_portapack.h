@@ -46,7 +46,12 @@
 // sample 4096 (mod 8192) every phase is within +-2048 samples of one bank's grid. Block-
 // row index of the magnitude matrix = 2*symbol_row + bank, so the matrix holds
 // 2*176 = 352 rows of WSPR_RX_NUM_BINS bytes.
+#ifndef WSPR_RX_TIME_OSR
 #define WSPR_RX_TIME_OSR 2
+#endif
+#if WSPR_RX_TIME_OSR != 1 && WSPR_RX_TIME_OSR != 2
+#error "WSPR_RX_TIME_OSR must be 1 or 2"
+#endif
 #define WSPR_RX_BANK1_OFFSET (WSPR_SAMPLES_PER_SYMBOL / 2)  // 4096 samples
 #define WSPR_RX_BLOCK_ROWS (WSPR_RX_TIME_OSR * WSPR_RX_NUM_ROWS)
 #define WSPR_RX_MATRIX_SIZE (WSPR_RX_BLOCK_ROWS * WSPR_RX_NUM_BINS)  // 48224 bytes

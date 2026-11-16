@@ -1,0 +1,27 @@
+# Standalone host tests: cmake -S firmware/test/baseband/wspr -B build_wspr_asan
+cmake_minimum_required(VERSION 3.16)
+project(wspr_host_tests LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+option(WSPR_SANITIZE "Enable address and undefined-behavior sanitizers" ON)
+if(WSPR_SANITIZE)
+    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address,undefined)
+endif()
+enable_testing()
+get_filename_component(FIRMWARE "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
+set(WSPR "${FIRMWARE}/baseband/wspr_lib")
+add_library(wspr STATIC
+    ${WSPR}/wspr_constants.c ${WSPR}/wspr_encode.c
+    ${WSPR}/wspr_unpack.c ${WSPR}/wspr_decode.c)
+target_include_directories(wspr PUBLIC ${WSPR} ${FIRMWARE}/test/include)
+add_executable(wspr_decode_test ../main.cpp ../wspr_decode_test.cpp ../wspr_lib_test.cpp)
+target_link_libraries(wspr_decode_test PRIVATE wspr)
+add_test(NAME wspr_decode COMMAND wspr_decode_test)
+foreach(osr 1 2)
+    add_executable(wspr_portapack_osr${osr}_test
+        ../wspr_portapack_test.cpp ${FIRMWARE}/baseband/wspr_portapack.c)
+    target_compile_definitions(wspr_portapack_osr${osr}_test PRIVATE WSPR_RX_TIME_OSR=${osr})
+    target_link_libraries(wspr_portapack_osr${osr}_test PRIVATE wspr)
+    add_test(NAME wspr_portapack_osr${osr} COMMAND wspr_portapack_osr${osr}_test)
+endforeach()

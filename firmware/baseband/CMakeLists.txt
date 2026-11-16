@@ -878,6 +878,13 @@ set(MODE_CPPSRC
 # logging, stdio stays out of the image and the vendored headers stay untouched.
 set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
 DeclareTargets(PWSR wspr_rx)
+# Only the event loop and setup run on main's stack; decoding has its own 3 KiB.
+# Reserve the real heap budget (including RSSI DMA) at link time.
+target_link_libraries(baseband_wspr_rx.elf
+    -Wl,--defsym=__process_stack_size__=1024
+    -Wl,--script=${CMAKE_CURRENT_SOURCE_DIR}/wspr_memory.ld)
+set_property(TARGET baseband_wspr_rx.elf APPEND PROPERTY LINK_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/wspr_memory.ld)
 set(MODE_FLAGS "-O3")
 
 ### SD over USB

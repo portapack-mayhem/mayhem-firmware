@@ -28,10 +28,10 @@
 
 #include <cstring>
 
-// 4 KB, the same budget the FT8 decoder thread gets: the WSPR search works on the
-// byte-sized magnitude matrix in place and keeps its scratch in statics, so only small
-// locals (the result array among them) land on this stack.
-WORKING_AREA(wspr_decode_thread_wa, 4096);
+// The decoder's measured call chain fits in 3 KiB including the thread context.
+// Keep this separate from the small event-loop stack: the matrix search runs here,
+// while DMA processing and RSSI each have their own thread stack.
+WORKING_AREA(wspr_decode_thread_wa, 3072);
 
 Thread* WSPRDecodeThread::thread_ = nullptr;
 
@@ -176,6 +176,9 @@ WSPRRxProcessor::WSPRRxProcessor() {
     audio_output.configure(false);
 
     wspr_portapack_init(&decoder_state);
+    // Fresh accumulation clusters per app launch: the multi-slot integration
+    // must not inherit weights from a previous session's band/frequency.
+    wspr_decode_reset_aggregation();
 
     configured = true;
 }

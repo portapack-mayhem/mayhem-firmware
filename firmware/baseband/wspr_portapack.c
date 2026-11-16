@@ -86,7 +86,7 @@ static void finish_row(wspr_portapack_state_t* state, int bank) {
     // Block-row = 2*symbol_row + bank, the interleaved layout wspr_decode_window() walks
     // with time_osr = 2.
     const int rows = bank ? state->bank1_rows_filled : state->rows_filled;
-    const int row_offset = (2 * rows + bank) * WSPR_RX_NUM_BINS;
+    const int row_offset = (WSPR_RX_TIME_OSR * rows + bank) * WSPR_RX_NUM_BINS;
 
     for (int b = 0; b < WSPR_RX_NUM_BINS; b++) {
         float s1 = goertzel_s1[bank][b];
@@ -181,6 +181,7 @@ bool wspr_portapack_feed_sample(wspr_portapack_state_t* state, float sample) {
         finish_row(state, 0);
     }
 
+#if WSPR_RX_TIME_OSR == 2
     // Bank 1 runs the same stream on a row grid shifted half a symbol: it starts
     // accumulating at stream sample 4096 and closes its rows at 4096 (mod 8192). A
     // transmission at an arbitrary sub-row phase is therefore within a quarter symbol of
@@ -192,6 +193,7 @@ bool wspr_portapack_feed_sample(wspr_portapack_state_t* state, float sample) {
             finish_row(state, 1);
         }
     }
+#endif
     state->total_samples++;
 
     return state->window_full;

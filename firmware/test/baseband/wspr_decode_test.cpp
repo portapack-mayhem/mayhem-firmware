@@ -231,11 +231,19 @@ bool contains(const wspr_decode_result_t* results, int count, const char* call, 
 }  // namespace
 
 TEST_CASE("clean signal decodes at exact alignment") {
+    // The cluster table is file-static and doctest runs every case in one
+    // process, so each case clears it before decoding.
+    wspr_decode_reset_aggregation();
     const Capture cap = make_capture("K1ABC", "FN20", 37, kBin0 + 10, 1, 40.0f, 12345);
     wspr_decode_result_t results[WSPR_MAX_RESULTS];
     const int count = decode_capture(cap, results);
     REQUIRE(count >= 1);
     CHECK(contains(results, count, "K1ABC", "FN20", 37));
+    // A single window can never claim aggregation: one slot per window per
+    // cluster, and a cluster only decodes from two integrated windows on.
+    for (int i = 0; i < count; i++) {
+        CHECK_EQ(results[i].agg_windows, 0);
+    }
     // The clean capture's tone bins sit far above the pair-bin noise mean;
     // the status line surfaces this as the live signal-quality readout.
     CHECK(results[0].sync_score > 20);
@@ -243,6 +251,7 @@ TEST_CASE("clean signal decodes at exact alignment") {
 
 TEST_CASE("decodes at wspr-level noise") {
     // -20 dB and -26 dB on the WSJT scale; the spec target is -28 dB.
+    wspr_decode_reset_aggregation();
     for (const float snr : {-20.0f, -26.0f}) {
         CAPTURE(snr);
         const Capture cap = make_capture("KV4XY", "EM10", 30, kBin0 + 20, 2, snr, 777);
@@ -253,6 +262,7 @@ TEST_CASE("decodes at wspr-level noise") {
 }
 
 TEST_CASE("decodes with time and frequency offsets") {
+    wspr_decode_reset_aggregation();
     const Capture cap = make_capture("WX2YZ", "JJ19", 27, kBin0 + 45, 3, -24.0f, 4242);
     wspr_decode_result_t results[WSPR_MAX_RESULTS];
     const int count = decode_capture(cap, results);
@@ -274,6 +284,11 @@ TEST_CASE("decodes with time and frequency offsets") {
 }
 
 TEST_CASE("dual-bank decode survives an exact half-row misalignment") {
+    // Each decode below runs against a cleared cluster table, so the single-
+    // bank attempt cannot seed a cluster the dual-bank decode then completes
+    // (the aggregated result would replace the per-window one this case
+    // inspects).
+    wspr_decode_reset_aggregation();
     // The v2 failure mode: the receiver's capture starts at an arbitrary
     // stream sample, so the transmission can start half a symbol away from
     // the row grid, and every row-quantized symbol then smears across two
@@ -313,7 +328,11 @@ TEST_CASE("dual-bank decode survives an exact half-row misalignment") {
 
     // Dual banks, the v2 behaviour: bank 1's row grid sits exactly on the
     // transmission's symbol boundaries, so the message must decode out of
-    // bank 1 while the output stays a single merged result list.
+    // bank 1 while the output stays a single merged result list. The cluster
+    // table is cleared again first: the smeared single-bank attempt above may
+    // have completed the payload below the gates, and its cluster must not
+    // complete under this decode.
+    wspr_decode_reset_aggregation();
     const int dual_count = wspr_decode_window(dual.data(), kRows, kNumBins,
                                               kBin0 * kBinStepNum / kBinStepDen,
                                               results, WSPR_MAX_RESULTS, 2);
@@ -359,7 +378,11 @@ TEST_CASE("noise-only window stays bounded") {
     // list and the report gate is the two-slot correlation the app applies
     // (real stations repeat within several windows, impostors are random).
     // This test pins the flood bound: a noise window must never yield more
-    // results than the candidate budget allows after deduplication.
+    // results than the candidate budget allows after deduplication. The
+    // windows run against ONE cluster table on purpose: their impostor
+    // completions fill it, and the accumulation must not turn that fill into
+    // aggregated decodes (see the accumulation case below).
+    wspr_decode_reset_aggregation();
     for (const uint32_t seed : {21u, 4242u, 909090u}) {
         CAPTURE(seed);
         Noise noise{seed};
@@ -372,5 +395,76 @@ TEST_CASE("noise-only window stays bounded") {
                                              kBin0 * kBinStepNum / kBinStepDen,
                                              results, WSPR_MAX_RESULTS, 1);
         CHECK_LE(count, 3);
+        for (int i = 0; i < count; i++) {
+            CHECK_EQ(results[i].agg_windows, 0);
+        }
+    }
+}
+
+TEST_CASE("two slots integrate into a decode below the per-window threshold") {
+    // The sensitivity extension: two captures of the same message at -26 dB
+    // WSJT, different noise seeds, each below the per-window gates on its
+    // own. Both windows complete the true payload at the true alignment with
+    // agreement 97-99 but a path metric of 13-19, under the report gate of
+    // 20, so neither window reports anything. The payload-keyed cluster
+    // integrates the two slots' weights; the accumulated decode runs through
+    // the same gates on the summed weights and clears them with margin.
+    //
+    // Both captures are synthesized with the same base bin and start row, so
+    // their sym_weight arrays are transmission-aligned by construction (the
+    // demod walks best_row + n, and symbol 0 is the transmission start in
+    // both) - which is what lets the weights sum coherently in symbol index.
+    wspr_decode_reset_aggregation();
+    const Capture cap1 = make_capture("K1ABC", "FN20", 37, kBin0 + 10, 1, -26.0f, 11);
+    const Capture cap2 = make_capture("K1ABC", "FN20", 37, kBin0 + 10, 1, -26.0f, 38);
+    wspr_decode_result_t results[WSPR_MAX_RESULTS];
+
+    const int count1 = decode_capture(cap1, results);
+    INFO("slot 1 alone: ", count1, " results");
+    CHECK_EQ(count1, 0);
+
+    const int count2 = decode_capture(cap2, results);
+    bool found = false;
+    for (int i = 0; i < count2; i++) {
+        if (strcmp(results[i].callsign, "K1ABC") == 0 && results[i].agg_windows >= 2) {
+            found = true;
+            // The aggregated result carries the integrated decode's quality:
+            // agreement near 100, and the sum-scale path metric with margin
+            // over the same gates the per-window decodes failed (agreement
+            // floor 62, report metric floor 20).
+            CHECK(results[i].agreement_pct >= 62);
+            CHECK(results[i].metric >= 20);
+            // Tone 0 of the cluster: the first contributing decode's audio
+            // frequency, bin kBin0 + 10.
+            CHECK_EQ(results[i].freq_hz,
+                     kBin0 * kBinStepNum / kBinStepDen + 10 * kBinStepNum / kBinStepDen);
+        }
+    }
+    REQUIRE(found);
+    CHECK(contains(results, count2, "K1ABC", "FN20", 37));
+}
+
+TEST_CASE("repeated noise windows never aggregate") {
+    // The adversarial accumulation case: pure noise fills the cluster table
+    // with impostor completions (agreement-passing, unpack-valid, metric-gated
+    // junk). Aggregated decodes additionally need the SAME payload twice -
+    // independent noise never repeats one - so the table churns without ever
+    // reporting. Six independent windows against one cluster table.
+    wspr_decode_reset_aggregation();
+    for (const uint32_t seed : {21u, 4242u, 909090u, 555u, 31337u, 7777u}) {
+        CAPTURE(seed);
+        Noise noise{seed};
+        std::vector<float> samples(kRows * WSPR_SAMPLES_PER_SYMBOL, 0.0f);
+        for (auto& s : samples) s = noise.gaussian();
+        std::vector<uint8_t> mag;
+        goertzel_matrix(samples, mag);
+        wspr_decode_result_t results[WSPR_MAX_RESULTS];
+        const int count = wspr_decode_window(mag.data(), kRows, kNumBins,
+                                             kBin0 * kBinStepNum / kBinStepDen,
+                                             results, WSPR_MAX_RESULTS, 1);
+        CHECK_LE(count, 3);
+        for (int i = 0; i < count; i++) {
+            CHECK_EQ(results[i].agg_windows, 0);
+        }
     }
 }
