@@ -52,9 +52,7 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
         reset_hunt_state();
     }
 
-    // CRITICAL IPC FIX: If M0 is tearing down the capture thread, it needs one last buffer
-    // to unblock buffers.get() and exit gracefully. We MUST continue decimating and writing
-    // as long as the stream exists, even if hunting was set to false by a manual UI stop.
+    // Keep the stream active until M0 explicitly closes it.
     if (!hunting && !stream) return;
 
     const auto out = decim_0.execute(buffer, dst_buffer);
@@ -123,8 +121,7 @@ void SignalHunterProcessor::execute(const buffer_c8_t& buffer) {
         }
     }
 
-    // CRITICAL: Continue writing to stream whenever it exists, even in AWAITING_CLOSE state,
-    // and even after a manual STOP — M0's CaptureThread needs this final data to unblock.
+    // Continue writing until M0 closes the stream, including in AWAITING_CLOSE.
     if (stream_active && stream) {
         stream->write(out.p, sizeof(complex16_t) * out.count);
     }
@@ -148,9 +145,7 @@ void SignalHunterProcessor::on_message(const Message* const message) {
 
             if (!configured) configure();
 
-            // DO NOT close the stream here if (!m.start).
-            // M4 must keep producing buffers until M0 explicitly sends CaptureConfig(nullptr)
-            // to prevent the M0 CaptureThread from deadlocking in buffers.get().
+            // Stream teardown is handled by CaptureConfig(nullptr).
             hunting = m.start;
             break;
         }

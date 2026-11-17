@@ -24,27 +24,36 @@
 BufferExchange* BufferExchange::obj{nullptr};
 
 BufferExchange::BufferExchange(
-    CaptureConfig* const config)  // : config_capture { config }
-{
-    obj = this;
+    CaptureConfig* const config, BufferExchange*& owner)
+    : owner{owner} {
     // In capture mode, baseband wants empty buffers, app waits for full buffers
     fifo_buffers_for_baseband = config->fifo_buffers_empty;
     fifo_buffers_for_application = config->fifo_buffers_full;
+    chSysLock();
+    obj = this;
+    owner = this;
+    chSysUnlock();
 }
 
 BufferExchange::BufferExchange(
-    ReplayConfig* const config)  // : config_replay { config }
-{
-    obj = this;
+    ReplayConfig* const config, BufferExchange*& owner)
+    : owner{owner} {
     // In replay mode, baseband wants full buffers, app waits for empty buffers
     fifo_buffers_for_baseband = config->fifo_buffers_full;
     fifo_buffers_for_application = config->fifo_buffers_empty;
+    chSysLock();
+    obj = this;
+    owner = this;
+    chSysUnlock();
 }
 
 BufferExchange::~BufferExchange() {
-    obj = nullptr;
-    fifo_buffers_for_baseband = nullptr;
-    fifo_buffers_for_application = nullptr;
+    chSysLock();
+    owner = nullptr;
+    if (obj == this) {
+        obj = nullptr;
+    }
+    chSysUnlock();
 }
 
 StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo, bool stop_on_terminate) {
@@ -73,10 +82,11 @@ StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo, bool stop_on_termin
 }
 
 #if defined(LPC43XX_M0)
-void BufferExchange::wake_waiter(Thread* target) {
+void BufferExchange::terminate_and_wake(Thread* target, BufferExchange*& owner) {
+    chThdTerminate(target);
     chSysLock();
-    if (obj && obj->thread == target) {
-        obj->wakeup_isr();
+    if (owner && owner->thread == target) {
+        owner->wakeup_isr();
         chSchRescheduleS();
     }
     chSysUnlock();
