@@ -24,7 +24,8 @@
 BufferExchange* BufferExchange::obj{nullptr};
 
 BufferExchange::BufferExchange(
-    CaptureConfig* const config, BufferExchange*& owner)
+    CaptureConfig* const config,
+    BufferExchange*& owner)
     : owner{owner} {
     // In capture mode, baseband wants empty buffers, app waits for full buffers
     fifo_buffers_for_baseband = config->fifo_buffers_empty;
@@ -36,7 +37,8 @@ BufferExchange::BufferExchange(
 }
 
 BufferExchange::BufferExchange(
-    ReplayConfig* const config, BufferExchange*& owner)
+    ReplayConfig* const config,
+    BufferExchange*& owner)
     : owner{owner} {
     // In replay mode, baseband wants full buffers, app waits for empty buffers
     fifo_buffers_for_baseband = config->fifo_buffers_full;
