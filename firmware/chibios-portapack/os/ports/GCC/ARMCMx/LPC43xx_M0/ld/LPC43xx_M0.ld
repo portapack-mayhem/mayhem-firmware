@@ -19,7 +19,11 @@
  * LPC43xx M0 memory setup.
  */
 __main_stack_size__     = 0x0400;   /* Exceptions/interrupts stack */
-__process_stack_size__  = 0x1000;   /* main() stack */
+/* main() stack. 4 KB left roughly 300 bytes free once the UI is up, and heavy
+ * shell commands (sd_over_usb boots the whole MSC stack) ran the UI thread off
+ * the stack into M0 Meditation on every attempt. 6 KB restores the headroom;
+ * the cost is 2 KB of the 44 KB M0 heap. */
+__process_stack_size__  = 0x1800;
 
 MEMORY
 {

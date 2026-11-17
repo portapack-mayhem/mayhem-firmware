@@ -182,6 +182,9 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        WSPRPacket = 126,
+        WSPRRxStatus = 127,
+        WSPRDebug = 128,
         MAX
     };
 
@@ -491,6 +494,151 @@ class FT8RxStatusMessage : public Message {
 
     SyncState state;
     uint8_t decode_count;
+};
+
+/* One decoded WSPR transmission, already unpacked to text by the baseband. */
+class WSPRPacketMessage : public Message {
+   public:
+    constexpr WSPRPacketMessage(
+        const char* message_callsign,
+        const char* message_grid,
+        int8_t message_dbm,
+        int8_t message_snr_db,
+        int16_t message_freq_hz,
+        int16_t message_drift_bins,
+        int8_t message_agreement_pct)
+        : Message{ID::WSPRPacket},
+          callsign{},
+          grid{},
+          dbm{message_dbm},
+          snr_db{message_snr_db},
+          freq_hz{message_freq_hz},
+          drift_bins{message_drift_bins},
+          agreement_pct{message_agreement_pct} {
+        /* Callsign is up to 12 characters and grid 4; both stop at the source terminator
+         * and are always terminated here, however short the source ran. */
+        size_t i = 0;
+        for (; i < sizeof(callsign) - 1 && message_callsign[i] != '\0'; i++)
+            callsign[i] = message_callsign[i];
+        callsign[i] = '\0';
+        for (i = 0; i < sizeof(grid) - 1 && message_grid[i] != '\0'; i++)
+            grid[i] = message_grid[i];
+        grid[i] = '\0';
+    }
+
+    char callsign[13];  // up to 12 characters plus terminator
+    char grid[5];       // 4 characters plus terminator
+    /* 0..60 dBm as transmitted; the report the station sent. */
+    int8_t dbm;
+    /* Rough estimate from the decoder, for display only. */
+    int8_t snr_db;
+    /* Audio frequency of the transmission's tone 0 inside the 1400-1600 Hz passband, and
+     * the total drift over the window in tone steps, so a drifting station is visible. */
+    int16_t freq_hz;
+    int16_t drift_bins;
+    /* Re-encode agreement of this decode, percent: the live trust readout the UI
+     * colors the line by (strong singles trusted, weak ones marked). */
+    int8_t agreement_pct;
+};
+
+/* Sent once per 120 s capture window so the UI can tell the user the receiver is alive;
+ * a WSPR window is silent for two minutes before anything decodes, which otherwise looks
+ * identical to a dead band. */
+class WSPRRxStatusMessage : public Message {
+   public:
+    enum class SyncState : uint8_t {
+        Searching = 0,  // Capturing back-to-back windows; nothing decoded yet
+        Heard = 1,      // A transmission is in the passband but has not decoded
+        Syncing = 2,    // Slot phase acquisition in progress
+        Locked = 3,     // Slot phase locked
+    };
+
+    constexpr WSPRRxStatusMessage(
+        SyncState sync_state,
+        uint8_t decodes,
+        int16_t message_sync_score)
+        : Message{ID::WSPRRxStatus},
+          state{sync_state},
+          decode_count{decodes},
+          sync_score{message_sync_score} {
+    }
+
+    SyncState state;
+    uint8_t decode_count;
+    /* Mean sync-bin excess over the pair-bin noise mean, in 0.5 dB bytes: the
+     * live signal-quality readout for the status line (noise scores a couple
+     * of units, a real transmission several times that). */
+    int16_t sync_score;
+};
+
+/* Rich per-window WSPR decoder telemetry, sent once per capture window just before the
+ * status message of the same window, so the UI debug log can record what the decoder
+ * saw without the baseband shipping full result structs around. Everything is by value
+ * and bounded: at most four candidate slots, zero-filled past the results a window
+ * produced, and the whole message stays far under the queue's size limit. */
+class WSPRDebugMessage : public Message {
+   public:
+    static constexpr size_t max_candidates = 4;
+
+    /* One compact candidate: the sync score saturated into a byte (real scores reach
+     * a few dozen, so the clamp only catches pathological values), the window row the
+     * transmission starts in (a complete decode always starts at row 0..14, so a byte
+     * fits) and the audio frequency of tone 0. freq_hz == 0 marks an unused slot; a
+     * real decode always sits in the 1400-1600 Hz passband, never at zero. */
+    struct Candidate {
+        int8_t sync_excess;
+        int8_t row_offset;
+        int16_t freq_hz;
+    };
+
+    constexpr WSPRDebugMessage(
+        uint8_t window_index_value,
+        uint8_t num_results_value,
+        uint8_t num_candidates_value,
+        uint8_t tracker_state_value,
+        int16_t sync_score_value,
+        int16_t best_metric_value,
+        int16_t last_skip_value,
+        int16_t best_score_seen_value,
+        const Candidate* const candidate_values,
+        size_t candidate_count)
+        : Message{ID::WSPRDebug},
+          window_index{window_index_value},
+          num_results{num_results_value},
+          num_candidates{num_candidates_value},
+          tracker_state{tracker_state_value},
+          sync_score{sync_score_value},
+          best_metric{best_metric_value},
+          last_skip{last_skip_value},
+          best_score_seen{best_score_seen_value},
+          candidates{} {
+        /* Copy at most the fixed slot count; slots past candidate_count stay
+         * zero-filled from the initializer above. */
+        for (size_t i = 0; i < candidate_count && i < max_candidates; i++)
+            candidates[i] = candidate_values[i];
+    }
+
+    uint8_t window_index;  // capture window counter, wraps at 256
+    uint8_t num_results;   // decodes this window produced
+    /* The baseband cannot learn the true candidate count: wspr_decode_window returns
+     * only the accepted results, so this conservatively mirrors num_results until the
+     * decoder grows a real count output for it. */
+    uint8_t num_candidates;
+    /* Same values as WSPRRxStatusMessage::SyncState, as a plain byte. */
+    uint8_t tracker_state;
+    /* Best (results[0]) values this window, or the last ones seen while windows are
+     * quiet, so the log does not flicker to zero on a silent band. */
+    int16_t sync_score;
+    int16_t best_metric;
+    /* The phase correction the tracker computed for the NEXT window, in samples: 0, a
+     * sixth-row dither step, or the full-slot jump saturated to 32767 (the jump is
+     * about 1.33M samples and would wrap a plain int16). */
+    int16_t last_skip;
+    /* The tracker's remembered best sync score, the reference its phase chase steers
+     * toward; rides along so the log shows how far each window scored from it. */
+    int16_t best_score_seen;
+
+    Candidate candidates[max_candidates];
 };
 
 class TPMSPacketMessage : public Message {
