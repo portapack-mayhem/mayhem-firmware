@@ -91,8 +91,7 @@ class TetraChannelDecoder {
     uint8_t last_bcc{0};
     bool network_synced{false};
 
-    // Viterbi buffer
-    uint8_t trace_buffer[9216];
+    uint8_t trace_buffer[SCH_F_TYPE2_BITS * 2];
 
     template <size_t OutBytes>
     bool decode_block(const std::array<uint8_t, 63>& burst,
