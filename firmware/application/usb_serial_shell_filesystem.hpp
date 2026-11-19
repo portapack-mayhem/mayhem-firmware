@@ -22,9 +22,6 @@
 #include "ch.h"
 #include "hal.h"
 
-#include <locale>
-#include <codecvt>
-
 #include "ff.h"
 #include "file.hpp"
 
@@ -45,8 +42,7 @@ void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_crc32(BaseSequentialStream* chp, int argc, char* argv[]);
 
 static std::filesystem::path path_from_string8(char* path) {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-    return conv.from_bytes(path);
+    return std::filesystem::path_from_utf8(path);
 }
 
 // clang-format off
