@@ -11,8 +11,15 @@
 namespace ui {
 
 namespace {
-std::filesystem::path bundled_path;
+std::string bundled_app_name;
 size_t bundled_offset = 0;
+
+inline std::filesystem::path external_app_path(const std::string& app_name) {
+    auto file_path = apps_dir;
+    file_path /= std::filesystem::path{app_name.begin(), app_name.end()};
+    file_path += std::filesystem::path{u".ppma"};
+    return file_path;
+}
 
 // Copies the baseband bundled after the app code into m4_code; the file position must be at m4_app_offset.
 bool copy_bundled_baseband(File& app, size_t m4_app_offset, uint32_t& checksum) {
@@ -41,7 +48,7 @@ bool copy_bundled_baseband(File& app, size_t m4_app_offset, uint32_t& checksum) 
 // Re-copies the bundled baseband after another image overwrote it in m4_code.
 bool reload_bundled_baseband() {
     File app;
-    if (app.open(bundled_path))
+    if (app.open(external_app_path(bundled_app_name)))
         return false;
     if (!app.seek(bundled_offset))
         return false;
@@ -249,8 +256,11 @@ bool reload_bundled_baseband() {
             gridItem.bitmap = dyn_bmp.bitmap();
             bitmaps.push_back(std::move(dyn_bmp));
 
-            gridItem.on_select = [&nav, app_location, filePath]() {
-                if (!run_external_app(nav, filePath)) {
+            const auto filename = entry.path().stem();
+            std::string app_name{filename.native().begin(), filename.native().end()};
+
+            gridItem.on_select = [&nav, app_name]() {
+                if (!run_external_app(nav, app_name)) {
                     nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
                 }
             };
@@ -314,11 +324,18 @@ bool reload_bundled_baseband() {
     return external_apps;
 }
 
-/* static */ bool ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
+/* static */ bool ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, const std::string& app_name) {
+    if (app_name.empty())
+        return false;
+    for (const unsigned char c : app_name) {
+        if (c == 0 || c == '/' || c == '\\')
+            return false;
+    }
+
     File app;
     uint32_t checksum{0};
 
-    auto openError = app.open(filePath);
+    auto openError = app.open(external_app_path(app_name));
     if (openError)
         return false;
 
@@ -373,11 +390,12 @@ bool reload_bundled_baseband() {
         return false;
 
     if (application_information.m4_app_offset != 0) {
-        bundled_path = filePath;
+        bundled_app_name = std::string{app_name};
         bundled_offset = application_information.m4_app_offset;
         m4_set_bundled_reloader(reload_bundled_baseband);
     } else {
         m4_set_bundled_reloader(nullptr);
+        bundled_app_name = std::string{};
     }
 
     application_information.externalAppEntry(nav);
