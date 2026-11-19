@@ -151,7 +151,8 @@ class EPIRBMapView : public View {
     void repaint();
 
    private:
-    GeoMap geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
+    // The selected beacon is drawn separately from the other history entries.
+    GeoMapWithStorage<1, BEACON_HISTORY_SIZE - 1> geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
     float lat_{EPIRB_RX_DEFAULT_LATITUDE};
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
     bool map_hidden{true};
