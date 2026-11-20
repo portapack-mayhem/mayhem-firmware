@@ -257,7 +257,7 @@ bool reload_bundled_baseband() {
             bitmaps.push_back(std::move(dyn_bmp));
 
             const auto filename = entry.path().stem();
-            std::string app_name{filename.native().begin(), filename.native().end()};
+            std::string app_name = filename.string();
 
             gridItem.on_select = [&nav, app_name]() {
                 if (!run_external_app(nav, app_name)) {
