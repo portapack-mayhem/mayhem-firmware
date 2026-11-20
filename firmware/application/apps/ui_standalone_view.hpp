@@ -33,6 +33,8 @@ class StandaloneView : public View {
    public:
     StandaloneView(NavigationView& nav, uint8_t* app_image);
     virtual ~StandaloneView() override {
+        if (get_application_information()->menu_location == app_location_t::GAMES)
+            EventDispatcher::set_chords_suppressed(false);
     }
 
     std::string title() const override { return (const char*)get_application_information()->app_name; };

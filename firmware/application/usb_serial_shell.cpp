@@ -29,7 +29,9 @@
 
 #include "portapack.hpp"
 #include "portapack_hal.hpp"
-#include "hackrf_gpio.hpp"
+#include "gpio.hpp"
+using namespace gpio_control;
+
 #include "jtag_target_gpio.hpp"
 #include "cpld_max5.hpp"
 #include "portapack_cpld_data.hpp"
@@ -422,7 +424,9 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_info <device>\r\n"
         "  supported modes:\r\n"
+#ifndef PRALINE
         "    cpld_info hackrf\r\n"
+#endif
         "    cpld_info portapack\r\n";
     if (argc != 1) {
         chprintf(chp, usage);
@@ -430,11 +434,12 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     if (strncmp(argv[0], "hackrf", 5) == 0) {
+#ifndef PRALINE
         jtag::GPIOTarget jtag_target_hackrf_cpld{
-            hackrf::one::gpio_cpld_tck,
-            hackrf::one::gpio_cpld_tms,
-            hackrf::one::gpio_cpld_tdi,
-            hackrf::one::gpio_cpld_tdo,
+            cpld_tck,
+            cpld_tms,
+            cpld_tdi,
+            cpld_tdo,
         };
 
         hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
@@ -473,13 +478,16 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
             hackrf_cpld.finalize_read_sram(hackrf::one::cpld::verify_blocks[0].id);
             chprintf(chp, "CPLD sram firmware checksum: 0x%08X\r\n", crc.checksum());
         }
+#else
+        chprintf(chp, "HackRF CPLD not present on PRALINE\r\n");
+#endif
 
     } else if (strncmp(argv[0], "portapack", 5) == 0) {
         jtag::GPIOTarget target{
-            portapack::gpio_cpld_tck,
-            portapack::gpio_cpld_tms,
-            portapack::gpio_cpld_tdi,
-            portapack::gpio_cpld_tdo};
+            cpld_tck,
+            portapack_cpld_tms,
+            cpld_tdi,
+            portapack_cpld_tdo};
         jtag::JTAG jtag{target};
         portapack::cpld::CPLD cpld{jtag};
 
@@ -762,12 +770,13 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     if (strncmp(argv[0], "hackrf", 5) == 0) {
+#ifndef PRALINE
         if (strncmp(argv[1], "eeprom", 5) == 0) {
             jtag::GPIOTarget jtag_target_hackrf_cpld{
-                hackrf::one::gpio_cpld_tck,
-                hackrf::one::gpio_cpld_tms,
-                hackrf::one::gpio_cpld_tdi,
-                hackrf::one::gpio_cpld_tdo,
+                cpld_tck,
+                cpld_tms,
+                cpld_tdi,
+                cpld_tdo,
             };
 
             hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
@@ -797,10 +806,10 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
         else if (strncmp(argv[1], "sram", 5) == 0) {
             jtag::GPIOTarget jtag_target_hackrf_cpld{
-                hackrf::one::gpio_cpld_tck,
-                hackrf::one::gpio_cpld_tms,
-                hackrf::one::gpio_cpld_tdi,
-                hackrf::one::gpio_cpld_tdo,
+                cpld_tck,
+                cpld_tms,
+                cpld_tdi,
+                cpld_tdo,
             };
 
             hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
@@ -827,12 +836,15 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
             hackrf_cpld.finalize_read_sram(hackrf::one::cpld::verify_blocks[0].id);
         }
+#else
+        chprintf(chp, "HackRF CPLD not present on PRALINE\r\n");
+#endif
     } else if (strncmp(argv[0], "portapack", 5) == 0) {
         jtag::GPIOTarget target{
-            portapack::gpio_cpld_tck,
-            portapack::gpio_cpld_tms,
-            portapack::gpio_cpld_tdi,
-            portapack::gpio_cpld_tdo};
+            cpld_tck,
+            portapack_cpld_tms,
+            cpld_tdi,
+            portapack_cpld_tdo};
         jtag::JTAG jtag{target};
         portapack::cpld::CPLD cpld{jtag};
 
@@ -937,10 +949,10 @@ static void cmd_cpld_write(BaseSequentialStream* chp, int argc, char* argv[]) {
     } else if (strncmp(argv[0], "portapack", 5) == 0) {
         if (strncmp(argv[1], "eeprom", 5) == 0) {
             jtag::GPIOTarget target{
-                portapack::gpio_cpld_tck,
-                portapack::gpio_cpld_tms,
-                portapack::gpio_cpld_tdi,
-                portapack::gpio_cpld_tdo};
+                cpld_tck,
+                portapack_cpld_tms,
+                cpld_tdi,
+                portapack_cpld_tdo};
             jtag::JTAG jtag{target};
             portapack::cpld::CPLD cpld{jtag};
 

@@ -241,6 +241,17 @@ void controls_init() {
         switch_debounce[toUType(i)].enable_repeat();
 }
 
+SwitchesState get_switches_pressed() {
+    // One consistent snapshot: the timer ISR updates every debouncer, so it must not
+    // run halfway through (it could otherwise mix two scans into a chord neither held).
+    SwitchesState result;
+    chSysLock();
+    for (size_t i = 0; i < result.size(); i++)
+        result[i] = switch_debounce[i].pressed();
+    chSysUnlock();
+    return result;
+}
+
 // Note: Called by event handler or apps, not in ISR, so some presses might be missed during high CPU utilization
 SwitchesState get_switches_state() {
     SwitchesState result;

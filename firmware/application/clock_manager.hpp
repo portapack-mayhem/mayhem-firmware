@@ -120,6 +120,11 @@ class ClockManager {
     void portapack_tcxo_disable();
 
    private:
+#ifdef PRALINE
+    // CLKIN: datapath on A, system on B. XTAL: datapath on B, system on A.
+    // Only the datapath PLL may be reset after a rate change.
+    bool _datapath_pll_a{false};
+#endif
     I2C& i2c0;
     si5351::Si5351& clock_generator;
     Reference reference;

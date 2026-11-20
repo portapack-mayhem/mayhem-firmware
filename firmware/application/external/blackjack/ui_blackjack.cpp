@@ -5,6 +5,7 @@
  */
 
 #include "ui_blackjack.hpp"
+#include "event_m0.hpp"
 
 namespace ui::external_app::blackjack {
 
@@ -41,6 +42,7 @@ void game_timer_check() {
 
 BlackjackView::BlackjackView(NavigationView& nav)
     : nav_{nav}, game_timer{} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     // Initialize screen dimensions dynamically
     screen_w = ui::screen_width;
     screen_h = ui::screen_height;
@@ -60,6 +62,7 @@ BlackjackView::BlackjackView(NavigationView& nav)
 }
 
 BlackjackView::~BlackjackView() {
+    EventDispatcher::set_chords_suppressed(false);
     current_instance = nullptr;
 }
 

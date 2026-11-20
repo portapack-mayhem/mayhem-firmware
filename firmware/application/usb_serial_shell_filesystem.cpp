@@ -20,6 +20,8 @@
  */
 
 #include "usb_serial_shell_filesystem.hpp"
+
+#include <memory>
 #include "usb_serial_device_to_host.h"
 
 #include "chprintf.h"
@@ -395,7 +397,10 @@ void cmd_sd_crc32(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     auto path = path_from_string8((char*)full_fn_from_args(argc, argv).c_str());
-    File* crc_file = new File();
+    // Owned, so every return below closes the file and frees it. The success path returns
+    // from inside the loop, and with a raw new the delete after it never ran: each call left
+    // an open file and ~0.5 kB of M0 heap behind until the next reboot.
+    auto crc_file = std::make_unique<File>();
     auto error = crc_file->open(path, true, false);
     if (report_on_error(chp, error)) return;
 
@@ -415,6 +420,4 @@ void cmd_sd_crc32(BaseSequentialStream* chp, int argc, char* argv[]) {
             return;
         }
     }
-
-    delete crc_file;
 }

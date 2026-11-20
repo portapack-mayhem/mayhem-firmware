@@ -28,7 +28,6 @@
 
 #include "event_m0.hpp"
 #include "ff.h"
-#include "hackrf_gpio.hpp"
 #include "portapack.hpp"
 #include "radio.hpp"
 

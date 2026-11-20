@@ -295,10 +295,11 @@ void SGPIO::configure(const Direction direction) {
     LPC_SGPIO->OUT_MUX_CFG[8] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
     LPC_SGPIO->OUT_MUX_CFG[9] = out_mux_cfg(P_OUT_CFG::DOUT_DOUTM1, P_OE_CFG::GPIO_OE);
 
-#ifndef PRALINE
-    // OUT_MUX_CFG[10] NOT configured for PRALINE - breaks PRALINE (HOST_DISABLE signal)
+    /* SGPIO10 = DISABLE, held high during configuration and cleared by streaming_enable().
+     * PRALINE needs it too: without it the pin carried slice G's output (0), so the FPGA
+     * started clocking TX byte pairs before the slices were enabled, and a random part of
+     * all transmissions went out with I and Q swapped (Q(n-1) paired with I(n)). */
     LPC_SGPIO->OUT_MUX_CFG[10] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
-#endif
 
     LPC_SGPIO->OUT_MUX_CFG[11] = out_mux_cfg(P_OUT_CFG::GPIO_OUT, P_OE_CFG::GPIO_OE);
 #ifndef PRALINE

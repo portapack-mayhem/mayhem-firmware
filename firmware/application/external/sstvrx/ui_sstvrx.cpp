@@ -78,7 +78,6 @@ void SstvRxLogger::log_info(const std::string& info_message) {
 
 SstvRxView::SstvRxView(ui::NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_sstv_rx);
     DISPLAY_HEIGHT = screen_height - SSTV_IMG_START_ROW * 16 - 16;
     DISPLAY_WIDTH = screen_width;
     add_children({&field_rf_amp,
@@ -90,7 +89,9 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
                   &field_volume,
                   &audio,
                   &start_stop_btn,
+                  &clear_btn,
                   &options_mode,
+                  &options_modulation,
                   &field_phase,
                   &field_slant,
                   &labels,
@@ -121,6 +122,9 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         start_stop_btn.focus();
         on_start_stop();
     };
+    clear_btn.on_select = [this](Button&) {
+        on_clear();
+    };
 
     // Initialize frequency field from settings or use default
     if (settings_.loaded() && settings_.raw().rx_frequency != 0) {
@@ -129,6 +133,17 @@ SstvRxView::SstvRxView(ui::NavigationView& nav)
         field_frequency.set_value(145800000);  // Default to 145.800 MHz (ISS)
     }
     field_frequency.set_step(25000);
+
+    update_modulation_options();
+    options_modulation.on_change = [this](size_t, int32_t v) {
+        modulation_choice = v;
+        on_modulation_changed();
+    };
+    // In Auto the band can change the demodulation
+    field_frequency.updated = [this](rf::Frequency) {
+        update_modulation_options();
+        on_modulation_changed();
+    };
 
     // Populate mode list
     for (c = 0; c < SSTV_MODES_NB; c++)
@@ -198,12 +213,12 @@ void SstvRxView::on_start_stop() {
     if (is_receiving) {
         // Currently receiving - stop it
         on_stop();
-        start_stop_btn.set_text("Start RX");
+        start_stop_btn.set_text("Start");
     } else {
         // Currently stopped - start reception
         SSTVRX_LOG_INFO("Starting SSTV RX Reception");
         start_audio();
-        start_stop_btn.set_text("Stop RX");
+        start_stop_btn.set_text("Stop");
     }
 }
 
@@ -211,8 +226,9 @@ void SstvRxView::on_start_stop() {
 void SstvRxView::on_stop() {
     SSTVRX_LOG_INFO("Stopping SSTV RX Reception");
     if (is_receiving) {
-        // Stop in reverse order of start
+        // Stop in reverse order of start; the baseband too, so a start begins clean
         receiver_model.disable();
+        baseband::shutdown();
         audio::output::stop();
 
         // Reset state
@@ -236,9 +252,12 @@ void SstvRxView::on_stop() {
 void SstvRxView::start_audio() {
     SSTVRX_LOG_INFO("Configuring SSTV RX Audio Reception");
 
+    baseband::run_image(portapack::spi_flash::image_tag_sstv_rx);
+
     // Configure the baseband processor with VIS code
+    active_modulation = effective_modulation();
     if (rx_sstv_mode) {
-        baseband::set_sstvrx_data(rx_sstv_mode->vis_code);
+        baseband::set_sstvrx_data(rx_sstv_mode->vis_code, active_modulation);
         SSTVRX_LOG_INFO("Sent VIS code to processor: " + to_string_dec_uint(rx_sstv_mode->vis_code));
     }
 
@@ -252,34 +271,9 @@ void SstvRxView::start_audio() {
     // Set audio routing and volume
     // audio::output::start();
 
-    // Clear display area and reset line counter
-    portapack::display.fill_rectangle(
-        {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
-        {0, 0, 0});
-    line_num = 0;
-    file_line_num = 0;
-    max_received_line = 0;
-    pending_line_valid = false;
-    pending_chunk_mask = 0;
-    std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
-
-    // Clear calibration display
     text_calibration.set("Calibrating...");
-
-    // Initialize new image file
-    current_line_rx = 0;
-    auto timestamp = to_string_timestamp(rtc_time::now());
-    auto dir_error = ensure_directory(sstv_dir / "RX");
-    if (!dir_error.ok()) {
-        SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
-    }
-    current_image_path = sstv_dir / ("RX/SSTV_" + timestamp + ".bmp");
-    auto ok = bmp.create(current_image_path, IMAGE_WIDTH, 1);
-    if (!ok) {
-        SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
-        bmp.close();
-    }
+    begin_image();
 
     // Start audio output
     audio::output::start();
@@ -294,62 +288,174 @@ void SstvRxView::start_audio() {
     SSTVRX_LOG_INFO("SSTV RX Started");
 }
 
+uint8_t SstvRxView::effective_modulation() const {
+    switch (modulation_choice) {
+        case 1:
+            return SSTV_MOD_FM;
+        case 2:
+            return SSTV_MOD_USB;
+        case 3:
+            return SSTV_MOD_LSB;
+        default:
+            return (receiver_model.target_frequency() < 30'000'000) ? SSTV_MOD_USB : SSTV_MOD_FM;
+    }
+}
+
+// Auto says what it chose for the frequency
+void SstvRxView::update_modulation_options() {
+    const bool usb = receiver_model.target_frequency() < 30'000'000;
+    const auto on_change = options_modulation.on_change;
+    options_modulation.on_change = nullptr;  // set_options() selects the first one
+    options_modulation.set_options({{usb ? "Auto USB" : "Auto FM", 0}, {"FM", 1}, {"USB", 2}, {"LSB", 3}});
+    options_modulation.set_by_value(modulation_choice);
+    options_modulation.on_change = on_change;
+}
+
+void SstvRxView::on_modulation_changed() {
+    const uint8_t modulation = effective_modulation();
+    if (modulation == active_modulation) return;
+    active_modulation = modulation;
+    // The processor takes the demodulation when it is configured: start again
+    if (is_receiving) {
+        on_stop();
+        start_audio();
+    }
+}
+
+// A new picture: clear the display, start a new BMP of the mode's size
+void SstvRxView::begin_image() {
+    bmp.close();
+    portapack::display.fill_rectangle(
+        {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
+        {0, 0, 0});
+    file_line_num = 0;
+    max_received_line = 0;
+    current_line_rx = 0;
+    pending_line_valid = false;
+    pending_chunk_mask = 0;
+    std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
+
+    image_width = rx_sstv_mode ? rx_sstv_mode->pixels : 320;
+    image_height = rx_sstv_mode ? rx_sstv_mode->lines : 256;
+    if (image_width == 0 || image_width > MAX_IMAGE_WIDTH) image_width = 320;
+    if (image_height == 0 || image_height > MAX_IMAGE_HEIGHT) image_height = 256;
+    fit_display();
+
+    auto dir_error = ensure_directory(sstv_dir / "RX");
+    if (!dir_error.ok()) {
+        SSTVRX_LOG_ERROR("Failed to create directory: SSTV/RX");
+    }
+    current_image_path = sstv_dir / ("RX/SSTV_" + to_string_timestamp(rtc_time::now()) + ".bmp");
+    if (!bmp.create(current_image_path, image_width, 1)) {
+        SSTVRX_LOG_ERROR("Failed to create file: " + current_image_path.string());
+        bmp.close();
+    }
+}
+
+// Empty the display; while receiving, start over, waiting for the next picture
+void SstvRxView::on_clear() {
+    if (is_receiving) {
+        on_stop();
+        start_audio();
+    } else {
+        portapack::display.fill_rectangle(
+            {0, SSTV_IMG_START_ROW * 16, DISPLAY_WIDTH, DISPLAY_HEIGHT},
+            {0, 0, 0});
+        last_draw_y = -1;
+    }
+}
+
+// The processor saw a VIS: a picture starts, maybe in another mode than the one chosen
+void SstvRxView::on_vis(const uint8_t code) {
+    for (size_t i = 0; i < SSTV_MODES_NB; i++) {
+        if (sstv_modes[i].vis_code != code) continue;
+        if (rx_sstv_mode != &sstv_modes[i]) {
+            rx_sstv_mode = &sstv_modes[i];
+            const auto on_change = options_mode.on_change;
+            options_mode.on_change = nullptr;  // the processor has switched already
+            options_mode.set_selected_index(i);
+            options_mode.on_change = on_change;
+        }
+        text_calibration.set(std::string("VIS: ") + sstv_modes[i].name);
+        SSTVRX_LOG_INFO(std::string("VIS: ") + sstv_modes[i].name);
+        begin_image();
+        return;
+    }
+}
+
 void SstvRxView::on_mode_changed(const size_t index) {
+    if (index >= SSTV_MODES_NB) return;
     rx_sstv_mode = &sstv_modes[index];
+
+    // image_width/image_height must match what the baseband was configured with,
+    // they are only updated in start_audio(). If a reception is running, restart it
+    // so the M4 is reconfigured for the new mode and a new BMP of the right size is made.
+    if (is_receiving) {
+        on_stop();
+        start_audio();
+    }
 }
 
 void SstvRxView::write_line_to_file(uint16_t line_num, const uint8_t* rgb_line) {
-    (void)line_num;
-    if (!bmp.is_loaded()) return;
-    // Ensure BMP height is sufficient
-    if (bmp.get_real_height() <= file_line_num) {
-        bmp.expand_y(file_line_num + 1);
+    if (!bmp.is_loaded() || line_num >= image_height) return;
+    // Rows the baseband had to drop stay black, so every row keeps its place in the picture
+    while (file_line_num < line_num) {
+        write_file_row(file_line_num, nullptr);
+        file_line_num++;
     }
-    bmp.seek(0, file_line_num);
+    write_file_row(line_num, rgb_line);
+    if (file_line_num <= line_num) file_line_num = line_num + 1;
+}
+
+// One row of the BMP; black when rgb_line is null
+void SstvRxView::write_file_row(uint16_t row, const uint8_t* rgb_line) {
+    if (bmp.get_real_height() <= row) {
+        bmp.expand_y(row + 1);
+    }
+    bmp.seek(0, row);
 
     // Write RGB data in BGR order
-    for (uint16_t x = 0; x < IMAGE_WIDTH; x++) {
-        uint8_t r = rgb_line[x * 3 + 0];
-        uint8_t g = rgb_line[x * 3 + 1];
-        uint8_t b = rgb_line[x * 3 + 2];
-        Color px(g, b, r);
+    for (uint16_t x = 0; x < image_width; x++) {
+        Color px = rgb_line ? Color(rgb_line[x * 3 + 0], rgb_line[x * 3 + 1], rgb_line[x * 3 + 2]) : Color::black();
         bmp.write_next_px(px);
     }
-    file_line_num++;
+}
+
+void SstvRxView::fit_display() {
+    draw_width = std::min({image_width, DISPLAY_WIDTH, static_cast<uint16_t>(std::size(line_buffer))});
+    draw_height = static_cast<uint16_t>(static_cast<uint32_t>(image_height) * draw_width / image_width);
+    if (draw_height > DISPLAY_HEIGHT) {
+        draw_height = DISPLAY_HEIGHT;
+        draw_width = static_cast<uint16_t>(static_cast<uint32_t>(image_width) * draw_height / image_height);
+    }
+    draw_x = (DISPLAY_WIDTH - draw_width) / 2;
+    last_draw_y = -1;
 }
 
 void SstvRxView::update_display(uint16_t current_line, const uint8_t* rgb_line) {
-    if (current_line >= IMAGE_HEIGHT) return;
+    if (current_line >= image_height) return;
 
-    // Reset line counter if we reach the bottom of display
-    if (line_num >= DISPLAY_HEIGHT) {
-        line_num = 0;
-    }
+    // Each picture line has its own display line; scaled down, some share one and the first is drawn
+    const int32_t y = static_cast<int32_t>(static_cast<uint32_t>(current_line) * draw_height / image_height);
+    if (y == last_draw_y) return;
+    last_draw_y = y;
 
-    // Scale line to display width
-    for (uint16_t x = 0; x < DISPLAY_WIDTH; x++) {
-        // Scale x coordinate
-        uint16_t src_x = (x * IMAGE_WIDTH) / DISPLAY_WIDTH;
-        if (src_x >= IMAGE_WIDTH) continue;
+    for (uint16_t x = 0; x < draw_width; x++) {
+        const uint16_t src_x = static_cast<uint16_t>(static_cast<uint32_t>(x) * image_width / draw_width);
 
         // Get RGB values from interleaved data [R,G,B,R,G,B,...]
         uint8_t r = rgb_line[src_x * 3 + 0];
         uint8_t g = rgb_line[src_x * 3 + 1];
         uint8_t b = rgb_line[src_x * 3 + 2];
-        // Display uses BGR order like BMP format
-        // line_buffer[x] = Color(b, r, g);
-        line_buffer[x] = Color(g, b, r);
+        line_buffer[x] = Color(r, g, b);
     }
 
-    // Render the line at the current position
     portapack::display.render_line(
-        {0, line_num + SSTV_IMG_START_ROW * 16},
-        DISPLAY_WIDTH,
+        {draw_x, static_cast<int>(y + SSTV_IMG_START_ROW * 16)},
+        draw_width,
         line_buffer);
-
-    // Increment line counter
-    line_num++;
 }
+
 void SstvRxView::redraw_image() {
     // Disabled: Post-reception redraw requires 245KB buffer which exceeds M0 memory
     // Phase and slant adjustments must be set before reception starts
@@ -415,6 +521,10 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         SSTVRX_LOG_INFO("FALSE SYNC PAIR REJECTED on Line 0: " + reasons);
         return;
     }
+    if (line == 0xFFF3) {
+        on_vis(total_lines & 0xFF);
+        return;
+    }
     if (line == 0xFFF4) {
         SSTVRX_LOG_INFO("STARTING LINE 0 DECODE after sync_sample_count=" + to_string_dec_uint(total_lines));
         return;
@@ -424,15 +534,22 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     memcpy(chunk.data(), shared_memory.bb_data.data, chunk.size());
     *reinterpret_cast<volatile uint8_t*>(&shared_memory.bb_data.data[CHUNK_FLAG_INDEX]) = 0;
 
-    const uint16_t line_num_encoded = chunk[0] | (chunk[1] << 8);
-    const bool is_second_chunk = (line_num_encoded & 1) == 1;
-    const uint16_t actual_line_num = line_num_encoded / 2;
-
-    if (actual_line_num >= IMAGE_HEIGHT) {
+    // Left over from before a mode change: for another picture size
+    if (total_lines != image_height) {
         return;
     }
 
-    const bool multi_chunk_line = PIXELS_PER_LINE > MAX_CHUNK_PIXELS;
+    const uint16_t line_num_encoded = chunk[0] | (chunk[1] << 8);
+    const uint16_t chunks_per_line = static_cast<uint16_t>((image_width + MAX_CHUNK_PIXELS - 1) / MAX_CHUNK_PIXELS);
+    const uint16_t safe_chunks_per_line = (chunks_per_line == 0) ? 1 : chunks_per_line;
+    const uint16_t chunk_index = static_cast<uint16_t>(line_num_encoded % safe_chunks_per_line);
+    const uint16_t actual_line_num = static_cast<uint16_t>(line_num_encoded / safe_chunks_per_line);
+
+    if (actual_line_num >= image_height) {
+        return;
+    }
+
+    // const bool multi_chunk_line = (safe_chunks_per_line > 1);
     if (!pending_line_valid || pending_line_number != actual_line_num) {
         pending_line_number = actual_line_num;
         pending_line_valid = true;
@@ -440,10 +557,9 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         std::fill(pending_line_rgb.begin(), pending_line_rgb.end(), 0);
     }
 
-    const uint16_t chunk_pixels = multi_chunk_line
-                                      ? (is_second_chunk ? (PIXELS_PER_LINE - MAX_CHUNK_PIXELS) : MAX_CHUNK_PIXELS)
-                                      : PIXELS_PER_LINE;
-    const uint16_t dest_pixel_offset = (multi_chunk_line && is_second_chunk) ? MAX_CHUNK_PIXELS : 0;
+    const uint16_t dest_pixel_offset = static_cast<uint16_t>(chunk_index * MAX_CHUNK_PIXELS);
+    const uint16_t remaining_pixels = (dest_pixel_offset < image_width) ? static_cast<uint16_t>(image_width - dest_pixel_offset) : 0;
+    const uint16_t chunk_pixels = (remaining_pixels > MAX_CHUNK_PIXELS) ? MAX_CHUNK_PIXELS : remaining_pixels;
     const uint16_t chunk_bytes = chunk_pixels * 3;
     const uint16_t max_copy_bytes = static_cast<uint16_t>(chunk.size() > CHUNK_HEADER_BYTES ? (chunk.size() - CHUNK_HEADER_BYTES) : 0);
     const uint16_t bytes_to_copy = (chunk_bytes < max_copy_bytes) ? chunk_bytes : max_copy_bytes;
@@ -453,9 +569,9 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
         memcpy(pending_line_rgb.data() + dest_byte_offset, chunk.data() + CHUNK_HEADER_BYTES, bytes_to_copy);
     }
 
-    const uint8_t chunk_bit = (multi_chunk_line && is_second_chunk) ? 0x2 : 0x1;
+    const uint8_t chunk_bit = static_cast<uint8_t>(1U << (chunk_index & 7));
     pending_chunk_mask |= chunk_bit;
-    const uint8_t required_mask = multi_chunk_line ? 0x3 : 0x1;
+    const uint8_t required_mask = (safe_chunks_per_line >= 8) ? 0xFF : static_cast<uint8_t>((1U << safe_chunks_per_line) - 1U);
     if (pending_chunk_mask != required_mask) {
         return;
     }
@@ -463,7 +579,7 @@ void SstvRxView::on_progress(uint16_t line, uint16_t total_lines) {
     pending_line_valid = false;
     pending_chunk_mask = 0;
     current_line_rx = actual_line_num;
-    if (actual_line_num < IMAGE_HEIGHT) {
+    if (actual_line_num < image_height) {
         write_line_to_file(actual_line_num, pending_line_rgb.data());
         update_display(actual_line_num, pending_line_rgb.data());
         max_received_line = max_received_line > (actual_line_num + 1) ? max_received_line : (actual_line_num + 1);

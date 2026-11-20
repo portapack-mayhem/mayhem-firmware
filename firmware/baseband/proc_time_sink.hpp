@@ -1,5 +1,5 @@
 /*
- * Copyleft zxkmm (>) 2026
+ * Copyright (C) 2026 zxkmm
  *
  * This file is part of PortaPack.
  *

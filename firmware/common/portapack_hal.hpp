@@ -49,11 +49,6 @@ constexpr std::array<GPIO, 8> gpios_data{
     gpio[GPIO3_15],
 };
 
-constexpr GPIO gpio_cpld_tms = gpio[GPIO1_1];  // P1_8
-constexpr GPIO gpio_cpld_tdo = gpio[GPIO1_8];  // P1_5
-constexpr GPIO gpio_cpld_tck = gpio[GPIO3_0];  // P6_1
-constexpr GPIO gpio_cpld_tdi = gpio[GPIO3_1];  // P6_2
-
 constexpr auto pin_i2s0_mclk = pins[CLK2];
 constexpr auto pin_i2s0_sck = pins[P3_0];
 constexpr auto pin_i2s0_ws = pins[P3_1];

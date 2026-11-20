@@ -398,6 +398,26 @@ class Si5351 {
         write_register(Register::FanoutEnable, 0b11010000);
     }
 
+    // PLL A only (register 177 bit 5). Resetting a PLL restarts every multisynth and output
+    // divider it drives in step, which is the only way the Si5351 offers to fix the phase
+    // between two of its outputs.
+    void reset_pll_a() {
+        write_register(Register::PLLReset, 0x20);
+    }
+
+#ifdef PRALINE
+    bool reset_pll_b() {
+        return write_register_checked(Register::PLLReset, 0x80);
+    }
+    // Transfer timeouts exclude the shared I2C mutex acquisition wait.
+    bool read_register_checked(uint8_t reg, uint8_t& value);
+    bool write_pll_checked(uint8_t pll_n, const PLL& config);
+    bool disable_output_mask_checked(uint8_t mask) {
+        _output_enable &= ~mask;
+        return write_register_checked(Register::OutputEnableControl, ~_output_enable);
+    }
+#endif
+
     void reset_plls() {
 #ifdef PRALINE
         // Reset both PLLA and PLLB. Use 0xA0 to match HackRF reference firmware.
@@ -512,6 +532,10 @@ class Si5351 {
     I2C& _bus;
     const I2C::address_t _address;
     uint8_t _output_enable;
+
+#ifdef PRALINE
+    bool write_register_checked(uint8_t reg, uint8_t value);
+#endif
 
     void update_output_enable_control() {
         write_register(Register::OutputEnableControl, ~_output_enable);
