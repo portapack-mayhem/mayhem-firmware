@@ -26,6 +26,8 @@ int Viterbi::decode_cch(
     for (uint32_t step = 0; step < n_info; step++) {
         for (int i = 0; i < 16; i++) new_cost[i] = INF;
         const uint8_t* rx = &mother[step * 4];
+        trace_buffer[step * 2] = 0;
+        trace_buffer[step * 2 + 1] = 0;
 
         for (int prev = 0; prev < 16; prev++) {
             if (cost[prev] >= INF) continue;
@@ -42,7 +44,13 @@ int Viterbi::decode_cch(
                 const uint16_t total = cost[prev] + d;
                 if (total < new_cost[next]) {
                     new_cost[next] = total;
-                    trace_buffer[step * 16 + next] = (prev << 1) | bit;
+                    // The next state determines the input bit and the low three predecessor bits.
+                    uint8_t& trace = trace_buffer[step * 2 + (next >> 3)];
+                    const uint8_t mask = 1u << (next & 7);
+                    if (prev & 8)
+                        trace |= mask;
+                    else
+                        trace &= ~mask;
                 }
             }
         }
@@ -59,9 +67,9 @@ int Viterbi::decode_cch(
     memset(bits, 0, (n_info + 7) >> 3);
 
     for (int step = (int)n_info - 1; step >= 0; step--) {
-        uint8_t packed = trace_buffer[step * 16 + state];
-        uint8_t prev = (packed >> 1) & 0x0F;
-        uint8_t bit = packed & 0x01;
+        const uint8_t trace = trace_buffer[step * 2 + (state >> 3)];
+        const uint8_t prev = (state >> 1) | (((trace >> (state & 7)) & 1) << 3);
+        const uint8_t bit = state & 1;
 
         if (bit) bits[step >> 3] |= (1 << (7 - (step & 7)));
         state = prev;

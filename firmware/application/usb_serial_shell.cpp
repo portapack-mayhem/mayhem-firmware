@@ -114,9 +114,7 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
     nav->home(false);
-    std::string appwithpath = "/" + apps_dir.string() + "/";
-    appwithpath += "sdusb.ppma";
-    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));
+    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, "sdusb");
     if (ret) {
         chprintf(chp, "ok\r\n");
     } else {
@@ -671,11 +669,7 @@ static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, "ok\r\n");
         return;
     }
-    // since ext app loader changed, we can just pass the string to it, and it"ll return if started or not.
-    std::string appwithpath = "/" + apps_dir.string() + "/";
-    appwithpath += argv[0];
-    appwithpath += ".ppma";
-    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));
+    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, argv[0]);
     if (!ret) {
         chprintf(chp, "error\r\n");
         return;

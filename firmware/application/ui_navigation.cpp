@@ -257,15 +257,12 @@ void NavigationView::launch_search_entry(ViewFactoryBase* factory, std::string c
 
     // External/standalone: AppInfoConsole doesn't record which kind it is, so
     // try both extensions the way handle_autostart() does.
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-
-    std::string appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppma";
-    std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
-    if (ExternalItemsMenuLoader::run_external_app(*this, pth))
+    if (ExternalItemsMenuLoader::run_external_app(*this, call_name))
         return;
 
-    appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppmp";
-    pth = conv.from_bytes(appwithpath.c_str());
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+    std::string appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppmp";
+    std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
     if (ExternalItemsMenuLoader::run_standalone_app(*this, pth))
         return;
 
@@ -860,17 +857,15 @@ void NavigationView::handle_autostart() {
         if (!started) {
             // ppma
 
-            std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppma";
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-            std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
-            if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
+            if (ui::ExternalItemsMenuLoader::run_external_app(*this, autostart_app)) {
                 started = true;
             }
 
             if (!started) {
                 // ppmp / standalone
-                appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
-                pth = conv.from_bytes(appwithpath.c_str());
+                std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
+                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+                std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
                 if (ui::ExternalItemsMenuLoader::run_standalone_app(*this, pth)) {
                     started = true;
                 }
