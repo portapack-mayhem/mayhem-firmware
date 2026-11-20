@@ -182,6 +182,9 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        LrptRxStatus = 126,
+        LrptRxFrame = 127,
+        LrptRxBlock = 128,
         MAX
     };
 
@@ -2161,6 +2164,49 @@ struct SubGhzChatPacketMessage : public Message {
 
     uint8_t length{0};
     uint8_t data[MAX_LENGTH]{};
+};
+
+namespace lrpt {
+struct Shared;
+}
+
+// Meteor-M LRPT (lrpt_rx), 4 times a second. shared is the M4 buffer the frames and the
+// constellation are in; it stays valid until the baseband is shut down.
+struct LrptRxStatusMessage : public Message {
+    static constexpr uint8_t FLAG_CARRIER = 1;
+    static constexpr uint8_t FLAG_CODE = 2;
+    static constexpr uint8_t FLAG_SYNC = 4;
+    static constexpr uint8_t FLAG_MARKER = 8;
+
+    constexpr LrptRxStatusMessage()
+        : Message{ID::LrptRxStatus} {}
+
+    lrpt::Shared* shared{nullptr};
+    int32_t offset_hz{0};
+    uint32_t frames{0};    // CADUs found
+    uint32_t overruns{0};  // dropped, no free slot
+    uint32_t late{0};      // 80k: deinterleaved blocks not ready in time, decoded as erasures
+    uint32_t lost{0};      // 80k: blocks the M0 had not written yet, lost
+    uint16_t ber_permille{0};
+    uint8_t flags{0};
+    uint8_t mode{0};  // lrpt::Mode running
+};
+
+// 80k: an input block is in shared->in, for the M0 to write to the card.
+struct LrptRxBlockMessage : public Message {
+    constexpr LrptRxBlockMessage(lrpt::Shared* shared)
+        : Message{ID::LrptRxBlock}, shared{shared} {}
+
+    lrpt::Shared* shared;
+};
+
+// A CADU is in shared->frames[slot]; the M0 clears shared->busy[slot] when done with it.
+struct LrptRxFrameMessage : public Message {
+    constexpr LrptRxFrameMessage(lrpt::Shared* shared, uint8_t slot)
+        : Message{ID::LrptRxFrame}, shared{shared}, slot{slot} {}
+
+    lrpt::Shared* shared;
+    uint8_t slot;
 };
 
 struct TetraBurstMessage : public Message {
