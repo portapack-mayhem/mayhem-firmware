@@ -887,14 +887,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PVDL vdl2_rx)
 
-### Meteor LRPT Rx
-
-set(MODE_CPPSRC
-	proc_lrpt_rx.cpp
-	lrpt_demod.cpp
-)
-DeclareTargets(PLRP lrpt_rx)
-
 ### Sub-GHz chat Rx
 
 set(MODE_CPPSRC
@@ -902,6 +894,14 @@ set(MODE_CPPSRC
 	cc1101_decoder.cpp
 )
 DeclareTargets(PCHT subghz_chat)
+
+### Meteor LRPT Rx
+
+set(MODE_CPPSRC
+	proc_lrpt_rx.cpp
+	lrpt_demod.cpp
+)
+DeclareTargets(PLRP lrpt_rx)
 
 
 set(MODE_CPPSRC

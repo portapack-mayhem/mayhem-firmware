@@ -181,10 +181,10 @@ class Message {
         SpecAnSlice = 122,
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
-        LrptRxStatus = 125,
-        LrptRxFrame = 126,
-        LrptRxBlock = 127,
-        SubGhzChatPacket = 128,
+        SubGhzChatPacket = 125,
+        LrptRxStatus = 126,
+        LrptRxFrame = 127,
+        LrptRxBlock = 128,
         MAX
     };
 
@@ -2153,6 +2153,19 @@ struct VDL2FrameMessage : public Message {
     uint8_t data[MAX_LENGTH]{};
 };
 
+// One CC1101 packet for the Sub-GHz chat (subghz_chat), CRC checked.
+struct SubGhzChatPacketMessage : public Message {
+    static constexpr size_t MAX_LENGTH = 60;
+    // receiver noise for the app's encryption, kept up by the image at the start of bb_data
+    static constexpr size_t NOISE_POOL_BYTES = 32;
+
+    constexpr SubGhzChatPacketMessage()
+        : Message{ID::SubGhzChatPacket} {}
+
+    uint8_t length{0};
+    uint8_t data[MAX_LENGTH]{};
+};
+
 namespace lrpt {
 struct Shared;
 }
@@ -2194,19 +2207,6 @@ struct LrptRxFrameMessage : public Message {
 
     lrpt::Shared* shared;
     uint8_t slot;
-};
-
-// One CC1101 packet for the Sub-GHz chat (subghz_chat), CRC checked.
-struct SubGhzChatPacketMessage : public Message {
-    static constexpr size_t MAX_LENGTH = 60;
-    // receiver noise for the app's encryption, kept up by the image at the start of bb_data
-    static constexpr size_t NOISE_POOL_BYTES = 32;
-
-    constexpr SubGhzChatPacketMessage()
-        : Message{ID::SubGhzChatPacket} {}
-
-    uint8_t length{0};
-    uint8_t data[MAX_LENGTH]{};
 };
 
 struct TetraBurstMessage : public Message {

@@ -183,7 +183,7 @@ class LrptRxView : public View {
     bool record_strip();
     void start();
     // partial: also the strip being decoded
-    void stop(bool partial = true);
+    void stop(bool partial = true, bool ok = true);
     void show_record();
     Coord preview_top();
     Dim preview_height();
