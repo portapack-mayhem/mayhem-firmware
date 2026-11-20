@@ -241,8 +241,20 @@ int32_t GeoPos::speed() {
     return field_speed.value();
 };
 
-template class GeoMapWithStorage<9, 30>;
-template class GeoMapWithStorage<1, 12>;
+GeoMap::GeoMap(Rect parent_rect)
+    : GeoMapBase{parent_rect} {
+    bind_storage(tiles_.data(), tiles_.size(), markers_.data(), markers_.size());
+}
+
+GeoMapBase::GeoMapBase(Rect parent_rect)
+    : GeoMapBase{parent_rect, nullptr, 0, nullptr, 0} {
+}
+
+void GeoMapBase::bind_storage(BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count) {
+    bmp_cache.bind_storage(tiles, tile_count);
+    markerList = markers;
+    marker_capacity_ = marker_count;
+}
 
 GeoMapBase::GeoMapBase(
     Rect parent_rect,

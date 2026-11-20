@@ -98,9 +98,8 @@ class BMPFileCache {
     BMPFileCache(const BMPFileCache&) = delete;
     BMPFileCache& operator=(const BMPFileCache&) = delete;
 
-    ~BMPFileCache() {
-        clear();
-    }
+    // Slots own their BMP files and close them on destruction. This borrowed
+    // view must not access slots that may already have been destroyed.
 
     BMPFile* get(const int32_t z, const int32_t x, const int32_t y) {
         // Cache hit.
@@ -164,6 +163,13 @@ class BMPFileCache {
     }
 
    private:
+    friend class GeoMapBase;
+
+    void bind_storage(Slot* slots, size_t count) {
+        slots_ = slots;
+        count_ = count;
+    }
+
     uint16_t next_stamp() {
         if (++stamp_ == 0) {
             uint16_t v = 1;
@@ -177,8 +183,8 @@ class BMPFileCache {
         }
         return stamp_;
     }
-    Slot* const slots_;
-    const size_t count_;
+    Slot* slots_;
+    size_t count_;
     uint16_t stamp_{0};
 };
 
@@ -361,6 +367,8 @@ enum MapType {
 // Rendering and navigation share one implementation, independent of storage size.
 class GeoMapBase : public Widget {
    public:
+    GeoMapBase(Rect parent_rect, BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count);
+
     std::function<void(float, float, bool)> on_move{};
 
     GeoMapBase(const GeoMapBase&) = delete;
@@ -445,7 +453,9 @@ class GeoMapBase : public Widget {
     float center_lon() const { return lon_; }
 
    protected:
-    GeoMapBase(Rect parent_rect, BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count);
+    explicit GeoMapBase(Rect parent_rect);
+    // Called once by GeoMap after its embedded arrays have been constructed.
+    void bind_storage(BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count);
 
    private:
     void update_zoom();
@@ -513,44 +523,25 @@ class GeoMapBase : public Widget {
     int32_t my_altitude{0};
 
     int markerListLen{0};
-    GeoMarker* const markerList;
-    const size_t marker_capacity_;
+    GeoMarker* markerList;
+    size_t marker_capacity_;
     bool redraw_map{true};
     bool use_osm{false};
     bool has_osm{false};
 };
 
-template <size_t TileSlots, size_t MarkerCount>
-struct GeoMapStorage {
-    std::array<BMPFileCache::Slot, TileSlots> tiles{};
-    std::array<GeoMarker, MarkerCount> markers{};
-};
-
-template <size_t TileSlots, size_t MarkerCount>
-class GeoMapWithStorage : private GeoMapStorage<TileSlots, MarkerCount>, public GeoMapBase {
-    static_assert(TileSlots > 0, "GeoMap requires a tile slot");
-    static_assert(MarkerCount > 0, "GeoMap requires marker storage");
-    using Storage = GeoMapStorage<TileSlots, MarkerCount>;
-
+// Existing clients keep embedded storage with their original capacities.
+class GeoMap : public GeoMapBase {
    public:
-    static constexpr size_t TileCacheSlots = TileSlots;
-    static constexpr int NumMarkerListElements = MarkerCount;
+    static constexpr size_t TileCacheSlots = 9;
+    static constexpr int NumMarkerListElements = 30;
 
-    // Keep array initialization out of external applications' constructors.
-    __attribute__((noinline)) explicit GeoMapWithStorage(Rect parent_rect)
-        : Storage{},
-          GeoMapBase{parent_rect, this->tiles.data(), TileSlots,
-                     this->markers.data(), MarkerCount} {
-    }
-    // Storage is constructed before the base and destroyed after its cache view.
+    explicit GeoMap(Rect parent_rect);
+
+   private:
+    std::array<BMPFileCache::Slot, TileCacheSlots> tiles_{};
+    std::array<GeoMarker, NumMarkerListElements> markers_{};
 };
-
-// Existing users keep their nine tile slots and thirty secondary markers.
-using GeoMap = GeoMapWithStorage<9, 30>;
-
-// Keep these constructors and their constant data in the resident map code.
-extern template class GeoMapWithStorage<9, 30>;
-extern template class GeoMapWithStorage<1, 12>;
 
 class GeoMapView : public View {
    public:

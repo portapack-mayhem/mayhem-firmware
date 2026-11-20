@@ -152,7 +152,14 @@ class EPIRBMapView : public View {
 
    private:
     // The selected beacon is drawn separately from the other history entries.
-    GeoMapWithStorage<1, BEACON_HISTORY_SIZE - 1> geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT}};
+    // Construct storage first and destroy it after the borrowed renderer.
+    std::array<BMPFileCache::Slot, 1> map_tiles{};
+    std::array<GeoMarker, BEACON_HISTORY_SIZE - 1> map_markers{};
+    GeoMapBase geomap{{0, 0, UI_POS_MAXWIDTH, EPIRB_TAB_HEIGHT},
+                      map_tiles.data(),
+                      map_tiles.size(),
+                      map_markers.data(),
+                      map_markers.size()};
     float lat_{EPIRB_RX_DEFAULT_LATITUDE};
     float lon_{EPIRB_RX_DEFAULT_LONGITUDE};
     bool map_hidden{true};
