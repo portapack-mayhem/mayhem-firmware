@@ -303,7 +303,9 @@ bool BMPFile::write_next_px(ui::Color& px) {
 // writes raw row data (BGR, rows padded to 4 bytes) after the last row; see commit_rows()
 bool BMPFile::append_rows(const uint8_t* data, size_t bytes) {
     if (!is_opened || is_read_only) return false;
-    if (bmpimage.write(data, bytes).is_error()) return false;
+    const auto res = bmpimage.write(data, bytes);
+    // a full card writes less, without an error
+    if (res.is_error() || res.value() != bytes) return false;
     pending_bytes += bytes;
     return true;
 }
@@ -314,13 +316,21 @@ bool BMPFile::commit_rows() {
     const uint32_t rows = pending_bytes / byte_per_row;
     if (!rows) return true;
     const uint32_t delta = rows * byte_per_row;
+    // the rows stay pending until their header is in the file, so that a later commit tries again
+    auto header = bmp_header;
+    header.size += delta;
+    header.data_size += delta;
+    header.height = -1 * (int32_t)(get_real_height() + rows);
+    bool ok = !bmpimage.seek(0).is_error();
+    if (ok) {
+        const auto res = bmpimage.write(&header, sizeof(header));
+        ok = !res.is_error() && res.value() == sizeof(header);
+    }
+    // back to the end of the rows in any case, for the next append
+    if (bmpimage.seek(bmp_header.size + pending_bytes).is_error() || !ok) return false;
+    bmp_header = header;
     pending_bytes -= delta;
-    bmp_header.size += delta;
-    bmp_header.data_size += delta;
-    bmp_header.height = -1 * (int32_t)(get_real_height() + rows);
-    if (bmpimage.seek(0).is_error()) return false;
-    if (bmpimage.write(&bmp_header, sizeof(bmp_header)).is_error()) return false;
-    return !bmpimage.seek(bmp_header.size + pending_bytes).is_error();
+    return true;
 }
 
 // positions in the file to the given pixel. 0 based indexing

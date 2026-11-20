@@ -54,13 +54,16 @@ void Deinterleaver::service(Shared* shared) {
         memset(valid_, 0, sizeof(valid_));
     }
 
-    // input blocks to the card, oldest first
-    for (;;) {
+    // Input blocks to the card, oldest first. No more than the slots in a call: a card slower
+    // than the blocks come loses blocks, it does not keep the M0 in here.
+    for (size_t n = 0; n < DEINT_SLOTS; n++) {
         int slot = -1;
         uint32_t seq = 0;
         for (size_t i = 0; i < DEINT_SLOTS; i++) {
             if (shared->in_state[i] != SLOT_FULL) continue;
             const uint32_t s = shared->in_seq[i];
+            // the M4 started over between the two reads
+            if (s == 0xFFFFFFFF) return;
             if (slot < 0 || s < seq) {
                 slot = i;
                 seq = s;
@@ -69,7 +72,13 @@ void Deinterleaver::service(Shared* shared) {
         if (slot < 0) break;
         __sync_synchronize();
 
-        // the M4 had no free slot for these
+        if (shared->generation != generation) return;
+
+        // the M4 had no free slot for these; past a whole ring there is nothing left to keep
+        if (seq > written_ && seq - written_ >= RING_BLOCKS) {
+            memset(valid_, 0, sizeof(valid_));
+            written_ = seq;
+        }
         while (written_ < seq) set_valid(written_++, false);
         const bool ok = write_(context_, (seq % RING_BLOCKS) * FILE_BLOCK, shared->in[slot], DEINT_BLOCK);
         if (!ok) errors_++;
@@ -81,7 +90,8 @@ void Deinterleaver::service(Shared* shared) {
 
     // Output blocks, as soon as a slot is free and their blocks are on the card. Branch k comes
     // from the block (35 - k) * DEINT_LAG before; branch 35 the M4 takes from its input slot.
-    for (;;) {
+    // Bounded as the writes are: blocks the card is too slow for are given up.
+    for (size_t n = 0; n < DEINT_SLOTS; n++) {
         const uint32_t next = shared->next_consumed;
         if (prepared_ < next) prepared_ = next;  // too late for those
         const size_t slot = prepared_ % DEINT_SLOTS;

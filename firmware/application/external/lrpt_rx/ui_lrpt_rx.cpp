@@ -123,6 +123,8 @@ LrptRxView::LrptRxView(NavigationView& nav)
         set_composite(v);
     };
 
+    // the settings bring back the rate of the mode the app was left in, it starts in 72k
+    receiver_model.set_sampling_rate(lrpt::baseband_rate(mode_));
     options_mode.set_selected_index(0, false);
     options_mode.on_change = [this](size_t, OptionsField::value_t v) {
         const auto mode = (v == (int32_t)lrpt::Mode::M80K) ? lrpt::Mode::M80K : lrpt::Mode::M72K;
@@ -263,13 +265,16 @@ void LrptRxView::on_strip(void* context) {
     self.preview_strip();
     if (self.recording_) {
         if (!self.record_strip()) {
-            self.stop(false);
-            self.text_record.set("SD write error");
+            self.stop(false, false);
             return;
         }
         if (++self.strips_uncommitted_ >= COMMIT_STRIPS) {
             self.strips_uncommitted_ = 0;
-            self.bmp_.commit_rows();
+            // the file is not where the next rows go after a failed commit
+            if (!self.bmp_.commit_rows()) {
+                self.stop(false, false);
+                return;
+            }
         }
         self.show_record();
     }
@@ -348,14 +353,15 @@ void LrptRxView::start() {
     show_record();
 }
 
-void LrptRxView::stop(bool partial) {
+// ok: false when a write failed already. The rows written so far are still committed.
+void LrptRxView::stop(bool partial, bool ok) {
     // the strip being decoded, as far as it came
-    if (partial && shared_ && decoder_.strip_pending()) record_strip();
-    bmp_.commit_rows();
+    if (partial && shared_ && decoder_.strip_pending() && !record_strip()) ok = false;
+    if (!bmp_.commit_rows()) ok = false;
     bmp_.close();
     recording_ = false;
     button_record.set_text("Start");
-    if (!stopping_) text_record.set(file_name_ + " " + to_string_dec_uint(rows_written_));
+    if (!stopping_) text_record.set(ok ? file_name_ + " " + to_string_dec_uint(rows_written_) : "SD write error");
 }
 
 void LrptRxView::show_record() {
