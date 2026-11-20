@@ -15,10 +15,7 @@ std::string bundled_app_name;
 size_t bundled_offset = 0;
 
 inline std::filesystem::path external_app_path(const std::string& app_name) {
-    auto file_path = apps_dir;
-    file_path /= std::filesystem::path{app_name.begin(), app_name.end()};
-    file_path += std::filesystem::path{u".ppma"};
-    return file_path;
+    return apps_dir / std::filesystem::path{app_name + ".ppma"};
 }
 
 // Copies the baseband bundled after the app code into m4_code; the file position must be at m4_app_offset.
