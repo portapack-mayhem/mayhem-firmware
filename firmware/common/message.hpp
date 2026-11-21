@@ -498,7 +498,6 @@ class FT8RxStatusMessage : public Message {
     uint8_t decode_count;
 };
 
-/* One decoded WSPR transmission, already unpacked to text by the baseband. */
 class WSPRPacketMessage : public Message {
    public:
     constexpr WSPRPacketMessage(
@@ -521,8 +520,6 @@ class WSPRPacketMessage : public Message {
           agreement_pct{message_agreement_pct},
           start_br{message_start_br},
           col{message_col} {
-        /* Callsign is up to 12 characters and grid 4; both stop at the source terminator
-         * and are always terminated here, however short the source ran. */
         size_t i = 0;
         for (; i < sizeof(callsign) - 1 && message_callsign[i] != '\0'; i++)
             callsign[i] = message_callsign[i];
@@ -532,37 +529,24 @@ class WSPRPacketMessage : public Message {
         grid[i] = '\0';
     }
 
-    char callsign[13];  // up to 12 characters plus terminator
-    char grid[5];       // 4 characters plus terminator
-    /* 0..60 dBm as transmitted; the report the station sent. */
-    int8_t dbm;
-    /* Rough estimate from the decoder, for display only. */
+    char callsign[13];
+    char grid[5];
+    int8_t dbm;  // Declared transmit power, dBm.
     int8_t snr_db;
-    /* Audio frequency of the transmission's tone 0 inside the 1400-1600 Hz passband, and
-     * the total drift over the window in tone steps, so a drifting station is visible. */
-    int16_t freq_hz;
-    int16_t drift_bins;
-    /* Re-encode agreement of this decode, percent: the live trust readout the UI
-     * colors the line by (strong singles trusted, weak ones marked). */
-    int8_t agreement_pct;
-    /* Physical transmission identity: absolute ring block-row of the packet start
-     * and its tone-0 column, so the UI can tell a repeat of the same TX (same
-     * start_br) from a genuinely new transmission. Defaults keep older call
-     * sites compiling; the ring decoder always supplies them. */
-    uint32_t start_br;
+    int16_t freq_hz;  // Audio offset, Hz.
+    int16_t drift_bins;  // Drift in tone bins.
+    int8_t agreement_pct;  // Re-encode agreement, percent.
+    uint32_t start_br;  // Absolute transmission-start block-row.
     int16_t col;
 };
 
-/* Sent once per 120 s capture window so the UI can tell the user the receiver is alive;
- * a WSPR window is silent for two minutes before anything decodes, which otherwise looks
- * identical to a dead band. */
 class WSPRRxStatusMessage : public Message {
    public:
     enum class SyncState : uint8_t {
-        Searching = 0,  // Capturing back-to-back windows; nothing decoded yet
-        Heard = 1,      // A transmission is in the passband but has not decoded
-        Syncing = 2,    // Slot phase acquisition in progress
-        Locked = 3,     // Slot phase locked
+        Searching = 0,
+        Heard = 1,
+        Syncing = 2,
+        Locked = 3,
     };
 
     constexpr WSPRRxStatusMessage(
@@ -577,30 +561,17 @@ class WSPRRxStatusMessage : public Message {
 
     SyncState state;
     uint8_t decode_count;
-    /* Mean sync-bin excess over the pair-bin noise mean, in 0.5 dB bytes: the
-     * live signal-quality readout for the status line (noise scores a couple
-     * of units, a real transmission several times that). */
-    int16_t sync_score;
+    int16_t sync_score;  // Sync excess, 0.5 dB units.
 };
 
-/* Rich per-window WSPR decoder telemetry, sent once per capture window just before the
- * status message of the same window, so the UI debug log can record what the decoder
- * saw without the baseband shipping full result structs around. Everything is by value
- * and bounded: at most four candidate slots, zero-filled past the results a window
- * produced, and the whole message stays far under the queue's size limit. */
 class WSPRDebugMessage : public Message {
    public:
     static constexpr size_t max_candidates = 4;
 
-    /* One compact candidate: the sync score saturated into a byte (real scores reach
-     * a few dozen, so the clamp only catches pathological values), the window row the
-     * transmission starts in (a complete decode always starts at row 0..14, so a byte
-     * fits) and the audio frequency of tone 0. freq_hz == 0 marks an unused slot; a
-     * real decode always sits in the 1400-1600 Hz passband, never at zero. */
     struct Candidate {
         int8_t sync_excess;
         int8_t row_offset;
-        int16_t freq_hz;
+        int16_t freq_hz;  // Audio offset, Hz.
     };
 
     constexpr WSPRDebugMessage(
@@ -632,105 +603,46 @@ class WSPRDebugMessage : public Message {
           cand_freq_hz{cand_freq_hz_value},
           cand_agg{cand_agg_value},
           candidates{} {
-        /* Copy at most the fixed slot count; slots past candidate_count stay
-         * zero-filled from the initializer above. */
         for (size_t i = 0; i < candidate_count && i < max_candidates; i++)
             candidates[i] = candidate_values[i];
     }
 
-    uint8_t window_index;  // capture window counter, wraps at 256
-    uint8_t num_results;   // decodes this window produced
-    /* The baseband cannot learn the true candidate count: wspr_decode_window returns
-     * only the accepted results, so this conservatively mirrors num_results until the
-     * decoder grows a real count output for it. */
+    uint8_t window_index;
+    uint8_t num_results;
     uint8_t num_candidates;
-    /* Same values as WSPRRxStatusMessage::SyncState, as a plain byte. */
     uint8_t tracker_state;
-    /* Best (results[0]) values this window, or the last ones seen while windows are
-     * quiet, so the log does not flicker to zero on a silent band. */
-    int16_t sync_score;
+    int16_t sync_score;  // Sync excess, 0.5 dB units.
     int16_t best_metric;
-    /* The phase correction the tracker computed for the NEXT window, in samples: 0, a
-     * sixth-row dither step, or the full-slot jump saturated to 32767 (the jump is
-     * about 1.33M samples and would wrap a plain int16). */
     int16_t last_skip;
-    /* The tracker's remembered best sync score, the reference its phase chase steers
-     * toward; rides along so the log shows how far each window scored from it. */
     int16_t best_score_seen;
-    /* Sync-only acquisition probe of an empty window: the start row and mean
-     * sync-bin excess of the best transmission-shaped anchor, including rows
-     * 15..28 the full decode can never reach. probe_row < 0 when the window
-     * had decodes or the probe found nothing worth anchoring on. */
     int8_t probe_row;
     int8_t probe_score;
 
-    /* Candidate-level trace outcome (WSPR_CANDIDATE_TRACE): the FINAL
-     * disposition of the candidate THIS debug message was emitted for,
-     * carried on the same per-candidate debug push instead of a separate
-     * message. cand_freq_hz == 0 marks "no candidate outcome this message"
-     * (a real candidate's tone-0 is always in the 1400-1600 Hz passband).
-     * Only ADMITTED candidates are traced (refused candidates are covered in
-     * aggregate by the win line's snapE/snapO): snap is therefore always 0
-     * here and is not carried. agg is the wspr_agg result code (255 = never
-     * contributed; 5/7/8 imply a real FEC attempt — 5 = stack_decode failed,
-     * 7/8 a post-FEC gate/REPORT — 8 a REPORT; derived host-side). freq is the
-     * association key to a later REPORT (same
-     * col/freq as WSPRPacketMessage); association is frequency-based, not
-     * proof of one physical TX. */
-    int16_t cand_freq_hz;
-    uint8_t cand_agg;
+    int16_t cand_freq_hz;  // Zero when no candidate is present.
+    uint8_t cand_agg;  // Aggregation result; 255 means not contributed.
 
     Candidate candidates[max_candidates];
 };
 
-/* Live operation telemetry, M4 baseband -> M0 UI, published at most once per
- * second plus on phase changes (WSPR_RX_DIAG build). Deliberately separate from
- * the per-window WSPRDebugMessage: that one is a two-minute history record,
- * while this one is polled-rate live state the diagnostics screen renders.
- * Published from the baseband/decode thread context (never ISR), pushed without
- * waiting, and silently dropped when the application queue is full (the drop is
- * counted and reported by the next successful publish). All values numeric and
- * bounded so the UI can format them from a fixed buffer. */
 class WSPRTelemetryMessage : public Message {
    public:
     enum class Phase : uint8_t {
-        Idle = 0,     // no capture running
-        Capture = 1,  // accumulating a capture window
-        Decode = 2,   // analyzing the completed window
-        Rephase = 3,  // intentional phase skip (dead air), skip_samples counts down
+        Idle = 0,
+        Capture = 1,
+        Decode = 2,
+        Rephase = 3,
     };
 
-    /* valid_flags bit assignments: a field is meaningful only when its bit is
-     * set, so the UI shows "--" instead of a stale zero. NOTE: the flag word
-     * was widened from uint8_t to uint16_t so the two observational bits
-     * (VALID_CAND, VALID_DIAG) fit; consumers that mirror the flags must use
-     * uint16_t as well. */
+    // Fields are valid only when their corresponding flag is set.
     static constexpr uint16_t VALID_ROWS = 1 << 0;
     static constexpr uint8_t VALID_CAPTURED = 1 << 1;
     static constexpr uint8_t VALID_SKIP = 1 << 2;
     static constexpr uint8_t VALID_DECODE_MS = 1 << 3;
     static constexpr uint8_t VALID_PROBE = 1 << 4;
-    /* Ring scan health counters (VALID_LOSS): starts scanned, starts/jobs
-     * dropped past the overwrite deadline, the worst cursor distance a job
-     * processed, and candidates lost to the snapshot's expiry/race gate. */
     static constexpr uint16_t VALID_LOSS = 1 << 5;
-    /* Decode-thread stack free (VALID_STACK): bytes still available on the WSPR
-     * decode thread's OWN working area — NOT shared_memory.m4_stack_usage, which
-     * tracks the main M4 thread. Published as the running minimum (highwater)
-     * since app start, so D2 hardware checks read the worst observed margin. */
     static constexpr uint16_t VALID_STACK = 1 << 6;
-    /* Latest selected-candidate observation (VALID_CAND): the LATEST candidate
-     * released by wspr_ring_scan_poll, coalesced into this 1 Hz publish - no
-     * per-candidate message. cand_pending clears on an accepted REPORT or
-     * after 150 s of age. VALID_DIAG carries the bounded diagnostic counters
-     * (all cumulative uint32 since M4 session start; natural uint32 wrap;
-     * NEVER read by any decision path). */
     static constexpr uint16_t VALID_CAND = 1 << 7;
     static constexpr uint16_t VALID_DIAG = 1 << 8;
-    /* VALID_DIAG is bit 8: a publisher that composes the flags word in a
-     * uint8_t silently truncates this bit and the M0 then never consumes the
-     * d_* counters (they read zero forever). Guarded so the width contract
-     * cannot regress silently (see publish_telemetry). */
     static_assert(VALID_DIAG > 0xFF, "VALID_DIAG requires a 16-bit valid_flags word");
 
     constexpr WSPRTelemetryMessage(
@@ -786,72 +698,25 @@ class WSPRTelemetryMessage : public Message {
     }
 
     Phase phase;
-    uint16_t valid_flags;  // widened from uint8_t: VALID_CAND/VALID_DIAG need bit 7/8
-    /* Publish sequence number, wraps at 65536: the UI can detect lost
-     * messages beyond its own drop counter. */
+    uint16_t valid_flags;
     uint16_t seq;
-    /* Capture progress: current row 0..WSPR_RX_NUM_ROWS (VALID_ROWS), and audio
-     * samples accumulated into the current window at 12 kHz (VALID_CAPTURED). */
     uint16_t rows;
     uint32_t captured_samples;
-    /* Rephase: samples still to be dropped at 12 kHz before capture resumes
-     * (VALID_SKIP). About 111 s at the full slot jump. */
     uint32_t skip_samples_remaining;
-    /* Wall time of the last completed window analysis, milliseconds; 0 with
-     * VALID_DECODE_MS clear when not measured. */
     uint16_t last_decode_ms;
-    /* Completed capture windows since the app started (overrun handling
-     * included), wraps at 256. */
     uint8_t window_count;
-    /* Telemetry messages dropped due to a full application queue since the last
-     * published one; lets the UI report publish losses. */
     uint16_t telem_dropped;
-    /* Last sync-probe anchor of the running acquisition (VALID_PROBE): row and
-     * mean sync-bin excess, probe_row < 0 when none. */
     int8_t probe_row;
     int8_t probe_score;
-    /* Ring scan health counters (VALID_LOSS), from the decode thread's
-     * wspr_ring_scan_state_t: starts actually sync-scanned, starts/jobs
-     * dropped past the overwrite deadline, the worst cursor distance a job
-     * processed, and candidates lost to the snapshot's expiry/race gate.
-     * Diagnostics reads are unsynchronized by design (counters only). */
     uint32_t scan_scanned;
     uint32_t scan_expired;
     uint32_t scan_max_lag;
     uint32_t scan_snap_drops;
-    /* Decode-thread own-stack free bytes (VALID_STACK), running minimum since
-     * launch; 0 with the flag clear when never measured. */
-    uint16_t decode_stack_free;
-    /* Latest selected-candidate observation (VALID_CAND), CONTRACT v3: ONE
-     * field - the audio frequency of tone 0 (bin0_hz + col * 12000 / 8192 Hz)
-     * of the candidate released by the most recent wspr_ring_scan_poll
-     * return of 1. The flag itself means "M4 selected a candidate, no
-     * accepted REPORT for it yet"; the M0/UI owns the 150 s expiry from the
-     * message arrival tick. Excess rides the existing probe channel;
-     * drift display dropped. Candidate releases are counted by the M0 from
-     * the existing per-candidate Decode-phase telemetry. */
+    uint16_t decode_stack_free;  // Running minimum free decoder-stack bytes.
     uint16_t cand_freq_hz;
-    /* Bounded aggregate diagnostic counters (VALID_DIAG), CONTRACT v3 - the
-     * minimum set (3 fields; all cumulative uint32 since M4 session start
-     * (RX RESTART / app start zero them), wrap = natural uint32 wrap,
-     * diagnostics-only: no decision path reads them. Coarseness: snapshot
-     * and aggregate categories are not distinguishable on the M4. The
-     * counters are OBSERVATIONAL stage counts, not a funnel from which
-     * failures can be computed: no field may be turned into a "FEC failure"
-     * by subtracting the M0's report count. */
-    uint32_t d_cand_selected;  // candidates released by the scan (release funnel)
-    /* Candidate jobs that ENTERED the demod/aggregate stage (the snapshot
-     * admitted them). NOT a count of FEC decode calls and NOT a failure
-     * count: demod, aggregation, dedup, association and the >=2-slot report
-     * gate all happen after this entry point and can still drop the
-     * candidate. */
-    uint32_t d_stage_entries;
-    /* Where candidates die (all cumulative, diagnostics only):
-     * d_snap_expired/overwritten - snapshot rejected the frozen ring copy;
-     * d_agg_reject - demodulated but rejected by track association/dedup/open
-     *   floor/report gate (wspr_agg codes 1,2,4,6);
-     * d_agg_fail - completed path failed metric/agreement/unpack (code 7);
-     * d_agg_other - codes 0,3,5 and any unclassified outcome. */
+    // Cumulative diagnostics since session start.
+    uint32_t d_cand_selected;
+    uint32_t d_stage_entries;  // Demod/aggregate entries, not FEC attempts.
     uint32_t d_snap_expired;
     uint32_t d_snap_overwritten;
     uint32_t d_agg_reject;
@@ -2667,11 +2532,6 @@ struct WMBusPacketMessage : public Message {
     uint8_t data[500] = {0};
 };
 
-/* WSPR RX: restart the capture session (UI RX RESTART button -> baseband).
- * Payload-free: the processor and the decode thread each reset what they own
- * (producer state / matrix on the message thread, scan+accumulator in the
- * decode thread) - no threads are stopped, the station table on the UI side
- * is preserved. */
 class WSPRRestartMessage : public Message {
    public:
     constexpr WSPRRestartMessage()

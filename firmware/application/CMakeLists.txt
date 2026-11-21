@@ -528,8 +528,7 @@ add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
 	COMMAND ${EXPORT_EXTERNAL_APP_IMAGES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_OBJCOPY} ${CMAKE_READELF} ${M4_CODE_SIZE} ${EXTAPPLIST}
-	# .ppma files bundle the M4 binaries. A target-order dependency alone
-	# does not re-export them when only the baseband changes.
+	# Re-export bundled baseband images when they change.
 	DEPENDS ${PROJECT_NAME}.elf ${EXPORT_EXTERNAL_APP_IMAGES}
 		${CMAKE_BINARY_DIR}/firmware/baseband/baseband.img
 )

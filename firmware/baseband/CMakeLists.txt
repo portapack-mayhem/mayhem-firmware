@@ -862,7 +862,6 @@ set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
 DeclareTargets(PFT8 ft8_rx)
 set(MODE_FLAGS "-O3")
 
-### WSPR RX
 
 set(MODE_CPPSRC
 	proc_wspr_rx.cpp
@@ -872,28 +871,14 @@ set(MODE_CPPSRC
 	wspr_lib/wspr_unpack.c
 	wspr_lib/wspr_decode.c
 )
-# The streaming receiver approaches the external baseband image size limit,
-# so build it for size, like the FT8 image above.
-# The LOG_PRINTF define is the same guard: if wspr_lib ever grows ft8_lib-style debug.h
-# logging, stdio stays out of the image and the vendored headers stay untouched.
 set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
 
-# WSPR RX needs a 1 KiB main() process stack instead of the upstream 4 KiB so the
-# M4 heap clears the 22580-byte ASSERT floor in wspr_memory.ld. A
-# `-Wl,--defsym=__process_stack_size__=1024` (or a later-appended linker script
-# assignment) cannot override the value: the upstream script hard-assigns
-# `__process_stack_size__ = 0x1000` and the `.stacks` section is laid out before
-# any later script or defsym takes effect. Instead, derive a WSPR-only copy of
-# the upstream M4 script at configure time with exactly that one assignment
-# patched, and link the WSPR image with it as its primary linker script. Every
-# other baseband image keeps linking against the untouched upstream script.
+# Derive a WSPR-only 1 KiB main stack to preserve the required heap.
 set(WSPR_UPSTREAM_LDSCRIPT ${LDSCRIPT})
 file(READ ${WSPR_UPSTREAM_LDSCRIPT} WSPR_UPSTREAM_LD_CONTENT)
 string(REGEX MATCHALL
     "__process_stack_size__[ \t]*=[ \t]*0x1000;"
     WSPR_STACK_MATCHES "${WSPR_UPSTREAM_LD_CONTENT}")
-# Count only non-empty entries: MATCHALL lists can carry empty elements
-# (CMP0007), which make list(LENGTH) overcount.
 set(WSPR_STACK_MATCH_COUNT 0)
 foreach(_m ${WSPR_STACK_MATCHES})
     if(_m)
@@ -915,16 +900,7 @@ string(REGEX REPLACE
 set(WSPR_GENERATED_LDSCRIPT ${CMAKE_CURRENT_BINARY_DIR}/LPC43xx_M4_wspr.ld)
 file(WRITE ${WSPR_GENERATED_LDSCRIPT} "${WSPR_MODIFIED_LD_CONTENT}")
 
-# rules.cmake (included inside DeclareTargets) bakes ${LDSCRIPT} into
-# CMAKE_EXE_LINKER_FLAGS, which is shared by every target in this directory
-# (the last rules.cmake include wins at generate time). A `-Wl,--script`
-# appended per target would land *after* the upstream script on the link line,
-# and GNU ld concatenates -T scripts in command-line order, so the later
-# assignment could not shrink the already-laid-out .stacks section. To point
-# only the WSPR image at the generated script, declare that target in its own
-# directory scope (a minimal generated CMakeLists.txt in the build tree) with
-# LDSCRIPT re-pointed. All other variables (MODE_CPPSRC, MODE_FLAGS, HALSRC,
-# LIBS, ...) are inherited from this scope.
+# Isolate the linker flags set by rules.cmake in a separate directory scope.
 set(WSPR_MODE_CPPSRC_ABS)
 foreach(_src ${MODE_CPPSRC})
     list(APPEND WSPR_MODE_CPPSRC_ABS ${CMAKE_CURRENT_SOURCE_DIR}/${_src})
@@ -940,12 +916,7 @@ DeclareTargets(PWSR wspr_rx)
 ")
 add_subdirectory(${WSPR_LINK_SCOPE_DIR} ${WSPR_LINK_SCOPE_DIR})
 
-# The generated scope only builds the ELF. WSPR is declared below all three
-# external tier boundaries, so DeclareTargets would take the external branch:
-# a raw chunk-tag .bin for the .ppma bundler, never concatenated into
-# baseband.img (export_external_apps.py reads baseband/PWSR.bin and packs it
-# into wspr_rx.ppma; BASEBAND_EXTERNAL_IMAGES entries only provide the build
-# dependency). Reproduce that branch here, with the path the bundler expects.
+# Export PWSR.bin for the external-app bundler.
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/PWSR.bin
     COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:baseband_wspr_rx.elf> ${CMAKE_CURRENT_BINARY_DIR}/PWSR.bin
@@ -954,8 +925,7 @@ add_custom_command(
 )
 list(APPEND BASEBAND_EXTERNAL_IMAGES ${CMAKE_CURRENT_BINARY_DIR}/PWSR.bin)
 
-# Only the event loop and setup run on main's stack; decoding has its own 4 KiB.
-# Reserve the real heap budget (including RSSI DMA) at link time.
+# Enforce the WSPR heap reserve at link time.
 target_link_libraries(baseband_wspr_rx.elf
     -Wl,--script=${CMAKE_CURRENT_SOURCE_DIR}/wspr_memory.ld)
 set_property(TARGET baseband_wspr_rx.elf APPEND PROPERTY LINK_DEPENDS
