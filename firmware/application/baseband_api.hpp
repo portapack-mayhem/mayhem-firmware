@@ -128,6 +128,7 @@ void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start);
 void set_wmbus_config(uint8_t mode = 0);
 
 void request_roger_beep();
+void request_wspr_restart();
 void request_rssi_beep();
 void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);

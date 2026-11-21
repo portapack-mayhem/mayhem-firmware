@@ -622,6 +622,15 @@ void request_beep(RequestSignalMessage::Signal beep_type) {
     send_message(&message);
 }
 
+void request_wspr_restart() {
+    /* WSPR RX restart: the M0 app may only send this to the WSPR baseband
+     * image; the message is payload-free and both sides reset only what they
+     * own (see proc_wspr_rx.cpp on_message). The static lifetime keeps the
+     * message object alive while the M4 consumes shared_memory.baseband_message. */
+    static WSPRRestartMessage message;
+    send_message(&message);
+}
+
 void request_roger_beep() {
     request_beep(RequestSignalMessage::Signal::RogerBeepRequest);
 }
