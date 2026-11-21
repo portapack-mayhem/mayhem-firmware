@@ -186,6 +186,10 @@ for external_image_prefix in sys.argv[5:]:
 	print(chunk_tag)
 	print("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
 	m4_image = read_image("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
+	# The loader checksums the app and the baseband as separate 32-bit word streams,
+	# so the baseband must start on a word boundary in the file.
+	while len(external_application_image) % 4:
+		external_application_image += b'\x00'
 	app_image_len = len(external_application_image)
 	external_application_image += m4_image
 
