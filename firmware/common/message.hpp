@@ -188,6 +188,8 @@ class Message {
         GPSScanResult = 128,
         GPSScanProfile = 129,
         GPSScanTrack = 130,
+        GPSScanSubframe = 131,
+        GPSScanNavObs = 132,
         MAX
     };
 
@@ -2384,6 +2386,26 @@ class GPSScanTrackMessage : public Message {
     }
 
     gps_scan::TrackStatus status;
+};
+
+class GPSScanSubframeMessage : public Message {
+   public:
+    constexpr GPSScanSubframeMessage(const gps_scan::NavSubframe& subframe)
+        : Message{ID::GPSScanSubframe},
+          subframe{subframe} {
+    }
+
+    gps_scan::NavSubframe subframe;
+};
+
+class GPSScanNavObsMessage : public Message {
+   public:
+    constexpr GPSScanNavObsMessage(const gps_scan::NavObsPacket& obs)
+        : Message{ID::GPSScanNavObs},
+          obs{obs} {
+    }
+
+    gps_scan::NavObsPacket obs;
 };
 
 #endif /*__MESSAGE_H__*/

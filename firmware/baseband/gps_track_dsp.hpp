@@ -39,7 +39,7 @@ static inline float fast_atanf(float z) {
     return z * (0.78539816f + 0.273f * (1.0f - az));
 }
 
-static inline float fast_atan2f(float y, float x) {
+GPS_NOINLINE static float fast_atan2f(float y, float x) {
     static constexpr float kPi = 3.14159265f;
     static constexpr float kHalfPi = 1.57079633f;
     const float ax = (x < 0.0f) ? -x : x;
@@ -57,7 +57,7 @@ static inline float fast_atan2f(float y, float x) {
 }
 
 // Fast 180-degree-insensitive Costas phase error atan(Q/I) in [-pi/2, +pi/2].
-static inline float fast_costas_atan(float q, float i) {
+GPS_NOINLINE static float fast_costas_atan(float q, float i) {
     static constexpr float kHalfPi = 1.57079633f;
     if (i < 0.0f) {
         i = -i;
@@ -69,6 +69,31 @@ static inline float fast_costas_atan(float q, float i) {
         return fast_atanf(q / i);
     }
     return ((q >= 0.0f) ? kHalfPi : -kHalfPi) - fast_atanf(i / q);
+}
+
+// Shared bit-edge histogram peak finder & Van Dierendonck NP -> C/N0 converter (avoids duplication on M4).
+GPS_NOINLINE static uint8_t find_bit_hist_peak(const uint16_t hist[20], uint16_t& top1_out, uint16_t& top2_out) {
+    uint16_t top1 = 0, top2 = 0;
+    uint8_t best = 0;
+    for (uint8_t k = 0; k < 20; k++) {
+        if (hist[k] > top1) {
+            top2 = top1;
+            top1 = hist[k];
+            best = k;
+        } else if (hist[k] > top2) {
+            top2 = hist[k];
+        }
+    }
+    top1_out = top1;
+    top2_out = top2;
+    return best;
+}
+
+GPS_NOINLINE static float np_to_cn0_dbhz(float np) {
+    if (np > 1.05f && np < 19.95f) {
+        return 30.0f + 10.0f * fast_log10f((np - 1.0f) / (20.0f - np));
+    }
+    return (np >= 19.95f) ? 56.0f : 0.0f;
 }
 
 // IS-GPS-200 Table 20-XIV Hamming (32,26) parity masks over d1..d24 (bit 23 = d1, bit 0 = d24).
@@ -116,7 +141,7 @@ static inline bool check_gps_word(uint32_t word30, uint32_t d29_prev, uint32_t d
 
 // Encode a 24-bit data word into a 30-bit transmitted GPS word.
 // If force_zero_d29_d30 is true (for Word 2 HOW / Word 10), solves bits d23..d24 so D29=0, D30=0.
-static inline uint32_t encode_gps_word(uint32_t d24, uint32_t d29_prev, uint32_t d30_prev, bool force_zero_d29_d30) {
+GPS_NOINLINE static uint32_t encode_gps_word(uint32_t d24, uint32_t d29_prev, uint32_t d30_prev, bool force_zero_d29_d30) {
     d24 &= 0xFFFFFFU;
     if (force_zero_d29_d30) {
         d24 &= 0xFFFFFCU;
@@ -160,6 +185,7 @@ class GPSNavDecoder {
         frames_ok_ = 0;
         frames_err_ = 0;
         cur_parity_ok_ = 0;
+        pending_sf_id_ = 0;
         std::memset(sf_words_, 0, sizeof(sf_words_));
     }
 
@@ -167,13 +193,12 @@ class GPSNavDecoder {
         raw_bit &= 1U;
         total_bits_++;
         recent_bits_ = (recent_bits_ << 1) | raw_bit;
+        word_sr_ = (word_sr_ << 1) | raw_bit;
+        if (bits_in_sr_ < 62) bits_in_sr_++;
 
         if (frame_synced_ == 0) {
-            // Shift into 62-bit window to test Word 1 (TLM) + Word 2 (HOW) simultaneously!
-            // Keep prev2 (D29*, D30*) + 30-bit Word 1 + 30-bit Word 2 = 62 bits!
-            word_sr_ = (word_sr_ << 1) | raw_bit;
+            // 62-bit window to test prev2 (D29*, D30*) + 30-bit Word 1 (TLM) + 30-bit Word 2 (HOW) simultaneously!
             if (bits_in_sr_ < 62) {
-                bits_in_sr_++;
                 return;
             }
 
@@ -227,21 +252,31 @@ class GPSNavDecoder {
 
         // Complete 30-bit word received
         uint32_t d24 = 0;
-        const bool ok = check_gps_word(cur_word_, d29_prev_, d30_prev_, d24);
-        d29_prev_ = (cur_word_ >> 1) & 1U;
-        d30_prev_ = cur_word_ & 1U;
+        bool ok = check_gps_word(cur_word_, d29_prev_, d30_prev_, d24);
 
         if (word_idx_ == 0) {
             cur_parity_ok_ = 0;
-            // Verify preamble still matches 0x8B on Word 1
+            // Verify preamble still matches 0x8B on Word 1; if Costas slipped 180 deg, flip polarity seamlessly!
             if (!ok || (((d24 >> 16) & 0xFFU) != 0x8BU)) {
-                frames_err_++;
-                frame_synced_ = 0;
-                bits_in_sr_ = 0;
-                word_sr_ = 0;
-                return;
+                uint32_t inv_d24 = 0;
+                const uint32_t inv_w = cur_word_ ^ 0x3FFFFFFFU;
+                if (check_gps_word(inv_w, d29_prev_ ^ 1U, d30_prev_ ^ 1U, inv_d24) &&
+                    (((inv_d24 >> 16) & 0xFFU) == 0x8BU)) {
+                    inverted_ = !inverted_;
+                    frame_synced_ = inverted_ ? 2 : 1;
+                    cur_word_ = inv_w;
+                    d24 = inv_d24;
+                    ok = true;
+                } else {
+                    frames_err_++;
+                    frame_synced_ = 0;
+                    return;
+                }
             }
         }
+
+        d29_prev_ = (cur_word_ >> 1) & 1U;
+        d30_prev_ = cur_word_ & 1U;
 
         if (ok) {
             cur_parity_ok_++;
@@ -265,7 +300,24 @@ class GPSNavDecoder {
                 frames_err_++;
             }
             word_idx_ = 0;
+            tow_sec_ = (tow_sec_ + 6U) % 604800U;
         }
+    }
+
+    uint8_t frame_synced() const { return frame_synced_; }
+    uint8_t sf_mask() const { return sf_mask_; }
+    uint32_t sf_start_tow() const { return tow_sec_; }
+    uint16_t bit_in_sf() const {
+        return static_cast<uint16_t>(static_cast<uint16_t>(word_idx_) * 30U + bit_in_word_);
+    }
+
+    bool consume_completed_subframe(uint8_t prn, NavSubframe& out) {
+        if (pending_sf_id_ == 0) return false;
+        out.prn = prn;
+        out.sf_id = pending_sf_id_;
+        std::memcpy(out.words, sf_words_, sizeof(out.words));
+        pending_sf_id_ = 0;
+        return true;
     }
 
     void fill_status(TrackStatus& st) const {
@@ -310,8 +362,13 @@ class GPSNavDecoder {
             gps_week_ = static_cast<uint16_t>(2048U + wn10);
             ura_idx_ = static_cast<uint8_t>((w3 >> 8) & 0x0FU);
             sv_health_ = static_cast<uint8_t>((w3 >> 2) & 0x3FU);
-        } else if (sf == 2 || sf == 3) {
+            pending_sf_id_ = 1;
+        } else if (sf == 2) {
             last_iode_ = static_cast<uint8_t>((w3 >> 16) & 0xFFU);
+            pending_sf_id_ = 2;
+        } else if (sf == 3) {
+            last_iode_ = static_cast<uint8_t>((sf_words_[9] >> 16) & 0xFFU);
+            pending_sf_id_ = 3;
         }
     }
 
@@ -325,6 +382,7 @@ class GPSNavDecoder {
     uint32_t d29_prev_{0};
     uint32_t d30_prev_{0};
     uint8_t cur_parity_ok_{0};
+    uint8_t pending_sf_id_{0};
     uint32_t sf_words_[10]{};
 
     uint32_t total_bits_{0};
@@ -412,7 +470,7 @@ class GPSTracker {
     // Process 1 DMA buffer (2048 complex int8 samples = 1.000 ms) in real time.
     // Split into 2 zero-spill passes over 128-sample chunks so all 6 correlator
     // accumulators stay in Cortex-M4 registers (<0.30 ms per 1.000 ms buffer!).
-    GPS_HOT_NOINLINE void process_samples(const int8_t* iq_interleaved, size_t count) {
+    void process_samples(const int8_t* iq_interleaved, size_t count) {
         static constexpr size_t kChunk = 128;
         c16_t bb[kChunk];
 
@@ -432,6 +490,35 @@ class GPSTracker {
             }
             pos += n_chunk;
         }
+    }
+
+    // Coast across n whole dropped 1 ms DMA buffers (2048 samples each) so the code/carrier NCOs and
+    // the 20 ms bit timing stay aligned with the real signal. Each C/A epoch crossed is booked with the
+    // last prompt as a hold (same scheme as GPSFastChannel::skip_ms in the 5-channel nav bank).
+    GPS_NOINLINE void skip_ms(uint32_t n) {
+        while (n-- > 0U) {
+            carr_phase_ += carr_step_ * 2048U;
+            const uint64_t tot = static_cast<uint64_t>(chip_frac_) + static_cast<uint64_t>(chip_step_) * 2048U;
+            uint32_t ch_i = chip_int_ + static_cast<uint32_t>(tot >> 32);
+            chip_frac_ = static_cast<uint32_t>(tot);
+            while (ch_i >= 1023U) {
+                ch_i -= 1023U;
+                epoch_count_++;
+                if (bit_synced_) {
+                    if (static_cast<uint8_t>(epoch_count_ % 20U) == bit_phase_) {
+                        nav_.push_bit((bit_accum_ >= 0.0f) ? 1U : 0U);
+                        bit_accum_ = ip_prev_;
+                    } else {
+                        bit_accum_ += ip_prev_;
+                    }
+                }
+            }
+            chip_int_ = static_cast<uint16_t>(ch_i);
+        }
+        // C/N0 window and FLL/bit-edge "previous prompt" now span a gap: restart them.
+        cn0_si_ = cn0_sq_ = cn0_wbp_ = 0.0f;
+        cn0_ms_ = 0;
+        has_prev_ = false;
     }
 
     void fill_status(TrackStatus& st, uint16_t dma_drops) const {
@@ -652,16 +739,7 @@ class GPSTracker {
                     bit_flips_++;
                     if (bit_flips_ >= 8) {
                         uint16_t max1 = 0, max2 = 0;
-                        uint8_t best_ph = 0;
-                        for (uint8_t k = 0; k < 20; k++) {
-                            if (edge_hist_[k] > max1) {
-                                max2 = max1;
-                                max1 = edge_hist_[k];
-                                best_ph = k;
-                            } else if (edge_hist_[k] > max2) {
-                                max2 = edge_hist_[k];
-                            }
-                        }
+                        const uint8_t best_ph = find_bit_hist_peak(edge_hist_, max1, max2);
                         if (max1 >= 6 && max1 >= max2 * 3 + 2) {
                             bit_phase_ = best_ph;
                             bit_synced_ = true;
@@ -728,10 +806,7 @@ class GPSTracker {
         }
 
         if (cn0_np_cnt_ >= 10) {
-            float mu = cn0_np_sum_ / static_cast<float>(cn0_np_cnt_);
-            if (mu < 1.05f) mu = 1.05f;
-            if (mu > 19.95f) mu = 19.95f;
-            const float cn0_inst = 10.0f * fast_log10f((mu - 1.0f) / ((20.0f - mu) * 0.001f));
+            const float cn0_inst = np_to_cn0_dbhz(cn0_np_sum_ / static_cast<float>(cn0_np_cnt_));
             if (cn0_dbhz_ == 0.0f)
                 cn0_dbhz_ = cn0_inst;
             else
@@ -905,7 +980,7 @@ class GPSTrackSim {
     }
 
    private:
-    void build_subframe(uint8_t sf_id, uint32_t tow_z) {
+    GPS_NOINLINE void build_subframe(uint8_t sf_id, uint32_t tow_z) {
         // Word 1: TLM (preamble 0x8B in bits d1..d8)
         const uint32_t w1_d = 0x8B0000U | 0x001234U;
         // Word 2: HOW (next subframe Z-count in d1..d17, alert=0, as=0, sf_id in d20..d22)

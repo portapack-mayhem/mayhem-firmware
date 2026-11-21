@@ -127,8 +127,26 @@ static inline int32_t iabs32(int32_t v) {
     return (v < 0) ? -v : v;
 }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define GPS_HOT_NOINLINE __attribute__((noinline, noclone, optimize("O3")))
+#define GPS_NOINLINE __attribute__((noinline, noclone))
+#else
+#define GPS_HOT_NOINLINE
+#define GPS_NOINLINE
+#endif
+
+// 64-bit -> float via two hardware VCVTs. Avoids libgcc __aeabi_l2f/__aeabi_ul2f, which drag ~0.5 KiB of
+// soft-float code into this image (HackRF One baseband limit is 32752 B).
+GPS_NOINLINE static float u64_to_f(uint64_t v) {
+    return static_cast<float>(static_cast<uint32_t>(v >> 32)) * 4294967296.0f +
+           static_cast<float>(static_cast<uint32_t>(v));
+}
+static inline float i64_to_f(int64_t v) {
+    return (v < 0) ? -u64_to_f(static_cast<uint64_t>(-v)) : u64_to_f(static_cast<uint64_t>(v));
+}
+
 // Generate 1023-chip GPS L1 C/A code packed as 1 bit per chip (128 bytes: bit=0 => +1, bit=1 => -1).
-static inline void generate_ca_bits(uint8_t prn, uint8_t bits[128]) {
+GPS_NOINLINE static void generate_ca_bits(uint8_t prn, uint8_t bits[128]) {
     if (prn < 1 || prn > NUM_PRNS) prn = 1;
     const uint8_t s1 = kG2Taps[prn - 1][0] - 1;
     const uint8_t s2 = kG2Taps[prn - 1][1] - 1;
@@ -175,14 +193,6 @@ static inline void generate_ca_2048(uint8_t prn, c16_t out[SAMPLES_PER_MS]) {
         out[n].im = 0;
     }
 }
-
-#if defined(__GNUC__) && !defined(__clang__)
-#define GPS_HOT_NOINLINE __attribute__((noinline, optimize("O3")))
-#define GPS_NOINLINE __attribute__((noinline))
-#else
-#define GPS_HOT_NOINLINE
-#define GPS_NOINLINE
-#endif
 
 // In-place 2048-point radix-2 DIT FFT (inverse=false) or IFFT (inverse=true)
 // with per-stage block-floating-point scaling.
@@ -357,10 +367,10 @@ struct RawStatsAccum {
         CaptureCal cal{};
         if (total_samples == 0) return cal;
         const float n = static_cast<float>(total_samples);
-        const float mi = static_cast<float>(sum_i) / n;
-        const float mq = static_cast<float>(sum_q) / n;
-        float vi = static_cast<float>(sum_sq_i) / n - mi * mi;
-        float vq = static_cast<float>(sum_sq_q) / n - mq * mq;
+        const float mi = i64_to_f(sum_i) / n;
+        const float mq = i64_to_f(sum_q) / n;
+        float vi = u64_to_f(sum_sq_i) / n - mi * mi;
+        float vq = u64_to_f(sum_sq_q) / n - mq * mq;
         if (vi < 1.0f) vi = 1.0f;
         if (vq < 1.0f) vq = 1.0f;
         cal.mean_i = static_cast<int32_t>(mi >= 0.0f ? (mi + 0.5f) : (mi - 0.5f));
@@ -440,10 +450,10 @@ struct RawStatsAccum {
 
         if (total_samples == 0) return st;
         const float n = static_cast<float>(total_samples);
-        const float mi = static_cast<float>(sum_i) / n;
-        const float mq = static_cast<float>(sum_q) / n;
-        float vi = static_cast<float>(sum_sq_i) / n - mi * mi;
-        float vq = static_cast<float>(sum_sq_q) / n - mq * mq;
+        const float mi = i64_to_f(sum_i) / n;
+        const float mq = i64_to_f(sum_q) / n;
+        float vi = u64_to_f(sum_sq_i) / n - mi * mi;
+        float vq = u64_to_f(sum_sq_q) / n - mq * mq;
         if (vi < 0.0f) vi = 0.0f;
         if (vq < 0.0f) vq = 0.0f;
 
@@ -451,12 +461,12 @@ struct RawStatsAccum {
         st.mean_q_x10 = static_cast<int16_t>(mq * 10.0f);
         st.rms_i_x10 = static_cast<uint16_t>(sqrtf(vi) * 10.0f + 0.5f);
         st.rms_q_x10 = static_cast<uint16_t>(sqrtf(vq) * 10.0f + 0.5f);
-        st.clip_pm = static_cast<uint16_t>((static_cast<uint64_t>(clip_count) * 1000ULL) / total_samples);
+        st.clip_pm = static_cast<uint16_t>(static_cast<float>(clip_count) * 1000.0f / n + 0.5f);
 
         const uint32_t q_tot = q2_counts[0] + q2_counts[1] + q2_counts[2] + q2_counts[3];
         if (q_tot > 0) {
             for (int b = 0; b < 4; b++) {
-                st.q2_pct[b] = static_cast<uint8_t>((static_cast<uint64_t>(q2_counts[b]) * 100ULL + q_tot / 2) / q_tot);
+                st.q2_pct[b] = static_cast<uint8_t>(static_cast<float>(q2_counts[b]) * 100.0f / static_cast<float>(q_tot) + 0.5f);
             }
         }
         return st;
@@ -559,7 +569,7 @@ GPS_HOT_NOINLINE static void correlate_doppler_bin(
 }
 
 // Compact IEEE-754 float log10 approximation (accurate to ~0.005 / 0.05 dB, avoids libm log10f bloat).
-static inline float fast_log10f(float x) {
+GPS_NOINLINE static float fast_log10f(float x) {
     if (x <= 1e-6f) return -6.0f;
     uint32_t bits = 0;
     std::memcpy(&bits, &x, sizeof(bits));
@@ -619,7 +629,7 @@ GPS_NOINLINE static void analyze_correlation(
         noise_cnt++;
     }
 
-    const float mean = (noise_cnt > 0) ? (static_cast<float>(sum) / static_cast<float>(noise_cnt)) : 1.0f;
+    const float mean = (noise_cnt > 0) ? (u64_to_f(sum) / static_cast<float>(noise_cnt)) : 1.0f;
     float var_sum = 0.0f;
     for (size_t n = 0; n < SAMPLES_PER_MS; n++) {
         int32_t dist = static_cast<int32_t>(n) - static_cast<int32_t>(peak_idx);

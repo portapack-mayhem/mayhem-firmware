@@ -27,6 +27,7 @@
 #include "rssi_thread.hpp"
 #include "gps_acq_dsp.hpp"
 #include "gps_track_dsp.hpp"
+#include "gps_nav_dsp.hpp"
 
 class GPSScanProcessor : public BasebandProcessor {
    public:
@@ -45,17 +46,33 @@ class GPSScanProcessor : public BasebandProcessor {
         TrackReacqScan = 7,
         TrackHandover = 8,
         Tracking = 9,
+        NavReacqCal = 10,
+        NavReacqCap = 11,
+        NavReacqScan = 12,
+        NavHandover = 13,
+        NavTracking = 14,
+    };
+
+    struct NavHandoverItem {
+        uint8_t prn{0};
+        uint8_t status{0};
+        int16_t dopp_hz{0};
+        uint16_t code_phase{0};
+        uint32_t pom{0};
     };
 
     void apply_pending_config();
     void start_new_scan();
     void start_tracking();
+    void start_nav_fix();
     void run_selftest_capture();
     void step_scan();
     void step_track_reacq();
+    void step_nav_reacq();
     void build_and_send_profile(uint8_t prn);
     void send_stats(gps_scan::ScanState scan_state, uint8_t progress_pct);
     void send_track_status(gps_scan::TrackState override_state);
+    void send_nav_obs(uint8_t phase);
 
     static constexpr uint32_t baseband_fs = gps_scan::SAMPLING_RATE_HZ;
 
@@ -105,12 +122,24 @@ class GPSScanProcessor : public BasebandProcessor {
     // Tracking state
     uint8_t track_prn_{1};
     uint32_t track_snap_start_ms_{0};
-    uint32_t track_drops_start_{0};
+    uint16_t track_drops_start_{0};  // m4_buffer_missed is uint16: keep the subtraction wrap-safe
+    uint16_t track_last_missed_{0};  // m4_buffer_missed at previous Tracking buffer (drop -> NCO coast)
     uint16_t track_report_cnt_{0};
     uint16_t track_adc_cnt_{0};
     bool track_wide_retry_{false};
     gps_scan::PRNResult track_reacq_best_{};
     uint32_t track_reacq_pom_{0};
+
+    // Stage 3 multi-channel navigation state
+    uint8_t nav_count_{0};
+    uint8_t nav_cur_idx_{0};
+    uint32_t nav_snap_start_ms_{0};
+    uint16_t nav_drops_start_{0};
+    uint16_t nav_last_missed_{0};  // m4_buffer_missed at previous NavTracking buffer (drop -> NCO coast)
+    uint16_t nav_report_cnt_{0};
+    uint16_t nav_cpu_us_pack_{0};
+    uint16_t nav_cpu_us_track_{0};
+    NavHandoverItem nav_ho_[gps_scan::MAX_NAV_CH]{};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

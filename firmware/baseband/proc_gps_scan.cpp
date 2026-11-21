@@ -23,6 +23,7 @@
 #include "proc_gps_scan.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
+#include "core_cm4.h"
 
 #include <cstring>
 
@@ -32,18 +33,39 @@ namespace {
 
 // Static M4 SRAM buffers so linker enforces exact RAM fit.
 static uint8_t s_snapshot[MAX_SNAPSHOT_MS][SAMPLES_PER_MS / 2];  // 16 KiB (16 ms @ 2-bit I/Q)
-static c8_t s_cached_fft[4][SAMPLES_PER_MS];                     // 16 KiB (4 coherent blocks)
-static c8_t s_fft_code[SAMPLES_PER_MS];                          //  4 KiB
-static c16_t s_fft_work[SAMPLES_PER_MS];                         //  8 KiB
-static uint32_t s_accum[SAMPLES_PER_MS];                         //  8 KiB
+
+// Acquisition FFT buffers (36 KiB), Stage 2 Tracker (~7.2 KiB), and Stage 3 5-ch Nav Bank + Sim (~22.4 KiB)
+// never run simultaneously! Union lives in .bss => 0 flash init data and minimal M4 RAM!
+union WorkUnion {
+    struct {
+        c8_t cached_fft[4][SAMPLES_PER_MS];  // 16 KiB (4 coherent blocks)
+        c8_t fft_code[SAMPLES_PER_MS];       //  4 KiB
+        c16_t fft_work[SAMPLES_PER_MS];      //  8 KiB
+        uint32_t accum[SAMPLES_PER_MS];      //  8 KiB
+    } acq;
+    struct {
+        GPSTracker tracker;                  // ~1.7 KiB
+        GPSTrackSim sim;                     // ~1.4 KiB
+        int8_t sim_iq[SAMPLES_PER_MS * 2];   //  4 KiB
+    } trk;
+    struct {
+        GPSNavBank bank;                     // ~17.3 KiB
+        GPSNavSim sim;                       //  ~5.1 KiB
+    } nav;
+    WorkUnion() {}
+};
+static WorkUnion s_work;
+static auto& s_cached_fft = s_work.acq.cached_fft;
+static auto& s_fft_code = s_work.acq.fft_code;
+static auto& s_fft_work = s_work.acq.fft_work;
+static auto& s_accum = s_work.acq.accum;
+static auto& s_tracker = s_work.trk.tracker;
+static auto& s_track_sim = s_work.trk.sim;
+
 static PRNResult s_results[NUM_PRNS];                            // ~1.1 KiB
 static uint32_t s_best_pom[NUM_PRNS];                            // 128 B
 static uint8_t s_best_sub[NUM_PRNS];                             //  32 B
 static int16_t s_best_k[NUM_PRNS];                               //  64 B
-
-// Stage 2 single-channel tracker & synthetic LNAV simulator (~3.2 KiB)
-static GPSTracker s_tracker;
-static GPSTrackSim s_track_sim;
 
 }  // namespace
 
@@ -74,6 +96,11 @@ void GPSScanProcessor::apply_pending_config() {
 
     if (config_.mode == Mode::Track || config_.mode == Mode::TrackSelfTest) {
         start_tracking();
+        return;
+    }
+
+    if (config_.mode == Mode::NavFix || config_.mode == Mode::NavFixSelfTest) {
+        start_nav_fix();
         return;
     }
 
@@ -193,6 +220,61 @@ void GPSScanProcessor::start_tracking() {
     send_track_status(TrackState::Reacq);
 }
 
+void GPSScanProcessor::start_nav_fix() {
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    nav_report_cnt_ = 0;
+    nav_cpu_us_pack_ = 0;
+    nav_cpu_us_track_ = 0;
+    idle_acc_.reset();
+
+    if (config_.mode == Mode::NavFixSelfTest) {
+        nav_count_ = MAX_NAV_CH;
+        s_work.nav.bank.init_tables();
+        s_work.nav.sim.init();
+        // Realistic initial acquisition offsets (±70..110 Hz, ±0.18..0.28 chips) to test full pull-in -> PVT!
+        static constexpr float kInitDoppErr[MAX_NAV_CH] = {-85.0f, +95.0f, -70.0f, +80.0f, -90.0f};
+        static constexpr float kInitChipErr[MAX_NAV_CH] = {-0.24f, +0.22f, -0.18f, +0.26f, -0.20f};
+        for (size_t i = 0; i < MAX_NAV_CH; i++) {
+            const auto& sp = kSimNavConstellation[i];
+            s_work.nav.bank.init_channel(i, sp.prn, sp.fd0_hz + kInitDoppErr[i], sp.init_chip + kInitChipErr[i]);
+        }
+        nav_drops_start_ = shared_memory.m4_buffer_missed;
+        nav_last_missed_ = nav_drops_start_;
+        state_ = State::NavTracking;
+        send_nav_obs(2);
+        return;
+    }
+
+    // Real RF multi-channel fix: build target list (up to MAX_NAV_CH)
+    nav_count_ = config_.nav_count;
+    if (nav_count_ > MAX_NAV_CH) nav_count_ = MAX_NAV_CH;
+    if (nav_count_ == 0) {
+        state_ = State::Idle;
+        send_nav_obs(0);
+        return;
+    }
+
+    for (uint8_t i = 0; i < nav_count_; i++) {
+        nav_ho_[i] = {};
+        nav_ho_[i].prn = config_.nav_targets[i].prn;
+        nav_ho_[i].dopp_hz = config_.nav_targets[i].dopp_hint_hz;
+    }
+
+    // Shared 2ms x 4 (8 ms) snapshot re-acquisition across all nav_count_ PRNs
+    coh_ms_ = 2;
+    num_blocks_ = 4;
+    target_ms_ = 8;
+    num_sub_ = 4;
+    sub_step_hz_ = 250;
+    cur_sub_ = 0;
+    nav_cur_idx_ = 0;
+    need_sub_fft_ = true;
+    need_prn_fft_ = true;
+
+    state_ = State::NavReacqCal;
+    send_nav_obs(1);
+}
+
 void GPSScanProcessor::run_selftest_capture() {
     // Reuse s_fft_work (8 KiB) as temporary 4 KiB raw int8 I/Q buffer (zero stack bloat).
     int8_t* raw_iq = reinterpret_cast<int8_t*>(s_fft_work);
@@ -223,14 +305,15 @@ void GPSScanProcessor::send_stats(ScanState scan_state, uint8_t progress_pct) {
         elapsed_ms = static_cast<uint16_t>(dt > 65535U ? 65535U : dt);
     }
 
-    SignalStats st = (scan_state == ScanState::Idle || state_ == State::Tracking)
+    SignalStats st = (scan_state == ScanState::Idle || state_ == State::Tracking || state_ == State::NavTracking)
                          ? idle_acc_.to_signal_stats(0, static_cast<uint16_t>(dma_buffers_ & 0xFFFFU), 0,
-                                                     (config_.mode == Mode::TrackSelfTest) ? 1 : 0)
+                                                     (config_.mode == Mode::TrackSelfTest || config_.mode == Mode::NavFixSelfTest) ? 1 : 0)
                          : snapshot_stats_;
     st.dma_buffers = static_cast<uint16_t>(dma_buffers_ & 0xFFFFU);
     if (state_ == State::Tracking) {
-        const uint32_t td = shared_memory.m4_buffer_missed - track_drops_start_;
-        st.dma_drops = static_cast<uint16_t>(td > 65535U ? 65535U : td);
+        st.dma_drops = static_cast<uint16_t>(shared_memory.m4_buffer_missed - track_drops_start_);
+    } else if (state_ == State::NavTracking) {
+        st.dma_drops = static_cast<uint16_t>(shared_memory.m4_buffer_missed - nav_drops_start_);
     }
 
     const GPSScanStatsMessage msg{
@@ -252,13 +335,33 @@ void GPSScanProcessor::send_track_status(TrackState override_state) {
         ts.state = static_cast<uint8_t>(TrackState::Reacq);
         ts.doppler_hz_x10 = static_cast<int32_t>(config_.track_dopp_hint_hz) * 10;
     } else {
-        const uint32_t td = shared_memory.m4_buffer_missed - track_drops_start_;
-        s_tracker.fill_status(ts, static_cast<uint16_t>(td > 65535U ? 65535U : td));
+        s_tracker.fill_status(ts, static_cast<uint16_t>(shared_memory.m4_buffer_missed - track_drops_start_));
         if (override_state != TrackState::Off) {
             ts.state = static_cast<uint8_t>(override_state);
         }
     }
     const GPSScanTrackMessage msg{ts};
+    shared_memory.application_queue.push(msg);
+}
+
+void GPSScanProcessor::send_nav_obs(uint8_t phase) {
+    NavObsPacket pkt{};
+    const uint8_t is_st = (config_.mode == Mode::NavFixSelfTest) ? 1 : 0;
+    if (phase == 2) {
+        const uint16_t td = static_cast<uint16_t>(shared_memory.m4_buffer_missed - nav_drops_start_);
+        s_work.nav.bank.fill_obs_packet(pkt, 2, nav_count_, is_st, td, nav_cpu_us_pack_, nav_cpu_us_track_);
+    } else {
+        pkt.num_ch = nav_count_;
+        pkt.phase = phase;
+        pkt.reacq_idx = nav_cur_idx_;
+        pkt.is_selftest = is_st;
+        for (uint8_t i = 0; i < nav_count_ && i < MAX_NAV_CH; i++) {
+            pkt.ch[i].prn = nav_ho_[i].prn;
+            pkt.ch[i].state = static_cast<uint8_t>(phase == 1 ? TrackState::Reacq : TrackState::Off);
+            pkt.ch[i].doppler_hz_x10 = static_cast<int32_t>(nav_ho_[i].dopp_hz) * 10;
+        }
+    }
+    const GPSScanNavObsMessage msg{pkt};
     shared_memory.application_queue.push(msg);
 }
 
@@ -408,6 +511,67 @@ void GPSScanProcessor::step_track_reacq() {
     }
 }
 
+void GPSScanProcessor::step_nav_reacq() {
+    if (need_sub_fft_) {
+        for (uint8_t b = 0; b < num_blocks_; b++) {
+            fold_coherent_block(s_snapshot, b * coh_ms_, coh_ms_, cur_sub_, s_fft_work);
+            fft_2048_q15(s_fft_work, false);
+            compress_fft_c8(s_fft_work, s_cached_fft[b], false);
+        }
+        need_sub_fft_ = false;
+        nav_cur_idx_ = 0;
+        need_prn_fft_ = true;
+        return;
+    }
+
+    if (need_prn_fft_) {
+        const uint8_t prn = config_.nav_targets[nav_cur_idx_].prn;
+        const int16_t hint = config_.nav_targets[nav_cur_idx_].dopp_hint_hz;
+        generate_ca_2048(prn, s_fft_work);
+        fft_2048_q15(s_fft_work, false);
+        compress_fft_c8(s_fft_work, s_fft_code, true);
+        const int16_t k_center = static_cast<int16_t>((hint >= 0) ? ((hint + 500) / 1000) : ((hint - 500) / 1000));
+        k_min_ = static_cast<int16_t>(k_center - 1);
+        k_max_ = static_cast<int16_t>(k_center + 1);
+        if (k_min_ < -40) k_min_ = -40;
+        if (k_max_ > 40) k_max_ = 40;
+        cur_k_ = k_min_;
+        need_prn_fft_ = false;
+    }
+
+    const uint8_t prn = config_.nav_targets[nav_cur_idx_].prn;
+    const uint8_t k_budget = 3;
+    for (uint8_t step = 0; step < k_budget && cur_k_ <= k_max_; step++, cur_k_++) {
+        const int16_t dopp_hz = static_cast<int16_t>(cur_k_ * 1000 + cur_sub_ * sub_step_hz_);
+        correlate_doppler_bin(s_cached_fft, num_blocks_, s_fft_code, cur_k_, s_fft_work, s_accum);
+
+        const uint32_t pom = quick_peak_over_mean_q8(s_accum);
+        if (pom > nav_ho_[nav_cur_idx_].pom) {
+            PRNResult tmp{};
+            analyze_correlation(s_accum, prn, dopp_hz, coh_ms_, num_blocks_, tmp);
+            nav_ho_[nav_cur_idx_].pom = pom;
+            nav_ho_[nav_cur_idx_].prn = prn;
+            nav_ho_[nav_cur_idx_].dopp_hz = tmp.doppler_hz;
+            nav_ho_[nav_cur_idx_].code_phase = tmp.code_phase;
+            nav_ho_[nav_cur_idx_].status = tmp.status;
+        }
+    }
+
+    if (cur_k_ > k_max_) {
+        nav_cur_idx_++;
+        if (nav_cur_idx_ < nav_count_) {
+            need_prn_fft_ = true;
+        } else {
+            cur_sub_++;
+            if (cur_sub_ < num_sub_) {
+                need_sub_fft_ = true;
+            } else {
+                state_ = State::NavHandover;
+            }
+        }
+    }
+}
+
 void GPSScanProcessor::execute(const buffer_c8_t& buffer) {
     dma_buffers_++;
 
@@ -532,6 +696,7 @@ void GPSScanProcessor::execute(const buffer_c8_t& buffer) {
 
             s_tracker.init(track_prn_, static_cast<float>(track_reacq_best_.doppler_hz), init_chip, false);
             track_drops_start_ = shared_memory.m4_buffer_missed;
+            track_last_missed_ = track_drops_start_;
             track_report_cnt_ = 0;
             track_adc_cnt_ = 0;
             idle_acc_.reset();
@@ -545,11 +710,15 @@ void GPSScanProcessor::execute(const buffer_c8_t& buffer) {
 
         case State::Tracking: {
             const int8_t* iq_ptr = reinterpret_cast<const int8_t*>(buffer.p);
+            const uint16_t missed = shared_memory.m4_buffer_missed;
+            const uint16_t gap = static_cast<uint16_t>(missed - track_last_missed_);
+            track_last_missed_ = missed;
             if (config_.mode == Mode::TrackSelfTest) {
-                // Reuse s_fft_work (8 KiB) as temporary 4 KiB raw int8 I/Q buffer
-                int8_t* sim_iq = reinterpret_cast<int8_t*>(s_fft_work);
-                s_track_sim.generate_ms(sim_iq);
-                iq_ptr = sim_iq;
+                s_track_sim.generate_ms(s_work.trk.sim_iq);
+                iq_ptr = s_work.trk.sim_iq;
+            } else if (gap != 0U) {
+                // Real signal time elapsed in the missed buffers: coast NCOs / bit timing across it.
+                s_tracker.skip_ms(gap);
             }
 
             s_tracker.process_samples(iq_ptr, buffer.count);
@@ -567,6 +736,123 @@ void GPSScanProcessor::execute(const buffer_c8_t& buffer) {
             } else if (track_report_cnt_ >= 100) {  // 10 Hz live tracking telemetry!
                 track_report_cnt_ = 0;
                 send_track_status(TrackState::Off);
+            }
+            break;
+        }
+
+        case State::NavReacqCal: {
+            cal_acc_.reset();
+            cal_acc_.measure_block(reinterpret_cast<const int8_t*>(buffer.p), buffer.count);
+            cal_ = cal_acc_.derive_cal();
+            cap_acc_.reset();
+            captured_ms_ = 0;
+            state_ = State::NavReacqCap;
+            break;
+        }
+
+        case State::NavReacqCap: {
+            if (captured_ms_ == 0) {
+                nav_snap_start_ms_ = dma_buffers_ + shared_memory.m4_buffer_missed;
+            }
+            if (captured_ms_ < target_ms_ && buffer.count == SAMPLES_PER_MS) {
+                cap_acc_.pack_ms_2bit(reinterpret_cast<const int8_t*>(buffer.p), cal_, s_snapshot[captured_ms_]);
+                captured_ms_++;
+            }
+            if (captured_ms_ >= target_ms_) {
+                state_ = State::NavReacqScan;
+            }
+            break;
+        }
+
+        case State::NavReacqScan: {
+            step_nav_reacq();
+            break;
+        }
+
+        case State::NavHandover: {
+            const uint32_t now_total_ms = dma_buffers_ + shared_memory.m4_buffer_missed;
+            const uint32_t elapsed_ms = now_total_ms - nav_snap_start_ms_;
+
+            // Switch WorkUnion from FFT buffers -> 5-channel GPSNavBank!
+            s_work.nav.bank.init_tables();
+            for (uint8_t i = 0; i < nav_count_; i++) {
+                const float snap0_chip = static_cast<float>((2048U - nav_ho_[i].code_phase) & 2047U) * (1023.0f / 2048.0f);
+                const float init_chip = snap0_chip +
+                                        static_cast<float>(elapsed_ms) * static_cast<float>(nav_ho_[i].dopp_hz) * (1.0f / 1540000.0f) +
+                                        0.25f;
+                s_work.nav.bank.init_channel(i, nav_ho_[i].prn, static_cast<float>(nav_ho_[i].dopp_hz), init_chip);
+            }
+
+            nav_drops_start_ = shared_memory.m4_buffer_missed;
+            nav_last_missed_ = nav_drops_start_;
+            nav_report_cnt_ = 0;
+            idle_acc_.reset();
+            state_ = State::NavTracking;
+
+            // Process this very first buffer immediately so zero ms are skipped!
+            NavSubframe sfs[MAX_NAV_CH];
+            s_work.nav.bank.pack_raw_2048(reinterpret_cast<const int8_t*>(buffer.p));
+            const size_t nsf = s_work.nav.bank.process_bitplanes(sfs);
+            for (size_t k = 0; k < nsf; k++) {
+                const GPSScanSubframeMessage smsg{sfs[k]};
+                shared_memory.application_queue.push(smsg);
+            }
+            send_nav_obs(2);
+            break;
+        }
+
+        case State::NavTracking: {
+            NavSubframe sfs[MAX_NAV_CH];
+            const bool is_st = (config_.mode == Mode::NavFixSelfTest);
+
+            // Buffers the M4 missed since the last call are real signal time that elapsed. Coast every
+            // channel's NCOs / epoch / bit counters across them so code, carrier & 20 ms bit timing stay
+            // aligned. (Self-test synthesizes per call, so its signal has no gap and must not be coasted.)
+            const uint16_t missed = shared_memory.m4_buffer_missed;
+            const uint16_t gap = static_cast<uint16_t>(missed - nav_last_missed_);
+            nav_last_missed_ = missed;
+            if (gap != 0U && !is_st) {
+                const size_t nskip = s_work.nav.bank.skip_ms(gap, sfs);
+                for (size_t k = 0; k < nskip; k++) {
+                    const GPSScanSubframeMessage smsg{sfs[k]};
+                    shared_memory.application_queue.push(smsg);
+                }
+            }
+
+            const uint32_t cyc0 = DWT->CYCCNT;
+            if (is_st) {
+                s_work.nav.sim.generate_bitplanes_ms(s_work.nav.bank.bitplanes(), s_work.nav.bank.cs_tbl());
+            } else {
+                s_work.nav.bank.pack_raw_2048(reinterpret_cast<const int8_t*>(buffer.p));
+            }
+            const uint32_t cyc1 = DWT->CYCCNT;
+            const size_t nsf = s_work.nav.bank.process_bitplanes(sfs);
+            const uint32_t cyc2 = DWT->CYCCNT;
+
+            // Report the worst case of each 500 ms window (a single >1 ms spike is what costs a buffer).
+            const uint16_t us_pack = static_cast<uint16_t>((cyc1 - cyc0) / 204U);
+            const uint16_t us_track = static_cast<uint16_t>((cyc2 - cyc1) / 204U);
+            if (us_pack > nav_cpu_us_pack_) nav_cpu_us_pack_ = us_pack;
+            if (us_track > nav_cpu_us_track_) nav_cpu_us_track_ = us_track;
+
+            for (size_t k = 0; k < nsf; k++) {
+                const GPSScanSubframeMessage smsg{sfs[k]};
+                shared_memory.application_queue.push(smsg);
+            }
+
+            nav_report_cnt_++;
+            if (nav_report_cnt_ == 250) {
+                // Lightweight 256-sample ADC health check staggered 250 ms away from NavObs
+                if (!is_st) {
+                    idle_acc_.measure_block(reinterpret_cast<const int8_t*>(buffer.p), 256);
+                }
+                send_stats(ScanState::Scanning, 100);
+                idle_acc_.reset();
+            } else if (nav_report_cnt_ >= 500) {  // 2 Hz multi-channel observation telemetry
+                nav_report_cnt_ = 0;
+                send_nav_obs(2);
+                nav_cpu_us_pack_ = 0;
+                nav_cpu_us_track_ = 0;
             }
             break;
         }

@@ -36,6 +36,7 @@ static constexpr size_t MAX_SNAPSHOT_MS = 16;
 static constexpr size_t NUM_PRNS = 32;
 static constexpr size_t PROFILE_BINS = 64;
 static constexpr size_t TRACK_IQ_HISTORY = 32;
+static constexpr size_t MAX_NAV_CH = 5;
 
 enum class Mode : uint8_t {
     Idle = 0,
@@ -44,6 +45,8 @@ enum class Mode : uint8_t {
     SelfTest = 3,
     Track = 4,
     TrackSelfTest = 5,
+    NavFix = 6,
+    NavFixSelfTest = 7,
 };
 
 enum class TrackState : uint8_t {
@@ -75,6 +78,11 @@ enum class DetStatus : uint8_t {
     Lock = 2,
 };
 
+struct NavTarget {
+    uint8_t prn{0};
+    int16_t dopp_hint_hz{0};
+};
+
 struct Config {
     Mode mode{Mode::Idle};
     Integration integration{Integration::Ms2x4};
@@ -82,6 +90,8 @@ struct Config {
     uint8_t prn_filter{0};         // 0 = All (1..32), 1..32 = single PRN (or tracked PRN)
     uint8_t profile_prn{0};        // 0 = auto strongest, 1..32 = specific PRN
     int16_t track_dopp_hint_hz{0}; // Initial Doppler hint (Hz) when entering Mode::Track
+    uint8_t nav_count{0};          // Number of targets in nav_targets (1..MAX_NAV_CH)
+    NavTarget nav_targets[MAX_NAV_CH]{};
 };
 
 struct SignalStats {
@@ -158,6 +168,41 @@ struct TrackStatus {
     uint16_t frames_err{0};     // Subframes with parity error
 
     TrackIQ iq_hist[TRACK_IQ_HISTORY]{};
+};
+
+// Verified 10-word LNAV subframe (24-bit recovered data words d1..d24) sent M4 -> M0
+struct NavSubframe {
+    uint8_t prn{0};
+    uint8_t sf_id{0};        // 1..5
+    uint32_t words[10]{};    // Recovered 24-bit data words (parity stripped)
+};
+
+// Per-channel simultaneous observation at a common receiver DMA instant
+struct NavChanObs {
+    uint8_t prn{0};
+    uint8_t state{0};           // TrackState
+    uint8_t bit_synced{0};
+    uint8_t frame_synced{0};
+    uint8_t sf_mask{0};         // Bits 0..4 => SF1..SF5 decoded with 10/10 parity
+    uint8_t ms_in_bit{0};       // 0..19
+    uint16_t bit_in_sf{0};      // 0..299
+    int16_t cn0_dbhz_x10{0};
+    int16_t pli_x100{0};
+    int32_t doppler_hz_x10{0};
+    uint32_t sf_start_tow{0};   // Exact GPS TOW (seconds) of bit 0 of current subframe
+    uint32_t chip_q20{0};       // Exact fractional C/A chip phase * 2^20 (0 .. 1023*2^20 - 1)
+};
+
+struct NavObsPacket {
+    uint8_t num_ch{0};
+    uint8_t phase{0};           // 0=Idle, 1=Reacq, 2=Tracking
+    uint8_t reacq_idx{0};       // 0..num_ch while re-acquiring
+    uint8_t is_selftest{0};
+    uint16_t track_sec{0};
+    uint16_t dma_drops{0};
+    uint16_t cpu_us_pack{0};    // Peak M4 us/ms (last 500 ms) for pack_from_raw (or GPSNavSim)
+    uint16_t cpu_us_nav{0};     // Peak M4 us/ms (last 500 ms) for 5-ch GPSNavBank tracking
+    NavChanObs ch[MAX_NAV_CH]{};
 };
 
 } /* namespace gps_scan */

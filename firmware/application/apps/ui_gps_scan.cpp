@@ -93,6 +93,23 @@ const char* track_state_tag(uint8_t st) {
     }
 }
 
+const char* nav_state_short(uint8_t st) {
+    switch (static_cast<TrackState>(st)) {
+        case TrackState::Reacq:
+            return "ACQ";
+        case TrackState::PullIn:
+            return "FLL";
+        case TrackState::WidePLL:
+            return "WPL";
+        case TrackState::Locked:
+            return "LCK";
+        case TrackState::Lost:
+            return "LST";
+        default:
+            return "---";
+    }
+}
+
 }  // namespace
 
 namespace ui {
@@ -129,10 +146,12 @@ void GPSScanPanel::paint(Painter& painter) {
 
     // Full clear ONLY on view switch, first paint, or placeholder <-> live transition
     if (model_.view_mode != prev_view_mode_ ||
-        (model_.view_mode == 1 && model_.has_track != prev_has_track_)) {
+        (model_.view_mode == 1 && model_.has_track != prev_has_track_) ||
+        (model_.view_mode == 2 && model_.has_nav != prev_has_nav_)) {
         invalidate_full();
         prev_view_mode_ = model_.view_mode;
         prev_has_track_ = model_.has_track;
+        prev_has_nav_ = model_.has_nav;
     }
 
     if (needs_clear_) {
@@ -143,6 +162,8 @@ void GPSScanPanel::paint(Painter& painter) {
     if (model_.view_mode == 1) {
         paint_tracking(painter, r);
     } else if (model_.view_mode == 2) {
+        paint_fix(painter, r);
+    } else if (model_.view_mode == 3) {
         paint_diagnostics(painter, r);
     } else {
         paint_list_and_plot(painter, r);
@@ -493,6 +514,172 @@ void GPSScanPanel::paint_tracking(Painter& painter, const Rect& r) {
     }
 }
 
+void GPSScanPanel::paint_fix(Painter& painter, const Rect& r) {
+    char buf[34];
+
+    if (!model_.has_nav) {
+        draw_cached(painter, r.left(), r.top() + 8, 30, Theme::getInstance()->fg_cyan, "Stage 3: 5-Ch GPS 3D Fix", 0);
+        draw_cached(painter, r.left(), r.top() + 32, 30, Theme::getInstance()->fg_light, "1. Scan to find >=4 SVs", 1);
+        draw_cached(painter, r.left(), r.top() + 48, 30, Theme::getInstance()->fg_light, "2. Press Fix to track & solve", 2);
+        draw_cached(painter, r.left(), r.top() + 64, 30, Theme::getInstance()->fg_light, "   (needs SF1-3 ~18-36s)", 3);
+        draw_cached(painter, r.left(), r.top() + 88, 30, Theme::getInstance()->fg_yellow, "Indoors? Press Test for 5-SV", 4);
+        draw_cached(painter, r.left(), r.top() + 104, 30, Theme::getInstance()->fg_yellow, "real-time 3D fix self-test!", 5);
+        return;
+    }
+
+    const auto& nav = model_.nav_obs;
+    const auto& fx = model_.fix;
+
+    // Count ephemerides ready among currently tracked PRNs
+    uint8_t eph_ready = 0;
+    for (uint8_t i = 0; i < nav.num_ch && i < MAX_NAV_CH; i++) {
+        for (const auto& ep : model_.ephem_cache) {
+            if (ep.prn == nav.ch[i].prn && ep.is_complete()) {
+                eph_ready++;
+                break;
+            }
+        }
+    }
+
+    // Row 0 (slot 0): Fix status banner + exact M4 CPU microseconds (pack+track us / 1000us)
+    const Style* st0 = Theme::getInstance()->fg_yellow;
+    if (nav.phase == 1) {
+        std::snprintf(buf, sizeof(buf), "NAV Re-Acq %u SVs...", static_cast<unsigned>(nav.num_ch));
+    } else if (fx.valid) {
+        std::snprintf(buf, sizeof(buf), "FIX3D %u/%u %us D:%u %u+%uu",
+                      static_cast<unsigned>(fx.num_used),
+                      static_cast<unsigned>(nav.num_ch),
+                      static_cast<unsigned>(nav.track_sec),
+                      static_cast<unsigned>(nav.dma_drops),
+                      static_cast<unsigned>(nav.cpu_us_pack),
+                      static_cast<unsigned>(nav.cpu_us_nav));
+        st0 = Theme::getInstance()->fg_green;
+    } else {
+        std::snprintf(buf, sizeof(buf), "NAV %uc E:%u/4 D:%u %u+%uu",
+                      static_cast<unsigned>(nav.num_ch),
+                      static_cast<unsigned>(eph_ready),
+                      static_cast<unsigned>(nav.dma_drops),
+                      static_cast<unsigned>(nav.cpu_us_pack),
+                      static_cast<unsigned>(nav.cpu_us_nav));
+    }
+    draw_cached(painter, r.left(), r.top(), 30, st0, buf, 0);
+
+    // Row 1..4 (slots 1..4): LAT, LON, ALT+Res, HDOP+PDOP+WK
+    if (fx.valid) {
+        const int32_t lat_e5 = static_cast<int32_t>(fx.lat_deg * 100000.0 + (fx.lat_deg >= 0.0 ? 0.5 : -0.5));
+        const int32_t lat_a = (lat_e5 < 0) ? -lat_e5 : lat_e5;
+        std::snprintf(buf, sizeof(buf), "LAT: %c%2ld.%05ld deg",
+                      lat_e5 < 0 ? '-' : '+',
+                      static_cast<long>(lat_a / 100000), static_cast<long>(lat_a % 100000));
+        draw_cached(painter, r.left(), r.top() + 16, 30, Theme::getInstance()->fg_green, buf, 1);
+
+        const int32_t lon_e5 = static_cast<int32_t>(fx.lon_deg * 100000.0 + (fx.lon_deg >= 0.0 ? 0.5 : -0.5));
+        const int32_t lon_a = (lon_e5 < 0) ? -lon_e5 : lon_e5;
+        std::snprintf(buf, sizeof(buf), "LON:%c%3ld.%05ld deg",
+                      lon_e5 < 0 ? '-' : '+',
+                      static_cast<long>(lon_a / 100000), static_cast<long>(lon_a % 100000));
+        draw_cached(painter, r.left(), r.top() + 32, 30, Theme::getInstance()->fg_green, buf, 2);
+
+        const int32_t alt_x10 = static_cast<int32_t>(fx.alt_m * 10.0 + (fx.alt_m >= 0.0 ? 0.5 : -0.5));
+        const int32_t alt_a = (alt_x10 < 0) ? -alt_x10 : alt_x10;
+        const uint32_t res_x10 = static_cast<uint32_t>(fx.rms_res_m * 10.0 + 0.5);
+        std::snprintf(buf, sizeof(buf), "ALT:%c%4ld.%1ldm Res:%lu.%1lum",
+                      alt_x10 < 0 ? '-' : '+',
+                      static_cast<long>(alt_a / 10), static_cast<long>(alt_a % 10),
+                      static_cast<unsigned long>(res_x10 / 10), static_cast<unsigned long>(res_x10 % 10));
+        draw_cached(painter, r.left(), r.top() + 48, 30, Theme::getInstance()->fg_light, buf, 3);
+
+        const uint32_t hd_x10 = static_cast<uint32_t>(fx.hdop * 10.0 + 0.5);
+        const uint32_t pd_x10 = static_cast<uint32_t>(fx.pdop * 10.0 + 0.5);
+        std::snprintf(buf, sizeof(buf), "HDOP:%lu.%1lu PDOP:%lu.%1lu WK:%u",
+                      static_cast<unsigned long>(hd_x10 / 10), static_cast<unsigned long>(hd_x10 % 10),
+                      static_cast<unsigned long>(pd_x10 / 10), static_cast<unsigned long>(pd_x10 % 10),
+                      static_cast<unsigned>(fx.gps_week));
+        draw_cached(painter, r.left(), r.top() + 64, 30, Theme::getInstance()->fg_cyan, buf, 4);
+    } else {
+        static constexpr const char* kRejNames[6] = {"waiting", "<4 sync", "dt rng", "matrix", "no conv", "bad san"};
+        const char* rstr = (fx.reject_reason < 6) ? kRejNames[fx.reject_reason] : "waiting";
+        std::snprintf(buf, sizeof(buf), "LAT:  --.----- (%s)", rstr);
+        draw_cached(painter, r.left(), r.top() + 16, 30, Theme::getInstance()->fg_medium, buf, 1);
+        draw_cached(painter, r.left(), r.top() + 32, 30, Theme::getInstance()->fg_medium, "LON: ---.----- deg", 2);
+        draw_cached(painter, r.left(), r.top() + 48, 30, Theme::getInstance()->fg_medium, "ALT:  ----.-m  Res: ---", 3);
+        draw_cached(painter, r.left(), r.top() + 64, 30, Theme::getInstance()->fg_medium, "HDOP:--- PDOP:--- WK:----", 4);
+    }
+
+    // Row 5 (slot 5): GPS Time (from fix if valid, else from any frame-synced channel)
+    uint32_t tow = fx.valid ? fx.gps_tow_sec : 0;
+    bool has_tow = fx.valid;
+    if (!has_tow) {
+        for (uint8_t i = 0; i < nav.num_ch && i < MAX_NAV_CH; i++) {
+            if (nav.ch[i].frame_synced) {
+                tow = (nav.ch[i].sf_start_tow + (nav.ch[i].bit_in_sf * 20U) / 1000U) % 604800U;
+                has_tow = true;
+                break;
+            }
+        }
+    }
+    if (has_tow) {
+        const uint32_t day = (tow / 86400U) % 7U;
+        const uint32_t rem = tow % 86400U;
+        std::snprintf(buf, sizeof(buf), "GPS:%s %02lu:%02lu:%02lu (%lus)",
+                      kDayNames[day],
+                      static_cast<unsigned long>(rem / 3600U),
+                      static_cast<unsigned long>((rem % 3600U) / 60U),
+                      static_cast<unsigned long>(rem % 60U),
+                      static_cast<unsigned long>(tow));
+        draw_cached(painter, r.left(), r.top() + 80, 30, Theme::getInstance()->fg_light, buf, 5);
+    } else {
+        draw_cached(painter, r.left(), r.top() + 80, 30, Theme::getInstance()->fg_medium, "GPS: syncing TLM/HOW...", 5);
+    }
+
+    // Row 6 (slot 6): Channel table header
+    draw_cached(painter, r.left(), r.top() + 98, 30, Theme::getInstance()->fg_cyan, "CH PRN ST  C/N0  Dopp S EPH", 6);
+
+    // Rows 7..11 (slots 7..11): 5 live tracking channels
+    for (uint8_t i = 0; i < MAX_NAV_CH; i++) {
+        const Coord y = r.top() + 114 + static_cast<Coord>(i * 16);
+        if (i >= nav.num_ch) {
+            draw_cached(painter, r.left(), y, 30, Theme::getInstance()->fg_medium, "", 7 + i);
+            continue;
+        }
+        const auto& c = nav.ch[i];
+
+        // Look up cached SF1-3 mask for this PRN
+        uint8_t eph_mask = c.sf_mask & 0x07U;
+        bool eph_ok = false;
+        for (const auto& ep : model_.ephem_cache) {
+            if (ep.prn == c.prn) {
+                eph_mask |= (ep.sf_valid_mask & 0x07U);
+                eph_ok = ep.is_complete();
+                break;
+            }
+        }
+
+        const int16_t cn0 = c.cn0_dbhz_x10;
+        const int16_t cn0_a = (cn0 < 0) ? -cn0 : cn0;
+        const int32_t d_hz = c.doppler_hz_x10 / 10;
+        const char sync_ch = c.frame_synced ? 'F' : (c.bit_synced ? 'b' : '.');
+        std::snprintf(buf, sizeof(buf), "%u G%02u %s %2d.%1d %+5ld %c[%c%c%c]",
+                      static_cast<unsigned>(i),
+                      static_cast<unsigned>(c.prn),
+                      nav_state_short(c.state),
+                      static_cast<int>(cn0_a / 10), static_cast<int>(cn0_a % 10),
+                      static_cast<long>(d_hz),
+                      sync_ch,
+                      (eph_mask & 1U) ? '1' : '-',
+                      (eph_mask & 2U) ? '2' : '-',
+                      (eph_mask & 4U) ? '3' : '-');
+
+        const Style* cst = Theme::getInstance()->fg_yellow;
+        if (c.state == static_cast<uint8_t>(TrackState::Lost)) {
+            cst = Theme::getInstance()->fg_red;
+        } else if (c.state == static_cast<uint8_t>(TrackState::Locked)) {
+            cst = eph_ok ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_cyan;
+        }
+        draw_cached(painter, r.left(), y, 30, cst, buf, 7 + i);
+    }
+}
+
 void GPSScanPanel::paint_diagnostics(Painter& painter, const Rect& r) {
     char buf[34];
     Coord y = r.top();
@@ -612,6 +799,7 @@ GPSScanView::GPSScanView(NavigationView& nav)
         &check_auto,
         &button_scan,
         &button_track,
+        &button_fix,
         &button_test,
         &button_view,
         &button_prev,
@@ -652,15 +840,17 @@ GPSScanView::GPSScanView(NavigationView& nav)
     };
 
     button_scan.on_select = [this](Button&) {
-        if (scanning_ || tracking_) {
+        if (scanning_ || tracking_ || nav_fixing_) {
             scanning_ = false;
             tracking_ = false;
+            nav_fixing_ = false;
             selftest_active_ = false;
             update_action_buttons();
             send_config(Mode::Idle);
         } else {
             scanning_ = true;
             tracking_ = false;
+            nav_fixing_ = false;
             selftest_active_ = false;
             model_.result_count = 0;
             model_.selected_rank = 0;
@@ -684,12 +874,26 @@ GPSScanView::GPSScanView(NavigationView& nav)
         }
     };
 
+    button_fix.on_select = [this](Button&) {
+        if (nav_fixing_) {
+            nav_fixing_ = false;
+            selftest_active_ = false;
+            update_action_buttons();
+            send_config(Mode::Idle);
+        } else {
+            start_nav_fix(false);
+        }
+    };
+
     button_test.on_select = [this](Button&) {
         if (model_.view_mode == 1) {
             start_tracking_selected(true);
+        } else if (model_.view_mode == 2) {
+            start_nav_fix(true);
         } else {
             scanning_ = true;
             tracking_ = false;
+            nav_fixing_ = false;
             selftest_active_ = true;
             model_.result_count = 0;
             model_.selected_rank = 0;
@@ -701,7 +905,7 @@ GPSScanView::GPSScanView(NavigationView& nav)
     };
 
     button_view.on_select = [this](Button&) {
-        model_.view_mode = (model_.view_mode + 1U) % 3U;
+        model_.view_mode = (model_.view_mode + 1U) % 4U;
         update_view_button();
         panel.set_dirty();
     };
@@ -735,7 +939,7 @@ void GPSScanView::toggle_bias_tee() {
     update_bias_button();
     StatusRefreshMessage message{};
     EventDispatcher::send_message(message);
-    if (model_.view_mode == 2) panel.set_dirty();
+    if (model_.view_mode == 3) panel.set_dirty();
 }
 
 void GPSScanView::update_bias_button() {
@@ -746,14 +950,16 @@ void GPSScanView::update_bias_button() {
 
 void GPSScanView::update_view_button() {
     // Button label shows the NEXT view it will switch to
-    static constexpr const char* kNextView[3] = {"Trk", "Diag", "List"};
-    button_view.set_text(kNextView[model_.view_mode % 3U]);
+    static constexpr const char* kNextView[4] = {"Trk", "Fix", "Diag", "List"};
+    button_view.set_text(kNextView[model_.view_mode % 4U]);
 }
 
 void GPSScanView::update_action_buttons() {
     button_scan.set_text(scanning_ ? "Stop" : "Scan");
-    button_track.set_text(tracking_ ? "Stop" : "Track");
+    button_track.set_text(tracking_ ? "Stop" : "Trk");
     button_track.set_style(tracking_ ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_light);
+    button_fix.set_text(nav_fixing_ ? "Stop" : "Fix");
+    button_fix.set_style(nav_fixing_ ? Theme::getInstance()->fg_green : Theme::getInstance()->fg_light);
 }
 
 void GPSScanView::cycle_integ() {
@@ -781,6 +987,7 @@ void GPSScanView::send_config(Mode mode, uint8_t prn_override, int16_t dopp_hint
 void GPSScanView::start_tracking_selected(bool selftest) {
     scanning_ = false;
     tracking_ = true;
+    nav_fixing_ = false;
     selftest_active_ = selftest;
     model_.view_mode = 1;  // Switch directly to Tracking view
     model_.has_track = false;
@@ -820,9 +1027,85 @@ void GPSScanView::start_tracking_selected(bool selftest) {
     send_config(selftest ? Mode::TrackSelfTest : Mode::Track, target_prn, dopp_hint);
 }
 
+void GPSScanView::start_nav_fix(bool selftest) {
+    if (!selftest && model_.result_count < 4) {
+        model_.view_mode = 2;
+        update_view_button();
+        text_status.set_style(Theme::getInstance()->fg_yellow);
+        text_status.set("FIX: Scan >=4 SVs or tap Test");
+        panel.set_dirty();
+        return;
+    }
+
+    scanning_ = false;
+    tracking_ = false;
+    nav_fixing_ = true;
+    selftest_active_ = selftest;
+    nav_obs_div_ = 0;
+
+    // Never mix synthetic self-test ephemerides with live sky ephemerides!
+    if (model_.ephem_is_selftest != selftest) {
+        model_.ephem_cache.fill({});
+        model_.ephem_is_selftest = selftest;
+    }
+
+    model_.fix = {};
+    model_.has_nav = true;
+    model_.nav_obs = {};
+    model_.nav_obs.is_selftest = selftest ? 1 : 0;
+    model_.view_mode = 2;
+    update_view_button();
+    update_action_buttons();
+
+    Config cfg{};
+    cfg.mode = selftest ? Mode::NavFixSelfTest : Mode::NavFix;
+    cfg.integration = integ_;
+    cfg.doppler_khz = kDoppKhzChoices[dopp_idx_];
+
+    if (!selftest) {
+        uint8_t cnt = 0;
+        for (size_t i = 0; i < model_.result_count && cnt < MAX_NAV_CH; i++) {
+            const uint8_t prn = model_.sorted_prns[i];
+            if (prn >= 1 && prn <= NUM_PRNS) {
+                cfg.nav_targets[cnt].prn = prn;
+                cfg.nav_targets[cnt].dopp_hint_hz = model_.results[prn - 1].doppler_hz;
+                cnt++;
+            }
+        }
+        cfg.nav_count = cnt;
+        model_.nav_obs.num_ch = cnt;
+        model_.nav_obs.phase = 1;
+    } else {
+        cfg.nav_count = MAX_NAV_CH;
+        model_.nav_obs.num_ch = MAX_NAV_CH;
+        model_.nav_obs.phase = 2;
+    }
+
+    text_status.set_style(Theme::getInstance()->fg_yellow);
+    text_status.set(selftest ? "FIX SelfTest 5-SV (3D sim)..." : "FIX Re-Acq 5 SVs...");
+    progress_bar.set_value(0);
+    panel.set_dirty();
+
+    baseband::set_gps_scan_config(cfg);
+}
+
+uint8_t GPSScanView::count_ready_ephemerides() const {
+    uint8_t ready = 0;
+    for (uint8_t i = 0; i < model_.nav_obs.num_ch && i < MAX_NAV_CH; i++) {
+        const uint8_t prn = model_.nav_obs.ch[i].prn;
+        for (const auto& ep : model_.ephem_cache) {
+            if (ep.prn == prn && ep.is_complete()) {
+                ready++;
+                break;
+            }
+        }
+    }
+    return ready;
+}
+
 void GPSScanView::on_stats(const GPSScanStatsMessage& msg) {
     model_.stats = msg.stats;
-    if (!tracking_) {
+    if (!tracking_ && !nav_fixing_) {
         model_.scan_ms = msg.scan_ms;
         model_.ifft_count = msg.ifft_count;
         model_.scan_id = msg.scan_id;
@@ -879,7 +1162,7 @@ void GPSScanView::on_stats(const GPSScanStatsMessage& msg) {
     }
 
     refresh_adc_strip();
-    if (model_.view_mode == 2) {
+    if (model_.view_mode == 3) {
         panel.set_dirty();
     }
 }
@@ -891,7 +1174,7 @@ void GPSScanView::on_result(const GPSScanResultMessage& msg) {
     model_.scan_id = msg.scan_id;
     model_.results[r.prn - 1] = r;
     sort_results();
-    if (model_.view_mode != 1) {
+    if (model_.view_mode == 0 || model_.view_mode == 3) {
         panel.set_dirty();
     }
 }
@@ -907,7 +1190,7 @@ void GPSScanView::on_profile(const GPSScanProfileMessage& msg) {
             break;
         }
     }
-    if (model_.view_mode != 1) {
+    if (model_.view_mode == 0 || model_.view_mode == 3) {
         panel.set_dirty();
     }
 }
@@ -941,6 +1224,101 @@ void GPSScanView::on_track(const GPSScanTrackMessage& msg) {
     progress_bar.set_value(static_cast<uint32_t>(pli_pct));
 
     if (model_.view_mode == 1) {
+        panel.set_dirty();
+    }
+}
+
+void GPSScanView::on_subframe(const GPSScanSubframeMessage& msg) {
+    const auto& sf = msg.subframe;
+    if (sf.prn < 1 || sf.prn > NUM_PRNS || sf.sf_id < 1 || sf.sf_id > 3) return;
+
+    // Find existing slot for PRN or allocate an empty / oldest slot
+    size_t slot = GPSScanModel::kEphemCacheSize;
+    for (size_t i = 0; i < GPSScanModel::kEphemCacheSize; i++) {
+        if (model_.ephem_cache[i].prn == sf.prn) {
+            slot = i;
+            break;
+        }
+        if (slot == GPSScanModel::kEphemCacheSize && model_.ephem_cache[i].prn == 0) {
+            slot = i;
+        }
+    }
+    if (slot >= GPSScanModel::kEphemCacheSize) {
+        slot = sf.prn % GPSScanModel::kEphemCacheSize;
+    }
+
+    model_.ephem_cache[slot].ingest_subframe(sf.prn, sf.sf_id, sf.words);
+    if (model_.view_mode == 2) {
+        panel.set_dirty();
+    }
+}
+
+void GPSScanView::on_nav_obs(const GPSScanNavObsMessage& msg) {
+    model_.nav_obs = msg.obs;
+    model_.has_nav = true;
+
+    const auto& nav = msg.obs;
+    uint8_t locked_cnt = 0;
+    for (uint8_t i = 0; i < nav.num_ch && i < MAX_NAV_CH; i++) {
+        if (nav.ch[i].state == static_cast<uint8_t>(TrackState::Locked) ||
+            nav.ch[i].state == static_cast<uint8_t>(TrackState::WidePLL)) {
+            locked_cnt++;
+        }
+    }
+
+    const uint8_t eph_ready = count_ready_ephemerides();
+
+    // Solve 3D WGS-84 PVT at 1 Hz (every 2nd 2 Hz observation packet) once >=4 ephemerides are complete
+    nav_obs_div_++;
+    if (nav.phase == 2 && eph_ready >= 4 && (nav_obs_div_ & 1U) == 0U) {
+        const PvtFix cand = solve_pvt(nav, model_.ephem_cache.data(), GPSScanModel::kEphemCacheSize);
+        if (cand.valid) {
+            model_.fix = cand;
+        } else if (!model_.fix.valid) {
+            model_.fix.reject_reason = cand.reject_reason;
+        }
+    }
+
+    char buf[34];
+    if (nav.phase == 1) {
+        std::snprintf(buf, sizeof(buf), "FIX Re-Acq %u SVs...", static_cast<unsigned>(nav.num_ch));
+        text_status.set_style(Theme::getInstance()->fg_yellow);
+        progress_bar.set_value(10);
+    } else if (model_.fix.valid) {
+        const uint32_t hd_x10 = static_cast<uint32_t>(model_.fix.hdop * 10.0 + 0.5);
+        std::snprintf(buf, sizeof(buf), "3D FIX %uSV HDOP:%lu.%1lu D:%u",
+                      static_cast<unsigned>(model_.fix.num_used),
+                      static_cast<unsigned long>(hd_x10 / 10),
+                      static_cast<unsigned long>(hd_x10 % 10),
+                      static_cast<unsigned>(nav.dma_drops));
+        text_status.set_style(Theme::getInstance()->fg_green);
+        progress_bar.set_value(100);
+    } else {
+        std::snprintf(buf, sizeof(buf), "FIX Lck:%u/%u Eph:%u/4 %us",
+                      static_cast<unsigned>(locked_cnt),
+                      static_cast<unsigned>(nav.num_ch),
+                      static_cast<unsigned>(eph_ready),
+                      static_cast<unsigned>(nav.track_sec));
+        text_status.set_style(Theme::getInstance()->fg_yellow);
+        // Progress bar shows ephemeris readiness (0..100%)
+        uint32_t sf_total = 0;
+        for (uint8_t i = 0; i < nav.num_ch && i < MAX_NAV_CH; i++) {
+            uint8_t m = nav.ch[i].sf_mask & 0x07U;
+            for (const auto& ep : model_.ephem_cache) {
+                if (ep.prn == nav.ch[i].prn) {
+                    m |= (ep.sf_valid_mask & 0x07U);
+                    break;
+                }
+            }
+            sf_total += ((m & 1U) ? 1U : 0U) + ((m & 2U) ? 1U : 0U) + ((m & 4U) ? 1U : 0U);
+        }
+        uint32_t pct = (sf_total * 100U) / 12U;
+        if (pct > 99U) pct = 99U;
+        progress_bar.set_value(pct);
+    }
+    text_status.set(buf);
+
+    if (model_.view_mode == 2) {
         panel.set_dirty();
     }
 }
@@ -1015,7 +1393,7 @@ void GPSScanView::select_rank(int delta) {
 }
 
 void GPSScanView::request_selected_profile() {
-    if (!scanning_ && !tracking_ && model_.selected_prn >= 1 && model_.selected_prn <= NUM_PRNS) {
+    if (!scanning_ && !tracking_ && !nav_fixing_ && model_.selected_prn >= 1 && model_.selected_prn <= NUM_PRNS) {
         send_config(Mode::Idle);
     }
 }

@@ -31,6 +31,7 @@
 #include "radio_state.hpp"
 #include "event_m0.hpp"
 #include "gps_scan_types.hpp"
+#include "gps_pvt.hpp"
 
 #include <array>
 #include <string>
@@ -39,9 +40,14 @@ namespace ui {
 
 // Shared state rendered by GPSScanPanel (avoids 20+ child Text widgets & stack bloat).
 struct GPSScanModel {
+    static constexpr size_t kEphemCacheSize = 8;
+
     gps_scan::SignalStats stats{};
     gps_scan::CorrProfile profile{};
     gps_scan::TrackStatus track{};
+    gps_scan::NavObsPacket nav_obs{};
+    gps_scan::PvtFix fix{};
+    std::array<gps_scan::Ephemeris, kEphemCacheSize> ephem_cache{};
     std::array<gps_scan::PRNResult, gps_scan::NUM_PRNS> results{};
     std::array<uint8_t, gps_scan::NUM_PRNS> sorted_prns{};
     size_t result_count{0};
@@ -52,7 +58,9 @@ struct GPSScanModel {
     uint32_t scan_id{0};
     bool has_profile{false};
     bool has_track{false};
-    uint8_t view_mode{0};  // 0 = List+Plot, 1 = Track, 2 = Diag
+    bool has_nav{false};
+    bool ephem_is_selftest{false};
+    uint8_t view_mode{0};  // 0 = List+Plot, 1 = Track, 2 = Fix, 3 = Diag
 };
 
 class GPSScanPanel : public Widget {
@@ -93,6 +101,7 @@ class GPSScanPanel : public Widget {
     void draw_cached(Painter& painter, Coord x, Coord y, size_t width_chars, const Style* style, const char* text, size_t slot);
     void paint_list_and_plot(Painter& painter, const Rect& r);
     void paint_tracking(Painter& painter, const Rect& r);
+    void paint_fix(Painter& painter, const Rect& r);
     void paint_diagnostics(Painter& painter, const Rect& r);
 
     const GPSScanModel& model_;
@@ -101,6 +110,7 @@ class GPSScanPanel : public Widget {
     bool plot_chrome_drawn_{false};
     uint8_t prev_view_mode_{0xFF};
     bool prev_has_track_{false};
+    bool prev_has_nav_{false};
     uint8_t prev_sf_mask_{0xFF};
     size_t prev_iq_count_{0};
     Point prev_iq_[gps_scan::TRACK_IQ_HISTORY]{};
@@ -123,6 +133,8 @@ class GPSScanView : public View {
     void on_result(const GPSScanResultMessage& msg);
     void on_profile(const GPSScanProfileMessage& msg);
     void on_track(const GPSScanTrackMessage& msg);
+    void on_subframe(const GPSScanSubframeMessage& msg);
+    void on_nav_obs(const GPSScanNavObsMessage& msg);
 
     void send_config(gps_scan::Mode mode, uint8_t prn_override = 0, int16_t dopp_hint = 0);
     void toggle_bias_tee();
@@ -136,6 +148,8 @@ class GPSScanView : public View {
     void select_rank(int delta);
     void request_selected_profile();
     void start_tracking_selected(bool selftest);
+    void start_nav_fix(bool selftest);
+    uint8_t count_ready_ephemerides() const;
 
     NavigationView& nav_;
 
@@ -152,8 +166,10 @@ class GPSScanView : public View {
     uint8_t dopp_idx_{0};  // 0=5k, 1=10k, 2=20k, 3=35k
     bool scanning_{false};
     bool tracking_{false};
+    bool nav_fixing_{false};
     bool auto_rescan_{false};
     bool selftest_active_{false};
+    uint8_t nav_obs_div_{0};
 
     // Row 0: RF Header (y = 0)
     RxFrequencyField field_frequency{
@@ -196,24 +212,27 @@ class GPSScanView : public View {
         "Auto",
         true};
 
-    // Row 2: Action buttons (y = 34..54)
+    // Row 2: Action buttons (y = 34..54, exact 240px width)
     Button button_scan{
-        {0, 34, 52, 20},
+        {0, 34, 42, 20},
         "Scan"};
     Button button_track{
-        {54, 34, 54, 20},
-        "Track"};
+        {43, 34, 34, 20},
+        "Trk"};
+    Button button_fix{
+        {78, 34, 34, 20},
+        "Fix"};
     Button button_test{
-        {110, 34, 42, 20},
+        {113, 34, 38, 20},
         "Test"};
     Button button_view{
-        {154, 34, 40, 20},
+        {152, 34, 42, 20},
         "Trk"};
     Button button_prev{
-        {196, 34, 21, 20},
+        {195, 34, 22, 20},
         "<"};
     Button button_next{
-        {219, 34, 21, 20},
+        {218, 34, 22, 20},
         ">"};
 
     // Row 3..5: Status, Progress Bar, ADC Health Strip (y = 56..97)
@@ -257,6 +276,20 @@ class GPSScanView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const GPSScanTrackMessage*>(p);
             this->on_track(*message);
+        }};
+
+    MessageHandlerRegistration message_handler_subframe{
+        Message::ID::GPSScanSubframe,
+        [this](Message* const p) {
+            const auto message = static_cast<const GPSScanSubframeMessage*>(p);
+            this->on_subframe(*message);
+        }};
+
+    MessageHandlerRegistration message_handler_nav_obs{
+        Message::ID::GPSScanNavObs,
+        [this](Message* const p) {
+            const auto message = static_cast<const GPSScanNavObsMessage*>(p);
+            this->on_nav_obs(*message);
         }};
 };
 
