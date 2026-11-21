@@ -482,19 +482,24 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
-### SubGhz Decoders
+### SubGhz Decoders (disabled during GPS Scan dev to fit 1MB SPI flash)
+# set(MODE_CPPSRC
+# 	proc_subghzd.cpp
+# )
+# DeclareTargets(PSGD subghzd)
 
+
+### Weather Stations (disabled during GPS Scan dev to fit 1MB SPI flash)
+# set(MODE_CPPSRC
+# 	proc_weather.cpp
+# )
+# DeclareTargets(PWTH weather)
+
+### GPS L1 C/A Scanner
 set(MODE_CPPSRC
-	proc_subghzd.cpp
+	proc_gps_scan.cpp
 )
-DeclareTargets(PSGD subghzd)
-
-
-### Weather Stations
-set(MODE_CPPSRC
-	proc_weather.cpp
-)
-DeclareTargets(PWTH weather)
+DeclareTargets(PGRX gps_scan)
 
 set(MODE_FLAGS "-Os")
 
@@ -696,10 +701,12 @@ DeclareTargets(PSTX sstvtx)
 
 ### SSTV RX
 
+set(MODE_FLAGS "-Os")
 set(MODE_CPPSRC
 	proc_sstvrx.cpp
 )
 DeclareTargets(PSRX sstvrx)
+set(MODE_FLAGS "-O3")
 
 ### TPMS
 

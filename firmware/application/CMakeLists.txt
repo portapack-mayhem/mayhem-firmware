@@ -324,14 +324,15 @@ set(CPPSRC
 	apps/ui_search.cpp
 	apps/ui_settings.cpp
 	apps/ui_sonde.cpp
+	apps/ui_gps_scan.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_standalone_view.cpp
-	apps/ui_subghzd.cpp
+	# apps/ui_subghzd.cpp  # Disabled during GPS Scan dev to fit 1MB SPI flash
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
-	apps/ui_weatherstation.cpp
+	# apps/ui_weatherstation.cpp  # Disabled during GPS Scan dev to fit 1MB SPI flash
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/dcs.cpp

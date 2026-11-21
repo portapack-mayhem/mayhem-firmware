@@ -49,12 +49,14 @@
 #include "ui_settings.hpp"
 #include "ui_textentry.hpp"
 #include "ui_sonde.hpp"
+#include "ui_gps_scan.hpp"
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_touchtunes.hpp"
-#include "ui_weatherstation.hpp"
-#include "ui_subghzd.hpp"
+// Disabled during GPS Scan dev to fit 1MB SPI flash
+// #include "ui_weatherstation.hpp"
+// #include "ui_subghzd.hpp"
 #include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
@@ -122,11 +124,13 @@ const NavigationView::AppList NavigationView::appList = {
     {"protoview", "ProtoView", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<ui::external_app::protoview::ProtoView>()},
 #endif
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
+    {"gpsscan", "GPS Scan", RX, Color::green(), &bitmap_icon_gps_sim, new ViewFactory<GPSScanView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
-    {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
-    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
+    // Disabled during GPS Scan dev to fit 1MB SPI flash
+    // {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    // {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     /* TX ********************************************************************/
     {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
     {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
