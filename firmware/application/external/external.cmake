@@ -441,6 +441,11 @@ set(EXTCPPSRC
 	external/subghz_chat/main.cpp
 	external/subghz_chat/ui_subghz_chat.cpp
 	external/subghz_chat/chat_crypto.cpp
+
+	#horus rx
+	external/horus_rx/main.cpp
+	external/horus_rx/ui_horus_rx.cpp
+	external/horus_rx/horus_v3.cpp
 )
 
 set(EXTAPPLIST
@@ -548,6 +553,7 @@ set(EXTAPPLIST
 	wmbus_rx
 	vdl2_rx
 	subghz_chat
+	horus_rx
 )
 
 

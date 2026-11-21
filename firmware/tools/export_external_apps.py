@@ -186,6 +186,12 @@ for external_image_prefix in sys.argv[5:]:
 	print(chunk_tag)
 	print("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
 	m4_image = read_image("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
+	# The loader checksums the app part and the baseband part separately, in 32-bit
+	# words, so the boundary between them (m4_app_offset) has to be word aligned.
+	# Pad the app part here; padding only the combined image would leave the
+	# boundary unaligned and the app would fail its checksum on the device.
+	while (len(external_application_image) % 4) != 0:
+		external_application_image += b'\x00'
 	app_image_len = len(external_application_image)
 	external_application_image += m4_image
 
