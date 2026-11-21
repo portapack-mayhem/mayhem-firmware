@@ -495,7 +495,8 @@ DeclareTargets(PWFM wfm_audio)
 # )
 # DeclareTargets(PWTH weather)
 
-### GPS L1 C/A Scanner
+### GPS L1 C/A Scanner + Single-Channel Tracker
+set(MODE_FLAGS "-Os")
 set(MODE_CPPSRC
 	proc_gps_scan.cpp
 )

@@ -35,12 +35,24 @@ static constexpr size_t SAMPLES_PER_MS = 2048;
 static constexpr size_t MAX_SNAPSHOT_MS = 16;
 static constexpr size_t NUM_PRNS = 32;
 static constexpr size_t PROFILE_BINS = 64;
+static constexpr size_t TRACK_IQ_HISTORY = 32;
 
 enum class Mode : uint8_t {
     Idle = 0,
     ScanSingle = 1,
     ScanAuto = 2,
     SelfTest = 3,
+    Track = 4,
+    TrackSelfTest = 5,
+};
+
+enum class TrackState : uint8_t {
+    Off = 0,
+    Reacq = 1,
+    PullIn = 2,
+    WidePLL = 3,
+    Locked = 4,
+    Lost = 5,
 };
 
 enum class Integration : uint8_t {
@@ -66,9 +78,10 @@ enum class DetStatus : uint8_t {
 struct Config {
     Mode mode{Mode::Idle};
     Integration integration{Integration::Ms2x4};
-    uint8_t doppler_khz{5};  // ±kHz: 5, 10, 20, or 35
-    uint8_t prn_filter{0};   // 0 = All (1..32), 1..32 = single PRN
-    uint8_t profile_prn{0};  // 0 = auto strongest, 1..32 = specific PRN
+    uint8_t doppler_khz{5};        // ±kHz: 5, 10, 20, or 35
+    uint8_t prn_filter{0};         // 0 = All (1..32), 1..32 = single PRN (or tracked PRN)
+    uint8_t profile_prn{0};        // 0 = auto strongest, 1..32 = specific PRN
+    int16_t track_dopp_hint_hz{0}; // Initial Doppler hint (Hz) when entering Mode::Track
 };
 
 struct SignalStats {
@@ -106,6 +119,45 @@ struct CorrProfile {
     uint8_t mean_level{0};
     uint8_t second_level{0};
     uint32_t scan_id{0};
+};
+
+struct TrackIQ {
+    int8_t i;
+    int8_t q;
+};
+
+struct TrackStatus {
+    uint8_t prn{0};
+    uint8_t state{0};           // TrackState
+    uint8_t bit_synced{0};      // 1 if 20ms nav bit edge locked
+    uint8_t frame_synced{0};    // 0=none, 1=TLM 0x8B norm, 2=TLM 0x74 inv
+    int32_t doppler_hz_x10{0};  // Carrier Doppler * 10
+    uint32_t code_chip_x100{0}; // Code phase * 100 (0..102299)
+    int16_t cn0_dbhz_x10{0};    // Live C/N0 * 10 (dB-Hz)
+    int16_t pli_x100{0};        // Carrier Phase Lock Indicator * 100 (-100..+100)
+    uint16_t early_mag{0};      // Early correlator magnitude (scaled)
+    uint16_t prompt_mag{0};     // Prompt correlator magnitude (scaled)
+    uint16_t late_mag{0};       // Late correlator magnitude (scaled)
+    uint16_t track_sec{0};      // Seconds tracked
+    uint16_t dma_drops{0};      // DMA drops during tracking
+    uint32_t total_bits{0};     // Total 50 bps bits decoded
+    uint64_t recent_bits{0};    // Last 64 decoded 50 bps bits (LSB = newest)
+
+    // Subframe telemetry (IS-GPS-200 LNAV)
+    uint32_t tow_sec{0};        // GPS Time of Week in seconds (0..604794)
+    uint16_t gps_week{0};       // Full GPS week (2048 + 10-bit WN) from SF1
+    uint8_t sf_mask{0};         // Bitmask of received subframes (bits 0..4 => SF1..SF5)
+    uint8_t last_sf_id{0};      // Last subframe ID (1..5)
+    uint8_t last_parity_ok{0};  // Words passing parity in last subframe (0..10)
+    uint8_t sv_health{0xFF};    // SF1 SV Health (0 = OK, 0xFF = unknown)
+    uint8_t ura_idx{0xFF};      // SF1 URA index
+    uint8_t last_iode{0};       // SF2/SF3 IODE
+    uint8_t alert_as{0};        // Bit 0 = Alert, Bit 1 = Anti-Spoof
+    uint8_t is_selftest{0};     // 1 if synthetic tracking self-test
+    uint16_t frames_ok{0};      // Subframes passing 10/10 parity
+    uint16_t frames_err{0};     // Subframes with parity error
+
+    TrackIQ iq_hist[TRACK_IQ_HISTORY]{};
 };
 
 } /* namespace gps_scan */

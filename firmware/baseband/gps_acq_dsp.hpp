@@ -176,11 +176,19 @@ static inline void generate_ca_2048(uint8_t prn, c16_t out[SAMPLES_PER_MS]) {
     }
 }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define GPS_HOT_NOINLINE __attribute__((noinline, optimize("O3")))
+#define GPS_NOINLINE __attribute__((noinline))
+#else
+#define GPS_HOT_NOINLINE
+#define GPS_NOINLINE
+#endif
+
 // In-place 2048-point radix-2 DIT FFT (inverse=false) or IFFT (inverse=true)
 // with per-stage block-floating-point scaling.
 // Precondition: |data[i].re|, |data[i].im| <= 16383.
 // Returns total number of divide-by-2 shifts applied across the 11 stages (0..11).
-static inline uint8_t fft_2048_q15(c16_t data[SAMPLES_PER_MS], bool inverse) {
+GPS_HOT_NOINLINE static uint8_t fft_2048_q15(c16_t data[SAMPLES_PER_MS], bool inverse) {
     // Bit-reversal permutation + initial peak check
     int32_t max_abs = 0;
     for (uint32_t i = 0; i < SAMPLES_PER_MS; i++) {
@@ -458,7 +466,7 @@ struct RawStatsAccum {
 // Coherent fold of K consecutive 1ms packed 2-bit blocks starting at snapshot[start_ms],
 // applying sub-bin Doppler rotation f_sub = sub_idx * (1000 / (2 * K)) Hz.
 // K must be 1, 2, or 4. sub_idx in [0, 2*K - 1].
-static inline void fold_coherent_block(
+GPS_NOINLINE static void fold_coherent_block(
     const uint8_t snapshot[][SAMPLES_PER_MS / 2],
     size_t start_ms,
     uint8_t coh_ms,
@@ -517,7 +525,7 @@ static inline void fold_coherent_block(
 }
 
 // Compute correlation power accum[2048] across num_blocks cached FFTs at integer-kHz Doppler shift k_hz.
-static inline void correlate_doppler_bin(
+GPS_HOT_NOINLINE static void correlate_doppler_bin(
     const c8_t cached_fft[][SAMPLES_PER_MS],
     uint8_t num_blocks,
     const c8_t fft_code[SAMPLES_PER_MS],
@@ -579,7 +587,7 @@ static inline uint32_t quick_peak_over_mean_q8(const uint32_t accum[SAMPLES_PER_
 }
 
 // Analyze accum[2048] for peak, 2nd peak (outside ±4 samples = ±2 chips), noise mean/std, Z-score, ratio, C/N0.
-static inline void analyze_correlation(
+GPS_NOINLINE static void analyze_correlation(
     const uint32_t accum[SAMPLES_PER_MS],
     uint8_t prn,
     int16_t doppler_hz,

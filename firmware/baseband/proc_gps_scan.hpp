@@ -15,7 +15,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
  * Boston, MA 02110-1301, USA.
  */
@@ -27,6 +26,7 @@
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
 #include "gps_acq_dsp.hpp"
+#include "gps_track_dsp.hpp"
 
 class GPSScanProcessor : public BasebandProcessor {
    public:
@@ -40,14 +40,22 @@ class GPSScanProcessor : public BasebandProcessor {
         Capturing = 2,
         Scanning = 3,
         BuildProfile = 4,
+        TrackReacqCal = 5,
+        TrackReacqCap = 6,
+        TrackReacqScan = 7,
+        TrackHandover = 8,
+        Tracking = 9,
     };
 
     void apply_pending_config();
     void start_new_scan();
+    void start_tracking();
     void run_selftest_capture();
     void step_scan();
+    void step_track_reacq();
     void build_and_send_profile(uint8_t prn);
     void send_stats(gps_scan::ScanState scan_state, uint8_t progress_pct);
+    void send_track_status(gps_scan::TrackState override_state);
 
     static constexpr uint32_t baseband_fs = gps_scan::SAMPLING_RATE_HZ;
 
@@ -63,6 +71,7 @@ class GPSScanProcessor : public BasebandProcessor {
     uint8_t num_sub_{4};
     int16_t sub_step_hz_{250};
     int16_t k_max_{5};
+    int16_t k_min_{-5};
     uint8_t prn_start_{1};
     uint8_t prn_end_{32};
 
@@ -92,6 +101,16 @@ class GPSScanProcessor : public BasebandProcessor {
     bool need_prn_fft_{false};
     uint8_t detected_count_{0};
     uint8_t last_reported_pct_{255};
+
+    // Tracking state
+    uint8_t track_prn_{1};
+    uint32_t track_snap_start_ms_{0};
+    uint32_t track_drops_start_{0};
+    uint16_t track_report_cnt_{0};
+    uint16_t track_adc_cnt_{0};
+    bool track_wide_retry_{false};
+    gps_scan::PRNResult track_reacq_best_{};
+    uint32_t track_reacq_pom_{0};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

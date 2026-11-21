@@ -187,6 +187,7 @@ class Message {
         GPSScanStats = 127,
         GPSScanResult = 128,
         GPSScanProfile = 129,
+        GPSScanTrack = 130,
         MAX
     };
 
@@ -2373,6 +2374,16 @@ class GPSScanProfileMessage : public Message {
     }
 
     gps_scan::CorrProfile profile;
+};
+
+class GPSScanTrackMessage : public Message {
+   public:
+    constexpr GPSScanTrackMessage(const gps_scan::TrackStatus& status)
+        : Message{ID::GPSScanTrack},
+          status{status} {
+    }
+
+    gps_scan::TrackStatus status;
 };
 
 #endif /*__MESSAGE_H__*/

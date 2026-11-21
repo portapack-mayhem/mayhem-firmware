@@ -30,7 +30,7 @@ using namespace gps_scan;
 
 namespace {
 
-// Static M4 SRAM buffers (~54.5 KiB total) so linker enforces exact RAM fit.
+// Static M4 SRAM buffers so linker enforces exact RAM fit.
 static uint8_t s_snapshot[MAX_SNAPSHOT_MS][SAMPLES_PER_MS / 2];  // 16 KiB (16 ms @ 2-bit I/Q)
 static c8_t s_cached_fft[4][SAMPLES_PER_MS];                     // 16 KiB (4 coherent blocks)
 static c8_t s_fft_code[SAMPLES_PER_MS];                          //  4 KiB
@@ -40,6 +40,10 @@ static PRNResult s_results[NUM_PRNS];                            // ~1.1 KiB
 static uint32_t s_best_pom[NUM_PRNS];                            // 128 B
 static uint8_t s_best_sub[NUM_PRNS];                             //  32 B
 static int16_t s_best_k[NUM_PRNS];                               //  64 B
+
+// Stage 2 single-channel tracker & synthetic LNAV simulator (~3.2 KiB)
+static GPSTracker s_tracker;
+static GPSTrackSim s_track_sim;
 
 }  // namespace
 
@@ -65,6 +69,11 @@ void GPSScanProcessor::apply_pending_config() {
         idle_acc_.reset();
         idle_buf_count_ = 0;
         send_stats(ScanState::Idle, 0);
+        return;
+    }
+
+    if (config_.mode == Mode::Track || config_.mode == Mode::TrackSelfTest) {
+        start_tracking();
         return;
     }
 
@@ -99,6 +108,7 @@ void GPSScanProcessor::start_new_scan() {
     k_max_ = config_.doppler_khz;
     if (k_max_ < 1) k_max_ = 1;
     if (k_max_ > 40) k_max_ = 40;
+    k_min_ = static_cast<int16_t>(-k_max_);
 
     if (config_.prn_filter >= 1 && config_.prn_filter <= NUM_PRNS) {
         prn_start_ = config_.prn_filter;
@@ -118,13 +128,13 @@ void GPSScanProcessor::start_new_scan() {
     detected_count_ = 0;
     cur_sub_ = 0;
     cur_prn_ = prn_start_;
-    cur_k_ = static_cast<int16_t>(-k_max_);
+    cur_k_ = k_min_;
     need_sub_fft_ = true;
     need_prn_fft_ = true;
     last_reported_pct_ = 255;
 
     const uint32_t prn_cnt = static_cast<uint32_t>(prn_end_ - prn_start_ + 1);
-    const uint32_t k_cnt = static_cast<uint32_t>(2 * k_max_ + 1);
+    const uint32_t k_cnt = static_cast<uint32_t>(k_max_ - k_min_ + 1);
     total_steps_ = static_cast<uint32_t>(num_sub_) * prn_cnt * k_cnt;
     if (total_steps_ == 0) total_steps_ = 1;
     done_steps_ = 0;
@@ -132,6 +142,55 @@ void GPSScanProcessor::start_new_scan() {
     has_valid_snapshot_ = false;
     state_ = State::Calibrating;
     send_stats(ScanState::Capturing, 0);
+}
+
+void GPSScanProcessor::start_tracking() {
+    track_prn_ = (config_.prn_filter >= 1 && config_.prn_filter <= NUM_PRNS) ? config_.prn_filter : 1;
+    track_report_cnt_ = 0;
+    track_adc_cnt_ = 0;
+    idle_acc_.reset();
+
+    if (config_.mode == Mode::TrackSelfTest) {
+        // Synthetic real-time LNAV tracking self-test:
+        // True PRN 1 at +1370 Hz, init chip 412.3; start tracker off by -120 Hz & -0.25 chip to exercise FLL+DLL!
+        track_prn_ = 1;
+        s_track_sim.init(1, 1370.0f, 412.3f);
+        s_tracker.init(1, 1250.0f, 412.05f, true);
+        track_drops_start_ = shared_memory.m4_buffer_missed;
+        state_ = State::Tracking;
+        send_track_status(TrackState::PullIn);
+        return;
+    }
+
+    // Real RF tracking: fast single-PRN 2msx4 (8 ms) re-acquisition around track_dopp_hint_hz
+    coh_ms_ = 2;
+    num_blocks_ = 4;
+    target_ms_ = 8;
+    num_sub_ = 4;
+    sub_step_hz_ = 250;
+
+    int16_t k_center = static_cast<int16_t>((config_.track_dopp_hint_hz >= 0)
+                                                ? ((config_.track_dopp_hint_hz + 500) / 1000)
+                                                : ((config_.track_dopp_hint_hz - 500) / 1000));
+    k_min_ = static_cast<int16_t>(k_center - 1);
+    k_max_ = static_cast<int16_t>(k_center + 1);
+    if (k_min_ < -40) k_min_ = -40;
+    if (k_max_ > 40) k_max_ = 40;
+
+    track_wide_retry_ = false;
+    track_reacq_best_ = {};
+    track_reacq_pom_ = 0;
+    cur_sub_ = 0;
+    cur_k_ = k_min_;
+    need_sub_fft_ = true;
+
+    // Precompute PRN code FFT once for this single tracked PRN
+    generate_ca_2048(track_prn_, s_fft_work);
+    fft_2048_q15(s_fft_work, false);
+    compress_fft_c8(s_fft_work, s_fft_code, true);
+
+    state_ = State::TrackReacqCal;
+    send_track_status(TrackState::Reacq);
 }
 
 void GPSScanProcessor::run_selftest_capture() {
@@ -164,10 +223,15 @@ void GPSScanProcessor::send_stats(ScanState scan_state, uint8_t progress_pct) {
         elapsed_ms = static_cast<uint16_t>(dt > 65535U ? 65535U : dt);
     }
 
-    SignalStats st = (scan_state == ScanState::Idle)
-                         ? idle_acc_.to_signal_stats(0, static_cast<uint16_t>(dma_buffers_ & 0xFFFFU), 0, 0)
+    SignalStats st = (scan_state == ScanState::Idle || state_ == State::Tracking)
+                         ? idle_acc_.to_signal_stats(0, static_cast<uint16_t>(dma_buffers_ & 0xFFFFU), 0,
+                                                     (config_.mode == Mode::TrackSelfTest) ? 1 : 0)
                          : snapshot_stats_;
     st.dma_buffers = static_cast<uint16_t>(dma_buffers_ & 0xFFFFU);
+    if (state_ == State::Tracking) {
+        const uint32_t td = shared_memory.m4_buffer_missed - track_drops_start_;
+        st.dma_drops = static_cast<uint16_t>(td > 65535U ? 65535U : td);
+    }
 
     const GPSScanStatsMessage msg{
         st,
@@ -181,6 +245,23 @@ void GPSScanProcessor::send_stats(ScanState scan_state, uint8_t progress_pct) {
     shared_memory.application_queue.push(msg);
 }
 
+void GPSScanProcessor::send_track_status(TrackState override_state) {
+    TrackStatus ts{};
+    if (override_state == TrackState::Reacq) {
+        ts.prn = track_prn_;
+        ts.state = static_cast<uint8_t>(TrackState::Reacq);
+        ts.doppler_hz_x10 = static_cast<int32_t>(config_.track_dopp_hint_hz) * 10;
+    } else {
+        const uint32_t td = shared_memory.m4_buffer_missed - track_drops_start_;
+        s_tracker.fill_status(ts, static_cast<uint16_t>(td > 65535U ? 65535U : td));
+        if (override_state != TrackState::Off) {
+            ts.state = static_cast<uint8_t>(override_state);
+        }
+    }
+    const GPSScanTrackMessage msg{ts};
+    shared_memory.application_queue.push(msg);
+}
+
 void GPSScanProcessor::build_and_send_profile(uint8_t prn) {
     if (prn < 1 || prn > NUM_PRNS) return;
     const PRNResult& res = s_results[prn - 1];
@@ -189,7 +270,6 @@ void GPSScanProcessor::build_and_send_profile(uint8_t prn) {
     const uint8_t sub = s_best_sub[prn - 1];
     const int16_t k = s_best_k[prn - 1];
 
-    // Recompute cached_fft for the winning sub-bin and correlate at winning k
     for (uint8_t b = 0; b < num_blocks_; b++) {
         fold_coherent_block(s_snapshot, b * coh_ms_, coh_ms_, sub, s_fft_work);
         fft_2048_q15(s_fft_work, false);
@@ -209,7 +289,6 @@ void GPSScanProcessor::build_and_send_profile(uint8_t prn) {
 }
 
 void GPSScanProcessor::step_scan() {
-    // 1. If starting a new sub-bin, fold & FFT the num_blocks coherent signal blocks
     if (need_sub_fft_) {
         for (uint8_t b = 0; b < num_blocks_; b++) {
             fold_coherent_block(s_snapshot, b * coh_ms_, coh_ms_, cur_sub_, s_fft_work);
@@ -219,26 +298,23 @@ void GPSScanProcessor::step_scan() {
         need_sub_fft_ = false;
         cur_prn_ = prn_start_;
         need_prn_fft_ = true;
-        return;  // Yield back to wait_for_buffer() so EventDispatcher stays responsive
+        return;
     }
 
-    // 2. If starting a new PRN, compute conj(FFT(CA_code))
     if (need_prn_fft_) {
         generate_ca_2048(cur_prn_, s_fft_work);
         fft_2048_q15(s_fft_work, false);
         compress_fft_c8(s_fft_work, s_fft_code, true);
         need_prn_fft_ = false;
-        cur_k_ = static_cast<int16_t>(-k_max_);
+        cur_k_ = k_min_;
     }
 
-    // 3. Process a small slice of Doppler bins (~3..12 ms total) per execute() call
-    //    so M0 commands (Stop / Shutdown / Reconfig) are handled within ~15 ms.
     const uint8_t k_budget = (num_blocks_ <= 1) ? 8 : 3;
     for (uint8_t step = 0; step < k_budget && cur_k_ <= k_max_; step++, cur_k_++) {
         const int16_t dopp_hz = static_cast<int16_t>(cur_k_ * 1000 + cur_sub_ * sub_step_hz_);
         done_steps_++;
 
-        if (dopp_hz >= -k_max_ * 1000 && dopp_hz <= k_max_ * 1000) {
+        if (dopp_hz >= k_min_ * 1000 && dopp_hz <= k_max_ * 1000) {
             correlate_doppler_bin(s_cached_fft, num_blocks_, s_fft_code, cur_k_, s_fft_work, s_accum);
             ifft_count_ += num_blocks_;
 
@@ -252,9 +328,7 @@ void GPSScanProcessor::step_scan() {
         }
     }
 
-    // 4. Advance PRN / sub-bin if finished with cur_k_
     if (cur_k_ > k_max_) {
-        // On final sub-bin, this PRN's search is 100% complete -> report to M0!
         if (cur_sub_ == num_sub_ - 1) {
             const PRNResult& r = s_results[cur_prn_ - 1];
             if (r.status == static_cast<uint8_t>(DetStatus::Lock)) {
@@ -279,11 +353,58 @@ void GPSScanProcessor::step_scan() {
         }
     }
 
-    // 5. Report smooth progress updates
     const uint8_t pct = static_cast<uint8_t>((done_steps_ * 100U) / total_steps_);
     if (pct != last_reported_pct_ && (pct >= last_reported_pct_ + 2 || last_reported_pct_ == 255)) {
         last_reported_pct_ = pct;
         send_stats(ScanState::Scanning, pct);
+    }
+}
+
+void GPSScanProcessor::step_track_reacq() {
+    if (need_sub_fft_) {
+        for (uint8_t b = 0; b < num_blocks_; b++) {
+            fold_coherent_block(s_snapshot, b * coh_ms_, coh_ms_, cur_sub_, s_fft_work);
+            fft_2048_q15(s_fft_work, false);
+            compress_fft_c8(s_fft_work, s_cached_fft[b], false);
+        }
+        need_sub_fft_ = false;
+        cur_k_ = k_min_;
+        return;
+    }
+
+    const uint8_t k_budget = 3;
+    for (uint8_t step = 0; step < k_budget && cur_k_ <= k_max_; step++, cur_k_++) {
+        const int16_t dopp_hz = static_cast<int16_t>(cur_k_ * 1000 + cur_sub_ * sub_step_hz_);
+        correlate_doppler_bin(s_cached_fft, num_blocks_, s_fft_code, cur_k_, s_fft_work, s_accum);
+
+        const uint32_t pom = quick_peak_over_mean_q8(s_accum);
+        if (pom > track_reacq_pom_) {
+            track_reacq_pom_ = pom;
+            analyze_correlation(s_accum, track_prn_, dopp_hz, coh_ms_, num_blocks_, track_reacq_best_);
+        }
+    }
+
+    if (cur_k_ > k_max_) {
+        cur_sub_++;
+        if (cur_sub_ < num_sub_) {
+            need_sub_fft_ = true;
+        } else {
+            // Re-acquisition finished!
+            // If narrow window missed the satellite, widen once to ±doppler_khz
+            if (track_reacq_best_.status == static_cast<uint8_t>(DetStatus::Noise) && !track_wide_retry_) {
+                track_wide_retry_ = true;
+                int16_t span = config_.doppler_khz;
+                if (span < 5) span = 5;
+                if (span > 35) span = 35;
+                k_min_ = static_cast<int16_t>(-span);
+                k_max_ = span;
+                cur_sub_ = 0;
+                cur_k_ = k_min_;
+                need_sub_fft_ = true;
+                return;
+            }
+            state_ = State::TrackHandover;
+        }
     }
 }
 
@@ -349,7 +470,6 @@ void GPSScanProcessor::execute(const buffer_c8_t& buffer) {
         case State::BuildProfile: {
             uint8_t target_prn = config_.profile_prn;
             if (target_prn < prn_start_ || target_prn > prn_end_ || s_results[target_prn - 1].prn != target_prn) {
-                // Pick scanned PRN with highest Z-score
                 uint16_t best_z = 0;
                 target_prn = prn_start_;
                 for (uint8_t p = prn_start_; p <= prn_end_; p++) {
@@ -369,6 +489,84 @@ void GPSScanProcessor::execute(const buffer_c8_t& buffer) {
                 state_ = State::Idle;
                 idle_acc_.reset();
                 idle_buf_count_ = 0;
+            }
+            break;
+        }
+
+        case State::TrackReacqCal: {
+            cal_acc_.reset();
+            cal_acc_.measure_block(reinterpret_cast<const int8_t*>(buffer.p), buffer.count);
+            cal_ = cal_acc_.derive_cal();
+            cap_acc_.reset();
+            captured_ms_ = 0;
+            state_ = State::TrackReacqCap;
+            break;
+        }
+
+        case State::TrackReacqCap: {
+            if (captured_ms_ == 0) {
+                // Exact monotonic DMA transfer index at start of s_snapshot[0]!
+                track_snap_start_ms_ = dma_buffers_ + shared_memory.m4_buffer_missed;
+            }
+            if (captured_ms_ < target_ms_ && buffer.count == SAMPLES_PER_MS) {
+                cap_acc_.pack_ms_2bit(reinterpret_cast<const int8_t*>(buffer.p), cal_, s_snapshot[captured_ms_]);
+                captured_ms_++;
+            }
+            if (captured_ms_ >= target_ms_) {
+                state_ = State::TrackReacqScan;
+            }
+            break;
+        }
+
+        case State::TrackReacqScan: {
+            step_track_reacq();
+            break;
+        }
+
+        case State::TrackHandover: {
+            // Compute exact elapsed 1.000ms DMA buffers since s_snapshot[0], then process THIS buffer immediately!
+            const uint32_t now_total_ms = dma_buffers_ + shared_memory.m4_buffer_missed;
+            const uint32_t elapsed_ms = now_total_ms - track_snap_start_ms_;
+            const float snap0_chip = static_cast<float>((2048U - track_reacq_best_.code_phase) & 2047U) * (1023.0f / 2048.0f);
+            const float init_chip = snap0_chip + static_cast<float>(elapsed_ms) * static_cast<float>(track_reacq_best_.doppler_hz) * (1.0f / 1540000.0f);
+
+            s_tracker.init(track_prn_, static_cast<float>(track_reacq_best_.doppler_hz), init_chip, false);
+            track_drops_start_ = shared_memory.m4_buffer_missed;
+            track_report_cnt_ = 0;
+            track_adc_cnt_ = 0;
+            idle_acc_.reset();
+            state_ = State::Tracking;
+
+            // Process this very first buffer right away so zero ms are skipped!
+            s_tracker.process_samples(reinterpret_cast<const int8_t*>(buffer.p), buffer.count);
+            send_track_status(TrackState::PullIn);
+            break;
+        }
+
+        case State::Tracking: {
+            const int8_t* iq_ptr = reinterpret_cast<const int8_t*>(buffer.p);
+            if (config_.mode == Mode::TrackSelfTest) {
+                // Reuse s_fft_work (8 KiB) as temporary 4 KiB raw int8 I/Q buffer
+                int8_t* sim_iq = reinterpret_cast<int8_t*>(s_fft_work);
+                s_track_sim.generate_ms(sim_iq);
+                iq_ptr = sim_iq;
+            }
+
+            s_tracker.process_samples(iq_ptr, buffer.count);
+
+            track_report_cnt_++;
+            if (track_report_cnt_ == 50) {
+                // Lightweight 256-sample ADC check staggered away from track telemetry (~20 us)
+                idle_acc_.measure_block(iq_ptr, 256);
+                track_adc_cnt_++;
+                if (track_adc_cnt_ >= 5) {  // 2 Hz ADC health strip update
+                    track_adc_cnt_ = 0;
+                    send_stats(ScanState::Scanning, 100);
+                    idle_acc_.reset();
+                }
+            } else if (track_report_cnt_ >= 100) {  // 10 Hz live tracking telemetry!
+                track_report_cnt_ = 0;
+                send_track_status(TrackState::Off);
             }
             break;
         }
