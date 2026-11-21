@@ -50,6 +50,8 @@ RttyRxView::RttyRxView(NavigationView& nav)
         &field_frequency,
         &labels,
         &options_baud,
+        &options_polarity,
+        &options_squelch,
         &console,
     });
     field_frequency.set_step(100);
@@ -63,13 +65,28 @@ RttyRxView::RttyRxView(NavigationView& nav)
     console.enable_scrolling(false);
 
     options_baud.on_change = [this](size_t, int32_t value) {
-        baseband::set_rtty_config(value, 170);
         baud_conf = value;
+        send_config();
+    };
+    options_polarity.on_change = [this](size_t, int32_t value) {
+        pol_conf = value;
+        send_config();
+    };
+    options_squelch.on_change = [this](size_t, int32_t value) {
+        sq_conf = value;
+        send_config();
     };
     options_baud.set_by_value(baud_conf);
-    if (baud_conf == 0) {  // to trigger it when not changed
-        baseband::set_rtty_config(0, 170);
-    }
+    options_polarity.set_by_value(pol_conf);
+    options_squelch.set_by_value(sq_conf);
+    send_config();  // to trigger it when nothing changed
+}
+
+void RttyRxView::send_config() {
+    RTTYDataMessage message{(uint16_t)baud_conf, 170};
+    message.rx_polarity = (uint8_t)pol_conf;
+    message.rx_squelch = (uint8_t)sq_conf;
+    baseband::set_rtty_config(message);
 }
 
 void RttyRxView::got_message(std::string msg) {
