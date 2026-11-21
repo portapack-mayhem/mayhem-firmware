@@ -895,6 +895,14 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PCHT subghz_chat)
 
+### Meteor LRPT Rx
+
+set(MODE_CPPSRC
+	proc_lrpt_rx.cpp
+	lrpt_demod.cpp
+)
+DeclareTargets(PLRP lrpt_rx)
+
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
