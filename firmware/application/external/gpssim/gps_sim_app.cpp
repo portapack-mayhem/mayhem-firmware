@@ -138,6 +138,7 @@ void GpsSimAppView::stop(const bool do_loop) {
     if (is_active())
         replay_thread.reset();
 
+    progressbar.set_value(0);
     if (do_loop && check_loop.value()) {
         start();
     } else {
@@ -155,8 +156,6 @@ void GpsSimAppView::handle_replay_thread_done(const uint32_t return_code) {
         stop(false);
         file_error();
     }
-
-    progressbar.set_value(0);
 }
 
 GpsSimAppView::GpsSimAppView(
