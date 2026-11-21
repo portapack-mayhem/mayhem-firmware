@@ -9,11 +9,10 @@ Maidenhead locator and declared transmit power. It is receive-only.
 
 ## Getting started
 
-1. Install `wspr_rx.ppma` in the SD card's `APPS` folder, using the matching Mayhem firmware and app set.
-2. Open **Receive → WSPR**.
-3. Select a band preset or set the WSPR dial frequency manually.
-4. Adjust **RF Amp**, **LNA** and **VGA** for your antenna and signal conditions.
-5. Leave the receiver running through several complete transmissions.
+1. Open **Receive → WSPR**.
+2. Select a band preset or set the WSPR dial frequency manually.
+3. Adjust **RF Amp**, **LNA** and **VGA** for your antenna and signal conditions.
+4. Leave the receiver running through several complete transmissions.
 
 WSPR transmissions last about 110.6 seconds and normally begin about one second
 into an even UTC minute. The app searches for their timing automatically. If
