@@ -153,16 +153,18 @@ void kill_tone() {
     send_message(&message);
 }
 
-void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration) {
+void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration, const uint8_t modulation) {
     const SSTVConfigureMessage message{
         vis_code,
-        pixel_duration};
+        pixel_duration,
+        modulation};
     send_message(&message);
 }
 
-void set_sstvrx_data(const uint8_t code) {
+void set_sstvrx_data(const uint8_t code, const uint8_t modulation) {
     const SSTVRXConfigureMessage message{
-        code};
+        code,
+        modulation};
     send_message(&message);
 }
 

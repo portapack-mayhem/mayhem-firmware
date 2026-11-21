@@ -34,7 +34,6 @@ using namespace hackrf::one;
 using namespace lpc43xx;
 
 #ifdef PRALINE
-#include "hackrf_gpio.hpp"
 #include "gpio.hpp"
 #endif
 
@@ -63,6 +62,11 @@ static_assert(si5351_inputs.f_clkin_out() == si5351_clkin_f, "CLKIN output frequ
 
 constexpr si5351::PLLInputSource::Type si5351c_pll_input_sources{
     si5351::PLLInputSource::PLLA_Source_XTAL | si5351::PLLInputSource::PLLB_Source_CLKIN | si5351::PLLInputSource::CLKIN_Div1};
+
+#ifdef PRALINE
+constexpr si5351::PLLInputSource::Type si5351c_pll_input_sources_both_clkin{
+    si5351::PLLInputSource::PLLA_Source_CLKIN | si5351::PLLInputSource::PLLB_Source_CLKIN | si5351::PLLInputSource::CLKIN_Div1};
+#endif
 
 constexpr si5351::PLLInputSource::Type si5351a_pll_input_sources{
     si5351::PLLInputSource::PLLA_Source_XTAL | si5351::PLLInputSource::PLLB_Source_XTAL | si5351::PLLInputSource::CLKIN_Div1};
@@ -439,8 +443,54 @@ void ClockManager::portapack_tcxo_disable() {
     portapack::io.reference_oscillator(false);
 }
 
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
+#ifdef PRALINE
+// Mayhem has no SCT transport client. Refuse to disturb CLK1 if a counter
+// inherited from another image is running; never halt or reconfigure SCT here.
+static bool xtal_sct_quiescent() {
+    if (!LPC_CCU1->CLK_M4_SCT_STAT.RUN)
+        return true;
+    const auto sct = reinterpret_cast<volatile const uint32_t*>(LPC_SCT_BASE);
+    const uint32_t config = sct[0];  // CONFIG.UNIFY, bit 0
+    const uint32_t ctrl = sct[1];    // CTRL.HALT_L/H, bits 2/18
+    return (ctrl & (1U << 2)) && ((config & 1U) || (ctrl & (1U << 18)));
+}
+
+static bool xtal_pll_b_locked(si5351::Si5351& generator) {
+    for (unsigned attempt = 0; attempt < 100; ++attempt) {
+        uint8_t status = 0;
+        if (!generator.read_register_checked(0, status))
+            return false;
+        // SYS_INIT, LOL_B, LOS_XTAL; absent CLKIN is expected in XTAL mode.
+        if (!(status & 0xc8))
+            return true;
+        chThdSleepMilliseconds(1);
+    }
+    return false;
+}
+
+static bool xtal_clock_routing_verified(si5351::Si5351& generator) {
+    uint8_t value = 0;
+    if (!generator.read_register_checked(15, value) || (value & 0x0c))
+        return false;
+    for (unsigned output = 0; output < 8; ++output) {
+        if (!generator.read_register_checked(16 + output, value) ||
+            (value & 0x20) != (output < 2 ? 0x20 : 0))
+            return false;
+    }
+    const auto pll_b = si5351_pll_a_afe_800m.reg(1);
+    for (size_t i = 1; i < pll_b.size(); ++i) {
+        if (!generator.read_register_checked(pll_b[0] + i - 1, value) || value != pll_b[i])
+            return false;
+    }
+    return true;
+}
+
+[[noreturn]] static void xtal_clock_failure(const char* reason) {
+    chDbgPanic(reason);
+    while (true)
+        chThdSleepMilliseconds(1000);
+}
+#endif
 
 void ClockManager::init_clock_generator() {
     clock_generator.reset();
@@ -453,12 +503,13 @@ void ClockManager::init_clock_generator() {
 
     /*
      * Match the HackRF One init flow:
-     * 1. PLLA stays on the local 25MHz crystal.
-     * 2. PLLB is configured from the Si5351 CLKIN pin.
+     * 1. PLLA starts on the local 25MHz crystal (moved to CLKIN below when the
+     *    reference is CLKIN, then it drives only CLK0/CLK1).
+     * 2. PLLB starts on CLKIN; for XTAL operation it is moved to XTAL below.
      * 3. CLK2 temporarily drives GP_CLKIN directly from CLKIN so we can
      *    detect whether P22 is carrying a valid 10MHz reference.
-     * 4. Once the source is chosen, all runtime clocks are switched to the
-     *    selected PLL and the working multisynths are programmed.
+     * 4. Once the source is chosen, CLK2..CLK7 use the system PLL and only
+     *    CLK0/CLK1 use the other PLL, fed from the same selected reference.
      */
     clock_generator.set_pll_input_sources(si5351c_pll_input_sources);
 
@@ -476,9 +527,33 @@ void ClockManager::init_clock_generator() {
     const auto ref_pll =
         get_si5351c_reference_clock_generator_pll(reference.source);
 
+    /* The DAC/ADC clock (CLK0) and the FPGA clock (CLK1) have to keep a fixed phase to each
+     * other: the FPGA hands I and Q over on opposite edges, and in TX CLK0 comes out of a /2
+     * output divider while CLK1 does not. Reprogramming the multisynths at a rate change
+     * leaves that relation to chance unless the PLL driving them is reset afterwards, which is
+     * what the reference firmware does (clock_gen.c: "Reset PLL to synchronize output clock
+     * phase"). Here the MCU clock (CLK2) shares the reference PLL, so that PLL must not be
+     * reset at run time. When the reference is CLKIN (PLL B), PLL A, which nothing else uses
+     * then, is fed from the same CLKIN with the same settings as PLL B and given to CLK0 and
+     * CLK1 alone, so it can be reset on every rate change while the sample clocks stay on the
+     * selected reference. With XTAL, A remains the system PLL and B supplies only CLK0/CLK1
+     * from the same XTAL, allowing B-only synchronization. Without this about half of all
+     * transmissions went out with I and Q swapped: a mirrored spectrum, invisible to AM/FM,
+     * fatal to LoRa. */
+    _datapath_pll_a = (ref_pll == ClockControl::MultiSynthSource::PLLB);
+    const auto datapath_pll = _datapath_pll_a ? ClockControl::MultiSynthSource::PLLA : ClockControl::MultiSynthSource::PLLB;
+    if (_datapath_pll_a) {
+        clock_generator.set_pll_input_sources(si5351c_pll_input_sources_both_clkin);
+    } else {
+        // Keep the system/CLK2 on A; only CLK0/CLK1 use the XTAL-fed B.
+        if (!xtal_sct_quiescent())
+            xtal_clock_failure("XTAL SCT active at boot");
+        clock_generator.set_pll_input_sources(si5351a_pll_input_sources);
+    }
+
     const ClockControls si5351_clock_control = ClockControls{{
-        si5351_clock_control_common[0].ms_src(ref_pll),
-        si5351_clock_control_common[1].ms_src(ref_pll),
+        si5351_clock_control_common[0].ms_src(datapath_pll),
+        si5351_clock_control_common[1].ms_src(datapath_pll),
         si5351_clock_control_common[2].ms_src(ref_pll),
         si5351_clock_control_common[3].ms_src(ref_pll),
         si5351_clock_control_common[4].ms_src(ref_pll),
@@ -531,13 +606,16 @@ void ClockManager::init_clock_generator() {
 #endif
 
 #ifdef PRALINE
-    clock_generator.write_pll_single_byte(0, si5351_pll_a_afe_800m);
-
-    {
+    if (_datapath_pll_a) {
+        // Preserve Villu's CLKIN programming sequence unchanged.
+        clock_generator.write_pll_single_byte(0, si5351_pll_clkin_10m);
         const auto& pll_b = si5351c_pll_b_clkin_reg;
         for (size_t i = 1; i < pll_b.size(); i++) {
             clock_generator.write_register(pll_b[0] + i - 1, pll_b[i]);
         }
+    } else if (!clock_generator.write_pll_checked(0, si5351_pll_a_afe_800m) ||
+               !clock_generator.write_pll_checked(1, si5351_pll_a_afe_800m)) {
+        xtal_clock_failure("XTAL PLL init write/readback failed");
     }
     // CLK0: DAFE_CLK initial 4 MHz
     clock_generator.write_ms_single_byte(
@@ -602,12 +680,17 @@ void ClockManager::init_clock_generator() {
 
     // Wait for PLL(s) to lock.
 #ifdef PRALINE
+    // With a CLKIN reference both PLLs are in use: PLL B for the system, PLL A for CLK0/CLK1.
     uint8_t device_status_mask =
-        (ref_pll == ClockControl::MultiSynthSource::PLLB) ? 0x40 : 0x20;
+        (ref_pll == ClockControl::MultiSynthSource::PLLB) ? 0x60 : 0x20;
     uint32_t pll_timeout = 100000;
     while ((clock_generator.device_status() & device_status_mask) != 0 && pll_timeout > 0) {
         pll_timeout--;
     }
+
+    if (!_datapath_pll_a && (!xtal_clock_routing_verified(clock_generator) ||
+                             !xtal_pll_b_locked(clock_generator)))
+        xtal_clock_failure("XTAL PLL B init failed");
 
     clock_generator.enable_output(clock_generator_output_pro_mcu_clkin);
 
@@ -803,6 +886,10 @@ void ClockManager::disable_if_clocks() {
 
 void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 #ifdef PRALINE
+    if (!_datapath_pll_a && !xtal_sct_quiescent()) {
+        radio::disable();
+        xtal_clock_failure("XTAL SCT active at rate change");
+    }
     /*
      * PRALINE sample rate strategy:
      * 1. Maximize AFE rate to push Nyquist above MAX2831's 11.6 MHz LPF minimum
@@ -930,6 +1017,30 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
         fpga_debug_register_write(1, 0x01);
     }
 
+    if (_datapath_pll_a) {
+        // Restart CLK0 and CLK1 in step (see init_clock_generator), wait for the lock.
+        clock_generator.reset_pll_a();
+        uint32_t pll_timeout = 100000;
+        while ((clock_generator.device_status() & 0x20) && pll_timeout) --pll_timeout;
+        if (radio::debug::get_cached_direction() != rf::Direction::Transmit) {
+            fpga_debug_register_write(1, 0x00);  // flush the decimators across the clock restart
+            fpga_debug_register_write(1, 0x01);
+        }
+    } else {
+        // CLK2..CLK7 remain on A; reset only the XTAL datapath PLL B.
+        const bool reset_ok = clock_generator.reset_pll_b();
+        if (!reset_ok || !xtal_pll_b_locked(clock_generator)) {
+            radio::disable();
+            // Best effort only: report the original fault even if gating fails.
+            clock_generator.disable_output_mask_checked(0x03);
+            xtal_clock_failure(reset_ok ? "XTAL PLL B lock failed" : "XTAL PLL B reset failed");
+        }
+        if (radio::debug::get_cached_direction() != rf::Direction::Transmit) {
+            fpga_debug_register_write(1, 0x00);
+            fpga_debug_register_write(1, 0x01);
+        }
+    }
+
 #else
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
      * twice the frequency, and derived from the MS0 synth. So it's only
@@ -946,14 +1057,19 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 }
 
 void ClockManager::set_reference_ppb(const int32_t ppb) {
-    /* NOTE: This adjustment only affects PLLA when it is derived from the 25MHz crystal.
-     * It is assumed an external clock coming in to CLKIN/PLLB is sufficiently accurate as to not need adjustment.
-     * TODO: Revisit the above policy. It may be good to allow adjustment of the external reference too.
+    /* XTAL correction updates PLL A and, on Pro, the XTAL datapath PLL B.
+     * The existing CLKIN correction policy is preserved by the returns below.
      */
 #ifdef PRALINE
     // On Praline, only apply if we aren't locked to a superior external 10MHz source
     // (Assuming you have a way to detect the 10MHz presence on Praline)
     if (reference.source == ReferenceSource::External) {
+        return;
+    }
+    // PLL A runs from CLKIN then (see init_clock_generator), not from the crystal this
+    // correction is computed for. Nothing used PLL A with a CLKIN reference before, so
+    // skipping keeps the correction exactly as ineffective as it always was there.
+    if (_datapath_pll_a) {
         return;
     }
     constexpr uint32_t pll_multiplier = si5351_pll_a_afe_800m.a;
@@ -978,7 +1094,20 @@ void ClockManager::set_reference_ppb(const int32_t ppb) {
     };
 
 #ifdef PRALINE
-    clock_generator.write_pll_single_byte(0, pll);
+    if (!xtal_sct_quiescent())
+        xtal_clock_failure("XTAL SCT active at correction");
+    // The CLKIN policy returned above. Both PLLs use XTAL here: preserve
+    // the existing system correction and apply the same correction to B.
+    // No PLL reset here; the normal rate path synchronizes B before use.
+    if (!clock_generator.write_pll_checked(0, pll) ||
+        !clock_generator.write_pll_checked(1, pll)) {
+        clock_generator.disable_output_mask_checked(0x03);
+        xtal_clock_failure("XTAL PLL correction write/readback failed");
+    }
+    if (!xtal_pll_b_locked(clock_generator)) {
+        clock_generator.disable_output_mask_checked(0x03);
+        xtal_clock_failure("XTAL PLL B correction failed");
+    }
 #else
     const auto pll_a_reg = pll.reg(0);
     clock_generator.write(pll_a_reg);

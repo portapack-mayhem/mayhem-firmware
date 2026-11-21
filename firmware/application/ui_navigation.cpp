@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2024 u-foka
- * copyleft 2024 zxkmm
+ * Copyright (C) 2024 zxkmm
  *
  * This file is part of PortaPack.
  *
@@ -26,6 +26,7 @@
 
 #include "event_m0.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "lcd_tuning_file.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack.hpp"
 
@@ -256,15 +257,12 @@ void NavigationView::launch_search_entry(ViewFactoryBase* factory, std::string c
 
     // External/standalone: AppInfoConsole doesn't record which kind it is, so
     // try both extensions the way handle_autostart() does.
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-
-    std::string appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppma";
-    std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
-    if (ExternalItemsMenuLoader::run_external_app(*this, pth))
+    if (ExternalItemsMenuLoader::run_external_app(*this, call_name))
         return;
 
-    appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppmp";
-    pth = conv.from_bytes(appwithpath.c_str());
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+    std::string appwithpath = "/" + apps_dir.string() + "/" + call_name + ".ppmp";
+    std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
     if (ExternalItemsMenuLoader::run_standalone_app(*this, pth))
         return;
 
@@ -329,9 +327,12 @@ SystemStatusView::SystemStatusView(
 
     ui::load_blacklist();
 
+    // The display starts before the SD card, so panel type and tuning are applied again here.
+    const bool lcd_ips_before = pmem::config_lcd_ips();
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
     }
+    lcd_tuning_file::apply(pmem::config_lcd_ips() != lcd_ips_before);
 
     // configure CLKOUT per pmem setting
     portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());
@@ -856,17 +857,15 @@ void NavigationView::handle_autostart() {
         if (!started) {
             // ppma
 
-            std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppma";
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-            std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
-            if (ui::ExternalItemsMenuLoader::run_external_app(*this, pth)) {
+            if (ui::ExternalItemsMenuLoader::run_external_app(*this, autostart_app)) {
                 started = true;
             }
 
             if (!started) {
                 // ppmp / standalone
-                appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
-                pth = conv.from_bytes(appwithpath.c_str());
+                std::string appwithpath = "/" + apps_dir.string() + "/" + autostart_app + ".ppmp";
+                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+                std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
                 if (ui::ExternalItemsMenuLoader::run_standalone_app(*this, pth)) {
                     started = true;
                 }

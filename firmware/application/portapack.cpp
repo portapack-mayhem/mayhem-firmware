@@ -26,7 +26,6 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "hackrf_hal.hpp"
-#include "hackrf_gpio.hpp"
 using namespace hackrf::one;
 #include "jtag_target_gpio.hpp"
 
@@ -73,7 +72,7 @@ namespace portapack {
 const char* init_error = nullptr;
 
 portapack::IO io{
-    portapack::gpio_dir,
+    portapack_dir,
     portapack::gpio_lcd_rdx,
     portapack::gpio_io_stbx,
     portapack::gpio_addr,
@@ -212,10 +211,10 @@ static PortaPackModel portapack_model() {
 
     if (!model.is_valid()) {
         jtag::GPIOTarget target{
-            portapack::gpio_cpld_tck,
-            portapack::gpio_cpld_tms,
-            portapack::gpio_cpld_tdi,
-            portapack::gpio_cpld_tdo};
+            cpld_tck,
+            portapack_cpld_tms,
+            cpld_tdi,
+            portapack_cpld_tdo};
         jtag::JTAG jtag{target};
         portapack::cpld::CPLD cpld{jtag};
 

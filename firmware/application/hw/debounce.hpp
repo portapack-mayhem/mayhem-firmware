@@ -42,6 +42,9 @@ class Debounce {
    public:
     bool feed(const uint8_t bit);
     uint8_t state();
+    // Debounced physical state (1 = held), without the auto-repeat toggling or
+    // long-press masking that state() applies.
+    uint8_t pressed() const { return state_; }
     void enable_repeat();
     void set_enable_repeat(bool enabled);
     bool get_repeat_enabled();

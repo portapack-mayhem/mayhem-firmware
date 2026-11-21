@@ -28,11 +28,11 @@
 void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    // SR = 4Mhz ,  and we are decimating by /8 in total , decim1_out clock 4Mhz /8= 500khz samples/sec.
-    // buffer has   2048 complex i8 I,Q signed samples
+    // SR = 2Mhz (set by the app), and we are decimating by /8 in total , decim1_out clock 2Mhz /8= 250khz samples/sec.
+    // buffer has   2048 complex i8 I,Q signed samples, ~977 buffers/sec
     // decim0 out:  2048/4 = 512 complex i16 I,Q signed samples
     // decim1 out:  512/2 =  256 complex i16 I,Q signed samples
-    // Regarding Filters, we are re-using existing FIR filters, @4Mhz, FIR decim1 ilter, BW =+-220Khz (at -3dB's). BW = 440kHZ.
+    // Regarding Filters, we are re-using existing FIR filters, made for 4Mhz (BW =+-220Khz at -3dB's), so at 2Mhz the BW is about +-110Khz.
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);       // Input:2048 complex/4 (decim factor) = 512_output complex (1024 I/Q samples)
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
@@ -102,6 +102,31 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
             }
         }
 
+        // FSK burst: starts when the signal is well above the noise floor, so noise doesn't start it and mess up the frequency estimates,
+        // and lasts while the OOK slicer sees the carrier. It has its own noise floor estimate, that follows the noise fast, but rises slowly while there is a signal.
+        uint32_t fsk_noise = fsk_noise_x64 >> 6;
+        if (mag < fsk_noise * 4) {             // the mean of noise power samples below 4x the estimate is ~0.9x of the real noise mean
+            fsk_noise_x64 += mag - fsk_noise;  // 1/64 of the difference
+        } else {
+            fsk_noise_x64 += (fsk_noise_x64 >> 14) + 1;
+        }
+        if (meashl && (fsk_active || mag > (fsk_noise + 1) * FSK_MIN_SNR)) {
+            if (!fsk_active) {
+                fsk_active = true;
+                fsk_detect.reset();
+            }
+            fsk_dropout = 0;
+            fsk_detect.feed(re, im);
+        } else if (fsk_active) {
+            if (++fsk_dropout > FSK_MAX_DROPOUT) {
+                fsk_active = false;
+                fsk_detect.end();
+                protoList->fsk_end();
+            } else {
+                fsk_detect.feed(re, im);
+            }
+        }
+
         if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             currentDuration += nsPerDecSamp;
@@ -132,7 +157,8 @@ void WeatherProcessor::on_message(const Message* const message) {
 void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     baseband_fs = message.sampling_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
-    nsPerDecSamp = 1'000'000'000 / baseband_fs * 8;  // Scaled it due to less array buffer sampes due to /8 decimation.  250 nseg (4Mhz) * 8
+    nsPerDecSamp = 1'000'000'000 / baseband_fs * 8;  // Scaled it due to less array buffer sampes due to /8 decimation.  500 nseg (2Mhz) * 8 = 4us
+    fsk_detect.set_sample_period(nsPerDecSamp);
 
     // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
     // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused

@@ -26,14 +26,19 @@ class RDSProcessor : public BasebandProcessor {
     std::array<complex16_t, 512> dst_0{};
     const buffer_c16_t dst_buffer_0{dst_0.data(), dst_0.size()};
 
-    std::array<float, 512> mpx_audio{};
-    const buffer_f32_t mpx_buffer{mpx_audio.data(), mpx_audio.size()};
+    // The FM demod runs at 384 kHz, so it uses the fixed-point output as WFM audio does:
+    // with atan2f the M4 fell behind, lost buffers and the RDS bits with them.
+    std::array<int16_t, 512> mpx_audio{};
+    const buffer_s16_t mpx_buffer{mpx_audio.data(), mpx_audio.size()};
 
     std::array<complex16_t, 512> mixed{};
     std::array<complex16_t, 512> dst_1{};
     const buffer_c16_t dst_buffer_1{dst_1.data(), dst_1.size()};
 
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
+    // 3072 -> 768 -> 384 kHz with the WFM audio filters. Decimating by 8 straight away with the
+    // decim_0 taps (made for /4) folded stations 200..480 kHz away onto the wanted one.
+    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+    dsp::decimate::FIRC16xR16x16Decim2 decim_channel{};
     dsp::demodulate::FM demod_fm{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
 

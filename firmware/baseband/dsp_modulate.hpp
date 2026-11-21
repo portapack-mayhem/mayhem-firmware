@@ -84,7 +84,7 @@ class SSB : public Modulator {
 
    private:
     dsp::HilbertTransform hilbert;
-    dsp::interpolate::ComplexFIRInterpolate8 interpolator;
+    dsp::interpolate::ComplexFIRInterpolate8 interpolator{};
     dsp::interpolate::ComplexFIRInterpolate2 interpolator_x2{};
     float new_bw_ssb{3.0};
     int fs_div_factor{128};

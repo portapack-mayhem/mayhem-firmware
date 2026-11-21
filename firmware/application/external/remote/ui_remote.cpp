@@ -25,7 +25,7 @@
 #include "file_reader.hpp"
 #include "io_convert.hpp"
 #include "irq_controls.hpp"
-#include "oversample.hpp"
+#include "replay_schedule.hpp"
 #include "string_format.hpp"
 #include "ui_fileman.hpp"
 #include "ui_receiver.hpp"
@@ -486,14 +486,20 @@ void RemoteAppView::send_button(RemoteButton& btn) {
         return;
     }
 
+    const auto schedule = replay::select(btn.entry()->metadata.sample_rate);
+    if (!schedule.valid()) {
+        show_error("Unsupported Replay sample rate.");
+        return;
+    }
+
     // Update the sample rate in proc_replay baseband.
     baseband::set_sample_rate(
         btn.entry()->metadata.sample_rate,
-        get_oversample_rate(btn.entry()->metadata.sample_rate));
+        static_cast<OversampleRate>(schedule.total_factor));
 
     // ReplayThread starts immediately on construction; must be set before creating.
     transmitter_model.set_target_frequency(btn.entry()->metadata.center_frequency);
-    transmitter_model.set_sampling_rate(get_actual_sample_rate(btn.entry()->metadata.sample_rate));
+    transmitter_model.set_sampling_rate(schedule.output_rate);
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 

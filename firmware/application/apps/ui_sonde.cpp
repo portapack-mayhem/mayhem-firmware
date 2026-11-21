@@ -154,11 +154,25 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         text_signature.set(packet.type_string());
 
         sonde_id = packet.serial_number();  // used also as tag on the geomap
+        if (packet.type() == sonde::Packet::Type::Meteoradiy_MRZ) {
+            for (size_t i = 0; i < 2; i++) {
+                const uint32_t part = packet.serial_part(i);
+                if (part == sonde::Packet::NO_VALUE)
+                    continue;
+                if (serial_parts_[i] && part != serial_parts_[i])
+                    serial_parts_[1 - i] = 0;  // another sonde: drop the other half
+                serial_parts_[i] = part;
+            }
+            if (serial_parts_[0] && serial_parts_[1])
+                sonde_id += "-" + to_string_dec_uint(serial_parts_[0]) + "-" + to_string_dec_uint(serial_parts_[1]);
+        }
         text_serial.set(sonde_id);
 
         text_timestamp.set(to_string_datetime(packet.received_at(), TimeFormat::YMDHMS));
 
-        text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 2) + "V");
+        const uint32_t voltage = packet.battery_voltage();
+        if (voltage != sonde::Packet::NO_VALUE)  // not in every frame: keep the last one
+            text_voltage.set(unit_auto_scale(voltage, 2, 2) + "V");
 
         text_frame.set(to_string_dec_uint(packet.frame(), 0));  // euquiq: integrate frame #, temp & humid.
 

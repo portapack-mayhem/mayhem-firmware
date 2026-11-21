@@ -24,7 +24,6 @@
 
 #include "portapack.hpp"
 #include "baseband_api.hpp"
-#include "hackrf_gpio.hpp"
 #include "portapack_shared_memory.hpp"
 #include "ui_textentry.hpp"
 #include "string_format.hpp"

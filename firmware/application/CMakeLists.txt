@@ -223,6 +223,7 @@ set(CPPSRC
 	freqman_db.cpp
 	freqman.cpp
 	io_convert.cpp
+	lcd_tuning_file.cpp
 	io_file.cpp
 	io_wave.cpp
 	iq_trim.cpp

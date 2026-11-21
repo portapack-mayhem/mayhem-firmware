@@ -61,6 +61,7 @@ static const Color pp_colors[] = {
 class DoomView : public View {
    public:
     DoomView(NavigationView& nav);
+    ~DoomView();
     void on_show() override;
     std::string title() const override { return "Doom"; }
     void focus() override { dummy.focus(); }

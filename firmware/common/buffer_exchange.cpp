@@ -47,7 +47,7 @@ BufferExchange::~BufferExchange() {
     fifo_buffers_for_application = nullptr;
 }
 
-StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
+StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo, bool stop_on_terminate) {
     while (true) {
         StreamBuffer* p{nullptr};
         fifo->out(p);
@@ -56,13 +56,32 @@ StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
             return p;
         }
 
-        // Put thread to sleep, woken up by M4 IRQ
+        // Check again under the lock before sleeping, so an IRQ cannot be lost.
         chSysLock();
+        if (stop_on_terminate && chThdShouldTerminate()) {
+            chSysUnlock();
+            return nullptr;
+        }
+        if (!fifo->is_empty()) {
+            chSysUnlock();
+            continue;
+        }
         thread = chThdSelf();
         chSchGoSleepS(THD_STATE_SUSPENDED);
         chSysUnlock();
     }
 }
+
+#if defined(LPC43XX_M0)
+void BufferExchange::wake_waiter(Thread* target) {
+    chSysLock();
+    if (obj && obj->thread == target) {
+        obj->wakeup_isr();
+        chSchRescheduleS();
+    }
+    chSysUnlock();
+}
+#endif
 
 StreamBuffer* BufferExchange::get_prefill(FIFO<StreamBuffer*>* fifo) {
     StreamBuffer* p{nullptr};

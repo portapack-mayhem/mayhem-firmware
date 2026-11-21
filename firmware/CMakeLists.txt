@@ -129,7 +129,7 @@ add_custom_command(
 	COMMAND mkdir -p firmware_tar/APPS
 	COMMAND cp application/*.ppma firmware_tar/APPS
 	COMMAND cp standalone/*/*.ppmp firmware_tar/APPS
-	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
+	COMMAND cd firmware_tar && tar -caf ../${PPFW_FILENAME} *
 	DEPENDS firmware ${FIRMWARE_FILENAME} standalone_apps
 	# Dont use VERBATIM here as it prevents usage of globbing (*)
 	# There shouldnt be any funny business in the filenames above :)

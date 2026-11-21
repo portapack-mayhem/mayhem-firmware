@@ -44,6 +44,7 @@ class TextEntryView : public View {
 
    protected:
     TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
+    ~TextEntryView();
 
     TextEntryView(const TextEntryView&) = delete;
     TextEntryView(TextEntryView&&) = delete;

@@ -9,6 +9,7 @@
 #pragma GCC push_options
 #pragma GCC optimize("Os")
 #include "ui_battleship.hpp"
+#include "event_m0.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -22,6 +23,7 @@ constexpr uint32_t BLUE_TEAM_ADDRESS = BATTLESHIP_BASE_ADDRESS + 2;
 
 BattleshipView::BattleshipView(NavigationView& nav)
     : nav_{nav} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     CELL_SIZE = screen_width / GRID_SIZE;
     baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
@@ -165,6 +167,7 @@ BattleshipView::BattleshipView(NavigationView& nav)
 }
 
 BattleshipView::~BattleshipView() {
+    EventDispatcher::set_chords_suppressed(false);
     transmitter_model.disable();
     receiver_model.disable();
     audio::output::stop();

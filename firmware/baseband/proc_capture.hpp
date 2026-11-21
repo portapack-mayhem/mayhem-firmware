@@ -136,6 +136,11 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
+    uint16_t spectrum_capture_remaining{0};
+    uint16_t spectrum_capture_credit{0};
+
+    void reset_spectrum_capture();
+    void feed_spectrum(const buffer_c16_t& buffer);
 
     std::array<int16_t, 24> decim_0_taps_{};
     std::atomic<RxFs4Direction> requested_fs4_direction_{RxFs4Direction::Down};

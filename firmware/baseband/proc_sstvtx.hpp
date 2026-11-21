@@ -59,6 +59,7 @@ class SSTVTXProcessor : public BasebandProcessor {
     sstv_scanline scanline_buffer[2]{};
     uint8_t buffer_flip{0}, substep{0};
     uint32_t pixel_duration{};
+    sstv_modulation modulation{SSTV_MOD_FM};
 
     sstv_scanline* current_scanline{};
 

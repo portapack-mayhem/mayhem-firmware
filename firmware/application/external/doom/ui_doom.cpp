@@ -7,6 +7,7 @@
  */
 
 #include "ui_doom.hpp"
+#include "event_m0.hpp"
 #include "ui.hpp"
 
 namespace ui::external_app::doom {
@@ -1012,6 +1013,7 @@ void render_map(Painter& painter, bool full_clear, int16_t x_start = 0, int16_t 
 
 DoomView::DoomView(NavigationView& nav)
     : nav_{nav} {
+    EventDispatcher::set_chords_suppressed(true);  // the game reads the d-pad diagonals itself
     SCREEN_WIDTH = ui::screen_width;
     SCREEN_HEIGHT = ui::screen_height;
     HUD_HEIGHT = 40;
@@ -1036,6 +1038,10 @@ DoomView::DoomView(NavigationView& nav)
 
     add_children({&dummy});
     game_timer.attach(&game_timer_check, 1.0 / 60.0);
+}
+
+DoomView::~DoomView() {
+    EventDispatcher::set_chords_suppressed(false);
 }
 
 void DoomView::on_show() {

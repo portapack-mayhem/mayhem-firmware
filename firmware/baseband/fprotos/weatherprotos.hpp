@@ -31,9 +31,12 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "w-solight_te44.hpp"
 #include "w-bresser_3ch.hpp"
 #include "w-vauno_en8822.hpp"
+#include "w-fineoffset-ook.hpp"
+#include "w-fineoffset-fsk.hpp"
 
 #include <vector>
 #include <memory>
+#include <cstring>
 #include "portapack_shared_memory.hpp"
 
 #ifndef __FPROTO_PROTOLISTWTH_H__
@@ -72,11 +75,15 @@ class WeatherProtos : public FProtoListGeneral {
         protos[FPW_Bresser3CH_V1] = nullptr;  // done by FProtoWeatheBresser3CH
         protos[FPW_Vauno_EN8822] = new FProtoWeatherVaunoEN8822();
         protos[FPW_OREGON2B] = nullptr;  // done by FProtoWeatherOregon2
+        protos[FPW_FO_WH2] = new FProtoWeatherFineOffsetOOK();
+        // FPW_FO_WH5 .. FPW_FO_WH53 are done by FProtoWeatherFineOffsetOOK
+        // FPW_FO_WH24 .. FPW_FO_WH55 are done by fineoffset_fsk, it gets data from the FSK detector, not from feed()
 
         // set callback for them
         for (uint8_t i = 0; i < FPW_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
         }
+        fineoffset_fsk.setCallback(callbackTarget);
     }
 
     ~WeatherProtos() {  // not needed for current operation logic, but a bit more elegant :)
@@ -90,17 +97,55 @@ class WeatherProtos : public FProtoListGeneral {
 
     static void callbackTarget(FProtoWeatherBase* instance) {
         WeatherDataMessage packet_message{instance->getSensorType(), instance->getData()};
+        uint8_t len = 0;
+        const uint8_t* payload = instance->getPayload(len);
+        if (payload) {
+            if (len > sizeof(packet_message.payload)) len = sizeof(packet_message.payload);
+            memcpy(packet_message.payload, payload, len);
+            packet_message.payload_len = len;
+        }
         shared_memory.application_queue.push(packet_message);
     }
 
-    void feed(bool level, uint32_t duration) {
+    // Noise chops a weak signal into pieces, and adds lots of short glitches between the pulses. Pieces shorter than any
+    // protocol's pulse (the shortest is ~88us, LaCrosse TX141) are added to the run they are in, and a run is only fed to the
+    // protocols when the level really changes. So all of them get the repaired pulses, and much fewer of them (less CPU).
+    void feed(bool level, uint32_t duration) override {
+        if (duration < GLITCH_US || level == run_level) {
+            run_duration += duration;
+        } else {
+            if (run_duration) feed_all(run_level, run_duration);
+            run_level = level;
+            run_duration = duration;
+        }
+        // a long run (silence) is fed even if it hasn't ended, like the 30 ms pieces from the slicer
+        if (run_duration >= MAX_RUN_US) {
+            feed_all(run_level, run_duration);
+            run_duration = 0;
+        }
+    }
+
+    void feed_all(bool level, uint32_t duration) {
         for (uint8_t i = 0; i < FPW_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->feed(level, duration);
         }
     }
 
+    // pulses from the FSK detector
+    static void feed_fsk(void* ctx, bool level, uint32_t duration) {
+        static_cast<WeatherProtos*>(ctx)->fineoffset_fsk.feed_fsk(level, duration);
+    }
+    void fsk_end() {
+        fineoffset_fsk.fsk_end();
+    }
+
    protected:
     FProtoWeatherBase* protos[FPW_COUNT] = {NULL};
+    static constexpr uint32_t GLITCH_US = 60;
+    static constexpr uint32_t MAX_RUN_US = 30000;
+    bool run_level = false;
+    uint32_t run_duration = 0;
+    FProtoWeatherFineOffsetFSK fineoffset_fsk{};
 };
 
 #endif

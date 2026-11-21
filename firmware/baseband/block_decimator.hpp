@@ -55,6 +55,9 @@ class BlockDecimator {
         }
     }
 
+    // Discard only the partially accumulated block. Keep rate and factor.
+    void reset() { reset_state(); }
+
     size_t factor() const {
         return factor_;
     }

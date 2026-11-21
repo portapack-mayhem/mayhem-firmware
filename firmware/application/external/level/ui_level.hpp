@@ -24,6 +24,8 @@
 #ifndef _UI_LEVEL
 #define _UI_LEVEL
 
+#include <optional>
+
 #include "analog_audio_app.hpp"
 #include "app_settings.hpp"
 #include "audio.hpp"
@@ -166,6 +168,10 @@ class LevelView : public View {
             {"128x", 128},
             {"240x", 240},
         }};
+
+    // Style is stored by pointer by Widget, so keep the dynamic style alive
+    // for the whole lifetime of this view.
+    std::optional<Style> rx_sat_style_{};
 
     // RxSat: XX%
     Text freq_stats_rx{

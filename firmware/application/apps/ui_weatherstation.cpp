@@ -36,6 +36,44 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
+// the values only some sensors have. Same order in the log and in the detail view
+struct WeatherExtraValue {
+    const char* label;
+    const char* unit;
+    uint32_t value;
+    uint32_t none;
+    bool tenths;
+};
+
+// Arrays with a flat solar panel that has to face the equator. In the southern hemisphere they are installed
+// turned around, so S.Hem rotates their wind direction. The WS80 / WS90 have a ring shaped panel, they are not turned.
+static bool weather_panel_faces_equator(uint8_t type) {
+    return type == FPW_FO_WH24 || type == FPW_FO_WH65 || type == FPW_FO_WS69 || type == FPW_FO_WS68;
+}
+
+static uint8_t weather_extra_values(const WeatherReadings& r, WeatherExtraValue* v) {
+    v[0] = {"Wind:     ", " m/s", r.wind_avg, WS_NO_U16, true};
+    uint16_t wind_dir = r.wind_dir;
+    if (weather_wind_south && wind_dir != WS_NO_U16 && weather_panel_faces_equator(r.sensorType)) wind_dir = (wind_dir + 180) % 360;
+    v[1] = {"Wind dir: ", " deg", wind_dir, WS_NO_U16, false};
+    v[2] = {"Gust:     ", " m/s", r.wind_gust, WS_NO_U16, true};
+    v[3] = {"Rain:     ", " mm", r.rain, WS_NO_U32, true};
+    v[4] = {"Pressure: ", " hPa", r.pressure, WS_NO_U16, true};
+    v[5] = {"UV index: ", "", r.uv, WS_NO_U8, true};
+    v[6] = {"Light:    ", " lux", r.light, WS_NO_U32, false};
+    v[7] = {"Moisture: ", "%", r.moisture, WS_NO_U8, false};
+    v[8] = {"PM2.5:    ", " ug/m3", r.pm25, WS_NO_U16, true};
+    v[9] = {"Storm:    ", " km", r.storm_dist, WS_NO_U8, false};
+    v[10] = {"Strikes:  ", "", r.strikes, WS_NO_U16, false};
+    v[11] = {"Leak:     ", "", r.leak, WS_NO_U8, false};
+    return 12;
+}
+
+static std::string weather_extra_to_string(const WeatherExtraValue& v) {
+    if (v.value == v.none) return "";
+    return v.tenths ? to_string_decimal(v.value / 10.0f, 1) : to_string_dec_uint(v.value);
+}
+
 std::string WeatherRecentEntry::to_csv() {
     std::string csv = ";";
     csv += WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)sensorType);
@@ -44,6 +82,10 @@ std::string WeatherRecentEntry::to_csv() {
     csv += to_string_dec_uint(humidity) + ";";
     csv += to_string_dec_uint(channel) + ";";
     csv += to_string_dec_uint(battery_low);
+    // extended values, empty if the sensor doesn't have them
+    WeatherExtraValue v[12];
+    uint8_t count = weather_extra_values(*this, v);
+    for (uint8_t i = 0; i < count; i++) csv += ";" + weather_extra_to_string(v[i]);
     return csv;
 }
 
@@ -75,6 +117,15 @@ void WeatherRecentEntryDetailView::update_data() {
     else
         text_batt.set("-");
     text_age.set(to_string_dec_uint(entry_.age) + " sec");
+
+    // only the values the sensor has
+    WeatherExtraValue v[12];
+    uint8_t count = weather_extra_values(entry_, v);
+    uint8_t line = 0;
+    for (uint8_t i = 0; i < count && line < extra_lines; i++) {
+        if (v[i].value != v[i].none) text_extra[line++].set(v[i].label + weather_extra_to_string(v[i]) + v[i].unit);
+    }
+    while (line < extra_lines) text_extra[line++].set("");
 }
 
 WeatherRecentEntryDetailView::WeatherRecentEntryDetailView(NavigationView& nav, const WeatherRecentEntry& entry)
@@ -89,6 +140,10 @@ WeatherRecentEntryDetailView::WeatherRecentEntryDetailView(NavigationView& nav, 
                   &text_batt,
                   &text_age,
                   &labels});
+    for (uint8_t i = 0; i < extra_lines; i++) {
+        text_extra[i].set_parent_rect({UI_POS_X(0), (8 + i) * 16, screen_width, 16});
+        add_child(&text_extra[i]);
+    }
 
     button_done.on_select = [&nav](const ui::Button&) {
         nav.pop();
@@ -116,6 +171,7 @@ WeatherView::WeatherView(NavigationView& nav)
                   &options_temperature,
                   &button_clear_list,
                   &check_log,
+                  &check_wind_south,
                   &recent_entries_view});
 
     logger = std::make_unique<WeatherLogger>();
@@ -133,6 +189,11 @@ WeatherView::WeatherView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
     options_temperature.set_selected_index(weather_units_fahr, false);
+
+    check_wind_south.on_select = [](Checkbox&, bool v) {
+        weather_wind_south = v;
+    };
+    check_wind_south.set_value(weather_wind_south);
 
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;
@@ -176,6 +237,7 @@ void WeatherView::on_data(const WeatherDataMessage* data) {
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
+        *matching_recent = key;  // the key doesn't cover all the values (wind, rain...), take the new ones
         (*matching_recent).reset_age();
         recent.push_front(*matching_recent);
         recent.erase(matching_recent);
@@ -195,10 +257,6 @@ WeatherView::~WeatherView() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
-}
-
-uint16_t WeatherView::bcd_decode_short(uint32_t data) {
-    return (data & 0xF) * 10 + ((data >> 4) & 0xF);
 }
 
 const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
@@ -256,6 +314,52 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "Bresser3CH";
         case FPW_Vauno_EN8822:
             return "Vauno EN8822";
+        case FPW_FO_WH2:
+            return "FO-WH2";
+        case FPW_FO_WH5:
+            return "FO-WH5";
+        case FPW_FO_WH0530:
+            return "FO-WH0530";
+        case FPW_FO_WH1080:
+            return "FO-WH1080";
+        case FPW_FO_WH3080UV:
+            return "FO-WH3080UV";
+        case FPW_FO_WH53:
+            return "Ecowitt WH53";
+        case FPW_FO_WH24:
+            return "FO-WH24";
+        case FPW_FO_WH65:
+            return "FO-WH65";
+        case FPW_FO_WS69:
+            return "FO-WS69";
+        case FPW_FO_WH25:
+            return "FO-WH25";
+        case FPW_FO_WH32:
+            return "FO-WH32";
+        case FPW_FO_WH0290:
+            return "FO-WH0290";
+        case FPW_FO_WH31E:
+            return "FO-WH31";
+        case FPW_FO_WH40:
+            return "FO-WH40";
+        case FPW_FO_WN20:
+            return "FO-WN20";
+        case FPW_FO_WS68:
+            return "FO-WS68";
+        case FPW_FO_WH51:
+            return "FO-WH51";
+        case FPW_FO_WS80:
+            return "FO-WS80";
+        case FPW_FO_WS85:
+            return "FO-WS85";
+        case FPW_FO_WS90:
+            return "FO-WS90";
+        case FPW_FO_WN34:
+            return "FO-WN34";
+        case FPW_FO_WH57:
+            return "FO-WH57";
+        case FPW_FO_WH55:
+            return "FO-WH55";
         case FPW_Invalid:
         default:
             return "Unknown";
@@ -284,7 +388,7 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     line = WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry.sensorType);
     line.resize(columns.at(0).second, ' ');
 
-    std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
+    std::string temp = (entry.temp == WS_NO_TEMPERATURE) ? "-" : (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
     std::string humStr = (entry.humidity != WS_NO_HUMIDITY) ? to_string_dec_uint(entry.humidity) + "%" : "-";
     std::string chStr = (entry.channel != WS_NO_CHANNEL) ? to_string_dec_uint(entry.channel) : "-";
     std::string ageStr = to_string_dec_uint(entry.age);
@@ -298,346 +402,9 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     painter.draw_string(target_rect.location(), style, line);
 }
 
-#define LACROSSE_TX_MSG_TYPE_TEMP 0x00
-#define LACROSSE_TX_MSG_TYPE_HUM 0x0E
-
 WeatherRecentEntry WeatherView::process_data(const WeatherDataMessage* data) {
     WeatherRecentEntry ret = {};
-    ret.sensorType = data->sensorType;
-    int16_t i16 = 0;
-    int32_t i32 = 0;
-    uint16_t u16 = 0;
-
-    uint64_t u64 = 0;
-    uint8_t u8 = 0;
-    uint8_t channel_3021[] = {3, 0, 2, 1};
-    float flo = 0.0;
-    switch (data->sensorType) {
-        case FPW_NexusTH:
-            ret.id = (data->decode_data >> 28) & 0xFF;
-            ret.battery_low = !((data->decode_data >> 27) & 1);
-            ret.channel = ((data->decode_data >> 24) & 0x03) + 1;
-            if (!((data->decode_data >> 23) & 1)) {
-                ret.temp = (float)((data->decode_data >> 12) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 12) & 0x07FF) + 1) / -10.0f;
-            }
-            ret.humidity = data->decode_data & 0xFF;
-            if (ret.humidity > 95)
-                ret.humidity = 95;
-            else if (ret.humidity < 20)
-                ret.humidity = 20;
-            break;
-        case FPW_Acurite592TXR:
-
-            u8 = ((data->decode_data >> 54) & 0x03);
-            ret.channel = channel_3021[u8];
-            ret.id = (data->decode_data >> 40) & 0x3FFF;
-            ret.battery_low = !((data->decode_data >> 38) & 1);
-            ret.humidity = (data->decode_data >> 24) & 0x7F;
-            u16 = ((data->decode_data >> 9) & 0xF80) | ((data->decode_data >> 8) & 0x7F);
-            ret.temp = ((float)(u16)-1000) / 10.0f;
-            break;
-        case FPW_Acurite606TX:
-            ret.id = (data->decode_data >> 24) & 0xFF;
-            ret.battery_low = (data->decode_data >> 23) & 1;
-            if (!((data->decode_data >> 19) & 1)) {
-                ret.temp = (float)((data->decode_data >> 8) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 8) & 0x07FF) + 1) / -10.0f;
-            }
-            break;
-        case FPW_Acurite609TX:
-            ret.id = (data->decode_data >> 32) & 0xFF;
-            ret.battery_low = (data->decode_data >> 31) & 1;
-            ret.channel = WS_NO_CHANNEL;
-            // Temperature in Celsius is encoded as a 12 bit integer value
-            // multiplied by 10 using the 4th - 6th nybbles (bytes 1 & 2)
-            // negative values are recovered by sign extend from int16_t.
-            i16 = (int16_t)(((data->decode_data >> 12) & 0xf000) | ((data->decode_data >> 16) << 4));
-            ret.temp = (i16 >> 4) * 0.1f;
-            ret.humidity = (data->decode_data >> 8) & 0xff;
-            break;
-        case FPW_Ambient:
-            id = (data->decode_data >> 32) & 0xFF;
-            ret.battery_low = (data->decode_data >> 31) & 1;
-            ret.channel = ((data->decode_data >> 28) & 0x07) + 1;
-            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data->decode_data >> 16) & 0x0FFF) - 400.0f) / 10.0f);
-            ret.humidity = (data->decode_data >> 8) & 0xFF;
-            break;
-        case FPW_AuriolAhfl:
-            ret.id = data->decode_data >> 34;
-            ret.battery_low = (data->decode_data >> 33) & 1;
-            // btn = (data >> 32) & 1;
-            ret.channel = ((data->decode_data >> 30) & 0x3) + 1;
-            if (!((data->decode_data >> 29) & 1)) {
-                ret.temp = (float)((data->decode_data >> 18) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 18) & 0x07FF) + 1) / -10.0f;
-            }
-            ret.humidity = (data->decode_data >> 11) & 0x7F;
-            break;
-        case FPW_AuriolTH:
-            ret.id = (data->decode_data >> 31) & 0xFF;
-            ret.battery_low = ((data->decode_data >> 30) & 1);
-            ret.channel = ((data->decode_data >> 25) & 0x03) + 1;
-            if (!((data->decode_data >> 23) & 1)) {
-                ret.temp = (float)((data->decode_data >> 13) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 13) & 0x07FF) + 1) / -10.0f;
-            }
-            ret.humidity = (data->decode_data >> 1) & 0x7F;
-            break;
-        case FPW_GTWT02:
-            ret.id = (data->decode_data >> 29) & 0xFF;
-            ret.battery_low = (data->decode_data >> 28) & 1;
-            // btn = (data->decode_data >> 27) & 1;
-            ret.channel = ((data->decode_data >> 25) & 0x3) + 1;
-
-            if (!((data->decode_data >> 24) & 1)) {
-                ret.temp = (float)((data->decode_data >> 13) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 13) & 0x07FF) + 1) / -10.0f;
-            }
-            ret.humidity = (data->decode_data >> 6) & 0x7F;
-            if (ret.humidity <= 10)  // actually the sensors sends 10 below working range of 20%
-                ret.humidity = 0;
-            else if (ret.humidity > 90)  // actually the sensors sends 110 above working range of 90%
-                ret.humidity = 100;
-            break;
-        case FPW_GTWT03:
-            ret.id = data->decode_data >> 33;
-            ret.humidity = (data->decode_data >> 25) & 0xFF;
-            if (ret.humidity <= 10) {  // actually the sensors sends 10 below working range of 20%
-                ret.humidity = 0;
-            } else if (ret.humidity > 95) {  // actually the sensors sends 110 above working range of 90%
-                ret.humidity = 100;
-            }
-            ret.battery_low = (data->decode_data >> 24) & 1;
-            // (data->decode_data >> 23) & 1;
-            ret.channel = ((data->decode_data >> 21) & 0x03) + 1;
-            if (!((data->decode_data >> 20) & 1)) {
-                ret.temp = (float)((data->decode_data >> 9) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 9) & 0x07FF) + 1) / -10.0f;
-            }
-            break;
-        case FPW_INFACTORY:
-            ret.id = data->decode_data >> 32;
-            ret.battery_low = (data->decode_data >> 26) & 1;
-            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data->decode_data >> 12) & 0x0FFF) - 900.0f) / 10.0f);
-            ret.humidity = (((data->decode_data >> 8) & 0x0F) * 10) + ((data->decode_data >> 4) & 0x0F);  // BCD, 'A0'=100%rH
-            ret.channel = data->decode_data & 0x03;
-            break;
-        case FPW_LACROSSETX:
-            u8 = (data->decode_data >> 32) & 0x0F;
-            ret.id = (((data->decode_data >> 28) & 0x0F) << 3) | (((data->decode_data >> 24) & 0x0F) >> 1);
-            flo = (float)((data->decode_data >> 20) & 0x0F) * 10.0f + (float)((data->decode_data >> 16) & 0x0F) + (float)((data->decode_data >> 12) & 0x0F) * 0.1f;
-            if (u8 == LACROSSE_TX_MSG_TYPE_TEMP) {  //-V1051
-                ret.temp = flo - 50.0f;
-                ret.humidity = WS_NO_HUMIDITY;
-            } else if (u8 == LACROSSE_TX_MSG_TYPE_HUM) {
-                // ToDo for verification, records are needed with sensors maintaining temperature and temperature for this standard
-                ret.humidity = (uint8_t)flo;
-            }
-            break;
-        case FPW_LACROSSETX141thbv2:
-            ret.id = data->decode_data >> 32;
-            ret.battery_low = (data->decode_data >> 31) & 1;
-            // btn = (data->decode_data >> 30) & 1;
-            ret.channel = ((data->decode_data >> 28) & 0x03) + 1;
-            ret.temp = ((float)((data->decode_data >> 16) & 0x0FFF) - 500.0f) / 10.0f;
-            ret.humidity = (data->decode_data >> 8) & 0xFF;
-            break;
-        case FPW_OREGON2:
-            i32 = bcd_decode_short(data->decode_data >> 4);
-            i32 *= 10;
-            i32 += (data->decode_data >> 12) & 0xf;
-            if (data->decode_data & 0xF) i32 = -i32;
-            ret.temp = (float)i32 / 10.0;
-            ret.battery_low = ((data->decode_data >> 32) & 0x4) ? 1 : 0;
-            u8 = (data->decode_data >> 44) & 0xF;
-            ret.channel = 1;
-            while (u8 > 1) {
-                ret.channel++;
-                u8 >>= 1;
-            }
-            break;
-        case FPW_OREGON2B:
-            ret.humidity = bcd_decode_short(data->decode_data);
-            u64 = data->decode_data >> 8;
-            i32 = bcd_decode_short(u64 >> 4);
-            i32 *= 10;
-            i32 += (u64 >> 12) & 0xf;
-            if (u64 & 0xF) i32 = -i32;
-            ret.temp = (float)i32 / 10.0;
-            ret.battery_low = ((data->decode_data >> 32) & 0x4) ? 1 : 0;
-            u8 = (data->decode_data >> 44) & 0xF;
-            ret.channel = 1;
-            while (u8 > 1) {
-                ret.channel++;
-                u8 >>= 1;
-            }
-            break;
-        case FPW_OREGON3:
-            // todo check
-            ret.humidity = ((data->decode_data >> 4) & 0xF) * 10 + (((data->decode_data >> 4) >> 4) & 0xF);
-            i16 = (((data->decode_data >> 12) >> 4) & 0xF) * 10 + ((((data->decode_data >> 12) >> 4) >> 4) & 0xF);  // ws_oregon3_bcd_decode_short((data->decode_data >> 12) >> 4);
-            i16 *= 10;
-            i16 += ((data->decode_data >> 12) >> 12) & 0xF;
-            if ((data->decode_data >> 12) & 0xF) i16 = -i16;
-            ret.temp = (float)i16 / 10.0;
-            break;
-        case FPW_OREGONv1:
-            u64 = FProtoGeneral::subghz_protocol_blocks_reverse_key(data->decode_data, 32);
-            id = u64 & 0xFF;
-            ret.channel = ((u64 >> 6) & 0x03) + 1;
-            ret.temp = ((u64 >> 8) & 0x0F) * 0.1f + ((u64 >> 12) & 0x0F) + ((u64 >> 16) & 0x0F) * 10.0f;
-            if (!((u64 >> 21) & 1)) {
-                ret.temp = ret.temp;
-            } else {
-                ret.temp = -ret.temp;
-            }
-            ret.battery_low = !((u64 >> 23) & 1ULL);
-            break;
-        case FPW_THERMOPROTX4:
-            ret.id = (data->decode_data >> 25) & 0xFF;
-            ret.battery_low = (data->decode_data >> 24) & 1;
-            // btn = (data->decode_data >> 23) & 1;
-            ret.channel = ((data->decode_data >> 21) & 0x03) + 1;
-            if (!((data->decode_data >> 20) & 1)) {
-                ret.temp = (float)((data->decode_data >> 9) & 0x07FF) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 9) & 0x07FF) + 1) / -10.0f;
-            }
-            ret.humidity = (data->decode_data >> 1) & 0xFF;
-            break;
-        case FPW_TX_8300:
-            ret.humidity = (((data->decode_data >> 28) & 0x0F) * 10) + ((data->decode_data >> 24) & 0x0F);
-            if (!((data->decode_data >> 22) & 0x03))
-                ret.battery_low = 0;
-            else
-                ret.battery_low = 1;
-            ret.channel = (data->decode_data >> 20) & 0x03;
-            ret.id = (data->decode_data >> 12) & 0x7F;
-            ret.temp = ((data->decode_data >> 8) & 0x0F) * 10.0f + ((data->decode_data >> 4) & 0x0F) +
-                       (data->decode_data & 0x0F) * 0.1f;
-            if (!((data->decode_data >> 19) & 1)) {
-                ret.temp = ret.temp;
-            } else {
-                ret.temp = -ret.temp;
-            }
-            break;
-        case FPW_WENDOX_W6726:
-            ret.id = (data->decode_data >> 24) & 0xFF;
-            ret.battery_low = (data->decode_data >> 6) & 1;
-            if (((data->decode_data >> 23) & 1)) {
-                ret.temp = (float)(((data->decode_data >> 14) & 0x1FF) + 12) / 10.0f;
-            } else {
-                ret.temp = (float)((~(data->decode_data >> 14) & 0x1FF) + 1 - 12) / -10.0f;
-            }
-            if (ret.temp < -50.0f) {
-                ret.temp = -50.0f;
-            } else if (ret.temp > 70.0f) {
-                ret.temp = 70.0f;
-            }
-            break;
-        case FPW_Acurite986:
-            ret.id = FProtoGeneral::subghz_protocol_blocks_reverse_key(data->decode_data >> 24, 8);
-            ret.id = (id << 8) | FProtoGeneral::subghz_protocol_blocks_reverse_key(data->decode_data >> 16, 8);
-            ret.battery_low = (data->decode_data >> 14) & 1;
-            ret.channel = ((data->decode_data >> 15) & 1) + 1;
-            i16 = FProtoGeneral::subghz_protocol_blocks_reverse_key(data->decode_data >> 32, 8);
-            if (i16 & 0x80) {
-                i16 = -(i16 & 0x7F);
-            }
-            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius((float)i16);
-            break;
-        case FPW_KEDSUM:
-            ret.id = data->decode_data >> 32;
-            if ((data->decode_data >> 30) & 0x3) {
-                ret.battery_low = 0;
-            } else {
-                ret.battery_low = 1;
-            }
-            ret.channel = ((data->decode_data >> 28) & 0x3) + 1;
-            u16 = ((data->decode_data >> 16) & 0x0f) << 8 | ((data->decode_data >> 20) & 0x0f) << 4 | ((data->decode_data >> 24) & 0x0f);
-            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)u16 - 900.0f) / 10.0f);
-            ret.humidity = ((data->decode_data >> 8) & 0x0f) << 4 | ((data->decode_data >> 12) & 0x0f);
-            break;
-        case FPW_Acurite5in1:
-            u8 = ((data->decode_data >> 62) & 0x03);
-            ret.channel = channel_3021[u8];
-            ret.id = (data->decode_data >> 48) & 0x3FFF;
-            ret.battery_low = !((data->decode_data >> 46) & 1);
-            ret.humidity = (data->decode_data >> 8) & 0x7F;
-            u16 = ((data->decode_data >> (24 - 7)) & 0x780) | ((data->decode_data >> 16) & 0x7F);
-            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)(u16)-400) / 10.0f);
-            break;
-        case FPW_EmosE601x:
-            ret.id = 0xffff;  //(upper_decode_data >> 24) & 0xff; //todo maybe with oregon, and +64bit usage/message
-            ret.battery_low = (data->decode_data >> 10) & 1;
-            i16 = (data->decode_data >> 40) & 0xfff;
-            /* Handle signed data */
-            if (i16 & 0x800) {
-                i16 |= 0xf000;
-            }
-            ret.temp = (float)i16 / 10.0;
-            ret.humidity = (data->decode_data >> 32) & 0xff;
-            ret.channel = (data->decode_data >> 52) & 0x03;
-            break;
-        case FPW_SolightTE44:
-            ret.id = (data->decode_data >> 28) & 0xff;
-            ret.battery_low = !(data->decode_data >> 27) & 0x01;
-            ret.channel = ((data->decode_data >> 24) & 0x03) + 1;
-            i16 = (data->decode_data >> 12) & 0x0fff;
-            /* Handle signed data */
-            if (i16 & 0x0800) {
-                i16 |= 0xf000;
-            }
-            ret.temp = (float)i16 / 10.0;
-            break;
-        case FPW_Bresser3CH:
-            ret.id = (data->decode_data >> 28) & 0xff;
-            ret.channel = ((data->decode_data >> 27) & 0x01) | (((data->decode_data >> 26) & 0x01) << 1);
-            // ret.btn = ((data->decode_data >> 25) & 0x1);
-            ret.battery_low = ((data->decode_data >> 24) & 0x1);
-            i16 = (data->decode_data >> 12) & 0x0fff;
-            /* Handle signed data */
-            if (i16 & 0x0800) {
-                i16 |= 0xf000;
-            }
-            ret.temp = (float)i16 / 10.0;
-            ret.humidity = data->decode_data & 0xff;
-            break;
-        case FPW_Bresser3CH_V1:
-            ret.id = (data->decode_data >> 32) & 0xff;
-            ret.battery_low = ((data->decode_data >> 31) & 0x1);
-            // ret.btn = (data->decode_data >> 30) & 0x1;
-            ret.channel = (data->decode_data >> 28) & 0x3;
-            ret.temp = (data->decode_data >> 16) & 0xfff;
-            ret.temp = FProtoGeneral::locale_fahrenheit_to_celsius((float)(ret.temp - 900) / 10.0);
-            ret.humidity = (data->decode_data >> 8) & 0xff;
-            break;
-
-        case FPW_Vauno_EN8822:
-            ret.id = (data->decode_data >> 34) & 0xff;
-            ret.battery_low = (data->decode_data >> 33) & 0x01;
-            ret.channel = ((data->decode_data >> 30) & 0x03);
-            i16 = (data->decode_data >> 18) & 0x0fff;
-            /* Handle signed data */
-            if (i16 & 0x0800) {
-                i16 |= 0xf000;
-            }
-            ret.temp = (float)i16 / 10.0;
-            ret.humidity = (data->decode_data >> 11) & 0x7f;
-
-            break;
-        case FPW_Invalid:
-        default:
-            break;
-    }
-
+    weather_decode_all(data->sensorType, data->decode_data, data->payload, data->payload_len, ret);
     return ret;
 }
 

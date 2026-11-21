@@ -19,20 +19,23 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef PRALINE
+
 #include "baseband_cpld.hpp"
 
-#include "hackrf_gpio.hpp"
-using namespace hackrf::one;
+#include "gpio.hpp"
+using namespace gpio_control;
 
 namespace baseband {
 
 void CPLD::init() {
     set_invert(false);
-    gpio_q_invert.output();
 }
 
 void CPLD::set_invert(const bool invert) {
-    gpio_q_invert.write(invert);
+    q_invert.write(invert);
 }
 
 }  // namespace baseband
+
+#endif
