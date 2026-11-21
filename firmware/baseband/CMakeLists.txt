@@ -862,6 +862,7 @@ set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
 DeclareTargets(PFT8 ft8_rx)
 set(MODE_FLAGS "-O3")
 
+### WSPR RX
 
 set(MODE_CPPSRC
 	proc_wspr_rx.cpp
@@ -871,7 +872,7 @@ set(MODE_CPPSRC
 	wspr_lib/wspr_unpack.c
 	wspr_lib/wspr_decode.c
 )
-set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
+set(MODE_FLAGS "-Os")
 
 # Derive a WSPR-only 1 KiB main stack to preserve the required heap.
 set(WSPR_UPSTREAM_LDSCRIPT ${LDSCRIPT})
