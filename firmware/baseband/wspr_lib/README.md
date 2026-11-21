@@ -24,9 +24,6 @@ WSPR protocol encoding and decoding for PortaPack Mayhem. Protocol references:
 - `wspr_constants.h/.c` — protocol constants and the 162-bit sync vector.
 - `wspr_encode.h/.c` — reference encoder (pack → convolutional → interleave →
   sync merge → 162 tone indices). also used by the receiver to re-encode decoded bits for agreement checks.
-- `firmware/test/baseband/wspr_lib_test.cpp` — doctest suite pinning every
-  constant to its published value (sync vector, permutation examples,
-  hand-computed packing values, rejection rules).
 
 ## Validation
 
