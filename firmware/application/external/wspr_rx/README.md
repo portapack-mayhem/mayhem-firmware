@@ -1,92 +1,74 @@
 # WSPR RX
 
-WSPR RX receives standard WSPR messages containing a callsign, four-character
-Maidenhead locator and transmitted power. It is a receive-only external app;
-install `wspr_rx.ppma` and the matching Mayhem firmware/application set.
+WSPR RX receives amateur-radio WSPR transmissions and displays the callsign,
+Maidenhead locator and declared transmit power. It is receive-only.
 
-![WSPR station table during reception](images/wspr_rx.png)
+![WSPR RX station table](images/wspr_rx.png)
 
-Reception demonstration: https://youtu.be/VbYk4-VxHH8
+[Watch a reception demonstration](https://youtu.be/VbYk4-VxHH8).
 
-## Protocol
+## Getting started
 
-A standard WSPR transmission carries a callsign, locator and power in 162
-four-tone symbols over about 110.6 seconds. Transmissions normally start near
-the beginning of an even UTC minute. Tone spacing is about 1.465 Hz. The power
-field is the transmitter's declared dBm value, not a measurement by this app.
+1. Install `wspr_rx.ppma` in the SD card's `APPS` folder, using the matching Mayhem firmware and app set.
+2. Open **Receive → WSPR**.
+3. Select a band preset or set the WSPR dial frequency manually.
+4. Adjust **RF Amp**, **LNA** and **VGA** for your antenna and signal conditions.
+5. Leave the receiver running through several complete transmissions.
 
-## Using the app
+WSPR transmissions last about 110.6 seconds and normally begin about one second
+into an even UTC minute. The app searches for their timing automatically. If
+you start halfway through a transmission, that packet may be missed; reception
+continues for subsequent transmissions. Stations do not necessarily transmit
+every slot, so results can take several minutes.
 
-Open **Receive → WSPR** from the device menu. Serial `appstart` has caused
-faults on earlier builds and is not a validated startup path.
+## Station table
 
-Choose the band preset or dial frequency and set receiver gain for your antenna.
-The initial fallback is 40 m (7.0386 MHz). Saved radio settings override it.
-For 20 m use the USB dial frequency **14.0956 MHz**. Displayed station
-frequencies are audio offsets from the dial, not RF frequencies.
+Scroll the table to see more stations.
 
-Reception continues across WSPR slots. Starting during a transmission may miss
-that packet; leave the app running for subsequent complete transmissions.
-Correct UTC is useful for comparing observations with another receiver, but
-reception does not require manually aligning app startup to a slot.
+| Field | Meaning |
+| --- | --- |
+| **CALL** | Decoded callsign. |
+| **N** | Number of counted observations of that callsign. Re-decoding the same transmission does not increase it. |
+| **GRID** | Station's Maidenhead locator. |
+| **FREQ** | Audio offset from the dial frequency, in Hz. |
+| **SNR** | Approximate signal-to-noise estimate, in dB. |
+| **A%** | Agreement between the decoded message and received symbol decisions, not a probability that the callsign is correct. |
+| **Age** | Time since the latest counted observation. |
 
-## Display and controls
+A grey **? CALL** is a decoded message awaiting an independent matching repeat.
+The callsign turns green when the same callsign, locator and power are decoded
+again from a different transmission. It stays confirmed during silence.
+Changing locator or power requires confirmation again; frequency changes alone
+do not.
 
-- **CALL / N / GRID / FREQ:** station callsign, counted observations, locator
-  and audio frequency in Hz. Scroll the list to see additional stations.
-- **SNR:** the decoder's approximate signal-to-noise estimate in dB. It has
-  not been calibrated against other receivers.
-- **A%:** agreement between the decoded message, re-encoded, and the received
-  symbol decisions. This is not agreement between separate receptions and
-  not a probability that a callsign is correct.
-- **`? CALL` (grey):** a decoded message awaiting an independent repeat.
-- **Green callsign:** the same callsign, locator and transmitted power were
-  decoded from a second independent onset while the record was retained.
-  There is no 12-minute acquisition limit. Frequency changes do not reset
-  confirmation; a changed locator or power starts confirmation again.
-- **N:** counted observations of the callsign, including earlier payloads,
-  saturated at 999. Same-onset re-decodes do not count or confirm, even when
-  their frequency estimates differ. Records are bounded and can be evicted.
-- **Age:** time since the latest counted observation. Silence does not clear
-  an already-confirmed record.
-- **`... frequency age`:** a recent selected search hypothesis without an
-  accepted report. It is not a decoded station and expires after 150 seconds.
-- **RX RESTART:** restart capture/decoding while retaining the station list.
-- **CLEAR LIST:** clear station history and confirmation state.
+The **... frequency age** indicator shows a recent search candidate that has
+not produced an accepted message. It is not a decoded callsign.
 
-Confirmation means repeat evidence, not external verification that a station
-exists. WSPR messages have no CRC and false decodes remain possible.
+## Buttons
 
-## Memory and build integration
+- **RX RESTART** restarts capture and decoding without clearing the station list. It discards reception data accumulated so far.
+- **CLEAR LIST** clears the station list and its confirmation state.
 
-The WSPR baseband has a dedicated 4 KiB decoder-thread stack and a separate
-1 KiB main/event stack. Its primary linker script is generated from upstream
-with only the WSPR main-stack reservation changed. Other applications and the
-global M0/M4 stack defaults are unchanged. The link fails if WSPR cannot retain
-its required heap reserve.
+When checking reception against a known transmitter, you can press **RX
+RESTART** a few seconds before an even UTC minute to start a fresh capture
+before its transmission. This is a convenient way to run a controlled check,
+not a required synchronisation step or a proven sensitivity improvement.
+Repeated restarts interrupt accumulation; normally, leave the app running.
 
-## Logging
+## How it works
 
-Ordinary builds do not create or append WSPR SD logs. Saved application settings
-still use the SD card; existing logs are left in place.
+The receiver continuously collects spectral data in a ring buffer and searches
+for the WSPR synchronisation pattern. Selected candidates are copied for
+processing while capture continues. Soft symbol data from compatible
+transmission slots is combined before error-correcting decoding and message
+checks. The current decoder requires evidence from at least two slots before
+reporting a message.
 
-Optional diagnostic compiler definitions are `WSPR_SD_LOGGING=1` and, for sampled
-candidate records, `WSPR_CANDIDATE_TRACE=1`. Apply matching definitions to M0 and
-M4 with the project's build toolchain; these are compiler definitions, not
-standalone CMake options. Defaults are zero. Debug output uses
-`LOGS/WSPR_DEBUG.TXT`; confirmed reports use `LOGS/WSPR.TXT`.
+## Reception notes
 
-The debug gate normally allows a status entry every 60 seconds, with additional
-entries on state changes or decodes. A candidate record can add another SD
-write. Detailed candidate records are a sample, not the complete population.
+Weak stations may be missed even when a dedicated receiver decodes them.
+Sensitivity has not been formally benchmarked against other WSPR receivers.
 
-## Limitations and development
-
-This is an initial receiver implementation. Weak-signal performance is not
-benchmarked against established WSPR receivers. Identical payloads have been
-observed at frequencies about 99 Hz apart; same-onset ambiguity is excluded from
-confirmation, but the underlying reception artifact is unresolved.
-
-The decoder supports standard callsign/locator/power messages. Do not assume
-support for every extended WSPR message type. Host tests are documented in
-`firmware/test/baseband/wspr/README.md`.
+Occasional false decodes are possible. Independent matching repeats reduce
+this risk but do not eliminate it. A green callsign or high A% is not a
+guarantee; check doubtful results against another receiver or WSPR reports.
