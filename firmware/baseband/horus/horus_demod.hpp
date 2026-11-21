@@ -29,7 +29,9 @@
  * the strongest-tone energy, which is sharpest when the integration window lines up
  * with a symbol.
  *
- * Memory: ~10 KB, no heap. Float only (Cortex-M4F).
+ * Memory: no dynamic allocation of its own; it lives inside HorusRxProcessor, which
+ * is about 28 KB in total (front end, demodulator and both framers). Float only
+ * (Cortex-M4F).
  */
 
 #ifndef __HORUS_DEMOD_H__

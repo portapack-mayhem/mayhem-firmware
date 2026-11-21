@@ -27,18 +27,14 @@
 
 #include <cstring>
 
+#if HORUS_RX_DIAGNOSTICS
 namespace {
-
-// Cortex-M4 DWT cycle counter, used to report how much of each buffer period the
-// processing takes (diagnostics only).
-volatile uint32_t* const dwt_demcr = reinterpret_cast<volatile uint32_t*>(0xE000EDFC);
-volatile uint32_t* const dwt_ctrl = reinterpret_cast<volatile uint32_t*>(0xE0001000);
-volatile uint32_t* const dwt_cyccnt = reinterpret_cast<volatile uint32_t*>(0xE0001004);
 
 // One DMA transfer is 2048 samples at 3.072 MHz, i.e. 2/3 ms at the 200 MHz M4 clock.
 constexpr uint32_t buffer_period_cycles = 200000000ULL * 2048 / 3072000;
 
 }  // namespace
+#endif
 
 HorusRxProcessor::HorusRxProcessor() {
     decim_0.configure(taps_11k0_decim_0.taps);
@@ -46,15 +42,19 @@ HorusRxProcessor::HorusRxProcessor() {
     channel_filter.configure(taps_11k0_channel.taps, 2);
     audio_output.configure(false);
 
-    *dwt_demcr |= (1u << 24);  // TRCENA
-    *dwt_ctrl |= 1u;           // CYCCNTENA
+#if HORUS_RX_DIAGNOSTICS
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+#endif
 
     configured = true;
 }
 
 void HorusRxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
-    const uint32_t t0 = *dwt_cyccnt;
+#if HORUS_RX_DIAGNOSTICS
+    const uint32_t t0 = DWT->CYCCNT;
+#endif
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
@@ -71,8 +71,10 @@ void HorusRxProcessor::execute(const buffer_c8_t& buffer) {
     auto audio_out = demod_ssb.execute(channel_out, audio_buffer);
     audio_output.write(audio_out);
 
-    const uint32_t dt = *dwt_cyccnt - t0;
+#if HORUS_RX_DIAGNOSTICS
+    const uint32_t dt = DWT->CYCCNT - t0;
     if (dt > max_cycles) max_cycles = dt;
+#endif
 }
 
 void HorusRxProcessor::process_channel(const buffer_c16_t& channel) {
@@ -88,7 +90,9 @@ void HorusRxProcessor::process_channel(const buffer_c16_t& channel) {
 
         const int sym = demod.process(x);
         if (sym >= 0) {
+#if HORUS_RX_DIAGNOSTICS
             symbols++;
+#endif
             if (framer.push_symbol((uint8_t)sym)) {
                 mirrored = false;
                 send_packet(framer.packet());
@@ -132,12 +136,14 @@ void HorusRxProcessor::send_status() {
     msg.signal_x10 = (int16_t)(st.signal_db * 10.0f);
     msg.tones_valid = st.tones_valid;
 
+#if HORUS_RX_DIAGNOSTICS
     msg.symbols = (uint16_t)symbols;
     msg.uw_hits = (uint16_t)framer.uw_hits();
     msg.uw_hits_mirrored = (uint16_t)framer_mirrored.uw_hits();
     msg.load_pct = (uint16_t)(max_cycles * 100u / buffer_period_cycles);
     symbols = 0;
     max_cycles = 0;
+#endif
 
     shared_memory.application_queue.push(msg);
 }

@@ -182,6 +182,8 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        HorusPacket = 126,
+        HorusRxStatus = 127,
         MAX
     };
 

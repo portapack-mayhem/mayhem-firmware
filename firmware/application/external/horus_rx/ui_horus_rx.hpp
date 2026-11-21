@@ -117,8 +117,10 @@ class HorusRxView : public View {
     Text text_extra1{{UI_POS_X(0), UI_POS_Y(9) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
     Text text_extra2{{UI_POS_X(0), UI_POS_Y(10) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
 
+#if HORUS_RX_DIAGNOSTICS
     // Decoder diagnostics: symbol rate, unique words seen, worst baseband load.
     Text text_debug{{UI_POS_X(0), UI_POS_Y(11) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
+#endif
 
     /* Packet history. The rect has to end at screen_height - 16 (the view sits below the
      * 16 px status bar), see the note in the FT8 RX app. */

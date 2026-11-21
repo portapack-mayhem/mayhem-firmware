@@ -24,19 +24,19 @@
 
 #include "message.hpp"
 
-/* Messages between the Horus RX baseband image and its app.
- *
- * They ride on the FT8 RX message IDs instead of adding new ones. The M0's handler
- * table is sized by Message::ID::MAX inside the main firmware, so new IDs would only
- * work with a rebuilt firmware; reusing IDs keeps the app installable from the SD card
- * alone on a stock build. That is safe because a message only goes to the handlers of
- * the app that is running, and FT8 RX and Horus RX never run at the same time. */
+/* Messages between the Horus RX baseband image and its app. */
+
+/* Set to 1 to show decoder diagnostics in the app (symbol rate, unique words seen,
+ * worst baseband load per buffer, measured with the M4 DWT cycle counter). */
+#ifndef HORUS_RX_DIAGNOSTICS
+#define HORUS_RX_DIAGNOSTICS 0
+#endif
 
 /* A Horus Binary frame that passed its CRC. The payload is passed on raw (CRC
  * included); the app decodes the v1/v2 struct or the v3 ASN.1 content. */
 class HorusPacketMessage : public Message {
    public:
-    static constexpr ID message_id = ID::FT8Packet;
+    static constexpr ID message_id = ID::HorusPacket;
     static constexpr size_t max_size = 128;
 
     constexpr HorusPacketMessage()
@@ -53,7 +53,7 @@ class HorusPacketMessage : public Message {
 
 class HorusRxStatusMessage : public Message {
    public:
-    static constexpr ID message_id = ID::FT8RxStatus;
+    static constexpr ID message_id = ID::HorusRxStatus;
 
     constexpr HorusRxStatusMessage()
         : Message{message_id} {
@@ -64,11 +64,12 @@ class HorusRxStatusMessage : public Message {
     int16_t signal_x10{0};    // tone power over the spectrum noise floor, dB * 10
     bool tones_valid{false};  // four tones have been found at least once
 
-    // diagnostics
+#if HORUS_RX_DIAGNOSTICS
     uint16_t symbols{0};           // symbols decided in the last status interval
     uint16_t uw_hits{0};           // unique words seen since start, normal tone order
     uint16_t uw_hits_mirrored{0};  // the same for the mirrored tone order
     uint16_t load_pct{0};          // slowest baseband buffer of the interval, % of the buffer period
+#endif
 };
 
 #endif /*__HORUS_MESSAGES_H__*/

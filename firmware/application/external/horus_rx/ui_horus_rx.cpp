@@ -113,8 +113,10 @@ HorusRxView::HorusRxView(NavigationView& nav)
                   &text_env2,
                   &text_extra1,
                   &text_extra2,
-                  &text_debug,
                   &console});
+#if HORUS_RX_DIAGNOSTICS
+    add_child(&text_debug);
+#endif
 
     field_frequency.set_step(1000);
     text_status.set_style(Theme::getInstance()->fg_red);
@@ -124,7 +126,7 @@ HorusRxView::HorusRxView(NavigationView& nav)
         open_map();
     };
 
-    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
+    baseband::run_image(portapack::spi_flash::image_tag_horus_rx);
 
     /* set_modulation() is not called: it would replace the Horus baseband image. */
     receiver_model.set_sampling_rate(sampling_rate);
@@ -154,10 +156,12 @@ void HorusRxView::on_status(const HorusRxStatusMessage* m) {
         text_status.set("Waiting");
     }
 
+#if HORUS_RX_DIAGNOSTICS
     // symbols per second (100 when the clock runs right), unique words seen, worst load
     text_debug.set_style(Theme::getInstance()->fg_light);
     text_debug.set("Sym " + to_string_dec_uint(m->symbols * 2) + "/s UW " + to_string_dec_uint(m->uw_hits) + "/" +
                    to_string_dec_uint(m->uw_hits_mirrored) + " Load " + to_string_dec_uint(m->load_pct) + "%");
+#endif
 
     if (m->tones_valid) {
         const int centre = (m->tone_hz[0] + m->tone_hz[1] + m->tone_hz[2] + m->tone_hz[3]) / 4;
