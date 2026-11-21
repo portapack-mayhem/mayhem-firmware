@@ -895,6 +895,17 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PCHT subghz_chat)
 
+### LoRa RX (MeshCore)
+
+set(MODE_CPPSRC
+	proc_lora.cpp
+)
+# Shares the 40k m4_code region with its external app. -O2 (not -Os): the decoder needs the
+# CPU headroom once the waterfall spectrum runs too (still fits, ~4 KB to spare).
+set(MODE_FLAGS "-O2 -fcx-limited-range")
+DeclareTargets(PLRA lora_rx)
+set(MODE_FLAGS "-O3")
+
 
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp

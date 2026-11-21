@@ -182,6 +182,8 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        LoraPacket = 126,
+        LoraLevel = 127,
         MAX
     };
 
@@ -2161,6 +2163,36 @@ struct SubGhzChatPacketMessage : public Message {
 
     uint8_t length{0};
     uint8_t data[MAX_LENGTH]{};
+};
+
+struct LoraPacketMessage : public Message {
+    constexpr LoraPacketMessage()
+        : Message{ID::LoraPacket} {}
+
+    uint8_t length{0};  // payload bytes
+    uint8_t sf{0};
+    uint8_t cr{0};  // 1..4 (4/5 .. 4/8)
+    bool has_crc{false};
+    bool crc_ok{false};
+    int8_t snr_db{0};   // estimated SNR in the 62.5 kHz band; 21 means > 20 dB
+    int16_t cfo_hz{0};  // carrier frequency offset
+    uint8_t data[255]{};
+};
+
+// Raw ADC level for the receiver AGC, plus decoder counters (wrap at 256).
+struct LoraLevelMessage : public Message {
+    constexpr LoraLevelMessage()
+        : Message{ID::LoraLevel} {}
+
+    uint8_t peak{0};     // max |I|,|Q| of the c8 samples (0..128)
+    uint8_t clipped{0};  // samples at full scale since the last report
+    bool busy{false};    // a packet is being received
+    uint8_t overruns{0};
+    uint8_t preambles{0};
+    uint8_t syncs{0};
+    uint8_t headers{0};
+    bool overload{false};  // sustained ADC clipping: lower the gain now
+    uint8_t loud_pct{0};   // % of the time above about -10 dBFS since the last report
 };
 
 struct TetraBurstMessage : public Message {

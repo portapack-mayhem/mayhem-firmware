@@ -441,6 +441,11 @@ set(EXTCPPSRC
 	external/subghz_chat/main.cpp
 	external/subghz_chat/ui_subghz_chat.cpp
 	external/subghz_chat/chat_crypto.cpp
+
+	#lora_rx
+	external/lora_rx/main.cpp
+	external/lora_rx/ui_lora_rx.cpp
+	external/lora_rx/meshcore.cpp
 )
 
 set(EXTAPPLIST
@@ -548,5 +553,6 @@ set(EXTAPPLIST
 	wmbus_rx
 	vdl2_rx
 	subghz_chat
+	lora_rx
 )
 
