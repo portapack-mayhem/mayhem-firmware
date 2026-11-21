@@ -34,6 +34,8 @@
 #include <cstddef>
 #include <utility>
 
+class BufferExchange;
+
 class ReplayThread {
    public:
     ReplayThread(
@@ -69,6 +71,7 @@ class ReplayThread {
     std::function<void(uint32_t return_code)> terminate_callback;
     const bool iq_reconstruction;
     Thread* thread{nullptr};
+    BufferExchange* buffers{nullptr};
 
     static msg_t static_fn(void* arg);
 

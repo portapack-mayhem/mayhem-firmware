@@ -178,16 +178,7 @@ void ViewWavView::stop() {
 
     button_play.set_bitmap(&bitmap_play);
     ready_signal = false;
-}
-
-void ViewWavView::handle_replay_thread_done(const uint32_t return_code) {
-    (void)return_code;
-
-    stop();
     progressbar.set_value(0);
-
-    if (return_code == ReplayThread::READ_ERROR)
-        file_error();
 
     // Playback complete - now it's safe to update waveform view
     playback_in_progress = false;
@@ -195,6 +186,13 @@ void ViewWavView::handle_replay_thread_done(const uint32_t return_code) {
         waveform_update_needed = false;
         refresh_waveform();
     }
+}
+
+void ViewWavView::handle_replay_thread_done(const uint32_t return_code) {
+    stop();
+
+    if (return_code == ReplayThread::READ_ERROR)
+        file_error();
 }
 
 void ViewWavView::set_ready() {

@@ -30,8 +30,9 @@
 
 class BufferExchange {
    public:
-    BufferExchange(CaptureConfig* const config);
-    BufferExchange(ReplayConfig* const config);
+    // The owner slot must remain alive until the exchange is destroyed.
+    BufferExchange(CaptureConfig* const config, BufferExchange*& owner);
+    BufferExchange(ReplayConfig* const config, BufferExchange*& owner);
     ~BufferExchange();
 
     BufferExchange(const BufferExchange&) = delete;
@@ -45,14 +46,10 @@ class BufferExchange {
     }
 
     StreamBuffer* get() {
-        return get(fifo_buffers_for_application);
-    }
-
-    StreamBuffer* get_interruptible() {
         return get(fifo_buffers_for_application, true);
     }
 
-    static void wake_waiter(Thread* target);
+    static void terminate_and_wake(Thread* target, BufferExchange*& owner);
 
     StreamBuffer* get_prefill() {
         return get_prefill(fifo_buffers_for_application);
@@ -93,6 +90,7 @@ class BufferExchange {
     FIFO<StreamBuffer*>* fifo_buffers_for_baseband{nullptr};
     FIFO<StreamBuffer*>* fifo_buffers_for_application{nullptr};
     Thread* thread{nullptr};
+    BufferExchange*& owner;  // Protected by the system lock.
     static BufferExchange* obj;
 
     enum {

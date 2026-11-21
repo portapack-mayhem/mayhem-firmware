@@ -23,6 +23,8 @@
 #include "ui_fileman.hpp"
 #include "baseband_api.hpp"
 
+class BufferExchange;
+
 using namespace ui;
 
 namespace ui::external_app::flippertx {
@@ -137,6 +139,7 @@ class FlipperPlayThread {
         uint16_t te,
         std::function<void(uint32_t return_code)> terminate_callback);
     ~FlipperPlayThread();
+    void stop();
 
     FlipperPlayThread(const FlipperPlayThread&) = delete;
     FlipperPlayThread(FlipperPlayThread&&) = delete;
@@ -161,6 +164,7 @@ class FlipperPlayThread {
     uint16_t te;
     std::function<void(uint32_t return_code)> terminate_callback;
     Thread* thread{nullptr};
+    BufferExchange* buffers{nullptr};
 
     static msg_t static_fn(void* arg);
 
