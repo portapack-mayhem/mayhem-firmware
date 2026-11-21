@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 PortaPack Mayhem Contributors
+ * Copyright (C) 2026 zxkmm
  *
  * This file is part of PortaPack.
  *
