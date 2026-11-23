@@ -44,6 +44,7 @@
 #include "dsp_iir.hpp"
 #include "fifo.hpp"
 #include "spec_an_shared.hpp"
+#include "gps_scan_types.hpp"
 
 #include "utility.hpp"
 
@@ -182,6 +183,13 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        GPSScanConfig = 126,
+        GPSScanStats = 127,
+        GPSScanResult = 128,
+        GPSScanProfile = 129,
+        GPSScanTrack = 130,
+        GPSScanSubframe = 131,
+        GPSScanNavObs = 132,
         MAX
     };
 
@@ -2300,4 +2308,104 @@ struct WMBusPacketMessage : public Message {
     uint16_t length = 0;
     uint8_t data[500] = {0};
 };
+
+class GPSScanConfigMessage : public Message {
+   public:
+    constexpr GPSScanConfigMessage(const gps_scan::Config& config)
+        : Message{ID::GPSScanConfig},
+          config{config} {
+    }
+
+    gps_scan::Config config;
+};
+
+class GPSScanStatsMessage : public Message {
+   public:
+    constexpr GPSScanStatsMessage(
+        const gps_scan::SignalStats& stats,
+        gps_scan::ScanState scan_state,
+        uint8_t progress_pct,
+        uint8_t current_prn,
+        uint8_t detected_count,
+        uint16_t scan_ms,
+        uint32_t ifft_count,
+        uint32_t scan_id)
+        : Message{ID::GPSScanStats},
+          stats{stats},
+          scan_state{scan_state},
+          progress_pct{progress_pct},
+          current_prn{current_prn},
+          detected_count{detected_count},
+          scan_ms{scan_ms},
+          ifft_count{ifft_count},
+          scan_id{scan_id} {
+    }
+
+    gps_scan::SignalStats stats;
+    gps_scan::ScanState scan_state;
+    uint8_t progress_pct;
+    uint8_t current_prn;
+    uint8_t detected_count;
+    uint16_t scan_ms;
+    uint32_t ifft_count;
+    uint32_t scan_id;
+};
+
+class GPSScanResultMessage : public Message {
+   public:
+    constexpr GPSScanResultMessage(
+        const gps_scan::PRNResult& result,
+        uint32_t scan_id,
+        bool is_final)
+        : Message{ID::GPSScanResult},
+          result{result},
+          scan_id{scan_id},
+          is_final{is_final} {
+    }
+
+    gps_scan::PRNResult result;
+    uint32_t scan_id;
+    bool is_final;
+};
+
+class GPSScanProfileMessage : public Message {
+   public:
+    constexpr GPSScanProfileMessage(const gps_scan::CorrProfile& profile)
+        : Message{ID::GPSScanProfile},
+          profile{profile} {
+    }
+
+    gps_scan::CorrProfile profile;
+};
+
+class GPSScanTrackMessage : public Message {
+   public:
+    constexpr GPSScanTrackMessage(const gps_scan::TrackStatus& status)
+        : Message{ID::GPSScanTrack},
+          status{status} {
+    }
+
+    gps_scan::TrackStatus status;
+};
+
+class GPSScanSubframeMessage : public Message {
+   public:
+    constexpr GPSScanSubframeMessage(const gps_scan::NavSubframe& subframe)
+        : Message{ID::GPSScanSubframe},
+          subframe{subframe} {
+    }
+
+    gps_scan::NavSubframe subframe;
+};
+
+class GPSScanNavObsMessage : public Message {
+   public:
+    constexpr GPSScanNavObsMessage(const gps_scan::NavObsPacket& obs)
+        : Message{ID::GPSScanNavObs},
+          obs{obs} {
+    }
+
+    gps_scan::NavObsPacket obs;
+};
+
 #endif /*__MESSAGE_H__*/
