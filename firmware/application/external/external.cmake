@@ -550,3 +550,13 @@ set(EXTAPPLIST
 	subghz_chat
 )
 
+
+# External apps are linked into application.elf and sorted into their own regions by
+# section name (see external_tier*.ld). GCC's interprocedural passes can give an app
+# private clones of library functions (.constprop, .isra, .part) whose section names do
+# not carry the app's namespace, so they would be linked into the main firmware instead
+# of the app. Disabling these passes for the app sources keeps that code in the apps.
+set_source_files_properties(
+	${EXTCPPSRC}
+	PROPERTIES COMPILE_OPTIONS "-fno-ipa-cp;-fno-ipa-sra;-fno-partial-inlining"
+)
