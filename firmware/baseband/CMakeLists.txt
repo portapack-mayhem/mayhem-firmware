@@ -862,6 +862,15 @@ set(MODE_FLAGS "-Os -DLOG_PRINTF\\(...\\)=")
 DeclareTargets(PFT8 ft8_rx)
 set(MODE_FLAGS "-O3")
 
+### Horus RX
+
+set(MODE_CPPSRC
+	proc_horus_rx.cpp
+	horus/horus_demod.cpp
+	horus/horus_frame.cpp
+)
+DeclareTargets(PHRS horus_rx)
+
 ### SD over USB
 
 set(MODE_INCDIR

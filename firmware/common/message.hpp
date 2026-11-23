@@ -182,6 +182,8 @@ class Message {
         WMBusPacketMessageID = 123,
         VDL2Frame = 124,
         SubGhzChatPacket = 125,
+        HorusPacket = 126,
+        HorusRxStatus = 127,
         MAX
     };
 
@@ -491,6 +493,37 @@ class FT8RxStatusMessage : public Message {
 
     SyncState state;
     uint8_t decode_count;
+};
+
+/* A Horus Binary frame that passed its CRC. The payload is passed on raw (CRC
+ * included); the Horus RX app decodes the v1/v2 struct or the v3 ASN.1 content. */
+class HorusPacketMessage : public Message {
+   public:
+    static constexpr size_t max_size = 128;
+
+    constexpr HorusPacketMessage()
+        : Message{ID::HorusPacket} {
+    }
+
+    uint8_t data[max_size]{};
+    uint8_t size{0};
+    uint8_t version{0};         // 1, 2 or 3
+    uint8_t bits_corrected{0};  // Golay-corrected bit errors
+    int16_t snr_x10{0};         // per-symbol SNR, dB * 10
+    int16_t freq_hz{0};         // centre of the four tones, relative to the tuned frequency
+};
+
+/* Horus RX link state, sent twice a second. */
+class HorusRxStatusMessage : public Message {
+   public:
+    constexpr HorusRxStatusMessage()
+        : Message{ID::HorusRxStatus} {
+    }
+
+    int16_t tone_hz[4]{};     // estimated tones relative to the tuned frequency
+    int16_t snr_x10{0};       // per-symbol SNR, dB * 10
+    int16_t signal_x10{0};    // tone power over the spectrum noise floor, dB * 10
+    bool tones_valid{false};  // four tones have been found at least once
 };
 
 class TPMSPacketMessage : public Message {
