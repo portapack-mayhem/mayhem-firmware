@@ -101,25 +101,29 @@ HorusRxView::HorusRxView(NavigationView& nav)
                   &rssi,
                   &channel,
                   &field_volume,
+                  &labels,
                   &text_status,
                   &text_count,
-                  &text_link,
-                  &text_call,
                   &button_map,
+                  &text_type,
+                  &text_id,
                   &text_time,
-                  &text_pos,
-                  &text_alt,
-                  &text_env,
-                  &text_env2,
-                  &text_extra1,
-                  &text_extra2,
+                  &text_voltage,
+                  &text_frame,
+                  &text_temp,
+                  &text_humid,
+                  &text_press,
+                  &text_vspeed,
+                  &text_link,
+                  &geopos,
+                  &text_extra,
                   &console});
-#if HORUS_RX_DIAGNOSTICS
-    add_child(&text_debug);
-#endif
 
     field_frequency.set_step(1000);
     text_status.set_style(Theme::getInstance()->fg_red);
+    geopos.set_read_only(true);
+    // small font as in POCSAG / FLEX: five history entries instead of two
+    console.set_style(Theme::getInstance()->bg_darkest_small);
 
     button_map.hidden(true);
     button_map.on_select = [this](Button&) {
@@ -156,18 +160,12 @@ void HorusRxView::on_status(const HorusRxStatusMessage* m) {
         text_status.set("Waiting");
     }
 
-#if HORUS_RX_DIAGNOSTICS
-    // symbols per second (100 when the clock runs right), unique words seen, worst load
-    text_debug.set_style(Theme::getInstance()->fg_light);
-    text_debug.set("Sym " + to_string_dec_uint(m->symbols * 2) + "/s UW " + to_string_dec_uint(m->uw_hits) + "/" +
-                   to_string_dec_uint(m->uw_hits_mirrored) + " Load " + to_string_dec_uint(m->load_pct) + "%");
-#endif
-
     if (m->tones_valid) {
         const int centre = (m->tone_hz[0] + m->tone_hz[1] + m->tone_hz[2] + m->tone_hz[3]) / 4;
         const int spacing = (m->tone_hz[3] - m->tone_hz[0]) / 3;
-        text_link.set("Ofs " + std::string(centre >= 0 ? "+" : "") + to_string_dec_int(centre) + "Hz  Sp " +
-                      to_string_dec_int(spacing) + "Hz  Sig " + fixed(m->signal_x10, 10, 0) + "dB");
+        // tone offset, tone spacing, tone power over the noise floor
+        text_link.set(std::string(centre >= 0 ? "+" : "") + to_string_dec_int(centre) + "Hz " +
+                      to_string_dec_int(spacing) + "Hz " + fixed(m->signal_x10, 10, 0) + "dB");
     }
 }
 
@@ -186,38 +184,34 @@ void HorusRxView::on_packet(const HorusPacketMessage* m) {
 
 void HorusRxView::show_telemetry(const Telemetry& t, const HorusPacketMessage& m) {
     const std::string call = t.version == 3 ? std::string{t.callsign} : "ID " + to_string_dec_uint(t.payload_id);
+    const std::string none = "---";
 
-    text_call.set_style(Theme::getInstance()->fg_green);
-    text_call.set(call + " #" + to_string_dec_uint(t.sequence) + "  v" + to_string_dec_uint(t.version) + " " +
-                  to_string_dec_uint(m.size) + "B");
+    text_type.set("Horus v" + to_string_dec_uint(t.version) + " " + to_string_dec_uint(m.size) + "B");
+    text_id.set_style(Theme::getInstance()->fg_green);
+    text_id.set(call);
 
     std::string time = hms(t.time_of_day);
     if (t.has_sats) time += "  " + to_string_dec_uint(t.sats) + " sats";
-    time += "  SNR " + fixed(m.snr_x10, 10, 1);
     text_time.set(time);
 
-    text_pos.set(fixed(t.lat_e5, 100000, 5) + " " + fixed(t.lon_e5, 100000, 5));
+    text_voltage.set(t.has_mv[0] ? fixed(t.mv[0], 1000, 2) + "V" : none);
+    text_frame.set("#" + to_string_dec_uint(t.sequence) + "  SNR " + fixed(m.snr_x10, 10, 1) + "dB");
 
-    std::string alt = "Alt " + (t.alt_m == -1000 ? std::string{"---"} : to_string_dec_int(t.alt_m) + "m");
-    if (t.has_ascent) alt += "  Vz " + fixed(t.ascent_cms, 100, 1) + "m/s";
-    if (t.has_speed) alt += "  " + to_string_dec_uint(t.speed_kmh) + "km/h";
-    text_alt.set(alt);
+    // external temperature, then internal (Ti) and the first custom one (T1) if sent
+    std::string temp = t.has_temp[1] ? fixed(t.temp_x10[1], 10, 1) + "C" : none;
+    if (t.has_temp[0]) temp += "  Ti " + fixed(t.temp_x10[0], 10, 0);
+    if (t.has_temp[2]) temp += " T1 " + fixed(t.temp_x10[2], 10, 0);
+    text_temp.set(temp);
 
-    std::string env;
-    if (t.has_temp[1]) env += "T " + fixed(t.temp_x10[1], 10, 1) + "C  ";
-    if (t.has_humidity) env += "RH " + to_string_dec_uint(t.humidity) + "%  ";
+    text_humid.set(t.has_humidity ? to_string_dec_uint(t.humidity) + "%" : none);
     // 0 hPa is what payloads without a pressure sensor (e.g. RS41-SG) send
-    if (t.has_pressure && t.pressure_x10 > 0) env += "P " + fixed(t.pressure_x10, 10, 1) + "hPa";
-    text_env.set(env);
+    text_press.set(t.has_pressure && t.pressure_x10 > 0 ? fixed(t.pressure_x10, 10, 1) + "hPa" : none);
+    text_vspeed.set(t.has_ascent ? fixed(t.ascent_cms, 100, 1) + "m/s" : none);
 
-    std::string env2;
-    if (t.has_temp[0]) env2 += "Ti " + fixed(t.temp_x10[0], 10, 1) + "C  ";
-    if (t.has_temp[2]) env2 += "T1 " + fixed(t.temp_x10[2], 10, 1) + "C  ";
-    if (t.has_mv[0]) env2 += "Bat " + fixed(t.mv[0], 1000, 2) + "V";
-    text_env2.set(env2);
-
-    text_extra1.set(t.extra_count > 0 ? extra_text(t.extra[0]) : "");
-    text_extra2.set(t.extra_count > 1 ? extra_text(t.extra[1]) : "");
+    std::string extra;
+    if (t.extra_count > 0) extra = "   Extra: " + extra_text(t.extra[0]);
+    if (t.extra_count > 1) extra += "  " + extra_text(t.extra[1]);
+    text_extra.set(extra);
 
     // history: time, callsign, sequence, altitude
     std::string line = hms(t.time_of_day).substr(0, 8) + " " + call + " #" + to_string_dec_uint(t.sequence) + " ";
@@ -231,6 +225,10 @@ void HorusRxView::show_telemetry(const Telemetry& t, const HorusPacketMessage& m
         map_lon = (float)t.lon_e5 / 100000.0f;
         map_alt = t.alt_m == -1000 ? 0 : t.alt_m;
         map_speed = t.has_speed ? t.speed_kmh : 0;
+        geopos.set_lat(map_lat);
+        geopos.set_lon(map_lon);
+        geopos.set_altitude(map_alt);
+        geopos.set_speed(map_speed);
         if (geomap_view && map_tag != call) geomap_view->update_tag(call);
         map_tag = call;
         button_map.hidden(false);

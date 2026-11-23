@@ -27,34 +27,17 @@
 
 #include <cstring>
 
-#if HORUS_RX_DIAGNOSTICS
-namespace {
-
-// One DMA transfer is 2048 samples at 3.072 MHz, i.e. 2/3 ms at the 200 MHz M4 clock.
-constexpr uint32_t buffer_period_cycles = 200000000ULL * 2048 / 3072000;
-
-}  // namespace
-#endif
-
 HorusRxProcessor::HorusRxProcessor() {
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
     channel_filter.configure(taps_11k0_channel.taps, 2);
     audio_output.configure(false);
 
-#if HORUS_RX_DIAGNOSTICS
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-#endif
-
     configured = true;
 }
 
 void HorusRxProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
-#if HORUS_RX_DIAGNOSTICS
-    const uint32_t t0 = DWT->CYCCNT;
-#endif
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
@@ -70,11 +53,6 @@ void HorusRxProcessor::execute(const buffer_c8_t& buffer) {
     // USB audio, so the tones can be heard (and fed to another decoder if wanted).
     auto audio_out = demod_ssb.execute(channel_out, audio_buffer);
     audio_output.write(audio_out);
-
-#if HORUS_RX_DIAGNOSTICS
-    const uint32_t dt = DWT->CYCCNT - t0;
-    if (dt > max_cycles) max_cycles = dt;
-#endif
 }
 
 void HorusRxProcessor::process_channel(const buffer_c16_t& channel) {
@@ -90,9 +68,6 @@ void HorusRxProcessor::process_channel(const buffer_c16_t& channel) {
 
         const int sym = demod.process(x);
         if (sym >= 0) {
-#if HORUS_RX_DIAGNOSTICS
-            symbols++;
-#endif
             if (framer.push_symbol((uint8_t)sym)) {
                 mirrored = false;
                 send_packet(framer.packet());
@@ -135,15 +110,6 @@ void HorusRxProcessor::send_status() {
     msg.snr_x10 = (int16_t)(st.snr_db * 10.0f);
     msg.signal_x10 = (int16_t)(st.signal_db * 10.0f);
     msg.tones_valid = st.tones_valid;
-
-#if HORUS_RX_DIAGNOSTICS
-    msg.symbols = (uint16_t)symbols;
-    msg.uw_hits = (uint16_t)framer.uw_hits();
-    msg.uw_hits_mirrored = (uint16_t)framer_mirrored.uw_hits();
-    msg.load_pct = (uint16_t)(max_cycles * 100u / buffer_period_cycles);
-    symbols = 0;
-    max_cycles = 0;
-#endif
 
     shared_memory.application_queue.push(msg);
 }

@@ -24,7 +24,6 @@
 
 #include "app_settings.hpp"
 #include "message.hpp"
-#include "horus_messages.hpp"
 #include "radio_state.hpp"
 #include "receiver_model.hpp"
 #include "ui.hpp"
@@ -42,6 +41,8 @@ namespace ui::external_app::horus_rx {
 class HorusRxView : public View {
    public:
     HorusRxView(NavigationView& nav);
+    HorusRxView(const HorusRxView&) = delete;
+    HorusRxView& operator=(const HorusRxView&) = delete;
     ~HorusRxView();
 
     void focus() override;
@@ -90,42 +91,56 @@ class HorusRxView : public View {
     AudioVolumeField field_volume{
         {UI_POS_X_RIGHT(2), UI_POS_Y(0)}};
 
+    /* Laid out like the Radiosonde RX app (labels, values from column 9, GeoPos),
+     * plus a short packet history at the bottom. */
+    Labels labels{
+        {{UI_POS_X(4), UI_POS_Y(2)}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(6), UI_POS_Y(3)}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(4), UI_POS_Y(4)}, "Time:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(3), UI_POS_Y(5)}, "Vbatt:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(3), UI_POS_Y(6)}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(4), UI_POS_Y(7)}, "Temp:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(8)}, "Humidity:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(0), UI_POS_Y(9)}, "Pressure:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(10)}, "VSpeed:", Theme::getInstance()->fg_light->foreground},
+        {{UI_POS_X(2), UI_POS_Y(11)}, "Signal:", Theme::getInstance()->fg_light->foreground}};
+
     Text text_status{
-        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(20), UI_POS_HEIGHT(1)},
+        {UI_POS_X(0), UI_POS_Y(1), UI_POS_WIDTH(16), UI_POS_HEIGHT(1)},
         "Searching"};
 
     Text text_count{
-        {UI_POS_X_RIGHT(8), UI_POS_Y(1), UI_POS_WIDTH(8), UI_POS_HEIGHT(1)},
+        {UI_POS_X_RIGHT(13), UI_POS_Y(1), UI_POS_WIDTH(7), UI_POS_HEIGHT(1)},
         ""};
-
-    Text text_link{
-        {UI_POS_X(0), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)},
-        ""};
-
-    // Last packet, one field group per line.
-    Text text_call{{UI_POS_X(0), UI_POS_Y(3) + 4, UI_POS_WIDTH_REMAINING(6), UI_POS_HEIGHT(1)}, ""};
 
     // Opens the last position on the map; shown once a packet with a fix arrives.
     Button button_map{
-        {UI_POS_X_RIGHT(5), UI_POS_Y(3) + 2, UI_POS_WIDTH(5), UI_POS_HEIGHT(1) + 4},
+        {UI_POS_X_RIGHT(5), UI_POS_Y(1), UI_POS_WIDTH(5), UI_POS_HEIGHT(1)},
         "Map"};
-    Text text_time{{UI_POS_X(0), UI_POS_Y(4) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-    Text text_pos{{UI_POS_X(0), UI_POS_Y(5) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-    Text text_alt{{UI_POS_X(0), UI_POS_Y(6) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-    Text text_env{{UI_POS_X(0), UI_POS_Y(7) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-    Text text_env2{{UI_POS_X(0), UI_POS_Y(8) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-    Text text_extra1{{UI_POS_X(0), UI_POS_Y(9) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-    Text text_extra2{{UI_POS_X(0), UI_POS_Y(10) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
 
-#if HORUS_RX_DIAGNOSTICS
-    // Decoder diagnostics: symbol rate, unique words seen, worst baseband load.
-    Text text_debug{{UI_POS_X(0), UI_POS_Y(11) + 4, UI_POS_WIDTH_REMAINING(0), UI_POS_HEIGHT(1)}, ""};
-#endif
+    Text text_type{{UI_POS_X(9), UI_POS_Y(2), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_id{{UI_POS_X(9), UI_POS_Y(3), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_time{{UI_POS_X(9), UI_POS_Y(4), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_voltage{{UI_POS_X(9), UI_POS_Y(5), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_frame{{UI_POS_X(9), UI_POS_Y(6), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_temp{{UI_POS_X(9), UI_POS_Y(7), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_humid{{UI_POS_X(9), UI_POS_Y(8), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_press{{UI_POS_X(9), UI_POS_Y(9), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_vspeed{{UI_POS_X(9), UI_POS_Y(10), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
+    Text text_link{{UI_POS_X(9), UI_POS_Y(11), UI_POS_WIDTH_REMAINING(9), UI_POS_HEIGHT(1)}, "..."};
 
-    /* Packet history. The rect has to end at screen_height - 16 (the view sits below the
+    GeoPos geopos{
+        {UI_POS_X(0), UI_POS_Y(12)},
+        GeoPos::alt_unit::METERS,
+        GeoPos::spd_unit::KMPH};
+
+    // Up to two v3 custom sensor fields; empty for payloads that send none.
+    Text text_extra{{UI_POS_X(0), UI_POS_Y(15), UI_POS_MAXWIDTH, UI_POS_HEIGHT(1)}, ""};
+
+    /* Packet history, in the small font (see the constructor). The rect has to end at screen_height - 16 (the view sits below the
      * 16 px status bar), see the note in the FT8 RX app. */
     Console console{
-        {UI_POS_X(0), UI_POS_Y(12) + 8, UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(13) - 8}};
+        {UI_POS_X(0), UI_POS_Y(16), UI_POS_MAXWIDTH, UI_POS_HEIGHT_REMAINING(17)}};
 
     uint32_t packets_total{0};
     uint32_t status_since_packet{0xFFFFFFFF};
@@ -140,13 +155,13 @@ class HorusRxView : public View {
     void open_map();
 
     MessageHandlerRegistration message_handler_packet{
-        HorusPacketMessage::message_id,
+        Message::ID::HorusPacket,
         [this](const Message* const p) {
             this->on_packet(static_cast<const HorusPacketMessage*>(p));
         }};
 
     MessageHandlerRegistration message_handler_status{
-        HorusRxStatusMessage::message_id,
+        Message::ID::HorusRxStatus,
         [this](const Message* const p) {
             this->on_status(static_cast<const HorusRxStatusMessage*>(p));
         }};

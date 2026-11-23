@@ -26,7 +26,6 @@
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
 #include "message.hpp"
-#include "horus_messages.hpp"
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "audio_output.hpp"
@@ -69,12 +68,6 @@ class HorusRxProcessor : public BasebandProcessor {
     horus::Framer framer{};
     horus::Framer framer_mirrored{};
     bool mirrored{false};  // last packet came from the mirrored decoder
-
-#if HORUS_RX_DIAGNOSTICS
-    // reported with each status message
-    uint32_t symbols{0};
-    uint32_t max_cycles{0};
-#endif
 
     bool configured{false};
     bool pair_phase{false};
