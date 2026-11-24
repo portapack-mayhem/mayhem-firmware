@@ -41,7 +41,7 @@ class ShoppingCartLock : public View {
     bool thread_sync_complete{false};
     bool looping{false};
     std::string current_file{};
-
+    std::vector<std::string> message_history{};
     struct WAVProperties {
         uint32_t sample_rate;
         uint16_t bits_per_sample;
