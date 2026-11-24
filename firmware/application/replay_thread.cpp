@@ -67,7 +67,7 @@ ReplayThread::ReplayThread(
 
 ReplayThread::~ReplayThread() {
     if (thread) {
-        chThdTerminate(thread);
+        BufferExchange::terminate_and_wake(thread, buffers);
         chThdWait(thread);
         thread = nullptr;
     }
@@ -76,7 +76,9 @@ ReplayThread::~ReplayThread() {
 msg_t ReplayThread::static_fn(void* arg) {
     auto obj = static_cast<ReplayThread*>(arg);
     const auto return_code = obj->run();
-    if (obj->terminate_callback) {
+    if (return_code != TERMINATED &&
+        (return_code == READ_ERROR || !chThdShouldTerminate()) &&
+        obj->terminate_callback) {
         obj->terminate_callback(return_code);
     }
     return 0;
@@ -84,7 +86,7 @@ msg_t ReplayThread::static_fn(void* arg) {
 
 uint32_t ReplayThread::run() {
     BasebandReplay replay{&config};
-    BufferExchange buffers{&config};
+    BufferExchange exchange{&config, buffers};
 
     // ReplayThread also serves audio/GPS and legacy IQ callers.
     // Preserve their existing reader/lifecycle behavior unless explicitly opted in.
@@ -92,18 +94,19 @@ uint32_t ReplayThread::run() {
         StreamBuffer* prefill_buffer{nullptr};
 
         // Wait for baseband FIFO allocation and the application ready signal.
-        while (!(*ready_sig)) {
+        while (!(*ready_sig) && !chThdShouldTerminate()) {
             chThdSleep(100);
         };
+        if (chThdShouldTerminate()) return TERMINATED;
 
         constexpr size_t block_size = 512;
 
         // While empty buffers fifo is not empty...
-        while (!buffers.empty()) {
-            prefill_buffer = buffers.get_prefill();
+        while (!exchange.empty() && !chThdShouldTerminate()) {
+            prefill_buffer = exchange.get_prefill();
 
             if (prefill_buffer == nullptr) {
-                buffers.put_app(prefill_buffer);
+                exchange.put_app(prefill_buffer);
             } else {
                 size_t blocks = config.read_size / block_size;
 
@@ -116,14 +119,16 @@ uint32_t ReplayThread::run() {
 
                 prefill_buffer->set_size(config.read_size);
 
-                buffers.put(prefill_buffer);
+                exchange.put(prefill_buffer);
             }
         };
 
+        if (chThdShouldTerminate()) return TERMINATED;
         baseband::set_fifo_data(nullptr);
 
         while (!chThdShouldTerminate()) {
-            auto buffer = buffers.get();
+            auto buffer = exchange.get();
+            if (!buffer || chThdShouldTerminate()) return TERMINATED;
 
             auto read_result = reader->read(buffer->data(), buffer->capacity());
             if (read_result.is_error()) {
@@ -136,7 +141,7 @@ uint32_t ReplayThread::run() {
 
             buffer->set_size(buffer->capacity());
 
-            buffers.put(buffer);
+            exchange.put(buffer);
         }
 
         return TERMINATED;
@@ -167,20 +172,22 @@ uint32_t ReplayThread::run() {
         return true;
     };
 
-    while (!buffers.empty()) {
-        auto* buffer = buffers.get_prefill();
+    while (!exchange.empty()) {
+        auto* buffer = exchange.get_prefill();
         if (!buffer) break;
         if (!fill_buffer(buffer, 512))
             return chThdShouldTerminate() ? TERMINATED : READ_ERROR;
-        buffers.put(buffer);
+        exchange.put(buffer);
     }
+    if (chThdShouldTerminate()) return TERMINATED;
     baseband::set_fifo_data(nullptr);
 
     while (!eof && !chThdShouldTerminate()) {
-        auto* buffer = buffers.get();
+        auto* buffer = exchange.get();
+        if (!buffer || chThdShouldTerminate()) return TERMINATED;
         if (!fill_buffer(buffer, buffer->capacity()))
             return chThdShouldTerminate() ? TERMINATED : READ_ERROR;
-        buffers.put(buffer);
+        exchange.put(buffer);
     }
     if (chThdShouldTerminate()) return TERMINATED;
 

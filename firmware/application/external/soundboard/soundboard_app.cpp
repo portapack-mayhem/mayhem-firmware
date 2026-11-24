@@ -51,11 +51,11 @@ void SoundBoardView::stop() {
 
     // button_play.set_bitmap(&bitmap_play);
     ready_signal = false;
+    progressbar.set_value(0);
 }
 
 void SoundBoardView::handle_replay_thread_done(const uint32_t return_code) {
     stop();
-    progressbar.set_value(0);
 
     if (return_code == ReplayThread::END_OF_FILE) {
         if (check_random.value()) {

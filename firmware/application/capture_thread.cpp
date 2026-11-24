@@ -52,8 +52,7 @@ CaptureThread::CaptureThread(
 
 CaptureThread::~CaptureThread() {
     if (thread) {
-        chThdTerminate(thread);
-        BufferExchange::wake_waiter(thread);
+        BufferExchange::terminate_and_wake(thread, buffers);
         chThdWait(thread);
         thread = nullptr;
     }
@@ -64,7 +63,7 @@ msg_t CaptureThread::static_fn(void* arg) {
     const auto error = obj->run();
     if (error.is_valid() && obj->error_callback) {
         obj->error_callback(error.value());
-    } else {
+    } else if (!error.is_valid() && !chThdShouldTerminate()) {
         if (obj->success_callback) {
             obj->success_callback();
         }
@@ -74,11 +73,11 @@ msg_t CaptureThread::static_fn(void* arg) {
 
 Optional<File::Error> CaptureThread::run() {
     BasebandCapture capture{&config};
-    BufferExchange buffers{&config};
+    BufferExchange exchange{&config, buffers};
 
     while (!chThdShouldTerminate()) {
-        auto buffer = buffers.get_interruptible();
-        if (!buffer) {
+        auto buffer = exchange.get();
+        if (!buffer || chThdShouldTerminate()) {
             break;
         }
         auto write_result = writer->write(buffer->data(), buffer->size());
@@ -86,7 +85,7 @@ Optional<File::Error> CaptureThread::run() {
             return write_result.error();
         }
         buffer->empty();
-        buffers.put(buffer);
+        exchange.put(buffer);
     }
 
     return {};

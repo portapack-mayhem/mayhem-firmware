@@ -935,6 +935,15 @@ set_property(TARGET baseband_wspr_rx.elf APPEND PROPERTY LINK_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/wspr_memory.ld)
 set(MODE_FLAGS "-O3")
 
+### Horus RX
+
+set(MODE_CPPSRC
+	proc_horus_rx.cpp
+	horus/horus_demod.cpp
+	horus/horus_frame.cpp
+)
+DeclareTargets(PHRS horus_rx)
+
 ### SD over USB
 
 set(MODE_INCDIR

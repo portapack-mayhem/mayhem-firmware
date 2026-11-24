@@ -96,12 +96,14 @@ bool FlipperTxView::on_file_changed(std::filesystem::path new_file_path) {
 }
 
 void FlipperTxView::stop() {
-    if (is_running && replay_thread) replay_thread.reset();
+    if (replay_thread) replay_thread->stop();
     is_running = false;
     ready_signal = false;
 
     transmitter_model.disable();
     baseband::shutdown();
+    // The baseband stream retains the thread's config until shutdown.
+    replay_thread.reset();
     button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
 }
 
@@ -160,8 +162,12 @@ FlipperPlayThread::FlipperPlayThread(
 }
 
 FlipperPlayThread::~FlipperPlayThread() {
+    stop();
+}
+
+void FlipperPlayThread::stop() {
     if (thread) {
-        chThdTerminate(thread);
+        BufferExchange::terminate_and_wake(thread, buffers);
         if (thread->p_refs) chThdWait(thread);
         thread = nullptr;
     }
@@ -170,7 +176,9 @@ FlipperPlayThread::~FlipperPlayThread() {
 msg_t FlipperPlayThread::static_fn(void* arg) {
     auto obj = static_cast<FlipperPlayThread*>(arg);
     const auto return_code = obj->run();
-    if (obj->terminate_callback) {
+    if (return_code != TERMINATED &&
+        (return_code == READ_ERROR || !chThdShouldTerminate()) &&
+        obj->terminate_callback) {
         obj->terminate_callback(return_code);
     }
     chThdExit(0);
@@ -179,7 +187,7 @@ msg_t FlipperPlayThread::static_fn(void* arg) {
 
 uint32_t FlipperPlayThread::run() {
     BasebandReplay replay{&config};
-    BufferExchange buffers{&config};
+    BufferExchange exchange{&config, buffers};
     StreamBuffer* prefill_buffer{nullptr};
     int32_t read_result = 0;
     // assume it is ok, since prev we checked it.
@@ -198,14 +206,15 @@ uint32_t FlipperPlayThread::run() {
     while (!(*ready_sig) && !chThdShouldTerminate()) {
         chThdSleep(100);
     };
+    if (chThdShouldTerminate()) return TERMINATED;
     uint8_t readall = 0;
     int32_t endsignals[3] = {0, 42069, 613379};  // unlikely a valid data
     // While empty buffers fifo is not empty...
-    while (!buffers.empty() && !chThdShouldTerminate()) {
-        prefill_buffer = buffers.get_prefill();
+    while (!exchange.empty() && !chThdShouldTerminate()) {
+        prefill_buffer = exchange.get_prefill();
 
         if (prefill_buffer == nullptr) {
-            buffers.put_app(prefill_buffer);
+            exchange.put_app(prefill_buffer);
         } else {
             size_t c = 0;
             for (c = 0; c < config.read_size / 4;) {
@@ -241,14 +250,16 @@ uint32_t FlipperPlayThread::run() {
                 }
             }
             prefill_buffer->set_size(config.read_size);
-            buffers.put(prefill_buffer);
+            exchange.put(prefill_buffer);
         }
     };
+    if (chThdShouldTerminate()) return TERMINATED;
     baseband::set_fifo_data(nullptr);
     if (readall) return END_OF_FILE;
 
     while (!chThdShouldTerminate()) {
-        auto buffer = buffers.get();
+        auto buffer = exchange.get();
+        if (!buffer || chThdShouldTerminate()) return TERMINATED;
         int32_t read_result = 0;
         for (size_t d = 0; d < buffer->capacity() / 4; d++) {
             read_result = -133469;
@@ -281,7 +292,7 @@ uint32_t FlipperPlayThread::run() {
             ((int32_t*)buffer->data())[d] = read_result;
         }
         buffer->set_size(buffer->capacity());
-        buffers.put(buffer);
+        exchange.put(buffer);
         if (readall == 3) return END_OF_FILE;
     }
     return TERMINATED;

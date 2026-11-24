@@ -15,7 +15,7 @@ set(EXTCPPSRC
 	external/blespam/main.cpp
 	external/blespam/ui_blespam.cpp
 
-	#analogtv 552 bytes 
+	#analogtv 552 bytes
 	external/analogtv/main.cpp
 	external/analogtv/analog_tv_app.cpp
 	external/analogtv/ui_tv.cpp
@@ -221,7 +221,7 @@ set(EXTCPPSRC
 	external/breakout/main.cpp
 	external/breakout/ui_breakout.cpp
 
-	#dinogame 0 
+	#dinogame 0
 	external/dinogame/main.cpp
 	external/dinogame/ui_dinogame.cpp
 
@@ -247,7 +247,7 @@ set(EXTCPPSRC
 
 	#gfxEQ 80 byte
 	external/gfxeq/main.cpp
-	external/gfxeq/ui_gfxeq.cpp	
+	external/gfxeq/ui_gfxeq.cpp
 
 	#waterfall designer
 	external/waterfall_designer/main.cpp
@@ -273,7 +273,7 @@ set(EXTCPPSRC
 	external/ert/main.cpp
 	external/ert/ert_app.cpp
 
-	#epirb_rx 168 byte flash 
+	#epirb_rx 168 byte flash
 	external/epirb_rx/main.cpp
 	external/epirb_rx/ui_epirb_rx.cpp
 	external/epirb_rx/ui_beaconlist.cpp
@@ -302,13 +302,13 @@ set(EXTCPPSRC
 	external/morse_practice/main.cpp
 	external/morse_practice/ui_morse_practice.cpp
 
-	#adult_toys_controller  144 bytes 
+	#adult_toys_controller  144 bytes
 	external/adult_toys_controller/main.cpp
 	external/adult_toys_controller/ui_adult_toys_controller.cpp
 
 	#flex_rx
 	external/flex_rx/main.cpp
-	external/flex_rx/ui_flex_rx.cpp	
+	external/flex_rx/ui_flex_rx.cpp
 
 	#subcarrx
 	external/subcarrx/main.cpp
@@ -445,6 +445,11 @@ set(EXTCPPSRC
 	external/subghz_chat/main.cpp
 	external/subghz_chat/ui_subghz_chat.cpp
 	external/subghz_chat/chat_crypto.cpp
+
+	#horus rx
+	external/horus_rx/main.cpp
+	external/horus_rx/ui_horus_rx.cpp
+	external/horus_rx/horus_v3.cpp
 )
 
 set(EXTAPPLIST
@@ -553,5 +558,16 @@ set(EXTAPPLIST
 	wmbus_rx
 	vdl2_rx
 	subghz_chat
+	horus_rx
 )
 
+
+# External apps are linked into application.elf and sorted into their own regions by
+# section name (see external_tier*.ld). GCC's interprocedural passes can give an app
+# private clones of library functions (.constprop, .isra, .part) whose section names do
+# not carry the app's namespace, so they would be linked into the main firmware instead
+# of the app. Disabling these passes for the app sources keeps that code in the apps.
+set_source_files_properties(
+	${EXTCPPSRC}
+	PROPERTIES COMPILE_OPTIONS "-fno-ipa-cp;-fno-ipa-sra;-fno-partial-inlining"
+)

@@ -33,6 +33,8 @@
 #include <cstddef>
 #include <utility>
 
+class BufferExchange;
+
 class CaptureThread {
    public:
     CaptureThread(
@@ -58,6 +60,8 @@ class CaptureThread {
     std::function<void()> success_callback;
     std::function<void(File::Error)> error_callback;
     Thread* thread{nullptr};
+    // Published only while the exchange exists, under the system lock.
+    BufferExchange* buffers{nullptr};
 
     static msg_t static_fn(void* arg);
 
