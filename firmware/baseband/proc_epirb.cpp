@@ -94,14 +94,7 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
 
     feed_channel_stats(decimator_out);
 
-    // if (audio_on) {
-    //  Channel filter for audio out
-    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
-    auto audio = demod.execute(channel_out, audio_buffer);
-    audio_output.write(audio);
-    //}
-
-    // Process each decimated sample through state machine
+    // Process the original 48 kHz IQ samples before audio filtering overwrites dst.
     for (size_t i = 0; i < decimator_out.count; i++) {
         // Track sample count since last symbol and since begining of the frame
         sample_count++;
@@ -276,6 +269,13 @@ void EPIRBProcessor::execute(const buffer_c8_t& buffer) {
                 break;
         }
     }
+
+    // if (audio_on) {
+    // Channel filter for audio out; decimates in place after packet processing.
+    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
+    auto audio = demod.execute(channel_out, audio_buffer);
+    audio_output.write(audio);
+    //}
 }
 
 void EPIRBProcessor::frame_end() {
