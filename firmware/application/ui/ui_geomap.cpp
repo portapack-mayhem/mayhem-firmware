@@ -241,13 +241,32 @@ int32_t GeoPos::speed() {
     return field_speed.value();
 };
 
-GeoMap::GeoMap(
-    Rect parent_rect)
-    : Widget{parent_rect}, markerListLen(0) {
+GeoMap::GeoMap(Rect parent_rect)
+    : GeoMapBase{parent_rect} {
+    bind_storage(tiles_.data(), tiles_.size(), markers_.data(), markers_.size());
+}
+
+GeoMapBase::GeoMapBase(Rect parent_rect)
+    : GeoMapBase{parent_rect, nullptr, 0, nullptr, 0} {
+}
+
+void GeoMapBase::bind_storage(BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count) {
+    bmp_cache.bind_storage(tiles, tile_count);
+    markerList = markers;
+    marker_capacity_ = marker_count;
+}
+
+GeoMapBase::GeoMapBase(
+    Rect parent_rect,
+    BMPFileCache::Slot* tiles,
+    size_t tile_count,
+    GeoMarker* markers,
+    size_t marker_count)
+    : Widget{parent_rect}, bmp_cache{tiles, tile_count}, markerListLen(0), markerList{markers}, marker_capacity_{marker_count} {
     has_osm = use_osm = find_osm_file_tile();
 }
 
-bool GeoMap::on_encoder(const EncoderEvent delta) {
+bool GeoMapBase::on_encoder(const EncoderEvent delta) {
     // Valid map_zoom values are -2 to -MAX_MAP_ZOOM_OUT, and +1 to +MAX_MAP_ZOOM_IN (values of 0 and -1 are not permitted)
     if (delta > 0) {
         if (map_zoom < MAX_MAP_ZOOM_IN) {
@@ -281,7 +300,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
     return true;
 }
 
-void GeoMap::set_zoom(int16_t zoom) {
+void GeoMapBase::set_zoom(int16_t zoom) {
     if (zoom == 0 || zoom == -1)
         zoom = 1;
     if (zoom > MAX_MAP_ZOOM_IN)
@@ -292,7 +311,7 @@ void GeoMap::set_zoom(int16_t zoom) {
     update_zoom();
 }
 
-void GeoMap::update_zoom() {
+void GeoMapBase::update_zoom() {
     map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
     if (use_osm) {
         map_visible = true;
@@ -305,12 +324,12 @@ void GeoMap::update_zoom() {
     refresh();
 }
 
-void GeoMap::refresh() {
+void GeoMapBase::refresh() {
     redraw_map = true;
     set_dirty();
 }
 
-void GeoMap::pan(int dx, int dy) {
+void GeoMapBase::pan(int dx, int dy) {
     float lat, lon;
     if (use_osm) {
         lon = tile_pixel_x_to_lon(lon_to_pixel_x_tile(lon_, map_osm_real_zoom) - dx, map_osm_real_zoom);
@@ -349,7 +368,7 @@ void GeoMap::pan(int dx, int dy) {
 /* Arrow keys pan the viewport (opposite sign to a touch drag, which grabs the map).
  * PROMPT mode (the coordinate picker) leaves the arrows to the focus manager so they
  * still move between its fields; panning there would trap focus on the map. */
-bool GeoMap::on_key(const KeyEvent key) {
+bool GeoMapBase::on_key(const KeyEvent key) {
     if (mode_ == PROMPT)
         return false;
     constexpr int step = 40;  // screen pixels per press
@@ -377,7 +396,7 @@ bool GeoMap::on_key(const KeyEvent key) {
     return true;
 }
 
-void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
+void GeoMapBase::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
     const auto r = screen_rect();
     ui::Dim width = r.width();
     if (map_zoom == 1) {
@@ -454,7 +473,7 @@ void GeoMap::map_read_line_bin(ui::Color* buffer, uint16_t pixels) {
 // (seek_x, seek_y). The view can reach past the map, when zoomed out further than
 // the map is wide or when centered near its edge, so the part of the line that falls
 // outside the map is drawn black rather than read from the wrong place in the file.
-void GeoMap::read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width) {
+void GeoMapBase::read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width) {
     ui::Color* buffer = map_line_buffer.data();
     int32_t first = 0;  // screen columns [first, last) come from inside the map
     int32_t last = 0;
@@ -493,13 +512,13 @@ void GeoMap::read_map_line(int32_t seek_x, int32_t seek_y, ui::Dim width) {
     map_read_line_bin(buffer + first, last - first);
 }
 
-void GeoMap::draw_markers(Painter& painter) {
+void GeoMapBase::draw_markers(Painter& painter) {
     for (int i = 0; i < markerListLen; ++i) {
         draw_marker_item(painter, markerList[i], markerList[i].color, markerList[i].color, Color::magenta());
     }
 }
 
-void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor, const Color backColor) {
+void GeoMapBase::draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor, const Color backColor) {
     const auto r = screen_rect();
     const ui::Point itemPoint = item_rect_pixel(item);
     if ((itemPoint.x() >= 0) && (itemPoint.x() < r.width()) &&
@@ -510,11 +529,11 @@ void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color col
 }
 
 // Calculate screen position of item, adjusted for zoom factor.
-ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
+ui::Point GeoMapBase::item_rect_pixel(GeoMarker& item) {
     return geo_to_pixel(item.lat, item.lon);
 }
 
-ui::Point GeoMap::geo_to_pixel(float lat, float lon) {
+ui::Point GeoMapBase::geo_to_pixel(float lat, float lon) {
     if (!use_osm) {
         const auto r = screen_rect();
         const auto geomap_rect_half_width = r.width() / 2;
@@ -556,7 +575,7 @@ ui::Point GeoMap::geo_to_pixel(float lat, float lon) {
  * @param zoom The zoom level.
  * @return The X-coordinate of the tile.
  */
-int GeoMap::lon2tile(double lon, int zoom) {
+int GeoMapBase::lon2tile(double lon, int zoom) {
     return (int)floor((lon + 180.0) / 360.0 * pow(2.0, zoom));
 }
 
@@ -566,14 +585,14 @@ int GeoMap::lon2tile(double lon, int zoom) {
  * @param zoom The zoom level.
  * @return The Y-coordinate of the tile.
  */
-int GeoMap::lat2tile(double lat, int zoom) {
+int GeoMapBase::lat2tile(double lat, int zoom) {
     // Convert latitude from degrees to radians for trigonometric functions
     double lat_rad = lat * M_PI / 180.0;
     // Perform the Mercator projection calculation
     return (int)floor((1.0 - log(tan(lat_rad) + 1.0 / cos(lat_rad)) / M_PI) / 2.0 * pow(2.0, zoom));
 }
 
-void GeoMap::set_osm_max_zoom(bool changeboth) {
+void GeoMapBase::set_osm_max_zoom(bool changeboth) {
     if (map_osm_zoom > 20) map_osm_zoom = 20;
     for (uint8_t i = map_osm_zoom; i > 0; i--) {
         int tile_x = lon2tile(lon_, i);
@@ -592,7 +611,7 @@ void GeoMap::set_osm_max_zoom(bool changeboth) {
 }
 
 // checks if the tile file presents or not. to determine if we got osm or not
-uint8_t GeoMap::find_osm_file_tile() {
+uint8_t GeoMapBase::find_osm_file_tile() {
     std::string filename = "/OSM/0/0/0.bmp";
     std::filesystem::path file_path(filename);
     if (file_exists(file_path)) return 1;
@@ -601,7 +620,7 @@ uint8_t GeoMap::find_osm_file_tile() {
 
 // Converts latitude/longitude to pixel coordinates in binary map file.
 // (Note that when map_zoom==1, one pixel in map file corresponds to 1 pixel on screen)
-GeoPoint GeoMap::lat_lon_to_map_pixel(float lat, float lon) {
+GeoPoint GeoMapBase::lat_lon_to_map_pixel(float lat, float lon) {
     // Using WGS 84/Pseudo-Mercator projection
     float x = (map_width * (lon + 180) / 360);
 
@@ -613,7 +632,7 @@ GeoPoint GeoMap::lat_lon_to_map_pixel(float lat, float lon) {
 }
 
 // Draw grid in place of map (when zoom-in level is too high).
-void GeoMap::draw_map_grid(ui::Rect r) {
+void GeoMapBase::draw_map_grid(ui::Rect r) {
     // Grid spacing is just based on zoom at the moment, and centered on screen.
     // TODO: Maybe align with latitude/longitude seconds instead?
     int grid_spacing = map_zoom * 2;
@@ -633,28 +652,28 @@ void GeoMap::draw_map_grid(ui::Rect r) {
     }
 }
 
-double GeoMap::tile_pixel_x_to_lon(int x, int zoom) {
+double GeoMapBase::tile_pixel_x_to_lon(int x, int zoom) {
     double map_width = pow(2.0, zoom) * TILE_SIZE;
     return (x / map_width * 360.0) - 180.0;
 }
 
-double GeoMap::tile_pixel_y_to_lat(int y, int zoom) {
+double GeoMapBase::tile_pixel_y_to_lat(int y, int zoom) {
     double map_height = pow(2.0, zoom) * TILE_SIZE;
     double n = M_PI * (1.0 - 2.0 * y / map_height);
     return atan(sinh(n)) * 180.0 / M_PI;
 }
 
-double GeoMap::lon_to_pixel_x_tile(double lon, int zoom) {
+double GeoMapBase::lon_to_pixel_x_tile(double lon, int zoom) {
     return ((lon + 180.0) / 360.0) * pow(2.0, zoom) * TILE_SIZE;
 }
 
-double GeoMap::lat_to_pixel_y_tile(double lat, int zoom) {
+double GeoMapBase::lat_to_pixel_y_tile(double lat, int zoom) {
     double lat_rad = lat * M_PI / 180.0;
     double sin_lat = sin(lat_rad);
     return ((1.0 - log((1.0 + sin_lat) / (1.0 - sin_lat)) / (2.0 * M_PI)) / 2.0) * pow(2.0, zoom) * TILE_SIZE;
 }
 
-bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y) {
+bool GeoMapBase::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int relative_y) {
     const auto r = screen_rect();
     // Early exit if the tile is completely outside the viewport
     if (relative_x >= r.width() || relative_y >= r.height() ||
@@ -724,7 +743,7 @@ bool GeoMap::draw_osm_file(int zoom, int tile_x, int tile_y, int relative_x, int
     return true;
 }
 
-void GeoMap::paint(Painter& painter) {
+void GeoMapBase::paint(Painter& painter) {
     const auto r = screen_rect();
     int32_t zoom_seek_x, zoom_seek_y;
 
@@ -843,20 +862,20 @@ void GeoMap::paint(Painter& painter) {
     }
 }
 
-void GeoMap::draw_switcher(Painter& painter) {
+void GeoMapBase::draw_switcher(Painter& painter) {
     painter.fill_rectangle({screen_rect().left(), screen_rect().top(), 3 * 20, 20}, Theme::getInstance()->bg_darker->background);
     std::string_view txt = (use_osm) ? "B I N" : "O S M";
     painter.draw_string({screen_rect().left() + 5, screen_rect().top() + 2}, *Theme::getInstance()->fg_light, txt);
 }
 
-bool GeoMap::on_keyboard(KeyboardEvent key) {
+bool GeoMapBase::on_keyboard(KeyboardEvent key) {
     if (key == '+' || key == ' ') return on_encoder(1);
     if (key == '-') return on_encoder(-1);
 
     return false;
 }
 
-bool GeoMap::on_touch(const TouchEvent event) {
+bool GeoMapBase::on_touch(const TouchEvent event) {
     if (has_osm && event.type == TouchEvent::Type::Start && event.point.x() < screen_rect().left() + 3 * 20 && event.point.y() < screen_rect().top() + 20) {
         use_osm = !use_osm;
         move(lon_, lat_);  // to re calculate the center for each map type
@@ -883,7 +902,7 @@ bool GeoMap::on_touch(const TouchEvent event) {
     return false;
 }
 
-void GeoMap::move(const float lon, const float lat) {
+void GeoMapBase::move(const float lon, const float lat) {
     const auto r = screen_rect();
     bool is_changed = (lon_ != lon || lat_ != lat);
     lon_ = lon;
@@ -915,12 +934,12 @@ void GeoMap::move(const float lon, const float lat) {
     }
 }
 
-void GeoMap::set_map_file(const std::filesystem::path& path) {
+void GeoMapBase::set_map_file(const std::filesystem::path& path) {
     map_file_path = path;
     has_osm = use_osm = false;
 }
 
-bool GeoMap::init() {
+bool GeoMapBase::init() {
     auto result = map_file.open(map_file_path.empty() ? adsb_dir / u"world_map.bin" : map_file_path);
     map_opened = !result.is_valid();
 
@@ -945,11 +964,11 @@ bool GeoMap::init() {
     return map_opened;
 }
 
-void GeoMap::set_mode(GeoMapMode mode) {
+void GeoMapBase::set_mode(GeoMapMode mode) {
     mode_ = mode;
 }
 
-void GeoMap::set_manual_panning(bool v) {
+void GeoMapBase::set_manual_panning(bool v) {
     // Entering free-look with no tracked marker yet (e.g. a static entry the app has not
     // sent a position update for): seed it from the current centre so the followed item
     // stays visible once the centre marker is suppressed. Maps that deliberately have no
@@ -959,11 +978,11 @@ void GeoMap::set_manual_panning(bool v) {
     manual_panning_ = v;
 }
 
-bool GeoMap::manual_panning() {
+bool GeoMapBase::manual_panning() {
     return manual_panning_;
 }
 
-void GeoMap::draw_scale(Painter& painter) {
+void GeoMapBase::draw_scale(Painter& painter) {
     const auto r = screen_rect();
     uint32_t m = 800000;
     uint32_t scale_width = (map_zoom > 0) ? m * map_zoom * pixels_per_km : m * pixels_per_km / (-map_zoom);
@@ -995,7 +1014,7 @@ void GeoMap::draw_scale(Painter& painter) {
     painter.draw_string({(uint16_t)(r.right() - 25 - scale_width - km_string.length() * 5 / 2), r.bottom() - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
 }
 
-void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
+void GeoMapBase::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
     Point arrow_a, arrow_b, arrow_c;
 
     for (size_t thickness = 0; thickness < 3; thickness++) {
@@ -1013,7 +1032,7 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
     display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
-void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string& itemTag, const Color color, const Color fontColor, const Color backColor) {
+void GeoMapBase::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string& itemTag, const Color color, const Color fontColor, const Color backColor) {
     const auto r = screen_rect();
 
     int tagOffset = 10;
@@ -1040,16 +1059,16 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
     }
 }
 
-void GeoMap::draw_mypos(Painter& painter) {
+void GeoMapBase::draw_mypos(Painter& painter) {
     if ((my_pos.lat < INVALID_LAT_LON) && (my_pos.lon < INVALID_LAT_LON))
         draw_marker_item(painter, my_pos, Color::yellow());
 }
 
-void GeoMap::clear_markers() {
+void GeoMapBase::clear_markers() {
     markerListLen = 0;
 }
 
-MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
+MapMarkerStored GeoMapBase::store_marker(GeoMarker& marker) {
     const auto r = screen_rect();
     MapMarkerStored ret;
     // Check if it could be on screen
@@ -1069,7 +1088,7 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
 
     if (!can_see_on_map) {
         ret = MARKER_NOT_STORED;
-    } else if (markerListLen < NumMarkerListElements) {
+    } else if (static_cast<size_t>(markerListLen) < marker_capacity_) {
         markerList[markerListLen] = marker;
         markerListLen++;
         redraw_map = true;
@@ -1080,7 +1099,7 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     return ret;
 }
 
-void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
+void GeoMapBase::update_my_position(float lat, float lon, int32_t altitude) {
     bool is_changed = (my_pos.lat != lat) || (my_pos.lon != lon);
     my_pos.lat = lat;
     my_pos.lon = lon;
@@ -1089,7 +1108,7 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     set_dirty();
 }
 
-void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
+void GeoMapBase::update_my_orientation(uint16_t angle, bool refresh) {
     bool is_changed = (my_pos.angle != angle);
     my_pos.angle = angle;
     if (refresh && is_changed) {
@@ -1098,7 +1117,7 @@ void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     }
 }
 
-MapType GeoMap::get_map_type() {
+MapType GeoMapBase::get_map_type() {
     return use_osm ? MAP_TYPE_OSM : MAP_TYPE_BIN;
 }
 

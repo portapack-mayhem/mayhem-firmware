@@ -82,18 +82,29 @@ struct GeoMarker {
 
 class BMPFileCache {
    public:
-    static constexpr uint8_t SlotsCount = 9;
+    struct Slot {
+        BMPFile bmp{};
+        int32_t x{};
+        int32_t y{};
+        int32_t z{};
+        uint16_t last_used{};
+        bool used{false};
+    };
 
-    BMPFileCache() {
+    BMPFileCache(Slot* slots, size_t count)
+        : slots_(slots), count_(count) {
     }
 
-    ~BMPFileCache() {
-        clear();
-    }
+    BMPFileCache(const BMPFileCache&) = delete;
+    BMPFileCache& operator=(const BMPFileCache&) = delete;
+
+    // Slots own their BMP files and close them on destruction. This borrowed
+    // view must not access slots that may already have been destroyed.
 
     BMPFile* get(const int32_t z, const int32_t x, const int32_t y) {
         // Cache hit.
-        for (auto& slot : slots_) {
+        for (size_t i = 0; i < count_; ++i) {
+            auto& slot = slots_[i];
             if (slot.used && slot.x == x && slot.y == y && slot.z == z) {
                 slot.last_used = next_stamp();
                 return &slot.bmp;
@@ -103,12 +114,13 @@ class BMPFileCache {
         // Select free slot first, otherwise LRU slot.
         Slot* target = nullptr;
         uint16_t oldest = 0xFFFFu;
-        for (auto& slot : slots_) {
+        for (size_t i = 0; i < count_; ++i) {
+            auto& slot = slots_[i];
             if (!slot.used) {
                 target = &slot;
                 break;
             }
-            if (slot.last_used < oldest) {
+            if (!target || slot.last_used < oldest) {
                 oldest = slot.last_used;
                 target = &slot;
             }
@@ -141,7 +153,8 @@ class BMPFileCache {
     }
 
     void clear() {
-        for (auto& slot : slots_) {
+        for (size_t i = 0; i < count_; ++i) {
+            auto& slot = slots_[i];
             if (slot.used) {
                 slot.bmp.close();
                 slot.used = false;
@@ -150,19 +163,18 @@ class BMPFileCache {
     }
 
    private:
-    struct Slot {
-        BMPFile bmp{};
-        int32_t x{};
-        int32_t y{};
-        int32_t z{};
-        uint16_t last_used{};
-        bool used{false};
-    };
+    friend class GeoMapBase;
+
+    void bind_storage(Slot* slots, size_t count) {
+        slots_ = slots;
+        count_ = count;
+    }
 
     uint16_t next_stamp() {
         if (++stamp_ == 0) {
             uint16_t v = 1;
-            for (auto& slot : slots_) {
+            for (size_t i = 0; i < count_; ++i) {
+                auto& slot = slots_[i];
                 if (slot.used) {
                     slot.last_used = v++;
                 }
@@ -171,7 +183,8 @@ class BMPFileCache {
         }
         return stamp_;
     }
-    std::array<Slot, SlotsCount> slots_{};
+    Slot* slots_;
+    size_t count_;
     uint16_t stamp_{0};
 };
 
@@ -351,11 +364,15 @@ enum MapType {
     MAP_TYPE_BIN
 };
 
-class GeoMap : public Widget {
+// Rendering and navigation share one implementation, independent of storage size.
+class GeoMapBase : public Widget {
    public:
+    GeoMapBase(Rect parent_rect, BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count);
+
     std::function<void(float, float, bool)> on_move{};
 
-    GeoMap(Rect parent_rect);
+    GeoMapBase(const GeoMapBase&) = delete;
+    GeoMapBase& operator=(const GeoMapBase&) = delete;
 
     void paint(Painter& painter) override;
 
@@ -412,8 +429,6 @@ class GeoMap : public Widget {
         has_tracked_marker_ = true;
     }
 
-    static const int NumMarkerListElements = 30;
-
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
@@ -436,6 +451,11 @@ class GeoMap : public Widget {
 
     float center_lat() const { return lat_; }
     float center_lon() const { return lon_; }
+
+   protected:
+    explicit GeoMapBase(Rect parent_rect);
+    // Called once by GeoMap after its embedded arrays have been constructed.
+    void bind_storage(BMPFileCache::Slot* tiles, size_t tile_count, GeoMarker* markers, size_t marker_count);
 
    private:
     void update_zoom();
@@ -474,7 +494,7 @@ class GeoMap : public Widget {
     GeoMapMode mode_{};
     File map_file{};
     std::filesystem::path map_file_path{};
-    BMPFileCache bmp_cache{};
+    BMPFileCache bmp_cache;
     bool map_opened{};
     bool map_visible{};
     uint16_t map_width{}, map_height{};
@@ -503,10 +523,24 @@ class GeoMap : public Widget {
     int32_t my_altitude{0};
 
     int markerListLen{0};
-    GeoMarker markerList[NumMarkerListElements];
+    GeoMarker* markerList;
+    size_t marker_capacity_;
     bool redraw_map{true};
     bool use_osm{false};
     bool has_osm{false};
+};
+
+// Existing clients keep embedded storage with their original capacities.
+class GeoMap : public GeoMapBase {
+   public:
+    static constexpr size_t TileCacheSlots = 9;
+    static constexpr int NumMarkerListElements = 30;
+
+    explicit GeoMap(Rect parent_rect);
+
+   private:
+    std::array<BMPFileCache::Slot, TileCacheSlots> tiles_{};
+    std::array<GeoMarker, NumMarkerListElements> markers_{};
 };
 
 class GeoMapView : public View {
