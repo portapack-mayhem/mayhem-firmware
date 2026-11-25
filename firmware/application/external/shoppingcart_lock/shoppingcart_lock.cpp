@@ -11,7 +11,6 @@ namespace ui::external_app::shoppingcart_lock {
 
 void ShoppingCartLock::log_event(const std::string& message) {
     static const size_t MAX_LOG_LINES = 50;
-    static std::vector<std::string> message_history;
 
     message_history.push_back(message);
     if (message_history.size() > MAX_LOG_LINES) {
