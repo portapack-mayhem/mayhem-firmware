@@ -87,9 +87,22 @@ constexpr gpdma::channel::Config config(const baseband::Direction direction) {
     };
 }
 
-constexpr size_t buffer_samples_log2n = 13;
+/* 8192 samples is 4 ms at 2.048 Msps, which work between buffers must fit in;
+ * DAB's symbol-boundary bursts overrun it, so the value is set per image. */
+#ifndef BASEBAND_BUFFER_LOG2N
+#define BASEBAND_BUFFER_LOG2N 13
+#endif
+
+constexpr size_t buffer_samples_log2n = BASEBAND_BUFFER_LOG2N;
 constexpr size_t buffer_samples = (1 << buffer_samples_log2n);
-constexpr size_t transfers_per_buffer_log2n = 2;
+/* Deepen by adding transfers, not enlarging them: 4096 samples is the GPDMA
+ * count limit and doubles what each miss costs. Keep in step with
+ * proc_dab.hpp's fallback; nothing links the two translation units. */
+#ifndef BASEBAND_TRANSFERS_LOG2N
+#define BASEBAND_TRANSFERS_LOG2N 2
+#endif
+
+constexpr size_t transfers_per_buffer_log2n = BASEBAND_TRANSFERS_LOG2N;
 constexpr size_t transfers_per_buffer = (1 << transfers_per_buffer_log2n);
 constexpr size_t transfer_samples = buffer_samples / transfers_per_buffer;
 constexpr size_t transfers_mask = transfers_per_buffer - 1;
@@ -163,9 +176,81 @@ void disable() {
     gpdma_channel_sgpio.disable();
 }
 
+#ifdef BASEBAND_dab_rx
+/* The next slot to hand out, one counter for the sleep and catch-up paths:
+ * deriving it from the LLI pointer and the handled count separately splices
+ * the stream when the thread falls behind. Skips only when the ring laps. */
+static uint32_t data_index = 0;
+
+/* The first wake is dropped once, so the slot handed out trails the writer by
+ * two transfers, not one; one behind hands back a slot the DMA has only just
+ * completed and breaks the stream at every transfer boundary. */
+static bool primed = false;
+
+static size_t next_data_slot() {
+    const uint32_t completed = buffer_transfered;
+    /* The near misses, which the drop counter is blind to by construction. */
+    {
+        const int32_t backlog = static_cast<int32_t>(completed - data_index);
+        if (backlog > 0) {
+            if (static_cast<uint32_t>(backlog) > shared_memory.m4_backlog_max)
+                shared_memory.m4_backlog_max = static_cast<uint32_t>(backlog);
+            if (static_cast<uint32_t>(backlog) * 2 >= transfers_per_buffer)
+                shared_memory.m4_backlog_high++;
+        }
+        shared_memory.m4_slots_handed++;
+    }
+    if (static_cast<int32_t>(completed - data_index) > static_cast<int32_t>(transfers_per_buffer - 1)) {
+        /* The ring has lapped and this data is gone. Counted here: the clamp
+         * looks like normal progress to note_slot(), and buffer_handled counts
+         * calls, not data. */
+        const uint32_t lost = completed - (transfers_per_buffer - 1) - data_index;
+        shared_memory.m4_transfers_dropped += lost;
+        if (shared_memory.m4_in_burst)
+            shared_memory.m4_drop_in_burst += lost;
+        else
+            shared_memory.m4_drop_elsewhere += lost;
+        data_index = completed - (transfers_per_buffer - 1);
+    }
+    const size_t slot = data_index & transfers_mask;
+    data_index++;
+    return slot;
+}
+
+/* Records which ring slot each returned buffer came from, so a splice shows
+ * up as a number rather than as a signal that will not decode. */
+static void note_slot(size_t index) {
+    const uint32_t expected = (shared_memory.m4_slot_last + 1) & transfers_mask;
+    if (index != expected)
+        shared_memory.m4_slot_jumps++;
+    shared_memory.m4_slot_last = index;
+}
+#endif
+
 baseband::buffer_t wait_for_buffer() {
 #ifdef PRALINE
     shared_memory.m4_dma_wait_count++;  // Phase 0 instrumentation
+#endif
+
+#ifdef BASEBAND_dab_rx
+    /* Take a buffer already waiting rather than sleep: ThreadWait drops a wake
+     * that arrives while the thread runs, so transfers completed during long
+     * work would never be collected. Tested on data_index, not buffer_handled:
+     * a lap clamp advances data_index alone, and the handled count then ran
+     * the reader ahead of the writer for good, splicing the stream by a whole
+     * ring (DAB-IMPL 6.116). Same margin as the handled test without a lap. */
+    if (static_cast<int32_t>(buffer_transfered - data_index) > 2) {
+        const size_t index = next_data_slot();
+        buffer_handled++;
+        shared_memory.m4_buffer_missed = buffer_transfered - data_index - 1;
+
+        note_slot(index);
+
+        const auto src = lli_loop[index].srcaddr;
+        const auto dst = lli_loop[index].destaddr;
+        const auto p = (src == reinterpret_cast<uint32_t>(&LPC_SGPIO->REG_SS[0])) ? dst : src;
+        return {reinterpret_cast<sample_t*>(p), transfer_samples};
+    }
 #endif
 
     const auto next_index = thread_wait.sleep();
@@ -175,12 +260,30 @@ baseband::buffer_t wait_for_buffer() {
     shared_memory.m4_buffer_missed = buffer_missed;
 
     if (next_index >= 0) {
+#ifdef BASEBAND_dab_rx
+        if (!primed) {
+            /* Give the writer a transfer of head start, once. */
+            primed = true;
+            return {};
+        }
+
+        /* Same counter as the catch-up path, so the two cannot disagree. */
+        const size_t free_index = next_data_slot();
+        shared_memory.m4_buffer_missed = buffer_transfered - data_index - 1;
+        note_slot(free_index);
+#else
         const size_t free_index = (next_index + transfers_per_buffer - 2) & transfers_mask;
+#endif
         const auto src = lli_loop[free_index].srcaddr;
         const auto dst = lli_loop[free_index].destaddr;
         const auto p = (src == reinterpret_cast<uint32_t>(&LPC_SGPIO->REG_SS[0])) ? dst : src;
         return {reinterpret_cast<sample_t*>(p), transfer_samples};
     } else {
+#ifdef BASEBAND_dab_rx
+        /* A wake with no LLI index drops a whole transfer that neither the
+         * loss figure nor note_slot() would see. */
+        shared_memory.m4_slot_jumps++;
+#endif
         return {};
     }
 }

@@ -1145,6 +1145,31 @@ uint32_t ClockManager::get_frequency_monitor_measurement_in_hertz() {
     return LPC_CGU->FREQ_MON.FCNT * 25000;
 }
 
+#ifdef PRALINE
+ClockManager::AudioClockCounts ClockManager::measure_audio_clock() {
+    /* On PRALINE start_audio_pll() stops waiting for lock after 100,000
+     * spins rather than blocking, so a free-running PLL0AUDIO is reachable
+     * and the lock bit is reported beside the counts. GP_CLKIN is measured
+     * because the PRALINE M/N/P values assume a 40 MHz input. */
+    AudioClockCounts counts{};
+
+    start_frequency_monitor_measurement(cgu::CLK_SEL::GP_CLKIN);
+    wait_For_frequency_monitor_measurement_done();
+    counts.gp_clkin = LPC_CGU->FREQ_MON.FCNT;
+
+    start_frequency_monitor_measurement(cgu::CLK_SEL::PLL0AUDIO);
+    wait_For_frequency_monitor_measurement_done();
+    counts.pll0audio = LPC_CGU->FREQ_MON.FCNT;
+
+    start_frequency_monitor_measurement(cgu::CLK_SEL::IDIVD);
+    wait_For_frequency_monitor_measurement_done();
+    counts.idivd = LPC_CGU->FREQ_MON.FCNT;
+
+    counts.pll0audio_locked = cgu::pll0audio::is_locked();
+    return counts;
+}
+#endif
+
 void ClockManager::start_audio_pll() {
 #ifdef PRALINE
 

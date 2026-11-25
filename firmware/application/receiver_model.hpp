@@ -78,6 +78,10 @@ class ReceiverModel {
 #ifdef PRALINE
     // Application-owned opt-in; retained across temporary RX disable/enable.
     void set_narrowband_capture_enabled(bool enabled);
+    /* Application-owned opt-in, as above: size the LPF for the quarter-rate
+     * offset even while the cached shift reads zero (it is cleared on entering
+     * RX), plus half again because the filter ladder rounds the request down. */
+    void set_wide_lpf_enabled(bool enabled);
 #endif
 
     rf::Frequency frequency_step() const;
@@ -156,6 +160,7 @@ class ReceiverModel {
     bool enabled_ = false;
 #ifdef PRALINE
     bool narrowband_capture_enabled_ = false;
+    bool wide_lpf_enabled_ = false;
     rx_afe::CapturePolicy capture_afe_policy() const;
 #endif
     RxFs4Direction application_fs4_direction_{RxFs4Direction::Down};

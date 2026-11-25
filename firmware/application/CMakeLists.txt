@@ -537,3 +537,19 @@ add_custom_target(
 )
 
 add_dependencies(${PROJECT_NAME} baseband)
+
+# The DAB baseband only fits PRALINE's M4 banks, so the view is built there alone.
+if(BOARD STREQUAL "PRALINE")
+    target_sources(application.elf PRIVATE
+        apps/ui_dab.cpp
+        ${COMMON}/dab/dab_blocks.cpp
+        ${COMMON}/dab/dab_cache.cpp
+        ${COMMON}/dab/dab_crc.cpp
+        ${COMMON}/dab/dab_dls.cpp
+        ${COMMON}/dab/dab_ensemble.cpp
+        ${COMMON}/dab/dab_fig.cpp
+        ${COMMON}/dab/dab_charset.cpp
+        ${COMMON}/dab/dab_protection.cpp
+        ${COMMON}/dab/dab_xpad.cpp
+    )
+endif()

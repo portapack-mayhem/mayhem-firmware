@@ -335,6 +335,7 @@ void ReceiverModel::initialize() {
     settings_ = settings_t{};
 #ifdef PRALINE
     narrowband_capture_enabled_ = false;
+    wide_lpf_enabled_ = false;
 #endif
     hidden_offset = 0;
     application_fs4_direction_ = RxFs4Direction::Down;
@@ -375,6 +376,13 @@ void ReceiverModel::set_narrowband_capture_enabled(bool enabled) {
         return;
     narrowband_capture_enabled_ = enabled;
     update_tuning_frequency();
+}
+
+void ReceiverModel::set_wide_lpf_enabled(bool enabled) {
+    if (wide_lpf_enabled_ == enabled)
+        return;
+    wide_lpf_enabled_ = enabled;
+    update_baseband_bandwidth();
 }
 
 rx_afe::CapturePolicy ReceiverModel::capture_afe_policy() const {
@@ -455,10 +463,12 @@ void ReceiverModel::update_baseband_bandwidth() {
         uint32_t lpf_bandwidth = afe_policy.useful_bandwidth_hz;
 
         const uint8_t quarter_shift = radio::debug::get_cached_quarter_shift();
-        if (quarter_shift != 0) {
+        if (quarter_shift != 0 || wide_lpf_enabled_) {
             const uint32_t offset = afe_rate / 4;
             lpf_bandwidth += offset * 2;
         }
+        if (wide_lpf_enabled_)
+            lpf_bandwidth += lpf_bandwidth / 2;
 
         radio::set_baseband_filter_bandwidth_rx(lpf_bandwidth, afe_policy.narrowband);
 #else

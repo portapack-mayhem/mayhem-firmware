@@ -142,6 +142,9 @@ constexpr image_tag_t image_tag_rds_rx{'P', 'R', 'R', 'D'};
 constexpr image_tag_t image_tag_wmbus_rx{'P', 'W', 'M', 'B'};
 constexpr image_tag_t image_tag_vdl2_rx{'P', 'V', 'D', 'L'};
 constexpr image_tag_t image_tag_subghz_chat{'P', 'C', 'H', 'T'};
+#ifdef PRALINE
+constexpr image_tag_t image_tag_dab{'P', 'D', 'A', 'B'};
+#endif
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 

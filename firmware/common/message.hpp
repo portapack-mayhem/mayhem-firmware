@@ -184,6 +184,13 @@ class Message {
         SubGhzChatPacket = 125,
         HorusPacket = 126,
         HorusRxStatus = 127,
+#ifdef PRALINE
+        DabConfigure = 128,
+        DabFib = 129,
+        DabPad = 130,
+        DabStatus = 131,
+        DabSoft = 132,
+#endif
         MAX
     };
 
@@ -2333,4 +2340,237 @@ struct WMBusPacketMessage : public Message {
     uint16_t length = 0;
     uint8_t data[500] = {0};
 };
+
+#ifdef PRALINE
+/* DAB/DAB+ receiver messages. The M4 runs demodulation, FEC and the codec; the
+ * M0 runs FIG parsing, the service database and the UI. Only control, FIB and
+ * PAD bytes and status cross; PCM stays on the M4. Over the 2 KB queue, FIBs
+ * are 12 x 32 bytes per 96 ms frame (~4 kB/s) and PAD a few kB/s. */
+
+/* size_cu 0 means FIC only: acquire and decode the ensemble, no audio. */
+struct DabConfigureMessage : public Message {
+    constexpr DabConfigureMessage(
+        uint16_t start_cu,
+        uint16_t size_cu,
+        uint8_t protection_level,
+        bool protection_option_b,
+        bool is_dab_plus,
+        uint32_t carrier_hz)
+        : Message(Message::ID::DabConfigure),
+          start_cu(start_cu),
+          size_cu(size_cu),
+          protection_level(protection_level),
+          protection_option_b(protection_option_b),
+          is_dab_plus(is_dab_plus),
+          carrier_hz(carrier_hz) {
+    }
+
+    uint16_t start_cu;
+    uint16_t size_cu;
+    uint8_t protection_level;
+    bool protection_option_b;
+    bool is_dab_plus;
+    /* Block centre, 0 if unknown. One crystal clocks tuner and sampler, so the
+     * measured carrier offset as a fraction of this is the sample clock's. */
+    uint32_t carrier_hz;
+};
+
+struct DabFibMessage : public Message {
+    constexpr DabFibMessage(const uint8_t* bytes, bool crc_ok = true)
+        : Message(Message::ID::DabFib),
+          payload{},
+          crc_ok(crc_ok) {
+        for (size_t i = 0; i < 32; i++)
+            payload[i] = bytes[i];
+    }
+
+    std::array<uint8_t, 32> payload;
+
+    /* A failed FIB is still carried, for offline analysis. */
+    bool crc_ok{true};
+};
+
+/* Punctured soft bits of one FIC codeword, for offline analysis: re-encoding
+ * the decode puts a fault in the FEC parameters (agreement well above half)
+ * or upstream (near half). */
+struct DabSoftMessage : public Message {
+    static constexpr size_t max_payload = 128;
+
+    DabSoftMessage(uint16_t offset, const int8_t* data, uint8_t length)
+        : Message(Message::ID::DabSoft),
+          offset(offset),
+          length(length),
+          payload{} {
+        for (size_t i = 0; i < length && i < max_payload; i++)
+            payload[i] = static_cast<uint8_t>(data[i]);
+    }
+
+    uint16_t offset;
+    uint8_t length;
+    std::array<uint8_t, max_payload> payload;
+};
+
+/* Lifted out before decoding, so DLS and slideshow survive when the codec
+ * tier cannot play the audio. */
+struct DabPadMessage : public Message {
+    static constexpr size_t max_payload = 128;
+
+    constexpr DabPadMessage(const uint8_t* bytes, uint8_t length)
+        : Message(Message::ID::DabPad),
+          length(length),
+          payload{} {
+        for (size_t i = 0; i < length && i < max_payload; i++)
+            payload[i] = bytes[i];
+    }
+
+    uint8_t length;
+    std::array<uint8_t, max_payload> payload;
+};
+
+/* Once per 96 ms frame. Some fields carry other values while a subchannel
+ * runs; proc_dab.cpp's report is the authority. */
+struct DabStatusMessage : public Message {
+    enum class Sync : uint8_t {
+        Searching = 0,
+        NullFound = 1,
+        Locked = 2,
+    };
+
+    constexpr DabStatusMessage(
+        Sync sync,
+        int16_t frequency_error_hz,
+        uint8_t fib_errors,
+        uint8_t audio_tier,
+        uint32_t frame_cycles,
+        uint32_t decoder_bytes,
+        uint32_t symbol_cycles,
+        uint32_t transform_cycles,
+        uint8_t decode_variant,
+        uint32_t null_dip_offset,
+        uint16_t null_dip_ratio,
+        uint16_t constellation_r4,
+        int16_t const_angle,
+        uint16_t guard_quality,
+        uint16_t spectrum_dc,
+        uint16_t spectrum_used,
+        uint16_t spectrum_unused,
+        uint16_t spectrum_raw_used,
+        uint16_t spectrum_raw_unused,
+        uint16_t fft_shifts,
+        uint16_t msc_angles,
+        uint16_t prs_peak,
+        int16_t prs_shift,
+        uint16_t msc_state,
+        uint16_t decoder_counts,
+        uint16_t header_fails,
+        uint16_t assembler_shape)
+        : Message(Message::ID::DabStatus),
+          sync(sync),
+          frequency_error_hz(frequency_error_hz),
+          fib_errors(fib_errors),
+          audio_tier(audio_tier),
+          frame_cycles(frame_cycles),
+          decoder_bytes(decoder_bytes),
+          symbol_cycles(symbol_cycles),
+          transform_cycles(transform_cycles),
+          decode_variant(decode_variant),
+          null_dip_offset(null_dip_offset),
+          null_dip_ratio(null_dip_ratio),
+          constellation_r4(constellation_r4),
+          const_angle(const_angle),
+          guard_quality(guard_quality),
+          spectrum_dc(spectrum_dc),
+          spectrum_used(spectrum_used),
+          spectrum_unused(spectrum_unused),
+          spectrum_raw_used(spectrum_raw_used),
+          spectrum_raw_unused(spectrum_raw_unused),
+          fft_shifts(fft_shifts),
+          msc_angles(msc_angles),
+          prs_peak(prs_peak),
+          prs_shift(prs_shift),
+          msc_state(msc_state),
+          decoder_counts(decoder_counts),
+          header_fails(header_fails),
+          assembler_shape(assembler_shape) {
+    }
+
+    Sync sync;
+    int16_t frequency_error_hz;
+    uint8_t fib_errors;  // failed FIBs out of the 12 in this frame
+    uint8_t audio_tier;  // tier actually in use, 0 = no audio
+
+    /* Part of frame_cycles in on_symbol_complete (transforms, demapping, FEC);
+     * the rest is the per-sample loop: 196608 runs a frame, ~99 cycles each. */
+    uint32_t symbol_cycles{0};
+
+    /* Part of symbol_cycles in transform_symbol (correction, 2048-point
+     * transform, extraction); the rest is demapping and FEC. */
+    uint32_t transform_cycles{0};
+
+    /* Reading of the ambiguous FIC steps behind fib_errors (dab_variant.hpp). */
+    uint8_t decode_variant{0};
+
+    /* Of 19584000 per 96 ms frame at 204 MHz. */
+    uint32_t frame_cycles;
+
+    /* Peak audio decoder allocation, 0 when it has none. */
+    uint32_t decoder_bytes;
+
+    /* Deepest power dip: samples from the symbol phase start, and depth as
+     * reference/window. The null is the only deep dip, so a correct frame
+     * boundary reads just under 196608. */
+    uint32_t null_dip_offset{0};
+    uint16_t null_dip_ratio{0};
+
+    /* |mean(exp(4j*theta))| over a FIC symbol pair's differential products, in
+     * thousandths; x4 folds the DQPSK points onto one. 1000 is clean, noise
+     * over 1536 carriers ~25. */
+    uint16_t constellation_r4{0};
+
+    /* While a subchannel runs, its own r4 in thousandths; 0 otherwise. */
+    int16_t const_angle{0};
+
+    /* PRS guard correlation, thousandths: is the window on a symbol. The
+     * frequency error comes from its angle, so needs this high. */
+    uint16_t guard_quality{0};
+
+    /* PRS power share in bin 0, the 1536 used carriers and the outer band that
+     * should be empty; thousandths summing to 1000. */
+    uint16_t spectrum_dc{0};
+    uint16_t spectrum_used{0};
+    uint16_t spectrum_unused{0};
+
+    /* The same split without frequency correction. fft_shifts: block floating
+     * point shift counts, corrected low byte, raw high byte. */
+    uint16_t spectrum_raw_used{0};
+    uint16_t spectrum_raw_unused{0};
+    uint16_t fft_shifts{0};
+
+    /* Always 0: the MSC angles are not computed. Kept for the S-log column. */
+    uint16_t msc_angles{0};
+    /* PRS impulse response peak in thousandths of the sweep's median, and the
+     * integer carrier shift it was found at; nothing else sees that shift. */
+    uint16_t prs_peak{0};
+    int16_t prs_shift{0};
+
+    /* Only sign of a DAB+ subchannel set up as classic DAB (DAB-IMPL 6.42).
+     * bit 0 msc_enabled_, bit 1 msc_is_dab_plus_, bits 2-3 audio_tier_,
+     * bits 4-10 msc_size_cu_, bits 11-15 msc_start_cu_ / 32. */
+    uint16_t msc_state{0};
+
+    /* Low byte msc_units_dec_ (decoder accepted), high byte aac_lc_fail_
+     * (rejected); msc_units_ok_ counts CRC passes instead. */
+    uint16_t decoder_counts{0};
+
+    /* Firecode passed but try_parse() rejected the header: a loss no reject
+     * counter sees. */
+    uint16_t header_fails{0};
+
+    /* Low byte: try_parse() exits at rs_correct_superframe() == 0. High byte:
+     * logical_frame_bytes_ / 8, to check its modulus guard against configure()
+     * (24 for a 48 CU EEP-3-A subchannel). */
+    uint16_t assembler_shape{0};
+};
+#endif
+
 #endif /*__MESSAGE_H__*/
