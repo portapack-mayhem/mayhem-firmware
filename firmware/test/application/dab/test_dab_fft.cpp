@@ -33,6 +33,10 @@ namespace {
 
 constexpr double kTwoPi = 6.283185307179586;
 
+/* The transform halves four times, so a tone of amplitude A peaks at
+ * kFftSize * A / 16: 200 keeps it under int16 full scale. */
+constexpr double kToneAmplitude = 200.0;
+
 std::vector<dab::FftComplex> tone(size_t bin, double amplitude) {
     std::vector<dab::FftComplex> v(dab::kFftSize);
     for (size_t n = 0; n < dab::kFftSize; n++) {
@@ -81,7 +85,7 @@ TEST_CASE("null input is refused") {
 
 TEST_CASE("a single tone lands in exactly one bin") {
     for (size_t bin : {1u, 137u, 512u, 1500u}) {
-        auto data = tone(bin, 8000.0);
+        auto data = tone(bin, kToneAmplitude);
         REQUIRE(dab::fft2048(data.data()));
 
         size_t peak_bin = 0;
@@ -107,15 +111,14 @@ TEST_CASE("a single tone lands in exactly one bin") {
     }
 }
 
-TEST_CASE("block floating point reports a usable scale factor") {
-    // The unscaled peak of a tone of amplitude A is N*A; the reported shift
-    // must reconstruct that.
-    auto data = tone(300, 8000.0);
+TEST_CASE("the reported shift reconstructs the unscaled peak") {
+    // The unscaled peak of a tone of amplitude A is N*A.
+    auto data = tone(300, kToneAmplitude);
     uint8_t shift = 0;
     REQUIRE(dab::fft2048(data.data(), &shift));
 
     const double peak = magnitude(data[300]) * std::pow(2.0, shift);
-    const double expected = 8000.0 * dab::kFftSize;
+    const double expected = kToneAmplitude * dab::kFftSize;
     CHECK(peak > expected * 0.8);
     CHECK(peak < expected * 1.2);
 }
@@ -133,8 +136,8 @@ TEST_CASE("two tones are resolved with the right amplitude ratio") {
     for (size_t n = 0; n < dab::kFftSize; n++) {
         const double pa = kTwoPi * 200 * n / dab::kFftSize;
         const double pb = kTwoPi * 900 * n / dab::kFftSize;
-        data[n].re = static_cast<int16_t>(std::lround(6000.0 * std::cos(pa) + 3000.0 * std::cos(pb)));
-        data[n].im = static_cast<int16_t>(std::lround(6000.0 * std::sin(pa) + 3000.0 * std::sin(pb)));
+        data[n].re = static_cast<int16_t>(std::lround(kToneAmplitude * std::cos(pa) + kToneAmplitude / 2 * std::cos(pb)));
+        data[n].im = static_cast<int16_t>(std::lround(kToneAmplitude * std::sin(pa) + kToneAmplitude / 2 * std::sin(pb)));
     }
 
     REQUIRE(dab::fft2048(data.data()));
