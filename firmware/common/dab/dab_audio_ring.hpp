@@ -51,7 +51,7 @@ class AudioRing {
     /* n frames at twice the core rate, same sample on both channels. Even
      * outputs are the core sample, odd ones (-x[-1] + 9 x[0] + 9 x[1] - x[2]) / 16,
      * ~12 dB more image rejection than linear. The run loop is a fast path that
-     * must match the per-sample step below (tools-local/dab/ringcheck.cpp). */
+     * must match the per-sample step below. */
     void render(uint32_t* out, size_t n) {
         const uint32_t written = written_;
         uint32_t read = read_;

@@ -49,8 +49,7 @@ struct MscSchedule {
 
 /* Whether proc_dab.cpp's staging (fft_/defer_stage_, finished up to two symbols
  * late) can carry it: at most two CIF symbols, the last by CIF symbol 17
- * (decode_cif()), the first from 2 (clear of the FIC's deferred finish). Must
- * match tools-local/dab/stagecheck.py. */
+ * (decode_cif()), the first from 2 (clear of the FIC's deferred finish). */
 constexpr bool subchannel_placement_ok(uint16_t start_cu, uint16_t size_cu) {
     if (size_cu == 0)
         return false;
@@ -75,7 +74,7 @@ constexpr bool frame_symbol_carries(size_t index, uint16_t start_cu, uint16_t si
 }
 
 /* One bit per frame symbol 0-95, built at configuration since the trellis
- * queries it every DMA buffer. masktest.cpp checks both masks. */
+ * queries it every DMA buffer. */
 struct FrameSymbolMask {
     uint32_t w[3]{};
 

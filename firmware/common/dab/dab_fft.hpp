@@ -44,7 +44,7 @@ struct FftComplex {
 bool fft2048(FftComplex* data, uint8_t* out_shift = nullptr);
 
 /* fft2048() in kFftSteps pieces, so the per-buffer hook can advance it without
- * monopolising the thread (a transform outlasts a symbol; DAB-IMPL 6.60). Byte
+ * monopolising the thread (a transform outlasts a symbol). Byte
  * for byte fft2048()'s result; leave the buffer alone until advance() is true. */
 constexpr uint8_t kFftSteps = 7;
 

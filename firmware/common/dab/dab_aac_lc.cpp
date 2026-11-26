@@ -614,7 +614,7 @@ struct Cplx {
 };
 
 /* exp(+2*pi*i*m/480), first quadrant only: the rest by symmetry, smaller sizes
- * by stride. In flash, as RAM is scarcer (tools-local/dab/gen_aac_windows.cpp). */
+ * by stride. In flash, as RAM is scarcer (dab_aac_windows.hpp). */
 constexpr size_t kQuadrant = kFftMax / 4;
 
 constexpr Cplx twiddle_quadrant(size_t m) {

@@ -2,7 +2,7 @@
  * takes ~40% of the frame and acquisition cannot run under it, so a pick is a
  * standing request: engage after `streak` locked frames with r4 >= `gate`
  * outside a holdoff; release after `release_frames` below `release_r4`, then
- * hold off `holdoff` frames. Pure logic, replayed by engagesim.cpp. */
+ * hold off `holdoff` frames. Pure logic, so it can be tested off target. */
 #ifndef __DAB_ENGAGE_H__
 #define __DAB_ENGAGE_H__
 
@@ -100,7 +100,7 @@ class Engagement {
 };
 
 /* r4 is ~20 on a dead constellation, ~700 on a live one. Engaging inside
- * acquisition starts a limit cycle, hence the holdoff (DAB-IMPL 6.40). */
+ * acquisition starts a limit cycle, hence the holdoff. */
 constexpr Engagement::Config kEngageDefaults{30, 8, 120, 60, 64};
 
 } /* namespace dab */

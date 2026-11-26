@@ -35,7 +35,7 @@ inline uint8_t soft_get(const uint8_t* run, size_t i) {
  * once. A byte's top three bits are v >> 5 as a 3-bit code; the one clamp,
  * -4 to -3, is a zero-lane test on t ^ 4 (x + 7 sets bit 3 unless x is 0);
  * bit 2 copied to bit 3 sign-extends; one shift folds lanes 1, 3 into 0, 2.
- * packcheck.cpp checks it against soft_code() on all 2^32 words. */
+ * Checked against soft_code() on all 2^32 words. */
 inline uint32_t soft_codes4(uint32_t w) {
     static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "byte k of the word is value k");
     uint32_t t = (w >> 5) & 0x07070707u;

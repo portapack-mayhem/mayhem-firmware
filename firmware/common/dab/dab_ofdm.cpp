@@ -251,7 +251,7 @@ void FrequencyCorrector::set_offset(float offset_hz) {
 #if defined(__ARM_FEATURE_SIMD32)
 namespace {
 /* cos low, sin high for SMUSD/SMUADX, one load per sample; packing per sample
- * costs more than the dual multiplies save (DAB-IMPL 6.76). Built into .bss:
+ * costs more than the dual multiplies save. Built into .bss:
  * .rodata shares the nearly full bank 2 with code. */
 int32_t g_packed_twiddle[256];
 /* The boost the table holds; 0xFF until built. */
@@ -327,7 +327,7 @@ void dqpsk_demap(const Iq16* previous, const Iq16* current, size_t count, int8_t
         return;
 
     /* Divide by the reference magnitude, then the symbol's mean: a global scale
-     * lets strong carriers crush the rest to near-erasures (DAB-IMPL 6.9). A
+     * lets strong carriers crush the rest to near-erasures. A
      * typical carrier lands at kSoftScale; dividing by |previous|^2 would
      * equalise every carrier and lose the fading. */
     constexpr int32_t kSoftScale = 72;
@@ -391,7 +391,7 @@ void dqpsk_demap(const Iq16* previous, const Iq16* current, size_t count, int8_t
 #endif
 
         /* Divide first so the scale can be a multiply. Keep the SDIVs: reciprocal
-         * plus SMMUL rounds toward -inf, a one-sided soft bias (DAB-IMPL 6.74). */
+         * plus SMMUL rounds toward -inf, a one-sided soft bias. */
         const int32_t rs = ((real / mag) * scale_q) >> kScaleShift;
         const int32_t is = ((imag / mag) * scale_q) >> kScaleShift;
 

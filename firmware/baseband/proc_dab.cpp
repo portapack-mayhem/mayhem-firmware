@@ -61,7 +61,7 @@ constexpr int32_t kTimingStep = 16;
  * needed waits (advance_audio_decode()). */
 constexpr uint16_t kAudioBacklog = 4;
 /* ...and above which none starts even with the ring empty: a unit (~400k
- * cycles) on top of a superframe's Reed-Solomon laps the ring (DAB-IMPL 6.118). */
+ * cycles) on top of a superframe's Reed-Solomon laps the ring. */
 constexpr uint16_t kAudioBacklogDry = 16;
 
 /* One SSAT on the M4. */
@@ -1018,7 +1018,7 @@ void DabProcessor::on_symbol_complete() {
         /* Follow the sample clock's drift once the PRS shots are spent and the
          * trim is frozen. Tuner and ADC share a crystal, so an offset of f Hz at
          * carrier C walks the frame -f/C * kSamplesPerFrame samples a frame;
-         * whole samples steer now, the rest is carried (DAB-IMPL 6.107). */
+         * whole samples steer now, the rest is carried. */
         if (corrector_primed_ && drift_per_hz_ != 0.0f) {
             drift_owed_ -= corrector_offset_ * drift_per_hz_;
             const int32_t whole = static_cast<int32_t>(drift_owed_);
@@ -1292,7 +1292,7 @@ void DabProcessor::on_symbol_complete() {
          * symbol out has a perfect constellation and no FIB passing CRC. */
         /* constellation_r4_ is refreshed on FIC frames only, so one low reading
          * stands for several frames: hold until it has stayed low for
-         * kRehuntGrace frames (DAB-IMPL 6.105). */
+         * kRehuntGrace frames. */
         if (constellation_r4_ < kRehuntKeepR4) {
             if (r4_low_frames_ < 0xFF)
                 ++r4_low_frames_;
@@ -1307,8 +1307,8 @@ void DabProcessor::on_symbol_complete() {
             ++frames_since_fib_;
 
         /* No FIB for kFibHuntFrames, at any r4: a misnumbered grid, or one a
-         * sample loss moved, which the PRS gate takes two sweeps to see (DAB-IMPL
-         * 6.117). Only on a hunt that old: frames_since_fib_ survives a re-hunt. */
+         * sample loss moved, which the PRS gate takes two sweeps to see. Only
+         * on a hunt that old: frames_since_fib_ survives a re-hunt. */
         const bool grid_never_decoded = kFibHuntFrames != 0 &&
                                         frames_since_fib_ >= kFibHuntFrames &&
                                         frames_since_hunt_ >= kFibHuntFrames;
@@ -1353,7 +1353,7 @@ void DabProcessor::on_symbol_complete() {
             /* Sync -> Symbols happens only on a power block boundary: whole
              * blocks go into the wait and the remainder is skipped off the
              * pre-roll replay. The wait also gives back the previous frame's
-             * skip, which its symbols consumed (DAB-IMPL 6.108). */
+             * skip, which its symbols consumed. */
             const int32_t phase = static_cast<int32_t>(fine_phase_) + timing_adjust_;
             wait += (phase & ~static_cast<int32_t>(kPowerBlock - 1)) - fine_phase_;
             fine_phase_ = static_cast<uint8_t>(phase & static_cast<int32_t>(kPowerBlock - 1));
@@ -1445,7 +1445,7 @@ void DabProcessor::accumulate_msc(size_t index_in_cif, bool erase) {
 /* The phase reference holds defer_stage_ from symbol 0 to kPrsForwardSymbol
  * and fft_ to kPrsInverseSymbol; the subchannel uses both from the symbol
  * before its first wanted one to two past its last, so a wanted symbol up to
- * kPrsInverseSymbol clashes (stagecheck.py checks every placement). */
+ * kPrsInverseSymbol clashes. */
 bool DabProcessor::prs_window_clash() const {
     if (!msc_enabled_)
         return false;
@@ -1469,7 +1469,7 @@ bool DabProcessor::msc_trellis_quiet() const {
         return true;
     /* Likewise the FIC's deferred finish, only when staged: reserving it every
      * frame starved CIF 0, whose span between decode_cif() calls is the short
-     * one (cifsched.py). */
+     * one. */
     if (fic_staged() && symbol_index_ == fic_finish_symbol_)
         return true;
     /* The symbol, the next two, the one before and the one before that (the
@@ -1704,7 +1704,7 @@ void DabProcessor::advance_audio_decode() {
     if (audio_ring_.free_slots() == 0)
         return;
     /* ...and with a frame still playing there are 40 ms to choose from, so do
-     * not add the decoder's ~2 ms on top of a baseband backlog (audiosim.cpp). */
+     * not add the decoder's ~2 ms on top of a baseband backlog. */
     if (audio_ring_.queued() > 0 && shared_memory.m4_buffer_missed > kAudioBacklog)
         return;
     if (shared_memory.m4_buffer_missed > kAudioBacklogDry)
@@ -1976,13 +1976,12 @@ uint8_t DabProcessor::report_fib_errors() const {
     return static_cast<uint8_t>(total > 255 ? 255 : total);
 }
 
-/* The processor is heap allocated, outside the linker's RAM figure. A fast
- * fence: heapcheck.py, run by build.sh on every image, computes the real
- * ceiling from the ELF; 97,344 is it rounded down to 64. Past it, lower
- * dab::kMaxCodedBitsPerCif and with it the highest accepted bit rate. */
+/* The processor is heap allocated, outside the linker's RAM figure. 97,344
+ * is the heap left in the M4 bank by statics and stacks, rounded down to 64.
+ * Past it, lower dab::kMaxCodedBitsPerCif and with it the highest accepted
+ * bit rate. */
 static_assert(sizeof(DabProcessor) <= 97344,
-              "DabProcessor no longer fits in the M4 bank alongside statics and stacks -- "
-              "run tools-local/dab/heapcheck.py for the real figure and the deficit");
+              "DabProcessor no longer fits in the M4 bank alongside statics and stacks");
 
 int main() {
     shared_memory.set_m4_boot_stage(M4BootStage::main_entered);

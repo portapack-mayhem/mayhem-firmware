@@ -2553,7 +2553,7 @@ struct DabStatusMessage : public Message {
     uint16_t prs_peak{0};
     int16_t prs_shift{0};
 
-    /* Only sign of a DAB+ subchannel set up as classic DAB (DAB-IMPL 6.42).
+    /* Only sign of a DAB+ subchannel set up as classic DAB.
      * bit 0 msc_enabled_, bit 1 msc_is_dab_plus_, bits 2-3 audio_tier_,
      * bits 4-10 msc_size_cu_, bits 11-15 msc_start_cu_ / 32. */
     uint16_t msc_state{0};

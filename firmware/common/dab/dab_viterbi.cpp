@@ -189,7 +189,7 @@ bool ViterbiDecoder::begin(const Soft* soft_in,
 
 /* Byte-lane add-compare-select, four butterflies to a SIMD word. Soft values
  * in +-3 give branch metrics in +-12, offset by kByteOffset to 0..24. A shift
- * of 5 decodes like full precision and 6 does not (DAB-IMPL 6.14). The adds
+ * of 5 decodes like full precision and 6 does not. The adds
  * saturate, so a wrong spread bound degrades the decode instead of wrapping. */
 
 #if defined(DAB_PACKED_ACS_PORTABLE) || !defined(__ARM_FEATURE_SIMD32)

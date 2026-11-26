@@ -315,7 +315,7 @@ if(BOARD STREQUAL "PRALINE")
     # links this copy, built with its ring and BASEBAND_dab_rx, which gates
     # everything in the shared sources that only the DAB image runs.
     # The ring is 2^14 samples (8 ms) in 2^5 transfers of 512 samples, which
-    # also sizes stage_ (DAB-IMPL 6.66). MODE_FLAGS below must match.
+    # also sizes stage_. MODE_FLAGS below must match.
     set(BASEBAND_SHARED_DAB_FLAGS "-DBASEBAND_dab_rx -DBASEBAND_BUFFER_LOG2N=14 -DBASEBAND_TRANSFERS_LOG2N=5")
     add_library(baseband_shared_dab OBJECT ${CSRC} ${CPPSRC} ${ASMSRC})
     set_target_properties(baseband_shared_dab PROPERTIES COMPILE_FLAGS "${BASEBAND_SHARED_DAB_FLAGS}")
@@ -899,8 +899,8 @@ if(BOARD STREQUAL "PRALINE")
 # built-in app and looks its baseband up in the flash chunk list.
 set(add_to_firmware TRUE)
 
-# -Os: at -O3 the trellis is faster and the receiver stops locking
-# (DAB-IMPL 6.14). The ring as in BASEBAND_SHARED_DAB_FLAGS.
+# -Os: at -O3 the trellis is faster and the receiver stops locking. The ring
+# as in BASEBAND_SHARED_DAB_FLAGS.
 set(MODE_FLAGS "-Os -DBASEBAND_BUFFER_LOG2N=14 -DBASEBAND_TRANSFERS_LOG2N=5")
 
 set(MODE_CPPSRC

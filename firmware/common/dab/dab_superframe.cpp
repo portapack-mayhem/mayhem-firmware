@@ -97,7 +97,7 @@ size_t rs_correct_superframe(const uint8_t* raw, size_t superframe_bytes, uint8_
 
     /* Give up after kRsBailRun consecutive bad words. A wrong boundary fails
      * nearly every word, a right one on a marginal channel only some; bailing
-     * on the first costs sensitivity (DAB-IMPL 6.16), 3 beat never (6.49). */
+     * on the first costs sensitivity, and 3 beat never. */
     constexpr uint8_t kRsBailRun = 3;
     uint8_t run_bad = 0;
 

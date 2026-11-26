@@ -72,7 +72,7 @@ class DabProcessor : public BasebandProcessor {
 
     /* Samples the DMA ring's lap clamp skipped (m4_transfers_dropped), taken
      * out of the grid as a known gap instead of a re-hunt: the counters move
-     * on and every symbol the gap touches is erased (DAB-IMPL 6.118). */
+     * on and every symbol the gap touches is erased. */
     void skip_samples(size_t n);
     /* The counters and block phase over a gap. */
     void advance_blocks(size_t n);
@@ -119,13 +119,13 @@ class DabProcessor : public BasebandProcessor {
      * steer the frame. The noise floor of a max over 2048 bins is near 11x. */
     static constexpr uint32_t kPrsTrustPeak = 400;
     /* Largest single correction; kTimingTrimLimit bounds the sum. 500 is worse:
-     * two shots reach the limit and the third is rejected whole (DAB-IMPL 6.63). */
+     * two shots reach the limit and the third is rejected whole. */
     static constexpr int32_t kPrsMaxStep = 400;
     int32_t prs_timing_error_{0};
     bool prs_timing_valid_{false};
     /* The measured window error is applied a few times per acquisition rather
      * than as a servo, which saturates at kTimingTrimLimit. Errors reach ~1,100
-     * samples, so three shots of kPrsMaxStep (DAB-IMPL 6.57). */
+     * samples, so three shots of kPrsMaxStep. */
     static constexpr uint8_t kPrsTimingShots = 3;
     uint8_t prs_timing_shots_{0};
     /* A subchannel clashing with the phase reference (prs_window_clash())
@@ -143,7 +143,7 @@ class DabProcessor : public BasebandProcessor {
     /* Re-roll the grid when the correlation peak stays under kPrsHuntMin for
      * kPrsHuntSweeps sweeps: symbol 0 is not the phase reference. Misnumbered
      * grids peak near 100, working ones at 1,800+, and guard and r4 cannot tell
-     * them apart (DAB-IMPL 6.54). */
+     * them apart. */
     static constexpr uint16_t kPrsHuntMin = 500;
     static constexpr uint8_t kPrsHuntSweeps = 2;
     uint8_t prs_low_sweeps_{0};
@@ -181,7 +181,7 @@ class DabProcessor : public BasebandProcessor {
     static constexpr size_t kFicFinishSymbol = 6;
     /* ...or one symbol before the subchannel's first transform (its
      * differential reference) if that comes earlier, never inside the frame
-     * head. Set with the subchannel; stagecheck.py checks the pair. */
+     * head. Set with the subchannel. */
     uint8_t fic_finish_symbol_{kFicFinishSymbol};
     void window_to_stage();
     void stage_to_buf();
@@ -216,15 +216,15 @@ class DabProcessor : public BasebandProcessor {
      * 1,542 steps must fit in ~65 of its ~90 buffers; 28 drops CIFs. */
     static constexpr size_t kMscStepsPerBuffer = 40 * kSamplesPerDmaBuffer / 512;
     /* Rate for codewords above kMscWidePayloadBits: at 72 CU one is 2,310 steps
-     * against ~2,190 the quiet window gives at 40, and averages out only just
-     * (cifsched.py, slipsim.py). */
+     * against ~2,190 the quiet window gives at 40, and averages out only
+     * just. */
     static constexpr size_t kMscStepsWide = 44 * kSamplesPerDmaBuffer / 512;
     static constexpr uint32_t kMscWidePayloadBits = 1536;
     size_t msc_steps_{kMscStepsPerBuffer};
 
     /* A CIF completing while the trellis is busy waits in msc_in_ until
      * advance_msc_decode() can start it, which must happen before the
-     * subchannel's next symbol is copied in (slipsim.py budgets it) or
+     * subchannel's next symbol is copied in, or
      * accumulate_msc() counts an overrun. */
     bool msc_pending_{false};
     uint8_t msc_pending_cif_{0};
@@ -232,7 +232,7 @@ class DabProcessor : public BasebandProcessor {
     /* A logical frame whose push completes a superframe runs Reed-Solomon over
      * it, about 1M cycles at 72 CU in one call: over kRsBacklog transfers of
      * DMA backlog it is copied to held_ and pushed from a buffer with room,
-     * the next codeword running meanwhile (DAB-IMPL 6.118). */
+     * the next codeword running meanwhile. */
     static constexpr uint16_t kRsBacklog = 6;
     bool lf_held_{false};
     std::array<uint8_t, dab::kViterbiMaxPayloadBits / 8> held_{};
@@ -331,7 +331,7 @@ class DabProcessor : public BasebandProcessor {
 
     /* Doublings the corrector applies to each data symbol, set per frame from
      * symbol 0's power: corrector and transform truncate in fixed LSBs, so a
-     * weak window lost its SNR to them (DAB-IMPL 6.115). 0 above a mean power
+     * weak window lost its SNR to them. 0 above a mean power
      * of kFftBoostPower / 4, where the receiver runs bit for bit as before. */
     static constexpr uint32_t kFftBoostPower = 1024; /* mean i^2 + q^2 */
     static constexpr uint8_t kFftBoostMax = 4;
@@ -351,7 +351,7 @@ class DabProcessor : public BasebandProcessor {
     /* Added to guard_energy()'s base, moving the early-late gate's fixed point
      * earlier by about as much: the gate stops at the late edge of a 252-sample
      * plateau, not the peak. The far tap is 64 + kGateBias + 64 + 252 + kFftSize,
-     * so 123, the measured best (DAB-IMPL 6.29), is the largest that stays
+     * so 123, the measured best, is the largest that stays
      * inside symbol_. */
     static constexpr int32_t kGateBias = 123;
     static_assert(kGateBias >= 0 && 64 + kGateBias + 64 + 252 + static_cast<int32_t>(dab::kFftSize) <

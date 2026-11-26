@@ -44,7 +44,7 @@ size_t expand(const int8_t* punctured, size_t& taken, uint32_t vector, size_t mo
 }
 
 /* Kept bits per group of four, MSB first (table 29): PI16 is 1110 throughout,
- * PI15 ends in 1100, the tail is 1100. softcheck holds this to depuncture_fic(). */
+ * PI15 ends in 1100, the tail is 1100. Must match depuncture_fic(). */
 constexpr uint8_t kKeepPi16[8] = {3, 3, 3, 3, 3, 3, 3, 3};
 constexpr uint8_t kKeepPi15[8] = {3, 3, 3, 3, 3, 3, 3, 2};
 constexpr uint8_t kKeepTail[8] = {2, 2, 2, 2, 2, 2, 2, 2};

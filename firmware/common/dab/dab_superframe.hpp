@@ -121,7 +121,7 @@ class SuperframeAssembler {
 
     /* Boundary tests since the last parse, 0xFF for none. For kSfPhaseMemory
      * superframes after a loss every fifth test (the old phase) runs RS in full
-     * instead of bailing (DAB-IMPL 6.105). */
+     * instead of bailing. */
     uint8_t miss_tests_{0xFF};
 
    public:

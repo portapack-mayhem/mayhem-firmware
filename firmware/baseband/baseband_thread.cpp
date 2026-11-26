@@ -83,8 +83,8 @@ void BasebandThread::run() {
 #ifdef BASEBAND_dab_rx
     /* Sized like buffer_samples in baseband_dma.cpp, which the DMA walks in
      * full. Static, not on the heap: allocated after the processor, the ring
-     * moved with the processor's size, and one such move stopped DAB decoding
-     * (DAB-IMPL 6.3). */
+     * moved with the processor's size, and one such move stopped DAB
+     * decoding. */
     alignas(4) static std::array<baseband::sample_t, (1 << BASEBAND_BUFFER_LOG2N)> baseband_buffer;
     baseband::dma::configure(baseband_buffer.data(), direction());
 #else

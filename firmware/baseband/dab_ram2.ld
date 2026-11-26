@@ -4,7 +4,7 @@
  * The top 8 KiB of the 64 KiB m4_code region in Local SRAM bank 2, for the
  * buffers proc_dab.cpp places in .ram2 to keep them off bank 1, which the DMA
  * ring competes for (7,976 bytes of them). NOLOAD: startup neither loads nor
- * clears it. Raised from 8.5 KiB to give the code 512 bytes (DAB-IMPL 6.118).
+ * clears it. Raised from 8.5 KiB to give the code 512 bytes.
  */
 MEMORY
 {

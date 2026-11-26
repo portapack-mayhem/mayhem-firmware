@@ -238,7 +238,7 @@ baseband::buffer_t wait_for_buffer() {
      * work would never be collected. Tested on data_index, not buffer_handled:
      * a lap clamp advances data_index alone, and the handled count then ran
      * the reader ahead of the writer for good, splicing the stream by a whole
-     * ring (DAB-IMPL 6.116). Same margin as the handled test without a lap. */
+     * ring. Same margin as the handled test without a lap. */
     if (static_cast<int32_t>(buffer_transfered - data_index) > 2) {
         const size_t index = next_data_slot();
         buffer_handled++;
