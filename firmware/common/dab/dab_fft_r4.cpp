@@ -19,11 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* Radix-4 drop-in for dab_fft.cpp (same header, out_shift = 4); the baseband
- * builds this one. One twiddle-free radix-2 pass and five radix-4 passes: 6
- * trips through the array instead of 11, 7680 complex multiplies instead of
- * 11264. Not bit-identical (fewer truncations, ~3 dB better SNR on the host),
- * so dab_fft.cpp stays as its control. */
+/* Radix-4 transform (out_shift = 4): one twiddle-free radix-2 pass and five
+ * radix-4 passes, 6 trips through the array instead of radix-2's 11 and 7680
+ * complex multiplies instead of 11264. */
 
 /* The packed path is what the device runs; DAB_FFT_SIMD_PORTABLE builds it
  * from dab_simd.hpp's plain-C twins so a host can check it. */
@@ -67,7 +65,7 @@ DAB_FFT_INLINE uint32_t twiddle(size_t idx) {
 }
 
 /* (x*w) >> 15, truncating on the pack: SMUSD, SMUADX, ASR, and PKHBT's own
- * shifter for the imaginary half, as in dab_fft.cpp's butterfly. */
+ * shifter for the imaginary half. */
 DAB_FFT_INLINE uint32_t cmul(uint32_t x, uint32_t w) {
     const int32_t tr = dsp_smusd(x, w) >> 15;
     return dsp_pack_lsl1(static_cast<uint32_t>(tr),

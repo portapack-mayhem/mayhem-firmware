@@ -1,6 +1,0 @@
-# Vendored third-party sources are kept byte-identical to upstream, both so the
-# zlib licence's "altered versions must be marked" clause does not apply and so
-# they can be re-fetched and diffed. Formatting them to this project's style
-# would be exactly such an alteration.
-DisableFormat: true
-SortIncludes: false

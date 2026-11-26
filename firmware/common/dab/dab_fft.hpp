@@ -19,10 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* Fixed-point 2048-point FFT, 16-bit complex, Q15 twiddles. Exactly one of
- * dab_fft_r4.cpp (radix-4) or dab_fft.cpp (radix-2 control) is linked. Both
- * halve at stages 3, 5, 7 and 9 and saturate elsewhere, so the true spectrum is
- * output * 2^4. Halving every stage costs ~20 dB; halving later saturates. */
+/* Fixed-point 2048-point FFT, 16-bit complex, Q15 twiddles (dab_fft_r4.cpp).
+ * It halves at stages 3, 5, 7 and 9 and saturates elsewhere, so the true
+ * spectrum is output * 2^4. Halving every stage costs ~20 dB; halving later
+ * saturates. */
 
 #ifndef __DAB_FFT_H__
 #define __DAB_FFT_H__
