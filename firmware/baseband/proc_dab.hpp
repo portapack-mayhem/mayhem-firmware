@@ -230,7 +230,7 @@ class DabProcessor : public BasebandProcessor {
      * the next codeword running meanwhile (DAB-IMPL 6.118). */
     static constexpr uint16_t kRsBacklog = 6;
     bool lf_held_{false};
-    std::array<uint8_t, dab::kViterbiMaxPayloadBits / 8> held_;
+    std::array<uint8_t, dab::kViterbiMaxPayloadBits / 8> held_{};
     void push_held_frame();
     uint8_t current_cif() const;
     void note_msc_overrun(uint8_t cif);

@@ -56,7 +56,7 @@ DAB_FFT_INLINE uint32_t fft_load(const FftComplex* p) {
 }
 
 DAB_FFT_INLINE void fft_store(FftComplex* p, uint32_t v) {
-    __builtin_memcpy(p, &v, sizeof(v));
+    __builtin_memcpy(static_cast<void*>(p), &v, sizeof(v));
 }
 
 /* kFftTwiddles holds W^0..W^1023, half the circle; W^(3k) reaches 1533, so

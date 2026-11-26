@@ -2499,6 +2499,12 @@ struct DabStatusMessage : public Message {
     uint8_t fib_errors;  // failed FIBs out of the 12 in this frame
     uint8_t audio_tier;  // tier actually in use, 0 = no audio
 
+    /* Of 19584000 per 96 ms frame at 204 MHz. */
+    uint32_t frame_cycles;
+
+    /* Peak audio decoder allocation, 0 when it has none. */
+    uint32_t decoder_bytes;
+
     /* Part of frame_cycles in on_symbol_complete (transforms, demapping, FEC);
      * the rest is the per-sample loop: 196608 runs a frame, ~99 cycles each. */
     uint32_t symbol_cycles{0};
@@ -2509,12 +2515,6 @@ struct DabStatusMessage : public Message {
 
     /* Reading of the ambiguous FIC steps behind fib_errors (dab_variant.hpp). */
     uint8_t decode_variant{0};
-
-    /* Of 19584000 per 96 ms frame at 204 MHz. */
-    uint32_t frame_cycles;
-
-    /* Peak audio decoder allocation, 0 when it has none. */
-    uint32_t decoder_bytes;
 
     /* Deepest power dip: samples from the symbol phase start, and depth as
      * reference/window. The null is the only deep dip, so a correct frame

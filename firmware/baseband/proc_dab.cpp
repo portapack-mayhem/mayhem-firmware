@@ -562,10 +562,10 @@ void DabProcessor::execute_fast(const buffer_c8_t& buffer) {
             __asm("sxtb16 %0, %1, ror #8" : "=r"(qq) : "r"(w1));
             __asm("pkhbt %0, %1, %2, lsl #16" : "=r"(d2) : "r"(ii), "r"(qq));
             __asm("pkhtb %0, %1, %2, asr #16" : "=r"(d3) : "r"(qq), "r"(ii));
-            __builtin_memcpy(&dst[k], &d0, sizeof(d0));
-            __builtin_memcpy(&dst[k + 1], &d1, sizeof(d1));
-            __builtin_memcpy(&dst[k + 2], &d2, sizeof(d2));
-            __builtin_memcpy(&dst[k + 3], &d3, sizeof(d3));
+            __builtin_memcpy(static_cast<void*>(&dst[k]), &d0, sizeof(d0));
+            __builtin_memcpy(static_cast<void*>(&dst[k + 1]), &d1, sizeof(d1));
+            __builtin_memcpy(static_cast<void*>(&dst[k + 2]), &d2, sizeof(d2));
+            __builtin_memcpy(static_cast<void*>(&dst[k + 3]), &d3, sizeof(d3));
         }
         for (; k + 2 <= n; k += 2) {
             uint32_t w, ii, qq, d0, d1;
@@ -574,8 +574,8 @@ void DabProcessor::execute_fast(const buffer_c8_t& buffer) {
             __asm("sxtb16 %0, %1, ror #8" : "=r"(qq) : "r"(w));
             __asm("pkhbt %0, %1, %2, lsl #16" : "=r"(d0) : "r"(ii), "r"(qq));
             __asm("pkhtb %0, %1, %2, asr #16" : "=r"(d1) : "r"(qq), "r"(ii));
-            __builtin_memcpy(&dst[k], &d0, sizeof(d0));
-            __builtin_memcpy(&dst[k + 1], &d1, sizeof(d1));
+            __builtin_memcpy(static_cast<void*>(&dst[k]), &d0, sizeof(d0));
+            __builtin_memcpy(static_cast<void*>(&dst[k + 1]), &d1, sizeof(d1));
         }
 #endif
         /* Tail, and the whole loop on a host without SIMD32. */
