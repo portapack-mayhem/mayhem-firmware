@@ -521,7 +521,7 @@ void DabView::refresh_service_options() {
 
     /* The pick's index may have moved as the list filled in. */
     const uint32_t shown_sid = pending_sid_ ? pending_sid_ : audio_selected_ ? selected_sid_
-                                                                              : 0;
+                                                                             : 0;
     size_t pending_index = SIZE_MAX;
     for (size_t i = 0; shown_sid != 0 && i < count; i++) {
         if (database_.services()[i].sid == shown_sid) {
@@ -768,7 +768,8 @@ void DabView::refresh() {
 
         if (service.has_subchannel()) {
             const bool mp2 = service.ascty != dab::kAsctyUnknown && !service.is_dab_plus;
-            line += (!fits_image(service) || mp2) ? "X " : service.is_dab_plus ? "+ " : "  ";
+            line += (!fits_image(service) || mp2) ? "X " : service.is_dab_plus ? "+ "
+                                                                               : "  ";
             line += to_string_dec_uint(service.bitrate / 1000, 3) + "k";
         } else {
             line += "     -";

@@ -32,10 +32,10 @@ constexpr uint8_t kGenerators[4] = {0133 & 0x7F, 0171 & 0x7F, 0145 & 0x7F, 0133 
  * argument for 8-bit metrics: change kByteSoft and the rest re-derives, or
  * the build stops. */
 static constexpr int32_t kByteSoft = kSoftMax;
-static constexpr int32_t kByteOffset = 4 * kByteSoft;   // makes a score non-negative
-static constexpr int32_t kByteSpan = 8 * kByteSoft;     // widest a step can move a metric
+static constexpr int32_t kByteOffset = 4 * kByteSoft;  // makes a score non-negative
+static constexpr int32_t kByteSpan = 8 * kByteSoft;    // widest a step can move a metric
 static constexpr uint32_t kByteSpanWord = static_cast<uint32_t>(2 * kByteOffset) * 0x01010101u;
-static constexpr uint32_t kByteDecBits = 0x08040201u;   // one bit per lane, lane 0 lowest
+static constexpr uint32_t kByteDecBits = 0x08040201u;  // one bit per lane, lane 0 lowest
 
 /* A K=7 trellis cannot spread its surviving metrics by much more than (K-1)
  * branch metrics. The bound sizes the renormalisation period; the real spread
@@ -47,7 +47,7 @@ static constexpr int32_t kByteSpread = 6 * kByteSpan;
  * a byte with a little to spare, and no oftener: the scan is the one part of
  * the step that is not the butterfly. */
 static constexpr int32_t kByteHeadroom = 252;
-static constexpr size_t kByteRenormPeriod = (kByteSpread + 8 * kByteSpan <= kByteHeadroom) ? 8
+static constexpr size_t kByteRenormPeriod = (kByteSpread + 8 * kByteSpan <= kByteHeadroom)   ? 8
                                             : (kByteSpread + 4 * kByteSpan <= kByteHeadroom) ? 4
                                             : (kByteSpread + 2 * kByteSpan <= kByteHeadroom) ? 2
                                                                                              : 1;
@@ -195,7 +195,9 @@ bool ViterbiDecoder::begin(const Soft* soft_in,
 #if defined(DAB_PACKED_ACS_PORTABLE) || !defined(__ARM_FEATURE_SIMD32)
 /* Plain-C equivalents for a host with no ARM SIMD. They must match the
  * instructions exactly: unsigned 8-bit lanes, GE meaning "first >= second". */
-static inline uint32_t byte_lane(uint32_t v, int k) { return (v >> (8 * k)) & 0xFFu; }
+static inline uint32_t byte_lane(uint32_t v, int k) {
+    return (v >> (8 * k)) & 0xFFu;
+}
 
 static inline uint32_t dsp_uqadd8(uint32_t a, uint32_t b) {
     uint32_t r = 0;
@@ -258,7 +260,9 @@ static inline uint32_t byte_ge_mask(uint32_t a, uint32_t b) {
     return n;
 }
 
-static inline uint32_t dsp_uxtb16(uint32_t a) { return a & 0x00FF00FFu; }
+static inline uint32_t dsp_uxtb16(uint32_t a) {
+    return a & 0x00FF00FFu;
+}
 static inline uint32_t dsp_uxtb16_ror8(uint32_t a) {
     const uint32_t r = (a >> 8) | (a << 24);
     return r & 0x00FF00FFu;
@@ -289,24 +293,26 @@ static inline uint32_t byte_acs(uint32_t a, uint32_t b, uint32_t& best) {
      * flags; the early-clobber keeps it off the inputs. USAD8 is here because
      * at the call site the compiler hoisted all sixteen SELs and spilled. */
     uint32_t m, d;
-    __asm("usub8 %0, %2, %3\n\t"
-          "sel   %0, %2, %3\n\t"
-          "sel   %1, %4, %5\n\t"
-          "usad8 %1, %1, %4"
-          : "=&r"(m), "=&r"(d)
-          : "r"(a), "r"(b), "r"(0u), "r"(kByteDecBits)
-          : "cc");
+    __asm(
+        "usub8 %0, %2, %3\n\t"
+        "sel   %0, %2, %3\n\t"
+        "sel   %1, %4, %5\n\t"
+        "usad8 %1, %1, %4"
+        : "=&r"(m), "=&r"(d)
+        : "r"(a), "r"(b), "r"(0u), "r"(kByteDecBits)
+        : "cc");
     best = m;
     return d;
 }
 
 static inline uint32_t dsp_umax8(uint32_t a, uint32_t b) {
     uint32_t r;
-    __asm("usub8 %0, %1, %2\n\t"
-          "sel   %0, %1, %2"
-          : "=&r"(r)
-          : "r"(a), "r"(b)
-          : "cc");
+    __asm(
+        "usub8 %0, %1, %2\n\t"
+        "sel   %0, %1, %2"
+        : "=&r"(r)
+        : "r"(a), "r"(b)
+        : "cc");
     return r;
 }
 
@@ -314,12 +320,13 @@ static inline uint32_t dsp_umax8(uint32_t a, uint32_t b) {
  * block, since all three instructions touch the GE flags. */
 static inline uint32_t byte_ge_mask(uint32_t a, uint32_t b) {
     uint32_t n;
-    __asm("usub8 %0, %1, %2\n\t"
-          "sel   %0, %3, %4\n\t"
-          "usad8 %0, %0, %4"
-          : "=&r"(n)
-          : "r"(a), "r"(b), "r"(kByteDecBits), "r"(0u)
-          : "cc");
+    __asm(
+        "usub8 %0, %1, %2\n\t"
+        "sel   %0, %3, %4\n\t"
+        "usad8 %0, %0, %4"
+        : "=&r"(n)
+        : "r"(a), "r"(b), "r"(kByteDecBits), "r"(0u)
+        : "cc");
     return n;
 }
 
@@ -371,11 +378,22 @@ static inline uint16_t byte_pack_odd(uint32_t v) {
 static_assert(kViterbiStates == 64, "byte_max() assumes 16 metric words");
 __attribute__((always_inline)) static inline uint32_t byte_max(const uint8_t* m) {
     uint32_t mx = byte_load32(m);
-#define DAB_BYTE_MAX(k) mx = dsp_umax8(mx, byte_load32(m + 4 * (k)));
-    DAB_BYTE_MAX(1) DAB_BYTE_MAX(2) DAB_BYTE_MAX(3) DAB_BYTE_MAX(4)
-    DAB_BYTE_MAX(5) DAB_BYTE_MAX(6) DAB_BYTE_MAX(7) DAB_BYTE_MAX(8)
-    DAB_BYTE_MAX(9) DAB_BYTE_MAX(10) DAB_BYTE_MAX(11) DAB_BYTE_MAX(12)
-    DAB_BYTE_MAX(13) DAB_BYTE_MAX(14) DAB_BYTE_MAX(15)
+#define DAB_BYTE_MAX(k) mx = dsp_umax8(mx, byte_load32(m + 4 * (k)))
+    DAB_BYTE_MAX(1);
+    DAB_BYTE_MAX(2);
+    DAB_BYTE_MAX(3);
+    DAB_BYTE_MAX(4);
+    DAB_BYTE_MAX(5);
+    DAB_BYTE_MAX(6);
+    DAB_BYTE_MAX(7);
+    DAB_BYTE_MAX(8);
+    DAB_BYTE_MAX(9);
+    DAB_BYTE_MAX(10);
+    DAB_BYTE_MAX(11);
+    DAB_BYTE_MAX(12);
+    DAB_BYTE_MAX(13);
+    DAB_BYTE_MAX(14);
+    DAB_BYTE_MAX(15);
 #undef DAB_BYTE_MAX
     mx = dsp_umax8(mx, mx >> 16);
     mx = dsp_umax8(mx, mx >> 8);
@@ -471,30 +489,30 @@ bool ViterbiDecoder::advance(size_t max_steps) {
 /* Quad q writes next states 4q..4q+3 from the low half and 32+4q..32+4q+3 from
  * the high half: split-layout indices 2q, 2q+1 (evens) and 32+2q, 32+2q+1
  * (odds), two halfword stores per half. */
-#define DAB_BYTE_QUAD(q, bp, bn)                                          \
-    {                                                                     \
-        const uint32_t e = byte_load32(ew + 4 * (q));                     \
-        const uint32_t o = byte_load32(ow + 4 * (q));                     \
-        uint32_t best;                                                    \
+#define DAB_BYTE_QUAD(q, bp, bn)                                           \
+    {                                                                      \
+        const uint32_t e = byte_load32(ew + 4 * (q));                      \
+        const uint32_t o = byte_load32(ow + 4 * (q));                      \
+        uint32_t best;                                                     \
         dec_lo |= byte_acs(dsp_uqadd8(e, (bp)), dsp_uqadd8(o, (bn)), best) \
-                  << (4 * (q));                                           \
-        byte_store16(ne + 2 * (q), byte_pack_even(best));                 \
-        byte_store16(no + 2 * (q), byte_pack_odd(best));                  \
+                  << (4 * (q));                                            \
+        byte_store16(ne + 2 * (q), byte_pack_even(best));                  \
+        byte_store16(no + 2 * (q), byte_pack_odd(best));                   \
         dec_hi |= byte_acs(dsp_uqadd8(e, (bn)), dsp_uqadd8(o, (bp)), best) \
-                  << (4 * (q));                                           \
-        byte_store16(ne + kStates / 4 + 2 * (q), byte_pack_even(best));   \
-        byte_store16(no + kStates / 4 + 2 * (q), byte_pack_odd(best));    \
+                  << (4 * (q));                                            \
+        byte_store16(ne + kStates / 4 + 2 * (q), byte_pack_even(best));    \
+        byte_store16(no + kStates / 4 + 2 * (q), byte_pack_odd(best));     \
     }
 
 /* Quads sharing a pattern go together (0/3, 1/2, 4/7, 5/6) so only one pattern
  * and its complement are live; in index order -Os spilled. Quads write disjoint
  * metrics and decision bits, so the order does not change the result. */
-#define DAB_BYTE_GROUP(qa, qb, bpe)                                       \
-    {                                                                     \
-        const uint32_t bp = (bpe);                                        \
-        const uint32_t bn = dsp_usub8(kByteSpanWord, bp);                 \
-        DAB_BYTE_QUAD(qa, bp, bn)                                         \
-        DAB_BYTE_QUAD(qb, bp, bn)                                         \
+#define DAB_BYTE_GROUP(qa, qb, bpe)                       \
+    {                                                     \
+        const uint32_t bp = (bpe);                        \
+        const uint32_t bn = dsp_usub8(kByteSpanWord, bp); \
+        DAB_BYTE_QUAD(qa, bp, bn)                         \
+        DAB_BYTE_QUAD(qb, bp, bn)                         \
     }
             DAB_BYTE_GROUP(0, 3, pa)
             DAB_BYTE_GROUP(1, 2, pb)
@@ -517,13 +535,23 @@ bool ViterbiDecoder::advance(size_t max_steps) {
                 const uint32_t sub = (top - kByteCeil) * 0x01010101u;
                 /* Unrolled, as in byte_max(). */
 #define DAB_BYTE_RENORM(k) \
-    byte_store32(nxt + 4 * (k), dsp_uqsub8(byte_load32(nxt + 4 * (k)), sub));
-                DAB_BYTE_RENORM(0) DAB_BYTE_RENORM(1) DAB_BYTE_RENORM(2)
-                DAB_BYTE_RENORM(3) DAB_BYTE_RENORM(4) DAB_BYTE_RENORM(5)
-                DAB_BYTE_RENORM(6) DAB_BYTE_RENORM(7) DAB_BYTE_RENORM(8)
-                DAB_BYTE_RENORM(9) DAB_BYTE_RENORM(10) DAB_BYTE_RENORM(11)
-                DAB_BYTE_RENORM(12) DAB_BYTE_RENORM(13) DAB_BYTE_RENORM(14)
-                DAB_BYTE_RENORM(15)
+    byte_store32(nxt + 4 * (k), dsp_uqsub8(byte_load32(nxt + 4 * (k)), sub))
+                DAB_BYTE_RENORM(0);
+                DAB_BYTE_RENORM(1);
+                DAB_BYTE_RENORM(2);
+                DAB_BYTE_RENORM(3);
+                DAB_BYTE_RENORM(4);
+                DAB_BYTE_RENORM(5);
+                DAB_BYTE_RENORM(6);
+                DAB_BYTE_RENORM(7);
+                DAB_BYTE_RENORM(8);
+                DAB_BYTE_RENORM(9);
+                DAB_BYTE_RENORM(10);
+                DAB_BYTE_RENORM(11);
+                DAB_BYTE_RENORM(12);
+                DAB_BYTE_RENORM(13);
+                DAB_BYTE_RENORM(14);
+                DAB_BYTE_RENORM(15);
 #undef DAB_BYTE_RENORM
             }
         }
@@ -594,8 +622,7 @@ size_t ViterbiDecoder::decode(const Soft* soft_in,
     if (!begin(soft_in, coded_bits, out_bytes, out_capacity_bytes))
         return 0;
 
-    while (!advance(coded_bits))
-        ;
+    while (!advance(coded_bits));
 
     return payload_bits_;
 }

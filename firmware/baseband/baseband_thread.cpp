@@ -88,7 +88,7 @@ void BasebandThread::run() {
     alignas(4) static std::array<baseband::sample_t, (1 << BASEBAND_BUFFER_LOG2N)> baseband_buffer;
     baseband::dma::configure(baseband_buffer.data(), direction());
 #else
-    const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
+    const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192> >();
     baseband::dma::configure(baseband_buffer->data(), direction());
 #endif
     // baseband::dma::allocate(4, 2048);

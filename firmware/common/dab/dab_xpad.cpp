@@ -116,8 +116,7 @@ void XpadParser::flush(XpadSink& sink) {
             if (crc == static_cast<uint16_t>((group_[expected - 2] << 8) | group_[expected - 1]))
                 sink.on_dls_group(group_, expected);
         }
-    }
-    else if (group_app_ == kXpadAppMotStart)
+    } else if (group_app_ == kXpadAppMotStart)
         sink.on_mot_group(group_, group_length_);
 
     finish_group();

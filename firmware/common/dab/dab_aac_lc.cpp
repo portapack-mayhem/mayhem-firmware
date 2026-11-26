@@ -105,7 +105,7 @@ constexpr float kTnsCoef[4][16] = {
 };
 
 struct BookInfo {
-    uint8_t values;  /* 4 = quad, 2 = pair */
+    uint8_t values; /* 4 = quad, 2 = pair */
     uint8_t radix;
     int8_t bias;         /* signed books shift each value down by this */
     uint8_t unsigned_cb; /* magnitudes in the codeword, signs appended */
@@ -113,9 +113,17 @@ struct BookInfo {
 
 /* Indexed by codebook - 1. */
 constexpr BookInfo kBooks[11] = {
-    {4, 3, 1, 0}, {4, 3, 1, 0}, {4, 3, 0, 1}, {4, 3, 0, 1},
-    {2, 9, 4, 0}, {2, 9, 4, 0}, {2, 8, 0, 1}, {2, 8, 0, 1},
-    {2, 13, 0, 1}, {2, 13, 0, 1}, {2, 17, 0, 1},
+    {4, 3, 1, 0},
+    {4, 3, 1, 0},
+    {4, 3, 0, 1},
+    {4, 3, 0, 1},
+    {2, 9, 4, 0},
+    {2, 9, 4, 0},
+    {2, 8, 0, 1},
+    {2, 8, 0, 1},
+    {2, 13, 0, 1},
+    {2, 13, 0, 1},
+    {2, 17, 0, 1},
 };
 
 struct Codebook {
@@ -126,8 +134,17 @@ struct Codebook {
 
 #define BOOK(n) {aac::kHcb##n##_counts, uint8_t(sizeof(aac::kHcb##n##_counts) - 1), aac::kHcb##n##_symbols}
 constexpr Codebook kCodebooks[11] = {
-    BOOK(1), BOOK(2), BOOK(3), BOOK(4), BOOK(5), BOOK(6),
-    BOOK(7), BOOK(8), BOOK(9), BOOK(10), BOOK(11),
+    BOOK(1),
+    BOOK(2),
+    BOOK(3),
+    BOOK(4),
+    BOOK(5),
+    BOOK(6),
+    BOOK(7),
+    BOOK(8),
+    BOOK(9),
+    BOOK(10),
+    BOOK(11),
 };
 constexpr Codebook kScaleFactorBook = BOOK(Sf);
 #undef BOOK
@@ -166,7 +183,7 @@ inline float pow43(int32_t q) {
 inline float exp2_quarter(int32_t e) {
     static constexpr float kQuarterStep[4] = {
         1.000000000e+00f, 1.189207077e+00f, 1.414213538e+00f, 1.681792855e+00f};
-    int32_t q = e >> 2;  /* arithmetic shift: floor division, negatives included */
+    int32_t q = e >> 2; /* arithmetic shift: floor division, negatives included */
     const int32_t r = e & 3;
     if (q > 100)
         q = 100;
@@ -237,8 +254,7 @@ void AacLcDecoder::reset() {
     error_ = kErrNone;
 }
 
-bool AacLcDecoder::configure(uint32_t sample_rate, uint8_t channels,
-                           float* scratch, size_t scratch_floats) {
+bool AacLcDecoder::configure(uint32_t sample_rate, uint8_t channels, float* scratch, size_t scratch_floats) {
     if (sample_rate != 24000 || channels < 1 || channels > 2)
         return false;
     if (scratch == nullptr || scratch_floats < kScratchFloats)
@@ -420,8 +436,8 @@ bool AacLcDecoder::decode_spectral_data(BitReader& br, const Ics& ics) {
     std::memset(spec_, 0, sizeof(spec_));
 
     const uint16_t window_len = (ics.window_sequence == kEightShort) ? uint16_t(kAacShortLength)
-                                                                    : uint16_t(kAacFrameLength);
-    uint8_t window_base = 0;  /* first window of the current group */
+                                                                     : uint16_t(kAacFrameLength);
+    uint8_t window_base = 0; /* first window of the current group */
 
     for (uint8_t g = 0; g < ics.num_window_groups; g++) {
         const uint8_t group_windows = ics.window_group_length[g];
@@ -629,7 +645,8 @@ constexpr Cplx twiddle_raw(size_t m) {
 template <size_t N, size_t Stride>
 struct TwiddleTable {
     Cplx w[N];
-    constexpr TwiddleTable() : w{} {
+    constexpr TwiddleTable()
+        : w{} {
         for (size_t m = 0; m < N; m++)
             w[m] = twiddle_raw(m * Stride);
     }
@@ -646,13 +663,14 @@ DAB_AAC_INLINE Cplx cmul(const Cplx& a, const Cplx& b) {
  * units the angle is a quadrant index plus one of five remainders, (k >> 2) +
  * (k & 3 + 1/8)/4 or 2k + 1/4, so one complex multiply does it (~2 ulp).
  * `is_short`, not n, so a third transform size cannot take the wrong branch. */
-constexpr Cplx kRotLong[4] = {  /* exp(2*pi*i*(r + 1/8)/1920) */
+constexpr Cplx kRotLong[4] = {
+    /* exp(2*pi*i*(r + 1/8)/1920) */
     {9.999999404e-01f, 4.090615257e-04f},
     {9.999932051e-01f, 3.681545611e-03f},
     {9.999758005e-01f, 6.953990087e-03f},
     {9.999477267e-01f, 1.022636052e-02f},
 };
-constexpr Cplx kRotShort = {9.999946356e-01f, 3.272486618e-03f};  /* exp(2*pi*i/1920) */
+constexpr Cplx kRotShort = {9.999946356e-01f, 3.272486618e-03f}; /* exp(2*pi*i/1920) */
 
 static_assert(2 * kAacFrameLength == 4 * kFftMax,
               "the long transform's angles must be quarters of the twiddle grid");
@@ -706,9 +724,9 @@ void fft_pow2(Cplx* x, size_t n) {
  * sum (summation order) but no less accurate: worst error 6.9e-7 of the
  * vector's rms. */
 void dft15_ct(const Cplx* in, size_t in_stride, Cplx* out) {
-    constexpr float c3 = kW15.w[5].re, s3 = kW15.w[5].im;  /* exp(2*pi*i/3) */
-    constexpr float c1 = kW15.w[3].re, s1 = kW15.w[3].im;  /* exp(2*pi*i/5) */
-    constexpr float c2 = kW15.w[6].re, s2 = kW15.w[6].im;  /* exp(4*pi*i/5) */
+    constexpr float c3 = kW15.w[5].re, s3 = kW15.w[5].im; /* exp(2*pi*i/3) */
+    constexpr float c1 = kW15.w[3].re, s1 = kW15.w[3].im; /* exp(2*pi*i/5) */
+    constexpr float c2 = kW15.w[6].re, s2 = kW15.w[6].im; /* exp(4*pi*i/5) */
 
     /* Five radix-3 DFTs, twiddled on the way out. */
     Cplx a[5][3];
@@ -860,7 +878,7 @@ inline const int16_t* rise_window(uint8_t shape, bool is_short) {
 void AacLcDecoder::filterbank(const Ics& ics, int16_t* pcm) {
     const bool is_short = ics.window_sequence == kEightShort;
     const size_t half = kAacFrameLength;
-    float* const time = scratch_;  /* 2*kAacFrameLength floats */
+    float* const time = scratch_; /* 2*kAacFrameLength floats */
 
     /* The IMDCT's 2/N uses each transform's own N (1920 long, 240 short); one
      * factor for the frame leaves short blocks eight times too small, a hole

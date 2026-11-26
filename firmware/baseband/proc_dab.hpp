@@ -163,7 +163,12 @@ class DabProcessor : public BasebandProcessor {
     uint16_t prs_peak_{0};
     int16_t prs_best_shift_{0};
     /* Which step of the subchannel's transform burst a symbol is. */
-    enum class BurstStep : uint8_t { kNone, kNow, kStageFft, kStageBuf, kFinishFft, kFinishBuf };
+    enum class BurstStep : uint8_t { kNone,
+                                     kNow,
+                                     kStageFft,
+                                     kStageBuf,
+                                     kFinishFft,
+                                     kFinishBuf };
     static constexpr uint8_t kStageEmpty = 0xFF;
     uint8_t staged_fft_{kStageEmpty};
     uint8_t staged_buf_{kStageEmpty};
@@ -359,7 +364,7 @@ class DabProcessor : public BasebandProcessor {
      * total trim since the null last placed the frame. */
     int32_t timing_adjust_{0};
     int32_t timing_total_{0};
-    static constexpr int32_t kTimingTrimLimit = 1000;  /* under half a symbol, so it cannot reach the neighbour */
+    static constexpr int32_t kTimingTrimLimit = 1000; /* under half a symbol, so it cannot reach the neighbour */
 
     /* The frequency estimate is gated on the guard correlation that produced
      * it and then smoothed: its median is right and its tail is not. */

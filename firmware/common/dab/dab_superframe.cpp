@@ -55,15 +55,22 @@ static uint8_t g_rs_last_good = 0;
 static uint8_t g_rs_last_bad = 0;
 static uint8_t g_rs_last_total = 0;
 
-uint8_t rs_last_good_words() { return g_rs_last_good; }
-uint8_t rs_last_bad_words() { return g_rs_last_bad; }
-uint8_t rs_last_total_words() { return g_rs_last_total; }
+uint8_t rs_last_good_words() {
+    return g_rs_last_good;
+}
+uint8_t rs_last_bad_words() {
+    return g_rs_last_bad;
+}
+uint8_t rs_last_total_words() {
+    return g_rs_last_total;
+}
 
 static uint8_t g_rs_zero_why = 0;
-uint8_t rs_zero_why() { return g_rs_zero_why; }
+uint8_t rs_zero_why() {
+    return g_rs_zero_why;
+}
 
-size_t rs_correct_superframe(const uint8_t* raw, size_t superframe_bytes, uint8_t* out, size_t out_capacity,
-                             bool bail) {
+size_t rs_correct_superframe(const uint8_t* raw, size_t superframe_bytes, uint8_t* out, size_t out_capacity, bool bail) {
     if (raw == nullptr || out == nullptr) {
         g_rs_zero_why = 1;
         return 0;

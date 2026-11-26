@@ -66,12 +66,30 @@ uint32_t puncturing_vector(uint8_t index) {
         return 0;
 
     static constexpr uint32_t kPuncturing[24] = {
-        0xC8888888u, 0xC888C888u, 0xC8C8C888u, 0xC8C8C8C8u,
-        0xCCC8C8C8u, 0xCCC8CCC8u, 0xCCCCCCC8u, 0xCCCCCCCCu,
-        0xECCCCCCCu, 0xECCCECCCu, 0xECECECCCu, 0xECECECECu,
-        0xEEECECECu, 0xEEECEEECu, 0xEEEEEEECu, 0xEEEEEEEEu,
-        0xFEEEEEEEu, 0xFEEEFEEEu, 0xFEFEFEEEu, 0xFEFEFEFEu,
-        0xFFFEFEFEu, 0xFFFEFFFEu, 0xFFFFFFFEu, 0xFFFFFFFFu,
+        0xC8888888u,
+        0xC888C888u,
+        0xC8C8C888u,
+        0xC8C8C8C8u,
+        0xCCC8C8C8u,
+        0xCCC8CCC8u,
+        0xCCCCCCC8u,
+        0xCCCCCCCCu,
+        0xECCCCCCCu,
+        0xECCCECCCu,
+        0xECECECCCu,
+        0xECECECECu,
+        0xEEECECECu,
+        0xEEECEEECu,
+        0xEEEEEEECu,
+        0xEEEEEEEEu,
+        0xFEEEEEEEu,
+        0xFEEEFEEEu,
+        0xFEFEFEEEu,
+        0xFEFEFEFEu,
+        0xFFFEFEFEu,
+        0xFFFEFFFEu,
+        0xFFFFFFFEu,
+        0xFFFFFFFFu,
     };
     return kPuncturing[index - 1];
 }

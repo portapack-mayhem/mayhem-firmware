@@ -210,12 +210,23 @@ static void fft2048_step(FftComplex* data, uint8_t step) {
 #endif
             }
             break;
-        case 2: radix4_pass<2, false>(data); break;   /* stages 1, 2                */
-        case 3: radix4_pass<8, true>(data); break;    /* stages 3, 4 -- halve at 3  */
-        case 4: radix4_pass<32, true>(data); break;   /* stages 5, 6 -- halve at 5  */
-        case 5: radix4_pass<128, true>(data); break;  /* stages 7, 8 -- halve at 7  */
-        case 6: radix4_pass<512, true>(data); break;  /* stages 9, 10 -- halve at 9 */
-        default: break;
+        case 2:
+            radix4_pass<2, false>(data);
+            break; /* stages 1, 2                */
+        case 3:
+            radix4_pass<8, true>(data);
+            break; /* stages 3, 4 -- halve at 3  */
+        case 4:
+            radix4_pass<32, true>(data);
+            break; /* stages 5, 6 -- halve at 5  */
+        case 5:
+            radix4_pass<128, true>(data);
+            break; /* stages 7, 8 -- halve at 7  */
+        case 6:
+            radix4_pass<512, true>(data);
+            break; /* stages 9, 10 -- halve at 9 */
+        default:
+            break;
     }
 }
 

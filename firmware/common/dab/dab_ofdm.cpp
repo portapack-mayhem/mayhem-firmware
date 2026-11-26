@@ -74,8 +74,12 @@ inline uint32_t iq_word(const Iq16* p) {
     __builtin_memcpy(&w, p, sizeof(w));
     return w;
 }
-inline int32_t lane_lo(uint32_t w) { return static_cast<int16_t>(w & 0xFFFFu); }
-inline int32_t lane_hi(uint32_t w) { return static_cast<int16_t>(w >> 16); }
+inline int32_t lane_lo(uint32_t w) {
+    return static_cast<int16_t>(w & 0xFFFFu);
+}
+inline int32_t lane_hi(uint32_t w) {
+    return static_cast<int16_t>(w >> 16);
+}
 #endif
 
 inline int32_t sat8(int32_t v) {

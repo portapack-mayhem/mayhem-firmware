@@ -47,8 +47,7 @@ constexpr size_t kMaxCorrectedBytes = (kMaxSuperframeBytes / kRsBlockLength) * k
  * (superframe_bytes / 120) * 110. An uncorrectable word passes through raw for
  * the firecode and unit CRCs to judge. 0 on bad arguments or when `bail` gives
  * up (kRsBailRun in dab_superframe.cpp). */
-size_t rs_correct_superframe(const uint8_t* raw, size_t superframe_bytes, uint8_t* out, size_t out_capacity,
-                             bool bail = true);
+size_t rs_correct_superframe(const uint8_t* raw, size_t superframe_bytes, uint8_t* out, size_t out_capacity, bool bail = true);
 
 uint8_t rs_last_good_words();
 

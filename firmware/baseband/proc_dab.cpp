@@ -993,26 +993,26 @@ void DabProcessor::on_symbol_complete() {
         } else if (trim_settled) {
             timing_adjust_ = 0;
         } else {
-        /* Early-late gate on the guard correlation (plateau ~640 samples). */
-        const uint32_t early = guard_energy(symbol_.data(), -64, kGateBias);
-        const uint32_t centre = guard_energy(symbol_.data(), 0, kGateBias);
-        const uint32_t late = guard_energy(symbol_.data(), +64, kGateBias);
-        int32_t step = 0;
-        if (late > centre && late > early)
-            step = kTimingStep;
-        else if (early > centre && early > late)
-            step = -kTimingStep;
+            /* Early-late gate on the guard correlation (plateau ~640 samples). */
+            const uint32_t early = guard_energy(symbol_.data(), -64, kGateBias);
+            const uint32_t centre = guard_energy(symbol_.data(), 0, kGateBias);
+            const uint32_t late = guard_energy(symbol_.data(), +64, kGateBias);
+            int32_t step = 0;
+            if (late > centre && late > early)
+                step = kTimingStep;
+            else if (early > centre && early > late)
+                step = -kTimingStep;
 
-        /* Never let the trim walk off the null: the guard correlation repeats
-         * every symbol, so the gate could settle a whole symbol out. The null
-         * sets the frame; this only trims inside it. */
-        const int32_t next = timing_total_ + step;
-        if (next > kTimingTrimLimit || next < -kTimingTrimLimit)
-            step = 0;
-        else
-            timing_total_ = next;
+            /* Never let the trim walk off the null: the guard correlation repeats
+             * every symbol, so the gate could settle a whole symbol out. The null
+             * sets the frame; this only trims inside it. */
+            const int32_t next = timing_total_ + step;
+            if (next > kTimingTrimLimit || next < -kTimingTrimLimit)
+                step = 0;
+            else
+                timing_total_ = next;
 
-        timing_adjust_ = step;
+            timing_adjust_ = step;
         }
 
         /* Follow the sample clock's drift once the PRS shots are spent and the
@@ -1200,67 +1200,67 @@ void DabProcessor::on_symbol_complete() {
         }
 
         if (produces_carriers) {
-        const auto& current = use_a_ ? carriers_a_ : carriers_b_;
-        const auto& previous = use_a_ ? carriers_b_ : carriers_a_;
+            const auto& current = use_a_ ? carriers_a_ : carriers_b_;
+            const auto& previous = use_a_ ? carriers_b_ : carriers_a_;
 
-        if (have_reference_) {
-            /* r4 folds the four DQPSK points onto one: (z/|z|)^4 = z^4/|z|^4, no
-             * atan2. MSC pairs are gated on !want_fic, since a deferred demap
-             * lands after want_msc goes false. Two loops, not a helper, which GCC
-             * would fuse into vfma and so change the MSC sum's rounding. */
-            /* Only the subchannel's first pair: CIF symbol s holds CUs 48s to
-             * 48s+47, so that is the symbol its start CU falls in. */
-            const size_t first_pair =
-                (static_cast<size_t>(msc_start_cu_) * dab::kBitsPerCu) / kSoftBitsPerSymbol;
-            if (!want_fic && pair_in_cif == first_pair) {
-                for (size_t k = 0; k < dab::kCarriers; k += 4) {
-                    const float re = static_cast<float>(static_cast<int32_t>(current[k].i) * previous[k].i +
-                                                        static_cast<int32_t>(current[k].q) * previous[k].q);
-                    const float im = static_cast<float>(static_cast<int32_t>(current[k].q) * previous[k].i -
-                                                        static_cast<int32_t>(current[k].i) * previous[k].q);
-                    const float m2 = re * re + im * im;
-                    if (m2 <= 0.0f)
-                        continue;
-                    const float z2re = re * re - im * im;
-                    const float z2im = 2.0f * re * im;
-                    const float inv = 1.0f / (m2 * m2);
-                    msc_r4_re_ += (z2re * z2re - z2im * z2im) * inv;
-                    msc_r4_im_ += (2.0f * z2re * z2im) * inv;
-                    ++msc_r4_n_;
+            if (have_reference_) {
+                /* r4 folds the four DQPSK points onto one: (z/|z|)^4 = z^4/|z|^4, no
+                 * atan2. MSC pairs are gated on !want_fic, since a deferred demap
+                 * lands after want_msc goes false. Two loops, not a helper, which GCC
+                 * would fuse into vfma and so change the MSC sum's rounding. */
+                /* Only the subchannel's first pair: CIF symbol s holds CUs 48s to
+                 * 48s+47, so that is the symbol its start CU falls in. */
+                const size_t first_pair =
+                    (static_cast<size_t>(msc_start_cu_) * dab::kBitsPerCu) / kSoftBitsPerSymbol;
+                if (!want_fic && pair_in_cif == first_pair) {
+                    for (size_t k = 0; k < dab::kCarriers; k += 4) {
+                        const float re = static_cast<float>(static_cast<int32_t>(current[k].i) * previous[k].i +
+                                                            static_cast<int32_t>(current[k].q) * previous[k].q);
+                        const float im = static_cast<float>(static_cast<int32_t>(current[k].q) * previous[k].i -
+                                                            static_cast<int32_t>(current[k].i) * previous[k].q);
+                        const float m2 = re * re + im * im;
+                        if (m2 <= 0.0f)
+                            continue;
+                        const float z2re = re * re - im * im;
+                        const float z2im = 2.0f * re * im;
+                        const float inv = 1.0f / (m2 * m2);
+                        msc_r4_re_ += (z2re * z2re - z2im * z2im) * inv;
+                        msc_r4_im_ += (2.0f * z2re * z2im) * inv;
+                        ++msc_r4_n_;
+                    }
                 }
+
+                if (want_fic) {
+                    for (size_t k = 0; k < dab::kCarriers; k++) {
+                        const float re = static_cast<float>(static_cast<int32_t>(current[k].i) * previous[k].i +
+                                                            static_cast<int32_t>(current[k].q) * previous[k].q);
+                        const float im = static_cast<float>(static_cast<int32_t>(current[k].q) * previous[k].i -
+                                                            static_cast<int32_t>(current[k].i) * previous[k].q);
+                        const float m2 = re * re + im * im;
+                        if (m2 <= 0.0f)
+                            continue;
+                        const float z2re = re * re - im * im;
+                        const float z2im = 2.0f * re * im;
+                        const float inv = 1.0f / (m2 * m2);
+                        r4_acc_re_ += (z2re * z2re - z2im * z2im) * inv;
+                        r4_acc_im_ += (2.0f * z2re * z2im) * inv;
+                        ++r4_count_;
+                    }
+                }
+
+                dab::dqpsk_demap(previous.data(), current.data(), dab::kCarriers, symbol_soft_.data());
+
+                if (fic_carriers)
+                    accumulate_fic(fic_pair);
+                else
+                    accumulate_msc(pair_in_cif);
+            } else if (!fic_carriers) {
+                /* Its reference was erased: erasures, not the last CIF's bits. */
+                accumulate_msc(pair_in_cif, true);
             }
 
-            if (want_fic) {
-                for (size_t k = 0; k < dab::kCarriers; k++) {
-                    const float re = static_cast<float>(static_cast<int32_t>(current[k].i) * previous[k].i +
-                                                        static_cast<int32_t>(current[k].q) * previous[k].q);
-                    const float im = static_cast<float>(static_cast<int32_t>(current[k].q) * previous[k].i -
-                                                        static_cast<int32_t>(current[k].i) * previous[k].q);
-                    const float m2 = re * re + im * im;
-                    if (m2 <= 0.0f)
-                        continue;
-                    const float z2re = re * re - im * im;
-                    const float z2im = 2.0f * re * im;
-                    const float inv = 1.0f / (m2 * m2);
-                    r4_acc_re_ += (z2re * z2re - z2im * z2im) * inv;
-                    r4_acc_im_ += (2.0f * z2re * z2im) * inv;
-                    ++r4_count_;
-                }
-            }
-
-            dab::dqpsk_demap(previous.data(), current.data(), dab::kCarriers, symbol_soft_.data());
-
-            if (fic_carriers)
-                accumulate_fic(fic_pair);
-            else
-                accumulate_msc(pair_in_cif);
-        } else if (!fic_carriers) {
-            /* Its reference was erased: erasures, not the last CIF's bits. */
-            accumulate_msc(pair_in_cif, true);
-        }
-
-        have_reference_ = true;
-        use_a_ = !use_a_;
+            have_reference_ = true;
+            use_a_ = !use_a_;
         }
     } else if (fic_staged()) {
         /* A deferred FIC transform's reference is its predecessor, still in

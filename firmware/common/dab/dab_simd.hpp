@@ -34,8 +34,12 @@
 /* 16-bit lanes, real in the low half; multiplies accumulate modulo 2^32, adds
  * saturate or halve per lane. QSAX and QASX were checked lane by lane against
  * the ARM ARM pseudocode. */
-static inline int16_t dsp_lane_lo(uint32_t v) { return static_cast<int16_t>(v & 0xFFFFu); }
-static inline int16_t dsp_lane_hi(uint32_t v) { return static_cast<int16_t>(v >> 16); }
+static inline int16_t dsp_lane_lo(uint32_t v) {
+    return static_cast<int16_t>(v & 0xFFFFu);
+}
+static inline int16_t dsp_lane_hi(uint32_t v) {
+    return static_cast<int16_t>(v >> 16);
+}
 static inline uint32_t dsp_lane_pack(int32_t lo, int32_t hi) {
     return (static_cast<uint32_t>(static_cast<uint16_t>(hi)) << 16) |
            static_cast<uint32_t>(static_cast<uint16_t>(lo));
