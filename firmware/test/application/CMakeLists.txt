@@ -35,6 +35,7 @@ set(CMAKE_CXX_COMPILER g++)
 add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/main.cpp
 	${PROJECT_SOURCE_DIR}/test_basics.cpp
+	${PROJECT_SOURCE_DIR}/test_external_app_layout.cpp
 	${PROJECT_SOURCE_DIR}/test_circular_buffer.cpp
 	${PROJECT_SOURCE_DIR}/test_convert.cpp
 	${PROJECT_SOURCE_DIR}/test_file_reader.cpp

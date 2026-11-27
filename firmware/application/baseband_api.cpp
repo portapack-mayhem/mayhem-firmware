@@ -493,6 +493,10 @@ void set_rx_fs4_direction(RxFs4Direction direction) {
     }
 }
 
+bool is_image_parked() {
+    return shared_memory.m4_parked;
+}
+
 bool is_image_running() {
     return baseband_image_running;
 }
@@ -504,6 +508,7 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
 
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
+    shared_memory.m4_parked = false;
 
     rx_fs4_supported = image_tag == spi_flash::image_tag_am_audio ||
                        image_tag == spi_flash::image_tag_nfm_audio ||
@@ -536,6 +541,7 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const sp
 
     creg::m4txevent::clear();
     shared_memory.clear_baseband_ready();
+    shared_memory.m4_parked = false;
 
     m4_init_prepared(m4_code, false);
     // Only explicitly identified Capture images support application FS4 control.
@@ -553,6 +559,15 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const sp
         if (count == 0)
             chDbgPanic("Baseband Sync Fail");
     }
+}
+
+void run_dmr_voice_image() {
+    run_prepared_image(memory::map::m4_code_extended.base());
+}
+
+void configure_dmr_voice() {
+    DmrVoiceConfigureMessage message;
+    send_message(&message);
 }
 
 void shutdown() {

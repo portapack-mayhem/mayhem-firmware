@@ -24,6 +24,7 @@
 #include "lpc43xx_cpp.hpp"
 
 #include "portapack_shared_memory.hpp"
+#include "memory_map.hpp"
 #include "portapack_dma.hpp"
 
 #include "gpdma.hpp"
@@ -32,13 +33,6 @@
 static void init() {
     // Audio DMA initialization was moved to baseband proc's that actually use DMA audio, to save memory.
     nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
-}
-
-static void halt() {
-    port_disable();
-    while (true) {
-        port_wait_for_interrupt();
-    }
 }
 
 extern "C" {
@@ -77,8 +71,16 @@ void _default_exit(void) {
     ShutdownMessage shutdown_message;
     shared_memory.application_queue.push(shutdown_message);
 
-    shared_memory.baseband_message = nullptr;
-
-    halt();
+    // Acknowledge only AFTER entering memory that neither image loader overwrites.
+    // r0 = &baseband_message, r1 = &m4_parked. Set parked, clear message, dsb, wfi loop.
+    constexpr uint16_t park_code[] = {0x2201, 0x700a, 0x2200, 0x6002, 0xf3bf, 0x8f4f, 0xbf30, 0xe7fd};
+    auto* park = reinterpret_cast<volatile uint16_t*>(portapack::memory::map::m4_park.base());
+    for (unsigned i = 0; i < sizeof(park_code) / sizeof(park_code[0]); ++i)
+        park[i] = park_code[i];
+    __asm__ volatile("dsb\n isb" ::: "memory");
+    static_assert(sizeof(park_code) <= portapack::memory::map::m4_park.size(), "Shutdown code exceeds reservation");
+    using Park = void (*)(const Message* volatile*, volatile bool*);
+    reinterpret_cast<Park>(portapack::memory::map::m4_park.base() | 1)(&shared_memory.baseband_message, &shared_memory.m4_parked);
+    __builtin_unreachable();
 }
 }

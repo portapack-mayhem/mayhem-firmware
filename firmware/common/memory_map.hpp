@@ -104,10 +104,10 @@ constexpr region_t spifi_cached{LPC_SPIFI_DATA_CACHED_BASE, spifi_uncached.size(
  */
 #if defined(PORTAPACK_BOARD_PRALINE)
 constexpr region_t m4_code{local_sram_1.base(), 64_KiB};
-constexpr region_t shared_memory{m4_code.end(), 8_KiB};
+constexpr region_t shared_memory{m4_code.end(), 8_KiB - 16};
 #else
 constexpr region_t m4_code{local_sram_1.base(), 40_KiB};
-constexpr region_t shared_memory{local_sram_0.end() - 8_KiB, 8_KiB};
+constexpr region_t shared_memory{local_sram_0.end() - 8_KiB, 8_KiB - 16};
 #endif
 
 /* CMake passes the same size to the packer, which uses it to reject an app
@@ -136,6 +136,13 @@ static_assert(shared_memory.base() >= local_sram_0.base() + PORTAPACK_M4_RAM_SIZ
 static_assert(shared_memory.end() <= local_sram_0.end(),
               "shared memory does not fit in local SRAM bank 1");
 #endif
+
+// Parking is inside the persistent IPC reservation, outside reloadable images.
+constexpr region_t m4_park{shared_memory.end(), 16};
+constexpr region_t m4_code_extended{local_sram_0.base(), 88_KiB};
+constexpr region_t extended_app{local_sram_1.base() + 32_KiB, 8_KiB};
+static_assert(m4_code_extended.end() <= shared_memory.base(), "DMR code overlaps IPC");
+static_assert(extended_app.end() <= local_sram_1.end(), "DMR UI/snapshot exceeds bank 2");
 
 constexpr region_t m4_code_hackrf = local_sram_0;
 

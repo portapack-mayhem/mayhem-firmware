@@ -317,7 +317,15 @@ macro(DeclareTargets chunk_tag name)
 	include(${RULESPATH}/rules.cmake)
 	set_source_files_properties(${MODE_CPPSRC} PROPERTIES COMPILE_FLAGS "${MODE_FLAGS}")
 	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
-	set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
+    # Select the script per executable, including the extended DMR Voice image.
+    string(REPLACE ",--script=${LDSCRIPT}" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+    if(BASEBAND_LINKER_SCRIPT)
+        set(target_linker_script ${BASEBAND_LINKER_SCRIPT})
+    else()
+        set(target_linker_script ${LDSCRIPT})
+    endif()
+    target_link_options(${PROJECT_NAME}.elf PRIVATE "-T${target_linker_script}")
+    set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${target_linker_script})
 	add_definitions(${DEFS})
 	target_compile_definitions(${PROJECT_NAME}.elf PUBLIC "-DBASEBAND_${name}")
 	include_directories(. ${INCDIR} ${MODE_INCDIR})
@@ -581,6 +589,20 @@ if(FLASH_TIER GREATER_EQUAL 2)
 	set(add_to_firmware FALSE)
 endif()
 
+# DMR Voice uses the extended 88 KiB code / 32 KiB data layout.
+set(BASEBAND_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/vocoder/dmr_voice.ld)
+set(MODE_CPPSRC proc_dmr_voice.cpp dmr/receiver.c dmr/allocation.cpp dmr/rx_thread.cpp dmr/voice_output.cpp dmr/call_info.cpp dmr/ambe_fec.c dmr/src/voice.c
+    vocoder/decoder.cpp vocoder/vocoder_rx.S vocoder/vocoder_common.S
+    dmr/src/burst.c dmr/src/data.c dmr/src/embedded.c
+    dmr/src/phy/discriminator.c dmr/src/phy/matched_filter.c
+    dmr/src/phy/rx.c
+    dmr/src/phy/sync.c dmr/src/phy/sync_detector.c)
+set(MODE_FLAGS "-O2 -fstack-usage")
+DeclareTargets(PDVO dmr_voice)
+target_include_directories(baseband_dmr_voice.elf PRIVATE dmr/include dmr/src)
+set(MODE_FLAGS "-O3")
+
+unset(BASEBAND_LINKER_SCRIPT)
 
 ### VOR TX
 

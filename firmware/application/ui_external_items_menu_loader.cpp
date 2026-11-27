@@ -1,6 +1,7 @@
 #include "ui_external_items_menu_loader.hpp"
 
 #include "sd_card.hpp"
+#include "baseband_api.hpp"
 #include "file_path.hpp"
 #include "ui_standalone_view.hpp"
 
@@ -99,7 +100,7 @@ bool reload_bundled_baseband() {
         if (!readResult)
             continue;
 
-        if (application_information.header_version != CURRENT_HEADER_VERSION)
+        if (!::external_app::supported(application_information.header_version))
             continue;
 
         bool versionMatches = VERSION_MD5 == application_information.app_version;
@@ -238,7 +239,7 @@ bool reload_bundled_baseband() {
         if (application_information.menu_location != app_location)
             continue;
 
-        if (application_information.header_version != CURRENT_HEADER_VERSION)
+        if (!::external_app::supported(application_information.header_version))
             continue;
 
         bool versionMatches = VERSION_MD5 == application_information.app_version;
@@ -342,51 +343,43 @@ bool reload_bundled_baseband() {
     if (!readResult)
         return false;
 
-    app.seek(0);
-
-    if (application_information.m4_app_offset != 0) {
-        // copy application image
-        for (size_t file_read_index = 0; file_read_index < application_information.m4_app_offset; file_read_index += std::filesystem::max_file_block_size) {
-            auto bytes_to_read = std::filesystem::max_file_block_size;
-            if (file_read_index + std::filesystem::max_file_block_size > application_information.m4_app_offset)
-                bytes_to_read = application_information.m4_app_offset - file_read_index;
-
-            if (bytes_to_read == 0)
-                break;
-
-            readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
-            if (!readResult)
-                return false;
-
-            checksum += simple_checksum((uint32_t)&application_information.memory_location[file_read_index], readResult.value());
-
-            if (readResult.value() < std::filesystem::max_file_block_size)
-                break;
-        }
-
-        // copy baseband image
-        if (!copy_bundled_baseband(app, application_information.m4_app_offset, checksum))
-            return false;
-    } else {
-        // copy application image
-        for (size_t file_read_index = 0; file_read_index < 80 * std::filesystem::max_file_block_size; file_read_index += std::filesystem::max_file_block_size) {
-            auto bytes_to_read = std::filesystem::max_file_block_size;
-
-            readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
-            if (!readResult)
-                return false;
-
-            checksum += simple_checksum((uint32_t)&application_information.memory_location[file_read_index], readResult.value());
-
-            if (readResult.value() < std::filesystem::max_file_block_size)
-                break;
-        }
-    }
-
-    if (checksum != EXT_APP_EXPECTED_CHECKSUM)
+    ::external_app::Layout layout;
+    if (readResult.value() != sizeof(application_information) ||
+        application_information.app_version != VERSION_MD5 ||
+        !::external_app::layout(application_information.header_version, app.size(),
+                                application_information.m4_app_offset, layout, portapack::memory::map::m4_code.size()))
+        return false;
+    const auto entry = reinterpret_cast<uint32_t>(application_information.externalAppEntry);
+    if (reinterpret_cast<uint32_t>(application_information.memory_location) != layout.ui_base ||
+        !(entry & 1) || (entry & ~1U) < layout.ui_base + sizeof(application_information) ||
+        (entry & ~1U) >= layout.ui_base + layout.ui_size)
         return false;
 
-    if (application_information.m4_app_offset != 0) {
+    // Extended images overwrite the old M4 heap/stack. shutdown() returns only
+    // after M4 has entered the fixed shared-memory parking loop.
+    baseband::shutdown();
+    if (!baseband::is_image_parked() || !app.seek(0))
+        return false;
+    const auto load = [&](uint32_t address, uint32_t size) {
+        while (size) {
+            const uint32_t count = size < std::filesystem::max_file_block_size ? size : std::filesystem::max_file_block_size;
+            auto read = app.read(reinterpret_cast<void*>(address), count);
+            if (!read || read.value() != count)
+                return false;
+            checksum += simple_checksum(address, count);
+            address += count;
+            size -= count;
+        }
+        return true;
+    };
+    if (!load(layout.ui_base, layout.ui_size) || !load(layout.m4_base, layout.m4_size))
+        return false;
+    uint32_t trailer;
+    readResult = app.read(&trailer, sizeof(trailer));
+    if (!readResult || readResult.value() != sizeof(trailer) || checksum + trailer != EXT_APP_EXPECTED_CHECKSUM)
+        return false;
+
+    if (application_information.header_version == CURRENT_HEADER_VERSION && application_information.m4_app_offset != 0) {
         bundled_app_name = std::string{app_name};
         bundled_offset = application_information.m4_app_offset;
         m4_set_bundled_reloader(reload_bundled_baseband);

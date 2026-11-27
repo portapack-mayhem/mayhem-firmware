@@ -126,6 +126,7 @@ MEMORY
     ram_external_app_subghz_chat           (rwx) : org = 0xAE150000, len = 32k
     ram_external_app_vdl2_rx               (rwx) : org = 0xAE160000, len = 32k
     ram_external_app_horus_rx              (rwx) : org = 0xAE170000, len = 32k
+    ram_external_app_dmr_voice             (rwx) : org = 0xAE180000, len = 32k
 }
 
 SECTIONS
@@ -747,4 +748,11 @@ SECTIONS
         KEEP(*(.external_app.app_horus_rx.application_information));
         */external/horus_rx/*(*ui*external_app*horus_rx*);
     } > ram_external_app_horus_rx
+
+    .external_app_dmr_voice : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_dmr_voice.application_information));
+        */external/dmr_voice/*(*ui*external_app*dmr_voice*);
+    } > ram_external_app_dmr_voice
+    ASSERT(SIZEOF(.external_app_dmr_voice) <= 4096, "DMR Voice UI overlaps M4 RX snapshot")
 }

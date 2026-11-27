@@ -135,8 +135,11 @@ void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_m
 bool is_image_running();
 bool supports_rx_fs4();
 void set_rx_fs4_direction(RxFs4Direction direction);
+bool is_image_parked();
 void run_image(const portapack::spi_flash::image_tag_t image_tag, bool enforce_core_sync = true);
 void shutdown();
+void configure_dmr_voice();
+void run_dmr_voice_image();
 
 void spectrum_streaming_start();
 void spectrum_streaming_stop();

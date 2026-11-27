@@ -1,4 +1,6 @@
 set(EXTCPPSRC
+	external/dmr_voice/main.cpp
+	external/dmr_voice/ui_dmr_voice.cpp
 	#afsk_rx   16 byte
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -449,6 +451,7 @@ set(EXTCPPSRC
 )
 
 set(EXTAPPLIST
+	dmr_voice
 	afsk_rx
 	calculator
 	font_viewer

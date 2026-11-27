@@ -125,6 +125,8 @@ def generate(tier, order, apps, wildcard):
             f"    .external_app_{n} : ALIGN(4) SUBALIGN(4)\n    {{\n"
             f"        KEEP(*(.external_app.app_{n}.application_information));\n"
             f"        {pat}\n    }} > ram_external_app_{n}\n")
+        if n == "dmr_voice":
+            blocks[-1] += '    ASSERT(SIZEOF(.external_app_dmr_voice) <= 4096, "DMR Voice UI overlaps M4 RX snapshot")\n'
     out.append("\n".join(blocks))
     out.append("}\n")
     return "".join(out), len(sel)

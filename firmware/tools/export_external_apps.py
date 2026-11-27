@@ -193,19 +193,24 @@ for external_image_prefix in sys.argv[5:]:
 	while (len(external_application_image) % 4) != 0:
 		external_application_image += b'\x00'
 	app_image_len = len(external_application_image)
+	header_version = int.from_bytes(external_application_image[8:12], 'little')
+	extended = header_version == 4
+	if extended and (app_image_len > 8 * 1024 or len(m4_image) > 88 * 1024):
+		raise ValueError("Extended app exceeds 8 KiB UI / 88 KiB M4 limits")
 	external_application_image += m4_image
 
 	if (len(m4_image) % 4) != 0:
 		print("m4 file size not divideable by 4")
 		sys.exit(-1)
 
-	replace_address = 0x10080000 + len(m4_image)
+	replace_address = 0x10088000 if extended else 0x10080000 + len(m4_image)
 	external_application_image = patch_image(himg, external_application_image, section_address, replace_address, reloc_addresses)
 
 	external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 	external_application_image[m4_app_offset_header_position:m4_app_offset_header_position+4] = app_image_len.to_bytes(4, byteorder='little')
 
-	check_fits(external_image_prefix, app_image_len, len(m4_image), chunk_tag)
+	if not extended:
+		check_fits(external_image_prefix, app_image_len, len(m4_image), chunk_tag)
 
 	checksum = 0
 	for i in range(0, len(external_application_image), 4):

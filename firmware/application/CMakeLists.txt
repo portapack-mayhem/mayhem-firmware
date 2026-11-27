@@ -528,7 +528,11 @@ add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
 	COMMAND ${EXPORT_EXTERNAL_APP_IMAGES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_OBJCOPY} ${CMAKE_READELF} ${M4_CODE_SIZE} ${EXTAPPLIST}
-	DEPENDS ${PROJECT_NAME}.elf
+    # External apps embed M4 images. A baseband-only edit must repack PPMA
+    # even when the M0 executable has not changed (target ordering is not
+    # a file-level freshness dependency).
+	DEPENDS ${PROJECT_NAME}.elf ${EXPORT_EXTERNAL_APP_IMAGES}
+        ${CMAKE_CURRENT_BINARY_DIR}/../baseband/baseband.img
 )
 
 add_custom_target(

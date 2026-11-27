@@ -73,6 +73,11 @@ struct SharedMemory {
             HopperChannel hopper_channels[24];
         } dummy_seperate;
         uint8_t data[512];
+        // DMR Voice owns this scratch while active; fits the existing union.
+        struct {
+            int16_t pcm[640];
+            int16_t iq[512];
+        } dmr_voice;
     } bb_data{{{{0, 0}}, 0, {0}}};
 
     // Set by the M4 to indicate that the baseband app is ready.
@@ -93,6 +98,7 @@ struct SharedMemory {
     uint32_t volatile m4_baseband_loops{0};   // Main loop iterations
     uint8_t volatile m4_streaming_marker{0};  // Proves streaming_enable() called
 #endif
+    bool volatile m4_parked{true};  // Cleared before reset; set only by the fixed shutdown loop.
 };
 
 extern SharedMemory& shared_memory;

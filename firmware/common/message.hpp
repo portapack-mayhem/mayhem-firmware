@@ -184,6 +184,8 @@ class Message {
         SubGhzChatPacket = 125,
         HorusPacket = 126,
         HorusRxStatus = 127,
+        DmrVoiceConfigure = 128,
+        DmrVoiceStatus = 129,
         MAX
     };
 
@@ -2332,5 +2334,26 @@ struct WMBusPacketMessage : public Message {
 
     uint16_t length = 0;
     uint8_t data[500] = {0};
+};
+
+// Retune/reset and receive status for the DMR Voice application.
+class DmrVoiceConfigureMessage : public Message {
+   public:
+    DmrVoiceConfigureMessage()
+        : Message{ID::DmrVoiceConfigure} {}
+};
+class DmrVoiceStatusMessage : public Message {
+   public:
+    DmrVoiceStatusMessage()
+        : Message{ID::DmrVoiceStatus} {}
+    uint32_t source_id = 0;
+    uint32_t destination_id = 0;
+    int16_t color_code = -1;
+    uint8_t kind = 0;
+    bool recent = false;
+    bool ready = false;
+    bool ids_valid = false;
+    bool private_call = false;
+    bool audio_active = false;
 };
 #endif /*__MESSAGE_H__*/

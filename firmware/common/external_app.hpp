@@ -26,8 +26,10 @@
 #include "ui_navigation.hpp"
 #include "spi_image.hpp"
 #include "standalone_app.hpp"
+#include "external_app_layout.hpp"
 
 #define CURRENT_HEADER_VERSION 0x00000003
+#define EXTENDED_HEADER_VERSION 0x00000004
 #define MIN_HEADER_VERSION_FOR_CHECKSUM 0x00000002
 
 typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
@@ -47,5 +49,7 @@ struct application_information_t {
     portapack::spi_flash::image_tag_t m4_app_tag;
     uint32_t m4_app_offset;
 };
+
+static_assert(sizeof(application_information_t) == external_app::header_size, "External app header layout changed");
 
 #endif /*__EXTERNAL_APPS_H__*/
