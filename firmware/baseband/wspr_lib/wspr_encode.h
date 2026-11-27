@@ -29,9 +29,12 @@
 
 /*
  * Reference WSPR encoder, written from the G4JNT "Coding Process" document.
- * It exists to generate synthetic test signals on the host; only the unpack
- * side of this library is linked into firmware. Keeping the encoder here makes
- * the decoder tests self-contained.
+ * The decoder depends on its FEC core (wspr_encode_bits, wspr_interleave and
+ * wspr_deinterleave) at runtime, and those are linked into firmware. The
+ * fixture/message-generation entry points (wspr_pack_message, wspr_merge_sync,
+ * wspr_encode_message) exist to generate synthetic test signals on the host
+ * and are compiled only when WSPR_ENCODE_TEST_API is defined. Keeping them
+ * here makes the decoder tests self-contained.
  */
 
 #ifdef __cplusplus
@@ -50,7 +53,9 @@ extern "C" {
  * Returns false for anything that does not fit the standard message (compound
  * callsigns and 6-digit locators are type 2/3, which are not handled).
  */
+#ifdef WSPR_ENCODE_TEST_API
 bool wspr_pack_message(const char* callsign, const char* locator, int dbm, uint8_t bits[WSPR_SOURCE_BYTES]);
+#endif
 
 // The documented bit-reversal interleave (G4JNT): walk addresses 0..255,
 // keep bit-reversed destinations below 162, feed source bits through a
@@ -66,10 +71,14 @@ void wspr_deinterleave(const uint8_t d[WSPR_CODED_BITS], uint8_t s[WSPR_CODED_BI
 void wspr_encode_bits(const uint8_t bits[WSPR_SOURCE_BYTES], uint8_t coded[WSPR_CODED_BITS]);
 
 // Merge the coded bits with the sync vector: tone = sync + 2 * data.
+#ifdef WSPR_ENCODE_TEST_API
 void wspr_merge_sync(const uint8_t coded[WSPR_CODED_BITS], uint8_t tones[WSPR_CODED_BITS]);
+#endif
 
 // Convenience: pack + encode + merge. Returns false when packing failed.
+#ifdef WSPR_ENCODE_TEST_API
 bool wspr_encode_message(const char* callsign, const char* locator, int dbm, uint8_t tones[WSPR_CODED_BITS]);
+#endif
 
 #ifdef __cplusplus
 }

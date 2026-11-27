@@ -32,60 +32,45 @@
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
 #include "ui_widget.hpp"
-#include "log_file.hpp"
 #include "ui_station_table.hpp"
 #include "ui_station_list.hpp"
+#include "wspr_session.hpp"
 
-// WSPR_RX_DIAG: temporary on-air diagnostics build (live M4 telemetry and the
-// three diagnostic screen lines). To remove the feature later, delete the
-// WSPR_RX_DIAG blocks in this file, ui_wspr_rx.cpp and proc_wspr_rx.{hpp,cpp},
-// plus wspr_diag.hpp, the diag host test and the WSPRTelemetry message.
+/* WSPR_RX_DIAG: on-air diagnostics build (the SD win line). The ordinary
+ * release build (the default, and what CMake's WSPR_DIAGNOSTIC=OFF selects)
+ * leaves it at 0: no diagnostic types, state, symbols or strings are compiled.
+ * The diagnostic build defines WSPR_RX_DIAG=1 on the compiler command line on
+ * BOTH sides (application + baseband); the #ifndef default stays 0 so a source
+ * tree built without the CMake selector is the ordinary build. */
 #ifndef WSPR_RX_DIAG
-#define WSPR_RX_DIAG 1
+#define WSPR_RX_DIAG 0
 #endif
 
-/* WSPR_CANDIDATE_TRACE: candidate-level diagnostic logging. Additive, removable
- * feature: the M4 stamps each candidate's FINAL disposition (start_br, freq_hz,
- * snap_outcome, agg_code) onto the EXISTING per-candidate WSPRDebugMessage
- * (cand_snap != 0xFF marks a real candidate, the heartbeat carries 0xFF); the M0
- * on_debug handler appends one rate-limited "cand " line per candidate to the
- * WSPR_DEBUG.TXT stream. No separate message type or handler. 0 default: no
- * hot-path code. Enabled on BOTH sides; mixed flag configs unsupported. */
-#ifndef WSPR_CANDIDATE_TRACE
-#define WSPR_CANDIDATE_TRACE 0
-#endif
-
-/* WSPR_SD_LOGGING: master compile-time gate for EVERYTHING this app writes
- * to the SD card - LOGS/WSPR.TXT (normal reports), LOGS/WSPR_DEBUG.TXT (win
- * lines, "unconf" lines, candidate traces). 0 (the ordinary build) removes
- * the file objects, the open/append calls, the formatting and every write/
- * sync at compile time: the app CANNOT create or append any log, and
- * existing SD logs are left untouched. 1 (explicit diagnostic build only)
- * restores the full documented logging behaviour. UI telemetry, the station
- * table, confirmation and the candidate panel are unaffected - they never
- * depended on the logs. No CMake option exists; the #ifndef default is the
- * single source of truth (diagnostic builds define it on the compiler
- * command line on BOTH sides that link this header). */
+/* WSPR_SD_LOGGING: master compile-time gate for EVERYTHING this app writes to
+ * the SD card - LOGS/WSPR.TXT (confirmed reports) and LOGS/WSPR_DEBUG.TXT
+ * (the diagnostic win line and "unconf" lines). 0 (the ordinary build) removes
+ * the LogFile objects, the open/append calls, the formatting and every write/
+ * sync at compile time: the app CANNOT create or append any log, and existing
+ * SD logs are left untouched. 1 (the diagnostic build) restores the documented
+ * logging behaviour. No CMake option of its own: the WSPR_DIAGNOSTIC selector
+ * defines it on the compiler command line. */
 #ifndef WSPR_SD_LOGGING
 #define WSPR_SD_LOGGING 0
 #endif
 
+/* The ordinary build has no file objects at all: the header is not even
+ * included. */
+#if WSPR_SD_LOGGING
+#include "log_file.hpp"
+#endif
+
+/* The diagnostic formatter state is compiled only for the diagnostic build;
+ * the release build has no wspr_diag.hpp dependency. */
+#if WSPR_RX_DIAG
 #include "wspr_diag.hpp"
+#endif
 
 namespace ui::external_app::wspr_rx {
-
-/* UI liveness breadcrumbs, file-scope statics in ui_wspr_rx.cpp (12 bytes of
- * .bss, debugger-visible only; no thread, no buffer). They separate the
- * always-running second tick heartbeat from actual message handling:
- *  - dispatch_seq increments on every WSPR message handler ENTRY;
- *  - last_handler is the Message::ID of the handler most recently entered;
- *  - tick_count increments once per second regardless of traffic, so a
- *    waiting (empty) event loop still shows a moving tick: a frozen
- *    tick_count means a dead UI thread, a moving tick with a frozen
- *    dispatch_seq means normal waiting, not a hang. */
-extern volatile uint32_t wspr_ui_dispatch_seq;
-extern volatile uint32_t wspr_ui_last_handler;
-extern volatile uint32_t wspr_ui_tick_count;
 
 class WSPRRxView : public View {
    public:
@@ -129,184 +114,139 @@ class WSPRRxView : public View {
 
     void on_packet(const WSPRPacketMessage* message);
     void on_status(const WSPRRxStatusMessage* message);
-    void on_debug(const WSPRDebugMessage* message);
+    /* Requests a new capture session (RX RESTART button or a dial change).
+     * Records a fresh request id, stops accepting reports until the matching
+     * ACK status arrives, and leaves the actual producer reset to the M4. */
+    void request_session_restart();
+#if WSPR_RX_DIAG
+    void on_telemetry(const WSPRTelemetryMessage* message);
+#endif
+    /* The 1 Hz tick is registered in BOTH configurations: the status line
+     * age, the last-packet display and the status staleness override all need
+     * it. It carries no diagnostic state. */
+    void on_tick_second();
 
-    /* Recomputes header/list/summary/LAST rects from the actual parent
-     * viewport (see wspr_layout). Safe before attachment: a zero size falls
-     * back to the verified 304-px application viewport. */
+    /* Recomputes list and last-report rects from the actual parent viewport
+     * (see wspr_layout). Safe before attachment: a zero size falls back to
+     * the verified 304-px application viewport. The standard header is at a
+     * fixed y; everything below the list is bottom-anchored so a shorter
+     * viewport can never paint past its parent. */
     void apply_layout() {
         Dim viewport_h = (Dim)size().height();
         if (viewport_h <= 0 || viewport_h > wspr_layout::app_viewport_height)
             viewport_h = wspr_layout::app_viewport_height;
-        /* Only the viewport-dependent bands are re-set; the fixed-position
-         * widgets (header, summary, STATUS) keep their static rects. */
-        text_candidate.set_parent_rect(
-            {0, wspr_layout::cand_y_at(viewport_h), wspr_layout::app_width,
-             wspr_layout::cand_height});
+
+        Dim list_h = wspr_layout::list_height_at(viewport_h);
+        if (list_h < 0)
+            list_h = 0;
         station_list.set_parent_rect(
+            {0, wspr_layout::list_y, wspr_layout::app_width, list_h});
+        /* Empty-state message lives in the first list row. */
+        text_empty.set_parent_rect(
             {0, wspr_layout::list_y, wspr_layout::app_width,
-             wspr_layout::list_height(viewport_h)});
-        text_diag_last.set_parent_rect(
-            {0, wspr_layout::last_y(viewport_h), wspr_layout::app_width,
+             wspr_layout::row_height});
+
+        text_last_packet.set_parent_rect(
+            {0, wspr_layout::last_y_at(viewport_h), wspr_layout::app_width,
              wspr_layout::last_height});
     }
 
-#if WSPR_RX_DIAG
-    // ---- UI layout (approved UI v1 spec, diagnostics phase revision) ----
+    // ---- UI layout (approved UI v1 spec, T03 standard-list revision) ----
     // The application is NOT the raw 240x320 screen: SystemView reserves the
     // top 16 px for its status strip and gives the pushed view a 240x304
     // parent rect (physical y16..320). All child geometry below therefore
     // lives in app-local coordinates 0..304 (see wspr_layout in
-    // ui_station_list.hpp, shared with the host preview and geometry tests).
+    // ui_station_list.hpp, shared with the host preview and tests).
     // At the real 304-px viewport:
     //   local y  0 radio (+RSSI/channel bars), 16 settings, 32 buttons,
-    //           56 STATUS line (signal word + capture progress + FEC),
-    //           72 table header (constant CALL/N/GRID literal) with the
-    //              visible-range summary on its right end (v1.4 form),
-    //           88..248 station list (5 x 32; row count follows the viewport),
-    //           256..272 candidate panel line ("... <freq>Hz <age>s"),
-    //           272..288 LAST line (kept above the app-local 288 info-band).
-    // apply_layout() derives this from the actual parent size; the static
-    // initializers below are the same layout for the pre-attach state.
-    // STATUS line: the honest activity readout the user asked back - what the
-    // receiver is doing right now (SCANNING/SYNCING/LOCKED/LISTENING), the
-    // ring capture progress and the FEC busy/idle verdict. Per user feedback
-    // the debug counters (AGE/EXP/SNAP/Q/decode ms) are NOT shown on screen.
-    // Buttons occupy local y32..56; the STATUS line sits right below them.
-    Text text_diag_op{
-        {0, 56, screen_width, 16},
-        "WAIT M4"};
-
-    // Candidate panel (candidate states only): one 16 px
-    // line in the band directly above LAST (the old summary slot; the
-    // visible-range summary rides the header row again). Empty when no
-    // candidate is live, "... <freq>Hz <age>s" in dark yellow while one is.
-    Text text_candidate{
-        {0, wspr_layout::cand_y, wspr_layout::app_width,
-         wspr_layout::cand_height},
+    //           56 STATUS line (self-contained receiver state + ring row),
+    //           72 standard recent-entries header (CALL / N / GRID),
+    //           88..288 station list (up to 12 rows, standard table),
+    //           288..304 last accepted REPORT line.
+    // apply_layout() derives list and last-report from the actual parent size;
+    // the static initializers below are the same layout for the pre-attach
+    // state.
+    //
+    // STATUS line (both builds): a compact, self-contained 30-char snapshot
+    // of what the receiver is doing right now, rendered straight from the
+    // WSPRRxStatusMessage - no debug message needs to exist or arrive next to
+    // it. The word comes from the message state (FILLING / DECODING /
+    // RECEIVING) and the number is the ring row counter:
+    //   "RECEIVING r123/351", "DECODING r200/351", "FILLING r45/351".
+    // After STATUS_STALE_TIMEOUT_S without a status it degrades to an
+    // explicit "NO STATUS <age>s" so a quiet band cannot leave a stale word
+    // on screen forever.
+    static constexpr size_t status_line_chars = 30;
+    Text text_status{
+        {0, wspr_layout::status_y, wspr_layout::app_width,
+         wspr_layout::status_height},
         ""};
 
-    // Table header row above the list: a CONSTANT literal aligned with the
-    // rendered columns (callsign @1, N right edge @16, GRID @18). Constant
-    // text costs no per-tick formatting code (v1.4 reviewed form); the
-    // visible-range summary is a separate small widget on the same row.
-    Text text_header{
-        {0, wspr_layout::header_y, wspr_layout::header_width,
-         wspr_layout::header_height},
-        StationListView::HEADER_TEXT};
+#if WSPR_RX_DIAG
+    /* Win-line source state. The diagnostic SD line is emitted from the
+     * single WSPRTelemetryMessage snapshot, keyed ONLY by analysis_index: no
+     * status/debug message pairing and no adjacency assumption. The fields
+     * below are the bounded formatter state; cumulative counters are copied
+     * from VALID_DIAG telemetry and diag_reports_ is the M0-side packet
+     * count (NOT the station model's N, which dedups physical TXs). */
+    diag::WinLineFields win_fields_{};
 
-    // Visible-range summary ("1-5/12"), right end of the header row.
-    Text text_summary{
-        {wspr_layout::summary_x, wspr_layout::header_y,
-         wspr_layout::summary_width, wspr_layout::header_height},
-        ""};
+    /* analysis_index of the last snapshot that produced a win line. The
+     * producer increments it once per analysis; periodic telemetry keeps the
+     * current index and does not set VALID_ANALYSIS, so it never retriggers. */
+    uint16_t last_analysis_index_{0};
+    bool analysis_seen_{false};
 
-    // Bottom line: verdict of the last completed window analysis plus the
-    // decode-thread stack highwater in bytes. Bottom-anchored INSIDE the
-    // 304-px application viewport, above the app-local 288 info-bar line.
-    Text text_diag_last{
-        {0, wspr_layout::last_y(wspr_layout::app_viewport_height),
-         wspr_layout::app_width, wspr_layout::last_height},
-        "LAST: --"};
-    diag::DiagState diag_state_{};
-
-    // Candidate panel state (diet round 2: candidate states ONLY - the
-    // station list already renders '?' / green for accepted reports). POD
-    // struct from wspr_diag.hpp; the UI owns the 150 s TTL expiry from its
-    // tick clock and clears it on CLEAR LIST / RX RESTART. Never mutates
-    // the station table.
-    diag::CandidateState cand_state_{};
-    // Render buffers for the candidate line: the widget is only re-set when
-    // the formatted text actually changed, so an empty panel (no candidate)
-    // costs no repaint at all and a live one repaints once per age second.
-    char cand_buf_[diag::LINE_CHARS + 1]{};
-    char cand_prev_[diag::LINE_CHARS + 1]{};
-
-    // SD diagnostic counters (contract v3): the win line
-    // carries the cumulative counters - sel/stg copied from VALID_DIAG
-    // telemetry (stg = demod/aggregate STAGE ENTRIES, not FEC calls and not
-    // failures), rep counted LOCALLY in on_packet (no message field). All
-    // diagnostics-only, never read by any decision path.
-    uint32_t cand_attempts_{0};  // candidates released by the scan
-    uint32_t diag_stage_entries_{0};
+    /* M0-side count of WSPRPacket messages handled (one per accepted decode
+     * delivery). Diagnostics only. */
     uint32_t diag_reports_{0};
-    /* Stage counters + the per-interval deltas at the previous win-line
-     * write (IntervalDelta: reset-safe re-baselining, see wspr_diag.hpp).
-     * The deltas exist only for the diagnostic win line, so diagnostic
-     * builds only (WSPR_SD_LOGGING 1); the raw counters stay - on_telemetry
-     * updates them unconditionally. */
-    uint32_t diag_snap_expired_{0};
-    uint32_t diag_snap_overwritten_{0};
-    uint32_t diag_agg_reject_{0};
-    uint32_t diag_agg_fail_{0};
-    uint32_t diag_agg_other_{0};
+
+    /* Cached status word for the win line ("RECEIVING", "DECODING",
+     * "FILLING"). Fed by the latest on_status message; it is only a display
+     * label and no analysis depends on it arriving next to anything. */
+    char win_state_word_[10]{"WAIT M4"};
+
+    /* The win log line is written at most once per DEBUG_MIN_INTERVAL_S of
+     * quiet traffic unless the analysis carried a decode. The gate itself is
+     * diag::debug_line_due and is host-tested. */
+    static constexpr uint32_t DEBUG_MIN_INTERVAL_S = 60;
+#endif
+
 #if WSPR_SD_LOGGING
+    /* Decodes land in LOGS/WSPR.TXT and diagnostic lines in
+     * LOGS/WSPR_DEBUG.TXT. Diagnostic builds only: the ordinary build has no
+     * file objects at all - nothing can be created, opened or written. */
+    LogFile log_file_{};
+    LogFile debug_log_file_{};
+    bool debug_log_ok_{false};
+
+#if WSPR_RX_DIAG
+    /* Per-interval deltas of the cumulative counters, re-baselined on every
+     * actual write (IntervalDelta is reset-safe across RX RESTART). */
     diag::IntervalDelta delta_sel_;
     diag::IntervalDelta delta_stage_;
     diag::IntervalDelta delta_rep_;
+    diag::IntervalDelta delta_fec_;
+    systime_t debug_last_write_tick_{0};
+#endif
 #endif
 
-    // Tick of the last ACCEPTED telemetry message, on the M0 monotonic UI
-    // timer. AGE is computed against it at render time; if the UI thread
-    // itself hangs, AGE freezes with it - a known limitation.
-    systime_t telem_last_tick_{0};
-
-    // Decode-phase wall clock: when the telemetry stream first shows the
-    // Decode phase, and whether it still does.
-    systime_t decode_phase_start_{0};
-    bool in_decode_phase_{false};
-
-    // Freshness of the MAIN status line (Searching/Heard/Syncing/Tracking):
-    // tick of the last WSPRRxStatusMessage, and the tick of the last status
-    // text refresh. The baseband only sends a status with a scanned
-    // candidate, so after diag::STATUS_STALE_TIMEOUT_S without one the tick
-    // handler replaces the text with an explicit NO STATUS + age readout
-    // instead of leaving an old state word on screen forever.
-    systime_t status_last_tick_{0};
-    bool status_seen_{false};
-    bool status_stale_shown_{false};
-
-    // Previous rendered strings, so Text::set (which allocates) only runs on
-    // actual changes.
-    char diag_op_prev_[diag::LINE_CHARS + 1]{};
-    char diag_last_prev_[diag::LINE_CHARS + 1]{};
-    char diag_op_buf_[diag::LINE_CHARS + 1]{};
-    char diag_last_buf_[diag::LINE_CHARS + 1]{};
-    // Signal word for the STATUS line, kept from the last status message
-    // (SCANNING/SYNCING/LOCKED/...); rewritten to a NO STATUS verdict by the
-    // staleness path when the status channel goes silent.
-    char status_word_[24]{"WAIT M4"};
-
-    uint32_t diag_drops_total_{0};
-    SignalToken diag_tick_token_{};
-
-    void on_telemetry(const WSPRTelemetryMessage* message);
-    void on_tick_second();
-    void update_diag_lines();
-    /* Composes the header row text: format_header_line + " " + the
-     * visible-range summary (;
-     * there is no separate summary widget any more). */
-    void update_summary_line();
+#if WSPR_RX_DIAG
+    MessageHandlerRegistration message_handler_telemetry{
+        Message::ID::WSPRTelemetry,
+        [this](const Message* const p) {
+            this->on_telemetry(static_cast<const WSPRTelemetryMessage*>(p));
+        }};
 #endif
 
-    // A first decode remains a grey candidate. An identical callsign/grid/power
-    // at a nearby frequency in a later window becomes a green station report.
-    // Pure logic (diag::ConfirmTable, host-tested); its slot timers run on
-    // MONOTONIC SECONDS, never on status/debug/candidate message counts -
-    // those arrive per candidate job and per heartbeat, so a message-counted
-    // age would retire slots after a handful of unrelated candidates and
-    // block the confirmation of a real repeat.
-    diag::ConfirmTable confirm_table_{};
-
-    // Wall-clock seconds (chTimeNow/CH_FREQUENCY) of the last accepted
-    // decode, for the Locked-idle semantics below.
-    uint32_t last_decode_s_{0};
-    bool ever_decoded_{false};
-    // Green "Locked" is only honest while decodes are recent; after this
-    // much idle time the line drops to a yellow "Session <idle>s" (the
-    // session had a decode; the carried sync score of the heartbeats is a
-    // stale carry, so it is dropped too).
-    static constexpr uint32_t LOCKED_VALID_S = 30 * 60;
+    /* A first decode remains a grey candidate. An identical callsign/grid/power
+     * at a later physical onset becomes a green station report. StationTable is
+     * the ONLY authority for that decision: on_packet consumes its explicit
+     * ReportOutcome and never keeps a second table or policy. Its timers run on
+     * MONOTONIC SECONDS, never on message counts - those arrive per candidate
+     * job and per heartbeat, so a message-counted age would retire records
+     * after a handful of unrelated candidates and block the confirmation of a
+     * real repeat. */
 
     RFAmpField field_rf_amp{
         {11 * 8, 0}};
@@ -357,108 +297,89 @@ class WSPRRxView : public View {
          {"10m", 28124600},
          {"6m ", 50293000}}};
 
-    /* UI: the text console is replaced by a fixed-capacity station table
-     * (one row per callsign, updated in place) and a scrollable list view
-     * over it. The list derives its row count from its rect (5 rows in the
-     * real 304-px application viewport). Every accepted REPORT is shown;
-     * there is no MIN A% control any more (user feedback). */
+    /* UI: one station model (StationTable, T02) displayed by Mayhem's
+     * STANDARD recent-entries components (T03). The standard Header + Table
+     * draw StationTable::entries() directly; WsprStationTable only adds the
+     * Left hand-off and the selected-callsign accessor. The table derives its
+     * visible row count from its rect (9 rows of 16 px at the real 304-px
+     * application viewport). Every accepted REPORT is shown; there is no MIN
+     * A% control any more (user feedback). */
     stations::StationTable station_table_{};
 
-    StationListView station_list{
-        {0, wspr_layout::list_y, wspr_layout::app_width,
-         wspr_layout::list_height(wspr_layout::app_viewport_height)}};
+    ui::RecentEntriesColumns columns_ = station_columns();
+    ui::RecentEntriesHeader header_{columns_};
+    WsprStationTable station_list{station_table_.entries(), columns_};
 
-    /* RX RESTART (v1.1, functional): sends WSPRRestartMessage to the WSPR
-     * baseband. Each side resets only what it owns (producer state on the
-     * message thread; scan session + accumulator in the decode thread) - no
-     * threads are stopped, the station table and N counts are preserved.
-     * While the request is in flight the button reads WAIT and ignores
-     * presses; the next telemetry/status re-enables it. */
+    /* Empty state: a single line inside the list area, hidden as soon as the
+     * model is non-empty. Added/removed by change-gated updates, never by a
+     * per-paint allocation. */
+    Text text_empty{
+        {0, wspr_layout::list_y, wspr_layout::app_width,
+         wspr_layout::row_height},
+        "No reports yet"};
+
+    /* Last accepted REPORT (UniqueUnconfirmed/UniqueConfirmed only). Separate
+     * from capture status. Cleared by CLEAR LIST. */
+    Text text_last_packet{
+        {0, wspr_layout::last_y, wspr_layout::app_width,
+         wspr_layout::last_height},
+        ""};
+
+    /* Change gate for the last-report widget. 40 chars is
+     * comfortably above the 30-char line width; every formatter is bounded. */
+    char last_packet_buf_[40]{};
+    char last_packet_prev_[40]{};
+
+    /* Snapshot of the last accepted REPORT for the last-packet line: only an
+     * independent TX (UniqueUnconfirmed/UniqueConfirmed) updates it; a
+     * duplicate/ambiguous decode never does. Cleared by CLEAR LIST. */
+    char last_report_call_[stations::WSPR_CALL_MAX + 1]{};
+    char last_report_grid_[5]{};
+    int8_t last_report_dbm_{0};
+    bool last_report_valid_{false};
+
+    /* Formats the last accepted REPORT line. */
+    void update_last_packet();
+    /* Shows "No reports yet" only while the model is empty. */
+    void update_empty_state();
+
+    /* RX RESTART / retune (v1.2, T05): every request gets a monotonic id and
+     * is acknowledged by WSPRRxStatusMessage::restart_ack only after the M4
+     * producer has actually reset at a buffer boundary. Until then the UI
+     * accepts no WSPRPacket messages (reports already queued from the previous
+     * session are discarded deterministically) and the button reads WAIT.
+     * The station table and N counts are preserved; session/dial provenance is
+     * recorded per station. */
     Button button_restart{
         {4, 2 * 16, 14 * 8, 24},
         "RX RESTART"};
-    bool restart_pending_{false};
+    wspr::session::UiGate session_gate_{};
+    uint16_t restart_request_seq_{0};
 
     /* The one deliberate button action: CLEAR LIST. Clears the station
      * table, its counters and the UI confirmation/session display state -
-     * never the capture, the M4 accumulator or the SD log files. The
-     * diagnostic heartbeat/telemetry continue (no fake WAIT M4 after a
-     * clear); the next REPORT reappears in the table. */
+     * never the capture, the M4 accumulator or the SD log files. The next
+     * REPORT reappears in the table. */
     Button button_clear_list{
         {15 * 8 + 8, 2 * 16, 14 * 8, 24},
         "CLEAR LIST"};
 
-    uint32_t decodes_total{0};
+    /* Status channel freshness, shared by both builds. The baseband pushes a
+     * status after every admitted candidate attempt plus a periodic heartbeat,
+     * but a quiet band must not leave an old word on screen forever: after
+     * STATUS_STALE_TIMEOUT_S the tick rewrites the line to "NO STATUS <age>s".
+     * status_last_tick_ is initialised in the ctor so the override also covers
+     * a UI that never received a status at all. */
+    systime_t status_last_tick_{0};
+    bool status_stale_shown_{false};
 
-#if WSPR_SD_LOGGING
-    /* Decodes land in LOGS/WSPR.TXT, one line per report, the same logger the
-     * AIS and VDL2 receivers use. Appending at construction opens the file once;
-     * a missing SD card surfaces as an error return the app ignores.
-     * Diagnostic builds only: the ordinary build (WSPR_SD_LOGGING 0) has no
-     * file objects at all - nothing can be created, opened or written. */
-    LogFile log_file_{};
+    /* Change gate for the STATUS line: a fixed 30-char buffer, bounded
+     * formatting, Text::set only when the rendered string changed. */
+    char status_buf_[status_line_chars + 1]{};
+    char status_prev_[status_line_chars + 1]{};
 
-    /* Temporary debug file in LOGS/WSPR_DEBUG.TXT: one line per 120 s window with the
-     * sync state, the decode count, the sync score and the rich per-window telemetry
-     * the baseband sends alongside the status (candidate count, best path metric, the
-     * tracker's phase correction and the candidate slots), plus one raw line per
-     * decode the confirmation gate has not accepted yet, so per-window decoder
-     * behaviour and impostor patterns can be read back without a serial console.
-     * debug_log_ok_ records whether the file opened; when it did not, every
-     * write would just return a FatFs error, so the writes are skipped. */
-    LogFile debug_log_file_{};
-    bool debug_log_ok_{false};
-#endif
-
-#if WSPR_CANDIDATE_TRACE
-    /* Candidate-level diagnostic trace, appended to the SAME LOGS/WSPR_DEBUG.TXT
-     * handle and the SAME debug_last_write_tick_ rate budget as the win line
-     * (no third file handle, no separate tick — a separate LogFile + its open
-     * path and write plumbing were the dominant M0 flash cost and are
-     * unnecessary for a trace). Each candidate is a single rate-gated "cand "
-     * line emitted immediately; the win line and candidate line share the
-     * documented <=1/min steady state. */
-#endif
-
-    /* The rich telemetry message arrives just before the status message of the same
-     * window, so stashing it here lets on_status fold its fields into the debug line
-     * it already writes. A plain struct, not the message itself: messages carry a
-     * const id and cannot be assigned. */
-    struct DebugSnapshot {
-        uint8_t num_candidates;
-        int16_t best_metric;
-        int16_t last_skip;
-        int8_t probe_row;
-        int8_t probe_score;
-        WSPRDebugMessage::Candidate candidates[WSPRDebugMessage::max_candidates];
-#if WSPR_CANDIDATE_TRACE
-        /* Candidate-level trace outcome of the window whose debug message just
-         * arrived; cand_freq_hz != 0 marks a real (admitted) candidate. Stashed
-         * here so on_status writes the "cand " line alongside the win line. */
-        int16_t cand_freq_hz{0};
-        uint8_t cand_agg{0xFF};
-#endif
-    };
-    DebugSnapshot last_debug_{};
-    /* Set by on_debug, consumed by the next on_status: the stashed debug
-     * snapshot is only forwarded to the diagnostics while it belongs to the
-     * window whose status just arrived. A status without a fresh debug
-     * message never re-shows the previous window's probe score. */
-    bool debug_fresh_{false};
-
-    /* Rate limiting: the baseband now sends a status heartbeat every ~10 s
-     * even without candidates, and can also burst one status per scanned
-     * candidate, so the SD debug log may not key off the raw message rate.
-     * The win log line is written at most every DEBUG_MIN_INTERVAL_S (one
-     * per minute of quiet band; every state change and every decode still
-     * logs immediately). The gate itself is diag::debug_line_due and is
-     * host-tested. The confirmation table has no message-rate exposure
-     * at all: its timers run on monotonic seconds inside observe(). */
-    static constexpr uint32_t DEBUG_MIN_INTERVAL_S = 60;
-#if WSPR_SD_LOGGING
-    systime_t debug_last_write_tick_{0};
-    char last_status_name_[10]{};  // last state word written to the debug log
-#endif
+    /* 1 Hz UI tick token (always registered; see on_tick_second). */
+    SignalToken tick_token_{};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::WSPRPacket,
@@ -466,25 +387,11 @@ class WSPRRxView : public View {
             this->on_packet(static_cast<const WSPRPacketMessage*>(p));
         }};
 
-    MessageHandlerRegistration message_handler_debug{
-        Message::ID::WSPRDebug,
-        [this](const Message* const p) {
-            this->on_debug(static_cast<const WSPRDebugMessage*>(p));
-        }};
-
     MessageHandlerRegistration message_handler_status{
         Message::ID::WSPRRxStatus,
         [this](const Message* const p) {
             this->on_status(static_cast<const WSPRRxStatusMessage*>(p));
         }};
-
-#if WSPR_RX_DIAG
-    MessageHandlerRegistration message_handler_telemetry{
-        Message::ID::WSPRTelemetry,
-        [this](const Message* const p) {
-            this->on_telemetry(static_cast<const WSPRTelemetryMessage*>(p));
-        }};
-#endif
 };
 
 }  // namespace ui::external_app::wspr_rx

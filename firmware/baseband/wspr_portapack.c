@@ -21,6 +21,7 @@
 
 #include "wspr_portapack.h"
 
+#include "wspr_lib/wspr_fast_math.h"
 #include "wspr_lib/wspr_decode.h"  // WSPR_RING_COMPILER_BARRIER (publication protocol)
 
 #include <string.h>
@@ -39,41 +40,13 @@ static float goertzel_coeff[WSPR_RX_NUM_BINS];
 static float goertzel_s1[WSPR_RX_TIME_OSR][WSPR_RX_NUM_BINS];
 static float goertzel_s2[WSPR_RX_TIME_OSR][WSPR_RX_NUM_BINS];
 
-// Cosine over [0, pi/2], the whole range the coefficient table needs: the highest bin is
-// 1105, giving 2*pi*1105/8192 = 0.85 rad. cosf() would drag in newlib's argument
-// reduction, __kernel_rem_pio2f plus __ieee754_rem_pio2f, at 2,304 bytes of the 32 KB app
-// budget for a routine used once at startup. Error stays within 1.2e-12 across all 150
-// bins.
-static float cos_unit_quadrant(float x) {
-    const float x2 = x * x;
-    return 1.0f + x2 * (-1.0f / 2.0f + x2 * (1.0f / 24.0f + x2 * (-1.0f / 720.0f + x2 * (1.0f / 40320.0f + x2 * (-1.0f / 3628800.0f + x2 * (1.0f / 479001600.0f))))));
-}
-
-// log2 from the exponent plus a series on the mantissa. Calling log10f here costs 146
-// instructions per bin, and the row-closing pass runs all 137 of them inside the one DMA
-// chunk that closes a symbol — a chunk that also carries that chunk's own 8 per-sample
-// passes. log10f would push that worst-case chunk from about 100 us past 200 us of the
-// 666.7 us budget, and drag newlib's log10 tables into the app besides. The decoder only
-// ever weighs bytes against their neighbours, so any monotonic affine map of dB will do.
-static float log2_from_bits(float x) {
-    union {
-        float f;
-        uint32_t i;
-    } u;
-    u.f = x;
-    int e = (int)((u.i >> 23) & 0xFFu) - 127;
-    u.i = (u.i & 0x007FFFFFu) | 0x3F800000u;
-    float m = u.f;
-    // Centring the mantissa on 1 keeps |t| <= 0.1716, where the first dropped term of the
-    // series is 7e-7, against a quantisation step of 0.166 in log2 units.
-    if (m > 1.4142136f) {
-        m *= 0.5f;
-        e++;
-    }
-    const float t = (m - 1.0f) / (m + 1.0f);
-    const float t2 = t * t;
-    return (float)e + t * (2.8853900f + t2 * (0.9617967f + t2 * 0.5770780f));
-}
+// cos_unit_quadrant() and log2_from_bits() are the shared libm-free helpers in
+// wspr_lib/wspr_fast_math.h. For this coefficient table the highest bin is 1105, giving
+// 2*pi*1105/8192 = 0.85 rad, and the cosine error stays within 1.2e-12 across
+// all 150 bins. cosf()/log10f() are avoided because their newlib argument
+// reduction / log tables cost 2,304 bytes of the 32 KB app budget; log10f
+// would also push the row-closing DMA chunk from about 100 us past 200 us of
+// the 666.7 us budget (see the header's comments).
 
 // Quantize one row's Goertzel power to the byte scale the decoder reads
 // (byte = 20*log10(power/N^2) + 240, the scale the FT8 waterfall uses and the wspr

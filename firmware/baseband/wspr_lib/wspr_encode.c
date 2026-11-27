@@ -46,6 +46,7 @@
  * 50-bit payload = N (28 bits) followed by M (22 bits), MSB-first.
  */
 
+#ifdef WSPR_ENCODE_TEST_API
 static int char_value(char c) {
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
@@ -139,6 +140,7 @@ bool wspr_pack_message(const char* callsign, const char* locator, int dbm, uint8
     }
     return true;
 }
+#endif  // WSPR_ENCODE_TEST_API
 
 static uint8_t bit_reverse_8(uint8_t v) {
     v = (uint8_t)(((v & 0x55) << 1) | ((v >> 1) & 0x55));
@@ -204,6 +206,7 @@ void wspr_encode_bits(const uint8_t bits[WSPR_SOURCE_BYTES], uint8_t coded[WSPR_
     wspr_interleave(s, coded);
 }
 
+#ifdef WSPR_ENCODE_TEST_API
 void wspr_merge_sync(const uint8_t coded[WSPR_CODED_BITS], uint8_t tones[WSPR_CODED_BITS]) {
     int i;
     for (i = 0; i < WSPR_CODED_BITS; i++) {
@@ -220,3 +223,4 @@ bool wspr_encode_message(const char* callsign, const char* locator, int dbm, uin
     wspr_merge_sync(coded, tones);
     return true;
 }
+#endif  // WSPR_ENCODE_TEST_API

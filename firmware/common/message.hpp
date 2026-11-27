@@ -542,7 +542,9 @@ class WSPRPacketMessage : public Message {
         int16_t message_drift_bins,
         int8_t message_agreement_pct,
         uint32_t message_start_br = 0,
-        int16_t message_col = 0)
+        int16_t message_col = 0,
+        uint32_t message_session_id = 0,
+        bool message_early_report = false)
         : Message{ID::WSPRPacket},
           callsign{},
           grid{},
@@ -552,7 +554,9 @@ class WSPRPacketMessage : public Message {
           drift_bins{message_drift_bins},
           agreement_pct{message_agreement_pct},
           start_br{message_start_br},
-          col{message_col} {
+          col{message_col},
+          early_report{message_early_report},
+          session_id{message_session_id} {
         size_t i = 0;
         for (; i < sizeof(callsign) - 1 && message_callsign[i] != '\0'; i++)
             callsign[i] = message_callsign[i];
@@ -571,112 +575,99 @@ class WSPRPacketMessage : public Message {
     int8_t agreement_pct;  // Re-encode agreement, percent.
     uint32_t start_br;  // Absolute transmission-start block-row.
     int16_t col;
+    bool early_report;
+    /* Capture-session generation the packet was decoded in. start_br restarts
+     * at 0 in every session, so (session_id, start_br, col) is the physical TX
+     * identity; the session alone is not a station identity. */
+    uint32_t session_id;
 };
 
 class WSPRRxStatusMessage : public Message {
    public:
+    /* Compact receiver status, sent in BOTH the ordinary and diagnostic
+     * builds. FILLING: the ring does not yet hold WSPR_RX_BLOCK_ROWS rows.
+     * DECODING: a scan/decode pass is running (NOT a statement that FEC
+     * succeeded). RECEIVING: the ring is full and the decode thread is idle.
+     * No LOCKED/HEARD/SEARCHING wording: those mixed capture state with a
+     * decoder verdict. */
     enum class SyncState : uint8_t {
-        Searching = 0,
-        Heard = 1,
-        Syncing = 2,
-        Locked = 3,
+        Filling = 0,
+        Decoding = 1,
+        Receiving = 2,
     };
 
     constexpr WSPRRxStatusMessage(
         SyncState sync_state,
         uint8_t decodes,
-        int16_t message_sync_score)
+        int16_t message_sync_score,
+        uint16_t message_ring_rows,
+        uint32_t message_session_id = 0,
+        uint16_t message_restart_ack = 0xFFFF)
         : Message{ID::WSPRRxStatus},
           state{sync_state},
           decode_count{decodes},
-          sync_score{message_sync_score} {
+          sync_score{message_sync_score},
+          ring_rows{message_ring_rows},
+          session_id{message_session_id},
+          restart_ack{message_restart_ack} {
     }
 
     SyncState state;
-    uint8_t decode_count;
-    int16_t sync_score;  // Sync excess, 0.5 dB units.
+    uint8_t decode_count;   // accepted decodes of this analysis; 0 for heartbeat
+    int16_t sync_score;     // Sync excess, 0.5 dB units.
+    uint16_t ring_rows;     // absolute stream position % 352 (0..351)
+    /* Capture-session generation this status belongs to (0 = first session of
+     * the process launch). The producer increments it after an in-place reset. */
+    uint32_t session_id;
+    /* Request id the reset that produced session_id acknowledged; 0xFFFF when
+     * no restart has been acknowledged in this process. Repeated on ordinary
+     * statuses so a queue drop of the first ACK cannot wedge the UI. */
+    uint16_t restart_ack;
 };
 
-class WSPRDebugMessage : public Message {
+/* ID 130 (WSPRDebug) is permanently reserved and unused. The old rich
+ * per-window debug message is gone: in the diagnostic build its observation
+ * fields travel in WSPRTelemetryMessage (see VALID_ANALYSIS), so no consumer
+ * ever has to rely on a debug message arriving next to a status message. */
+
+/* Diagnostic build only: the ordinary release must not contain the class (and
+ * therefore no diagnostic names/strings in object debug info). CMake defines
+ * WSPR_RX_DIAG=0/1 for the whole firmware build; an undefined macro evaluates
+ * to 0 here. ID 131 stays reserved in the Message::ID enum either way. */
+#if WSPR_RX_DIAG
+class WSPRTelemetryMessage : public Message {
    public:
+    /* DIAGNOSTIC BUILD ONLY (WSPR_RX_DIAG=1). This is the single diagnostic
+     * snapshot: the per-analysis observation (probe, candidate slots, decode
+     * count, metric) and the session counters travel in the SAME message, so
+     * the consumer never has to pair a status/debug message with a second
+     * message assumed to sit next to it in the queue. The ordinary build
+     * neither produces nor consumes this message. */
+    enum class Phase : uint8_t {
+        Idle = 0,
+        Capture = 1,
+        Decode = 2,
+    };
+
     static constexpr size_t max_candidates = 4;
 
     struct Candidate {
         int8_t sync_excess;
         int8_t row_offset;
-        int16_t freq_hz;  // Audio offset, Hz.
-    };
-
-    constexpr WSPRDebugMessage(
-        uint8_t window_index_value,
-        uint8_t num_results_value,
-        uint8_t num_candidates_value,
-        uint8_t tracker_state_value,
-        int16_t sync_score_value,
-        int16_t best_metric_value,
-        int16_t last_skip_value,
-        int16_t best_score_seen_value,
-        const Candidate* const candidate_values,
-        size_t candidate_count,
-        int8_t probe_row_value = -1,
-        int8_t probe_score_value = 0,
-        int16_t cand_freq_hz_value = 0,
-        uint8_t cand_agg_value = 0xFF)
-        : Message{ID::WSPRDebug},
-          window_index{window_index_value},
-          num_results{num_results_value},
-          num_candidates{num_candidates_value},
-          tracker_state{tracker_state_value},
-          sync_score{sync_score_value},
-          best_metric{best_metric_value},
-          last_skip{last_skip_value},
-          best_score_seen{best_score_seen_value},
-          probe_row{probe_row_value},
-          probe_score{probe_score_value},
-          cand_freq_hz{cand_freq_hz_value},
-          cand_agg{cand_agg_value},
-          candidates{} {
-        for (size_t i = 0; i < candidate_count && i < max_candidates; i++)
-            candidates[i] = candidate_values[i];
-    }
-
-    uint8_t window_index;
-    uint8_t num_results;
-    uint8_t num_candidates;
-    uint8_t tracker_state;
-    int16_t sync_score;  // Sync excess, 0.5 dB units.
-    int16_t best_metric;
-    int16_t last_skip;
-    int16_t best_score_seen;
-    int8_t probe_row;
-    int8_t probe_score;
-
-    int16_t cand_freq_hz;  // Zero when no candidate is present.
-    uint8_t cand_agg;  // Aggregation result; 255 means not contributed.
-
-    Candidate candidates[max_candidates];
-};
-
-class WSPRTelemetryMessage : public Message {
-   public:
-    enum class Phase : uint8_t {
-        Idle = 0,
-        Capture = 1,
-        Decode = 2,
-        Rephase = 3,
+        int16_t freq_hz;  // Audio offset, Hz; 0 marks an unused slot.
     };
 
     // Fields are valid only when their corresponding flag is set.
     static constexpr uint16_t VALID_ROWS = 1 << 0;
-    static constexpr uint8_t VALID_CAPTURED = 1 << 1;
-    static constexpr uint8_t VALID_SKIP = 1 << 2;
-    static constexpr uint8_t VALID_DECODE_MS = 1 << 3;
-    static constexpr uint8_t VALID_PROBE = 1 << 4;
+    static constexpr uint16_t VALID_CAPTURED = 1 << 1;
+    static constexpr uint16_t VALID_DECODE_MS = 1 << 3;
+    static constexpr uint16_t VALID_PROBE = 1 << 4;
     static constexpr uint16_t VALID_LOSS = 1 << 5;
     static constexpr uint16_t VALID_STACK = 1 << 6;
     static constexpr uint16_t VALID_CAND = 1 << 7;
     static constexpr uint16_t VALID_DIAG = 1 << 8;
-    static_assert(VALID_DIAG > 0xFF, "VALID_DIAG requires a 16-bit valid_flags word");
+    static constexpr uint16_t VALID_ANALYSIS = 1 << 9;
+    static_assert(VALID_ANALYSIS > 0xFF, "VALID flags require a 16-bit word");
 
     constexpr WSPRTelemetryMessage(
         Phase phase_value,
@@ -684,50 +675,83 @@ class WSPRTelemetryMessage : public Message {
         uint16_t seq_value,
         uint16_t rows_value,
         uint32_t captured_samples_value,
-        uint32_t skip_samples_remaining_value,
         uint16_t last_decode_ms_value,
-        uint8_t window_count_value,
         uint16_t telem_dropped_value,
+        uint16_t analysis_index_value = 0,
+        uint8_t decode_count_value = 0,
+        int16_t sync_score_value = 0,
+        uint8_t num_candidates_value = 0,
+        int16_t best_metric_value = 0,
         int8_t probe_row_value = -1,
         int8_t probe_score_value = 0,
         uint32_t scan_scanned_value = 0,
         uint32_t scan_expired_value = 0,
         uint32_t scan_max_lag_value = 0,
         uint32_t scan_snap_drops_value = 0,
-        uint16_t decode_stack_free_value = 0,
+        uint16_t decode_sp_free_min_value = 0,
         uint16_t cand_freq_hz_value = 0,
+        const Candidate* const candidate_values = nullptr,
+        size_t candidate_count = 0,
         uint32_t d_cand_selected_value = 0,
         uint32_t d_stage_entries_value = 0,
         uint32_t d_snap_expired_value = 0,
         uint32_t d_snap_overwritten_value = 0,
         uint32_t d_agg_reject_value = 0,
         uint32_t d_agg_fail_value = 0,
-        uint32_t d_agg_other_value = 0)
+        uint32_t d_agg_other_value = 0,
+        uint32_t d_fec_calls_value = 0,
+        uint32_t d_fec_no_path_value = 0,
+        uint32_t d_agg_await_value = 0,
+        uint32_t d_agg_dedup_value = 0,
+        uint32_t d_agg_open_floor_value = 0,
+        uint32_t d_agg_report_value = 0,
+        uint32_t d_push_fail_report_value = 0,
+        uint32_t d_push_fail_aux_value = 0,
+        uint32_t d_snap_weak_value = 0,
+        uint32_t d_snap_bad_args_value = 0)
         : Message{ID::WSPRTelemetry},
           phase{phase_value},
           valid_flags{valid_flags_value},
           seq{seq_value},
           rows{rows_value},
           captured_samples{captured_samples_value},
-          skip_samples_remaining{skip_samples_remaining_value},
           last_decode_ms{last_decode_ms_value},
-          window_count{window_count_value},
           telem_dropped{telem_dropped_value},
+          analysis_index{analysis_index_value},
+          decode_count{decode_count_value},
+          sync_score{sync_score_value},
+          num_candidates{num_candidates_value},
+          best_metric{best_metric_value},
           probe_row{probe_row_value},
           probe_score{probe_score_value},
           scan_scanned{scan_scanned_value},
           scan_expired{scan_expired_value},
           scan_max_lag{scan_max_lag_value},
           scan_snap_drops{scan_snap_drops_value},
-          decode_stack_free{decode_stack_free_value},
+          decode_sp_free_min{decode_sp_free_min_value},
           cand_freq_hz{cand_freq_hz_value},
+          candidates{},
           d_cand_selected{d_cand_selected_value},
           d_stage_entries{d_stage_entries_value},
           d_snap_expired{d_snap_expired_value},
           d_snap_overwritten{d_snap_overwritten_value},
           d_agg_reject{d_agg_reject_value},
           d_agg_fail{d_agg_fail_value},
-          d_agg_other{d_agg_other_value} {
+          d_agg_other{d_agg_other_value},
+          d_fec_calls{d_fec_calls_value},
+          d_fec_no_path{d_fec_no_path_value},
+          d_agg_await{d_agg_await_value},
+          d_agg_dedup{d_agg_dedup_value},
+          d_agg_open_floor{d_agg_open_floor_value},
+          d_agg_report{d_agg_report_value},
+          d_push_fail_report{d_push_fail_report_value},
+          d_push_fail_aux{d_push_fail_aux_value},
+          d_snap_weak{d_snap_weak_value},
+          d_snap_bad_args{d_snap_bad_args_value} {
+        if (candidate_values != nullptr) {
+            for (size_t i = 0; i < candidate_count && i < max_candidates; i++)
+                candidates[i] = candidate_values[i];
+        }
     }
 
     Phase phase;
@@ -735,27 +759,54 @@ class WSPRTelemetryMessage : public Message {
     uint16_t seq;
     uint16_t rows;
     uint32_t captured_samples;
-    uint32_t skip_samples_remaining;
     uint16_t last_decode_ms;
-    uint8_t window_count;
     uint16_t telem_dropped;
+
+    /* Per-analysis observation (VALID_ANALYSIS). analysis_index is the only
+     * pairing key: it increments once per diagnostic analysis snapshot. */
+    uint16_t analysis_index;
+    uint8_t decode_count;
+    int16_t sync_score;
+    uint8_t num_candidates;
+    int16_t best_metric;
     int8_t probe_row;
     int8_t probe_score;
+
+    /* Ring scan health (VALID_LOSS). */
     uint32_t scan_scanned;
     uint32_t scan_expired;
     uint32_t scan_max_lag;
     uint32_t scan_snap_drops;
-    uint16_t decode_stack_free;  // Running minimum free decoder-stack bytes.
+    uint16_t decode_sp_free_min;  // Running min of FREE bytes sampled at the
+                                  // decode thread's run() heartbeat SP. A
+                                  // sample, not a high-water mark: deeper FEC
+                                  // frames can leave less free space, so peak
+                                  // USED stack is only lower-bounded by it and
+                                  // it is NOT a lower bound on minimum free
+                                  // margin.
     uint16_t cand_freq_hz;
-    // Cumulative diagnostics since session start.
+    Candidate candidates[max_candidates];
+
+    /* Cumulative diagnostics since session start (VALID_DIAG). */
     uint32_t d_cand_selected;
     uint32_t d_stage_entries;  // Demod/aggregate entries, not FEC attempts.
     uint32_t d_snap_expired;
     uint32_t d_snap_overwritten;
-    uint32_t d_agg_reject;
-    uint32_t d_agg_fail;
-    uint32_t d_agg_other;
+    uint32_t d_agg_reject;   // Refused before FEC: slot-window + correlation.
+    uint32_t d_agg_fail;     // Completed path failed metric/agreement/unpack.
+    uint32_t d_agg_other;    // Unclassified (demod failure, bad arguments).
+    uint32_t d_fec_calls;      // stack_decode() entries (the real FEC attempt).
+    uint32_t d_fec_no_path;    // stack_decode() returned no complete path.
+    uint32_t d_agg_await;      // Contribution accepted, awaiting the next slot.
+    uint32_t d_agg_dedup;      // Same physical TX already contributed.
+    uint32_t d_agg_open_floor; // Junk-grade candidate rejected at the open floor.
+    uint32_t d_agg_report;     // Integrated decode accepted a REPORT.
+    uint32_t d_push_fail_report;  // WSPRPacketMessage pushes that the queue refused.
+    uint32_t d_push_fail_aux;     // Status pushes that the queue refused.
+    uint32_t d_snap_weak;         // Snapshot refused: frozen bytes failed the weak-score gate.
+    uint32_t d_snap_bad_args;     // Snapshot refused: bad arguments / ring geometry.
 };
+#endif  // WSPR_RX_DIAG
 
 class TPMSPacketMessage : public Message {
    public:
@@ -2566,8 +2617,14 @@ struct WMBusPacketMessage : public Message {
 };
 class WSPRRestartMessage : public Message {
    public:
-    constexpr WSPRRestartMessage()
-        : Message{ID::WSPRRestart} {
+    constexpr WSPRRestartMessage(uint16_t message_request_id = 0)
+        : Message{ID::WSPRRestart},
+          request_id{message_request_id} {
     }
+
+    /* Monotonic M0 request id. The M4 echoes the id it actually serviced in
+     * WSPRRxStatusMessage::restart_ack; a status arriving for any other
+     * reason is NOT proof that a particular restart completed. */
+    uint16_t request_id;
 };
 #endif /*__MESSAGE_H__*/

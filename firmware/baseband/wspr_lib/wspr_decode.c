@@ -27,6 +27,8 @@
 #include "wspr_encode.h"
 #include "wspr_unpack.h"
 
+#include "wspr_fast_math.h"  // power_log2 (WSPR-local libm-free mantissa/exponent series)
+
 #include <string.h>
 
 /*
@@ -227,7 +229,7 @@ static int16_t suffix_gain[WSPR_SOURCE_BITS + 1];
 
 typedef struct {
     int16_t weight[WSPR_CODED_BITS];  // accumulated soft weights, symbol order
-                                      // (saturating adds; see sat_add_i16)
+                                      // (plain adds; T09-C1 invariant on the fold)
     uint32_t anchor_start_br;         // absolute start of the first slot
     uint32_t last_slot_br;            // absolute start of the newest slot
     int16_t col0;                     // anchor tone-0 column (track identity)
@@ -252,14 +254,30 @@ typedef struct {
     uint8_t age;                      // idle slots since the last contribution
                                       // (derived from STREAM elapsed time)
     bool active;
+#if defined(WSPR_RX_EARLY_REPORTS)
+    bool early_valid;
+    uint8_t early_source[WSPR_SOURCE_BYTES];
+#endif
 } wspr_agg_track_t;
 
 static wspr_agg_track_t agg_tracks[WSPR_AGG_TRACKS];
+#if defined(WSPR_RX_EARLY_REPORTS)
+// One pending acknowledgement, owned by the serial decoder worker.
+static wspr_agg_track_t* pending_early_track;
+
+void wspr_agg_ack_early_report(void) {
+    if (pending_early_track != NULL) {
+        pending_early_track->early_valid = true;
+        pending_early_track = NULL;
+    }
+}
+#endif
 
 // Column distance on the linear band axis (columns never wrap in frequency);
 // defined with the ring readers further down, declared here for the dedup table.
 static int ring_col_gap(int a, int b);
 
+#if WSPR_DECODE_DIAG_COUNTERS
 // Slots accumulated by the last successful integrated decode (diagnostics:
 // the track itself is reset on success, so this is the only trace of the
 // integration depth behind the report).
@@ -268,6 +286,20 @@ static uint8_t agg_last_decode_slots = 0;
 // DIAGNOSTIC reason code of the last wspr_agg_track_contribute call (see
 // wspr_agg_last_result_code in the header).
 static int agg_dbg_reason = 0;
+
+// Real FEC-attempt counters (T01, see wspr_fec_calls in the header). These are
+// incremented at the ONE true FEC attempt - a stack_decode() entry - which both
+// the window/candidate path and the integrated-slot path go through. Stage
+// entries are a SEPARATE counter (the receiver's diag_stage_entries) and must
+// never be used to derive FEC failures. Observability only: no decision reads
+// them. Compiled out of the ordinary release (WSPR_DECODE_DIAG_COUNTERS == 0).
+//
+// The accessors are named wspr_fec_calls()/wspr_fec_no_path(), so the counters
+// themselves carry a different suffix: C has one identifier namespace, and a
+// file-scope variable named wspr_fec_calls could not coexist with the accessor.
+static uint32_t wspr_fec_calls_count = 0;
+static uint32_t wspr_fec_nopath_count = 0;
+#endif
 
 /*
  * Persistent EVENT dedup table (lives across candidate jobs, cleared only by
@@ -323,16 +355,6 @@ static int agg_decode_fail(wspr_agg_track_t* t) {
     if (t->failed >= WSPR_AGG_MAX_FAILED_DECODES || t->count >= WSPR_AGG_MAX_COUNT)
         agg_reset_track(t);
     return 0;
-}
-
-// Saturating int16 add: a long integration cycle can never wrap the weight
-// accumulators (bounded in practice by WSPR_AGG_MAX_COUNT slots of +-127,
-// but enforced here so the invariant does not depend on the cap).
-static int16_t sat_add_i16(int16_t a, int16_t b) {
-    int32_t s = (int32_t)a + (int32_t)b;
-    if (s > INT16_MAX) return INT16_MAX;
-    if (s < INT16_MIN) return INT16_MIN;
-    return (int16_t)s;
 }
 
 // Message-consistency test between a new slot's weights and the track's
@@ -391,10 +413,18 @@ static bool agg_message_consistent(const int16_t* acc, const int8_t* slot) {
 }
 
 void wspr_decode_reset_aggregation(void) {
+#if defined(WSPR_RX_EARLY_REPORTS)
+    pending_early_track = NULL;
+#endif
     memset(agg_tracks, 0, sizeof(agg_tracks));
     memset(agg_events, 0, sizeof(agg_events));
     agg_event_next = 0;
+#if WSPR_DECODE_DIAG_COUNTERS
     agg_last_decode_slots = 0;
+    // Session reset of the real FEC-attempt counters (T01).
+    wspr_fec_calls_count = 0;
+    wspr_fec_nopath_count = 0;
+#endif
 }
 
 /*
@@ -569,6 +599,13 @@ static void heap_pop(wspr_stack_node_t* out) {
  * is the maximum-likelihood path within the explored effort.
  */
 static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYTES], int16_t* out_metric) {
+#if WSPR_DECODE_DIAG_COUNTERS
+    // ONE FEC attempt per entry (T01): counted here because this is the real
+    // call site, whichever path (window candidate or integrated slots) feeds it.
+    // Observability only; the search below is unchanged.
+    wspr_fec_calls_count++;
+#endif
+
     uint8_t path[WSPR_NODE_PATH_BYTES];
     memset(path, 0, sizeof(path));
 
@@ -640,6 +677,11 @@ static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYT
             heap_push((int16_t)m, (uint8_t)(node.depth + 1), child_path);
         }
     }
+    // Single exit point: count the no-path outcome here, next to the return,
+    // so it can never drift from what the caller sees. Diagnostic only.
+#if WSPR_DECODE_DIAG_COUNTERS
+    if (!have_best) wspr_fec_nopath_count++;
+#endif
     return have_best;
 }
 
@@ -722,7 +764,9 @@ static int reencode_agreement(const uint8_t* source) {
     return nonzero > 0 ? (100 * (nonzero - disagree)) / nonzero : 0;
 }
 
+#ifdef WSPR_DECODE_TEST_API
 static int8_t estimate_snr(const uint8_t* mag, int bins, int base, int stride, int row0, int col0, int drift, const uint8_t* source);
+#endif
 static int8_t estimate_snr_snapshot(const wspr_snapshot_t* snap, const uint8_t* source);
 
 /*
@@ -789,6 +833,7 @@ static void quantize_pair(int e0, int e1, int sigma, int8_t* out) {
 // Soft demodulation straight from the matrix: the window decoder's stage-2
 // demod, factored out so the snapshot path and the tests read the exact same
 // code. Returns false if the drifting pair walk leaves the matrix.
+#ifdef WSPR_DECODE_TEST_API
 static bool demod_weights_matrix(const uint8_t* mag, int num_bins, int base, int stride, int row0, int col0, int drift, int8_t* sym_weight) {
     int32_t sum_pair = 0;
     int32_t sum_sq = 0;
@@ -810,6 +855,7 @@ static bool demod_weights_matrix(const uint8_t* mag, int num_bins, int base, int
     }
     return true;
 }
+#endif  // WSPR_DECODE_TEST_API
 
 // Soft demodulation from the snapshot's frozen 4-bin symbol rows: e0 is the
 // sync-selected bit-0 bin, e1 the bit-1 bin - the same bytes the matrix demod
@@ -843,7 +889,10 @@ static bool demod_weights_snapshot(const wspr_snapshot_t* snap, int8_t* sym_weig
  * This is the WINDOW decoder's per-candidate path only. The ring path never
  * reports a per-window decode: its candidates feed the slot-aligned track
  * accumulator instead (see wspr_agg_track_contribute below).
+ *
+ * Test-only: compiled only when the window decoder (also test-only) is.
  */
+#ifdef WSPR_DECODE_TEST_API
 static bool candidate_decode(int32_t drift_excess,
                              int bin0_hz,
                              int col0,
@@ -899,6 +948,7 @@ static bool candidate_decode(int32_t drift_excess,
     out->agreement_pct = (int8_t)agreement;
     return true;
 }
+#endif  // WSPR_DECODE_TEST_API
 
 // Magnitudes use byte = 20*log10(power) + 240. Convert relative to byte 255
 // without pulling libm into the external image. All exponents are -43..0.
@@ -915,23 +965,9 @@ static float magnitude_power(uint8_t value) {
     return scale.f * (1.0f + f * (0.69314718f + f * (0.24022651f + f * (0.05550411f + f * 0.00961813f))));
 }
 
-static float power_log2(float value) {
-    union {
-        float f;
-        uint32_t u;
-    } bits;
-    bits.f = value;
-    int exponent = (int)((bits.u >> 23) & 255u) - 127;
-    bits.u = (bits.u & 0x007fffffu) | 0x3f800000u;
-    float m = bits.f;
-    if (m > 1.4142136f) {
-        m *= 0.5f;
-        ++exponent;
-    }
-    const float t = (m - 1.0f) / (m + 1.0f);
-    const float t2 = t * t;
-    return exponent + t * (2.8853900f + t2 * (0.9617967f + t2 * 0.5770780f));
-}
+// power_log2() is the WSPR-local libm-free series in wspr_fast_math.h. It avoids
+// pulling libm's log into the external image, and its arithmetic is identical
+// to the front ends' log2_from_bits() (see the header).
 
 static int8_t estimate_snr_finish(float tone, int noise_count, const uint16_t* histogram);
 
@@ -944,6 +980,8 @@ static int8_t estimate_snr_finish(float tone, int noise_count, const uint16_t* h
 // symbol (integer division truncates toward zero for negative drift, the
 // same expression in the matrix path and in the snapshot fill, so both
 // exclude exactly the same bins).
+// Test-only: only the test-only window candidate pipeline calls it.
+#ifdef WSPR_DECODE_TEST_API
 static int8_t estimate_snr(const uint8_t* mag, int bins, int base, int stride, int row0, int col0, int drift, const uint8_t* source) {
     // The deinterleaved weights are dead after the completed search; the
     // symbol-order weights remain intact for multi-slot accumulation.
@@ -965,6 +1003,7 @@ static int8_t estimate_snr(const uint8_t* mag, int bins, int base, int stride, i
     }
     return estimate_snr_finish(tone, noise_count, histogram);
 }
+#endif  // WSPR_DECODE_TEST_API
 
 // Shared median/noise-power tail of estimate_snr. The snapshot path calls it
 // with the tone sum read from the frozen tone bytes and the histogram
@@ -1018,13 +1057,19 @@ static int8_t estimate_snr_snapshot(const wspr_snapshot_t* snap, const uint8_t* 
  * integrated decode is attempted ON THE SUM through the same acceptance
  * gates as any other decode (report metric, re-encode agreement, unpack).
  * Returns 1 and fills *out when the integrated decode REPORTS; the track
- * then resets so the next slot starts a fresh cycle. A single slot never
- * reports.
+ * then resets so the next slot starts a fresh cycle. An early report keeps
+ * the track and its first-slot weights available for accumulation.
  */
+#if defined(WSPR_RX_EARLY_REPORTS)
+static bool stability_check(const wspr_snapshot_t*, const wspr_message_t*);
+#endif
 int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
                               const int8_t* sym_weight_in,
                               uint32_t start_br,
                               wspr_decode_result_t* out) {
+#if defined(WSPR_RX_EARLY_REPORTS)
+    pending_early_track = NULL;
+#endif
     if (snap == NULL || sym_weight_in == NULL || out == NULL) return 0;
     const int16_t col = snap->meta.col0;
 
@@ -1033,7 +1078,9 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // even after the track was reset by a successful decode in between. See the
     // block comment on agg_events.
     if (agg_event_duplicate(start_br, col)) {
-        agg_dbg_reason = 2;
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_DUPLICATE;
+#endif
         return 0;
     }
 
@@ -1052,6 +1099,15 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // own track, not a coincidence).
     wspr_agg_track_t* near = NULL;   // any active col-matching track
     wspr_agg_track_t* merge = NULL;  // window-accepting AND message-consistent
+    // DIAGNOSTIC ONLY (T01 reason split): remember WHY a col-matching track
+    // refused this candidate, so a rejection can be attributed to the earlier
+    // slot-window gate (3) or to the message-consistency gate (4). One bit per
+    // gate: bit0 = slot window refused, bit1 = message consistency refused.
+    // Recording a bit cannot reorder or change either gate; the gate order
+    // below is exactly the pre-T01 order. Compiled out of the ordinary release.
+#if WSPR_DECODE_DIAG_COUNTERS
+    unsigned refuse_mask = 0;
+#endif
     for (int i = 0; i < WSPR_AGG_TRACKS; i++) {
         wspr_agg_track_t* cand = &agg_tracks[i];
         if (!cand->active || cand->col0 < col - WSPR_AGG_COL_MATCH ||
@@ -1065,10 +1121,27 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
         // block-rows of a whole number of WSPR slots (120 s = 351.5625
         // block-rows). Anything closer than one slot is the same
         // transmission's anchor family; anything in between is junk.
-        if (k < 1 || off < -WSPR_AGG_SLOT_TOL || off > WSPR_AGG_SLOT_TOL) continue;
-        if (!agg_message_consistent(cand->weight, sym_weight_in)) continue;
+        if (k < 1 || off < -WSPR_AGG_SLOT_TOL || off > WSPR_AGG_SLOT_TOL) {
+#if WSPR_DECODE_DIAG_COUNTERS
+            refuse_mask |= 1u;
+#endif
+            continue;
+        }
+        if (!agg_message_consistent(cand->weight, sym_weight_in)) {
+#if WSPR_DECODE_DIAG_COUNTERS
+            refuse_mask |= 2u;
+#endif
+            continue;
+        }
         if (merge == NULL || cand->count > merge->count) merge = cand;
     }
+    // Reason for a refusal with a col-matching track present: the EARLIER gate
+    // wins when both refused different candidate tracks (contract T01).
+    // Diagnostic only; the gate decisions above are unchanged.
+#if WSPR_DECODE_DIAG_COUNTERS
+    const int refuse_reason = (refuse_mask & 1u) ? WSPR_AGG_RESULT_SLOT_WINDOW
+                                                 : WSPR_AGG_RESULT_CORRELATION;
+#endif
 
     wspr_agg_track_t* t = merge;
     bool yielded = false;
@@ -1117,6 +1190,24 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
                 continue;
             }
             if (!strong) continue;
+            // T09-C2.3 ghost-grade charge gate (union of the two
+            // trace-motivated predicates, each shown necessary in isolation:
+            // C2.1 proved the same-slot-family condition protects the weak
+            // opener-re-anchor case F4_cwop_02; C2.2's half-grade band showed
+            // which rejects are ghost-grade; F7 g353 showed new-slot weak
+            // rejects must keep charging). SKIP the charge only when the
+            // rejector is BOTH far below the occupant's last accepted excess
+            // (less than half -> ghost grade vs a real station) AND inside the
+            // slot-window's own same-slot family band (k<1: by the window
+            // gate's definition a hypothesis of the slot just accepted, which
+            // could never merge anyway). All other rejects charge as baseline.
+            {
+                const int32_t dbr2 = (int32_t)(start_br - cand->last_slot_br);
+                const int32_t k2 =
+                    (dbr2 + WSPR_AGG_SLOT_ROWS / 2) / WSPR_AGG_SLOT_ROWS;
+                if (2 * snap->meta.sync_score < cand->last_sync_score && k2 < 1)
+                    continue;
+            }
             if (cand->has_reject) {
                 const int32_t rbr = (int32_t)(start_br - cand->last_reject_br);
                 if (rbr >= -WSPR_AGG_REJECT_TX_TOL && rbr <= WSPR_AGG_REJECT_TX_TOL &&
@@ -1133,7 +1224,9 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
             }
         }
         if (!yielded) {
-            agg_dbg_reason = 4;
+#if WSPR_DECODE_DIAG_COUNTERS
+            agg_dbg_reason = refuse_reason;
+#endif
             return 0;
         }
     }
@@ -1141,13 +1234,15 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
         if (snap->meta.sync_score < WSPR_AGG_OPEN_EXCESS_MIN) {
             // Junk-grade candidate with nothing nearby: drop before it can
             // pollute the table.
-            agg_dbg_reason = 6;
+#if WSPR_DECODE_DIAG_COUNTERS
+            agg_dbg_reason = WSPR_AGG_RESULT_OPEN_FLOOR;
+#endif
             return 0;
         }
-        if (near != NULL) {
-            agg_dbg_reason = 4;
-            return 0;
-        }
+        /* T09-C1: removed the (near != NULL) refuse block here: control-flow
+           dead (audit RC2) - a col-matching track with a refused merge either
+           charged a yield above or returned 0 from the !yielded branch, so at
+           this point near is always NULL. */
     }
     if (t == NULL) {
         // Open a new track (nothing nearby, or the occupant just yielded): a
@@ -1188,15 +1283,21 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // fold. The junk-grade drop for the no-nearby case already returned at the
     // floor check above, so nothing else can reach the fold.
 
-    // Fold the slot's weights in. The adds SATURATE (sat_add_i16): a track
-    // holds at most WSPR_AGG_MAX_COUNT slots of +-127-clipped weights
-    // (worst case +-1016, far inside int16), but the invariant is enforced,
-    // not assumed.
+    // Fold the slot's weights in (T09-C1: plain add; the saturating arm
+    // was dead). INVARIANT, constant-coupled (audit U7): one slot weight is
+    // +-6 max (snapshot demod quantizer, quantize_pair) and a track holds at
+    // most WSPR_AGG_MAX_COUNT (8) slots, so |weight| <= 48 - far inside both
+    // int16 (no wrap) and the int8 decode scale (no clamp). If the quantizer
+    // range or the count cap grows, restore saturation/clamping here.
     t->active = true;
     t->rejected_strong = 0;  // the yield counter is per streak, not per track
     t->has_reject = false;   // the streak's TX identity resets with it
     for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        t->weight[n] = sat_add_i16(t->weight[n], sym_weight_in[n]);
+#if defined(WSPR_DECODE_TEST_API) && (defined(WSPR_T09_NO_COMBINE) || defined(WSPR_T09_WINDOW1))
+        t->weight[n] = sym_weight_in[n];
+#else
+        t->weight[n] += sym_weight_in[n];
+#endif
     }
     t->count++;  // capped: the decode below resets the track once this
                  // reaches WSPR_AGG_MAX_COUNT, so the uint8 never wraps
@@ -1209,24 +1310,33 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // never weigh the same TX again (see agg_events).
     agg_event_record(start_br, col);
 
-    if (t->count < WSPR_AGG_MIN_COUNT) {
-        agg_dbg_reason = 1;
+#if defined(WSPR_RX_EARLY_REPORTS)
+    const bool early = t->count == 1 && snap->meta.sync_score >= 12;
+#else
+    const bool early = false;
+#endif
+#if defined(WSPR_DECODE_TEST_API) && defined(WSPR_T09_NO_COMBINE)
+    const unsigned min_count = 1;
+#else
+    const unsigned min_count = WSPR_AGG_MIN_COUNT;
+#endif
+    if (t->count < min_count && !early) {
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_AWAIT_SLOT;
+#endif
         return 0;
     }
 
     // Integrated decode of the SUM, through the same gates as any decode.
-    // The raw sum fits int8 for the intended 2..8 slot cycles (weights clip
-    // at +-127 per slot); past that only repeatedly strong symbols clip,
-    // which costs the tail of the soft scale but keeps every sign.
+    // T09-C1: the defensive +-127 clamp was provably dead - with +-6 slot
+    // weights and the 8-slot cap (see the fold invariant note) the sum fits
+    // int8 with room to spare, so the cast is exact.
     for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        int32_t w = t->weight[n];
-        if (w > 127) w = 127;
-        if (w < -127) w = -127;
-        sym_weight[n] = (int8_t)w;
+        sym_weight[n] = (int8_t)t->weight[n];
     }
     deinterleave_weights(sym_weight, bit_weight);
 
-    uint8_t source[WSPR_SOURCE_BYTES];
+    uint8_t source[WSPR_SOURCE_BYTES] = {0};
     int16_t metric = 0;
     // Attempt budget bookkeeping: a completion that FAILS a gate counts
     // against WSPR_AGG_MAX_FAILED_DECODES (a stream of impostor completions
@@ -1235,27 +1345,47 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // count cap instead. At the count cap every failed attempt is terminal:
     // the track resets, so count can never exceed WSPR_AGG_MAX_COUNT.
     if (!stack_decode(bit_weight, source, &metric)) {
-        agg_dbg_reason = 5;
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_FEC_NO_PATH;
+#endif
         if (t->count >= WSPR_AGG_MAX_COUNT || t->failed >= WSPR_AGG_MAX_FAILED_DECODES)
             agg_reset_track(t);
         return 0;
     }
-    if (metric < WSPR_REPORT_METRIC_MIN) {
-        agg_dbg_reason = 7;
-        return agg_decode_fail(t);
+    if (metric < (early ? 30 : WSPR_REPORT_METRIC_MIN)) {
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_METRIC;
+#endif
+        return early ? 0 : agg_decode_fail(t);
     }
     const int agreement = reencode_agreement(source);
-    if (agreement < WSPR_MIN_AGREEMENT_PCT) {
-        agg_dbg_reason = 7;
-        return agg_decode_fail(t);
+    if (agreement < (early ? 90 : WSPR_MIN_AGREEMENT_PCT)) {
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_AGREEMENT;
+#endif
+        return early ? 0 : agg_decode_fail(t);
     }
 
     wspr_message_t message;
     if (!wspr_unpack_message(source, &message)) {
-        agg_dbg_reason = 7;
-        return agg_decode_fail(t);
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_UNPACK;
+#endif
+        return early ? 0 : agg_decode_fail(t);
     }
 
+#if defined(WSPR_RX_EARLY_REPORTS)
+    if (!early && t->early_valid &&
+        memcmp(t->early_source, source, sizeof(t->early_source)) == 0) {
+        // This decode reuses the shown slot. Keep scanner dedup, but send
+        // no second UI report that could falsely confirm this payload.
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_dbg_reason = WSPR_AGG_RESULT_DUPLICATE;
+#endif
+        agg_reset_track(t);
+        return WSPR_CONTRIBUTION_ALREADY_REPORTED;
+    }
+#endif
     memset(out, 0, sizeof(*out));
     memcpy(out->callsign, message.callsign, sizeof(message.callsign));
     memcpy(out->grid, message.grid, sizeof(message.grid));
@@ -1276,22 +1406,54 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     out->metric = metric;
     out->agreement_pct = (int8_t)agreement;
 
+#if defined(WSPR_RX_EARLY_REPORTS)
+    if (early) {
+        if (!stability_check(snap, &message)) {
+#if WSPR_DECODE_DIAG_COUNTERS
+            agg_dbg_reason = WSPR_AGG_RESULT_AWAIT_SLOT;
+#endif
+            return WSPR_CONTRIBUTION_NONE;
+        }
+#if WSPR_DECODE_DIAG_COUNTERS
+        agg_last_decode_slots = 1;
+        agg_dbg_reason = WSPR_AGG_RESULT_REPORT;
+#endif
+        memcpy(t->early_source, source, sizeof(t->early_source));
+        pending_early_track = t;
+        return WSPR_CONTRIBUTION_EARLY_REPORT;
+    }
+#endif
+
     // Successful decode: reset the track. The next slot of the same station
     // opens a fresh cycle, so a message change is never mixed with the old
     // weights and the same evidence cannot report twice.
+#if WSPR_DECODE_DIAG_COUNTERS
     agg_last_decode_slots = t->count;
+#endif
     agg_reset_track(t);
-    agg_dbg_reason = 8;
+#if WSPR_DECODE_DIAG_COUNTERS
+    agg_dbg_reason = WSPR_AGG_RESULT_REPORT;
+#endif
     return 1;
 }
 
+#if WSPR_DECODE_DIAG_COUNTERS
 int wspr_agg_last_result_code(void) {
     return agg_dbg_reason;
+}
+
+uint32_t wspr_fec_calls(void) {
+    return wspr_fec_calls_count;
+}
+
+uint32_t wspr_fec_no_path(void) {
+    return wspr_fec_nopath_count;
 }
 
 uint8_t wspr_agg_last_decode_slots(void) {
     return agg_last_decode_slots;
 }
+#endif
 
 /*
  * Test/diagnostic accessor: snapshot the track table. Returns the number of
@@ -1311,6 +1473,7 @@ int wspr_agg_tracks(wspr_agg_track_info_t* out, int max_tracks) {
     return n;
 }
 
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_window(const uint8_t* mag,
                        int num_rows,
                        int num_bins,
@@ -1466,6 +1629,7 @@ int wspr_decode_window(const uint8_t* mag,
     }
     return count;
 }
+#endif  // WSPR_DECODE_TEST_API
 
 int32_t wspr_probe_skip_samples(int probe_row) {
     // Land the NEXT window's transmission near row 4 (full packet plus slack),
@@ -1480,6 +1644,7 @@ int32_t wspr_probe_skip_samples(int probe_row) {
     return skip;
 }
 
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_probe_sync(const uint8_t* mag,
                            int num_rows,
                            int num_bins,
@@ -1531,6 +1696,7 @@ int wspr_decode_probe_sync(const uint8_t* mag,
     if (out_bank) *out_bank = (int8_t)best_bank;
     return 1;
 }
+#endif  // WSPR_DECODE_TEST_API
 
 /*
  * Candidate snapshot API (ring architecture stage 2; see wspr_decode.h).
@@ -1601,6 +1767,7 @@ int wspr_snapshot_demod_weights(const wspr_snapshot_t* snap, int8_t* sym_weight)
     return demod_weights_snapshot(snap, sym_weight) ? 1 : 0;
 }
 
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_demod_matrix_weights(const uint8_t* mag,
                                      int num_rows,
                                      int num_bins,
@@ -1635,11 +1802,14 @@ int wspr_decode_candidate(const wspr_snapshot_t* snap,
     // frequency track; only an INTEGRATED decode (two or more accumulated
     // slots) can report. A single slot never produces a result here.
     wspr_decode_result_t out;
-    if (!wspr_agg_track_contribute(snap, weights, snap->meta.start_row_abs, &out))
+    const int contribution = wspr_agg_track_contribute(snap, weights, snap->meta.start_row_abs, &out);
+    if (contribution != WSPR_CONTRIBUTION_REPORT &&
+        contribution != WSPR_CONTRIBUTION_EARLY_REPORT)
         return 0;
     results[0] = out;
     return 1;
 }
+#endif  // WSPR_DECODE_TEST_API
 
 /*
  * ---- Ring scan / ring snapshot (ring architecture, stage 3; see wspr_decode.h) ----
@@ -1757,6 +1927,7 @@ static int32_t tones_sync_excess(const wspr_snapshot_t* snap, int col0, int drif
         *out_mean = (opposite_score[0] * pair_count[1] + opposite_score[1] * pair_count[0]) / denominator;
     return (score[0] * pair_count[1] + score[1] * pair_count[0]) * WSPR_CODED_BITS / denominator;
 }
+
 
 // Column distance on the linear band axis (columns never wrap in frequency).
 static int ring_col_gap(int a, int b) {
@@ -2261,6 +2432,9 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
     // copied bytes were not torn (see wspr_ring_cursor_fn's protocol note in
     // wspr_decode.h for the exact guarantees and their single-core limits).
     memset(snap, 0, sizeof(*snap));
+#if defined(WSPR_RX_EARLY_REPORTS)
+    snap->has_neighbors = true;
+#endif
     for (int n = 0; n < WSPR_CODED_BITS; n++) {
         const int c = sym_col(col0, drift, n);
         if (c < 0 || c + 3 >= num_bins) return 0;  // disqualify, like stage 2
@@ -2279,6 +2453,14 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
             return 0;
         }
         for (int i = 0; i < 4; i++) snap->tones[n][i] = scratch[c + i];
+#if defined(WSPR_RX_EARLY_REPORTS)
+        if (c < 1 || c + 4 >= num_bins) {
+            snap->has_neighbors = false;
+        } else {
+            snap->neighbor[n][0] = scratch[c - 1];
+            snap->neighbor[n][1] = scratch[c + 4];
+        }
+#endif
         for (int b = 0; b < num_bins; b++) {
             if (b >= c - 4 && b <= c + 7) continue;
             ++snap->noise_histogram[scratch[b] >> 2];
@@ -2322,3 +2504,38 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
     if (out_fail) *out_fail = WSPR_SNAP_OK;
     return 1;
 }
+
+#if defined(WSPR_RX_EARLY_REPORTS)
+static bool stability_check(const wspr_snapshot_t* snap, const wspr_message_t* packet) {
+    if (!snap->has_neighbors) return false;
+    for (int delta = -1; delta <= 1; delta += 2) {
+        uint8_t pairs[WSPR_CODED_BITS][2];
+        int sum = 0, sum_sq = 0;
+        for (int n = 0; n < WSPR_CODED_BITS; ++n) {
+            for (int i = 0; i < 2; ++i) {
+                const int tone = wspr_sync_vector[n] + 2 * i;
+                const int adjacent = tone + delta;
+                const unsigned side = adjacent < 0 ? snap->neighbor[n][0]
+                    : (adjacent > 3 ? snap->neighbor[n][1] : snap->tones[n][adjacent]);
+                const unsigned value = (7u * snap->tones[n][tone] + side) >> 3;
+                pairs[n][i] = (uint8_t)value;
+                sum += (int)value;
+                sum_sq += (int)(value * value);
+            }
+        }
+        const int sigma = pair_sigma(sum, sum_sq);
+        for (int n = 0; n < WSPR_CODED_BITS; ++n)
+            quantize_pair(pairs[n][0], pairs[n][1], sigma, &sym_weight[n]);
+        deinterleave_weights(sym_weight, bit_weight);
+        uint8_t source[WSPR_SOURCE_BYTES];
+        int16_t metric = 0;
+        wspr_message_t check;
+        if (stack_decode(bit_weight, source, &metric) &&
+            wspr_unpack_message(source, &check) && check.dbm == packet->dbm &&
+            strcmp(check.callsign, packet->callsign) == 0 &&
+            strcmp(check.grid, packet->grid) == 0)
+            return true;
+    }
+    return false;
+}
+#endif

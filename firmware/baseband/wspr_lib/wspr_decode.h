@@ -28,6 +28,22 @@
 #include "wspr_constants.h"
 
 /*
+ * Diagnostic-counter selector. The decoder's reason code (agg_dbg_reason) and
+ * the FEC-attempt counters are pure observability: no accept/reject decision
+ * reads them. The ordinary firmware release (WSPR_RX_DIAG=0, defined by the
+ * top-level CMake for both M0 and M4) compiles NONE of the variables, their
+ * assignments, the reset lines or the accessors, so the release image carries
+ * no diagnostic counter state. The diagnostic firmware build
+ * (WSPR_DIAGNOSTIC=ON -> WSPR_RX_DIAG=1) and the host test library
+ * (WSPR_HOST_DIAG) both keep the real values.
+ */
+#if (defined(WSPR_RX_DIAG) && WSPR_RX_DIAG) || defined(WSPR_HOST_DIAG)
+#define WSPR_DECODE_DIAG_COUNTERS 1
+#else
+#define WSPR_DECODE_DIAG_COUNTERS 0
+#endif
+
+/*
  * WSPR decoder, host-first: it works on a magnitude matrix of exactly the
  * shape the baseband receiver produces, so the same code runs in host tests
  * and in firmware. The matrix holds num_rows rows of num_bins bytes, row-
@@ -272,6 +288,10 @@ typedef struct {
 
 typedef struct {
     uint8_t tones[WSPR_CODED_BITS][4];
+#if defined(WSPR_RX_EARLY_REPORTS)
+    uint8_t neighbor[WSPR_CODED_BITS][2];
+    bool has_neighbors;
+#endif
     uint16_t noise_histogram[WSPR_NOISE_HIST_BINS];
     wspr_snapshot_meta_t meta;
 } wspr_snapshot_t;
@@ -302,6 +322,17 @@ int wspr_snapshot_candidate(const uint8_t* mag,
                             wspr_snapshot_t* snap);
 
 /*
+ * ---- Host-test / fixture API ----
+ *
+ * The window decoder, the sync-only probe and the matrix/candidate accessors
+ * below are NOT linked into firmware: the firmware call graph goes through the
+ * ring scan + snapshot + accumulator instead. They and their definitions are
+ * compiled only when WSPR_DECODE_TEST_API is defined (the host test library
+ * defines it; the firmware build does not). One source of truth, two build
+ * surfaces: no parallel implementation exists.
+ */
+
+/*
  * Decode one frozen candidate the RING way: soft demod from the snapshot ->
  * slot-aligned weight accumulation (see wspr_agg_track_contribute) -> an
  * INTEGRATED decode once its track holds two or more slots. A single slot
@@ -310,9 +341,11 @@ int wspr_snapshot_candidate(const uint8_t* mag,
  * suppress), so 0 is the normal result for a first-slot candidate.
  * Returns the number of results written (0 or 1).
  */
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_candidate(const wspr_snapshot_t* snap,
                           wspr_decode_result_t* results,
                           int max_results);
+#endif
 
 /*
  * Soft-demodulate a snapshot into the 162 symbol-order int8 weights. The
@@ -326,6 +359,7 @@ int wspr_snapshot_demod_weights(const wspr_snapshot_t* snap, int8_t* sym_weight)
  * Test/diagnostic accessor: exposes the weights the window path feeds its
  * stack decoder. Returns 1 on success, 0 if the geometry leaves the matrix.
  */
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_demod_matrix_weights(const uint8_t* mag,
                                      int num_rows,
                                      int num_bins,
@@ -335,6 +369,7 @@ int wspr_decode_demod_matrix_weights(const uint8_t* mag,
                                      int col0,
                                      int drift,
                                      int8_t* sym_weight);
+#endif
 
 /*
  * Try to decode one capture window. mag: time_osr * num_rows * num_bins
@@ -343,6 +378,7 @@ int wspr_decode_demod_matrix_weights(const uint8_t* mag,
  * (single row grid) or 2 (two interleaved sub-row banks). bin0_hz: audio
  * frequency of column 0. Returns the number of results written.
  */
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_window(const uint8_t* mag,
                        int num_rows,
                        int num_bins,
@@ -350,6 +386,7 @@ int wspr_decode_window(const uint8_t* mag,
                        wspr_decode_result_t* results,
                        int max_results,
                        int time_osr);
+#endif
 
 /*
  * Sync-only acquisition probe, run AFTER a wspr_decode_window() call that
@@ -364,6 +401,7 @@ int wspr_decode_window(const uint8_t* mag,
  * sync_score field uses) and the sub-row bank it came from; out arguments may
  * be NULL.
  */
+#ifdef WSPR_DECODE_TEST_API
 int wspr_decode_probe_sync(const uint8_t* mag,
                            int num_rows,
                            int num_bins,
@@ -371,6 +409,7 @@ int wspr_decode_probe_sync(const uint8_t* mag,
                            int16_t* out_row,
                            int16_t* out_score,
                            int8_t* out_bank);
+#endif
 
 /*
  * Phase correction the slot tracker applies for a sync-only probe candidate
@@ -456,18 +495,34 @@ typedef struct {
     bool active;
 } wspr_agg_track_info_t;
 
+/* Release decoder returns NONE or REPORT. The latter two dispositions
+ * describe single-slot preview and scanner dedup in experimental builds. */
+enum {
+    WSPR_CONTRIBUTION_NONE = 0,
+    WSPR_CONTRIBUTION_REPORT = 1,
+    WSPR_CONTRIBUTION_EARLY_REPORT = 2,
+    WSPR_CONTRIBUTION_ALREADY_REPORTED = 3,
+};
+
 /*
  * Fold one slot's soft weights into the matching track and, at two or more
  * accumulated slots, attempt the integrated decode. `sym_weight` is the
  * 162-entry symbol-order int8 demodulation of `snap` (see
  * wspr_snapshot_demod_weights), `start_br` the candidate's absolute start
- * block-row. Returns 1 and fills *out when the integrated decode REPORTS
- * (the track then resets); 0 otherwise - the normal result for a first slot.
+ * block-row. Only REPORT and EARLY_REPORT fill *out for the consumer.
+ * ALREADY_REPORTED marks a decoded scanner window sharing evidence
+ * with a prior early packet.
  */
 int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
                               const int8_t* sym_weight,
                               uint32_t start_br,
                               wspr_decode_result_t* out);
+
+#if defined(WSPR_RX_EARLY_REPORTS)
+/* Acknowledge a successfully enqueued EARLY_REPORT before the next
+ * contribution. Without acknowledgement, a later matching report can publish. */
+void wspr_agg_ack_early_report(void);
+#endif
 
 /* Copy up to max_tracks track-table entries to `out`; returns how many. */
 int wspr_agg_tracks(wspr_agg_track_info_t* out, int max_tracks);
@@ -484,20 +539,69 @@ int wspr_agg_tracks(wspr_agg_track_info_t* out, int max_tracks);
 void wspr_agg_age_to(uint32_t now_br);
 
 /* Slots integrated behind the last successful report (the track resets on
- * success, so this is the only trace of the integration depth). */
+ * success, so this is the only trace of the integration depth).
+ * DIAGNOSTIC BUILD ONLY (see WSPR_DECODE_DIAG_COUNTERS). */
+#if WSPR_DECODE_DIAG_COUNTERS
 uint8_t wspr_agg_last_decode_slots(void);
+#endif
 
 /*
- * DIAGNOSTIC: reason code of the most recent wspr_agg_track_contribute call:
- * 0 none/argument reject, 1 contributed below the report gate (count < 2),
- * 2 deduped (same physical TX), 3 unused, 4 rejected near an existing track
- * (slot-window or message-consistency failed; tracks kept), 5 gate fail
- * with no completed path, 6 junk-grade candidate dropped (below the open
- * floor, nothing nearby), 7 gate fail on a completed path (charged to the
- * failure budget), 8 REPORT. Read immediately after the call; not synced
- * with anything else.
+ * DIAGNOSTIC: reason code of the most recent wspr_agg_track_contribute call
+ * (T01 observability split). Read immediately after the call; not synced with
+ * anything else. Values 1, 2, 5, 6, 7, 8 keep the pre-T01 meaning; 3, 9 and 10
+ * split reasons that were previously conflated, and 4 is NARROWED to the
+ * message-consistency gate only. No value changes any accept/reject decision:
+ * the gates themselves are unchanged and only the recorded reason differs.
+ *
+ * WSPR_AGG_RESULT_AWAIT_SLOT is an ACCEPTED contribution, not a rejection: the
+ * slot folded into its track, but the track holds fewer than WSPR_AGG_MIN_COUNT
+ * slots, so no decode is attempted yet. Classifying it as a reject (the
+ * pre-T01 code did) understated every integration in progress.
  */
+enum {
+    WSPR_AGG_RESULT_NONE = 0,        /* no call / NULL argument               */
+    WSPR_AGG_RESULT_AWAIT_SLOT = 1,  /* accepted, count < WSPR_AGG_MIN_COUNT:
+                                        awaiting the next slot (NOT a reject) */
+    WSPR_AGG_RESULT_DUPLICATE = 2,   /* same physical TX already contributed  */
+    WSPR_AGG_RESULT_SLOT_WINDOW = 3, /* refused: gap is not a whole slot
+                                        distance (k < 1 or |off| > TOL)      */
+    WSPR_AGG_RESULT_CORRELATION = 4, /* refused: slot window passed but the
+                                        message-consistency correlation failed */
+    WSPR_AGG_RESULT_FEC_NO_PATH = 5, /* stack_decode() completed no path      */
+    WSPR_AGG_RESULT_OPEN_FLOOR = 6,  /* junk-grade candidate below the open
+                                        floor, nothing nearby                 */
+    WSPR_AGG_RESULT_METRIC = 7,      /* completed path: metric below the
+                                        report minimum                        */
+    WSPR_AGG_RESULT_REPORT = 8,      /* integrated decode reported            */
+    WSPR_AGG_RESULT_AGREEMENT = 9,   /* completed path: re-encode agreement
+                                        below WSPR_MIN_AGREEMENT_PCT          */
+    WSPR_AGG_RESULT_UNPACK = 10,     /* completed path: wspr_unpack_message
+                                        rejected the payload                  */
+};
+
+/**
+ * DIAGNOSTIC BUILD ONLY (WSPR_DECODE_DIAG_COUNTERS): reason code accessor.
+ */
+#if WSPR_DECODE_DIAG_COUNTERS
 int wspr_agg_last_result_code(void);
+#endif
+
+/*
+ * Real FEC-attempt counters (T01). The FEC attempt is a stack_decode() ENTRY,
+ * not a demod/aggregate stage entry: candidate_decode() (the window and host
+ * per-candidate path) and wspr_agg_track_contribute() (the integrated-slot
+ * path) both call stack_decode(), and every such call is counted here.
+ * wspr_fec_calls() counts entries, wspr_fec_no_path() counts the entries that
+ * completed no path (the search exhausted its effort/bound with no complete
+ * candidate). Both are cumulative and are zeroed by
+ * wspr_decode_reset_aggregation() (session reset). They are NOT stage entries
+ * and must never be used to derive a failure count by subtracting reports.
+ * DIAGNOSTIC BUILD ONLY (WSPR_DECODE_DIAG_COUNTERS).
+ */
+#if WSPR_DECODE_DIAG_COUNTERS
+uint32_t wspr_fec_calls(void);
+uint32_t wspr_fec_no_path(void);
+#endif
 
 /*
  * Clear the track table. The receiver calls it once per app start so a
