@@ -30,7 +30,10 @@
 #define USB_WORD(x) (x & 0xFF), ((x >> 8) & 0xFF)
 #define USB_MAX_PACKET0 (64)
 #define USB_MAX_PACKET_BULK_FS (64)
-#define USB_MAX_PACKET_BULK_HS (64)
+/* USB 2.0 requires 512 for high-speed bulk endpoints. Hosts that enforce
+ * the spec (e.g. macOS) send packets larger than a non-compliant 64-byte
+ * wMaxPacketSize, which the device controller then drops. */
+#define USB_MAX_PACKET_BULK_HS (512)
 #define USB_STRING_LANGID (0x0409)
 
 uint8_t usb_descriptor_device[] = {
@@ -201,9 +204,9 @@ uint8_t usb_descriptor_configuration_high_speed[] = {
     7,                             // bLength
     USB_DESCRIPTOR_TYPE_ENDPOINT,  // bDescriptorType
     USB_INT_IN_EP_ADDR,            // bEndpointAddress
-    0x03,                          // bmAttributes: BULK
+    0x03,                          // bmAttributes: INTERRUPT
     USB_WORD(16),                  // wMaxPacketSize
-    0x20,                          // bInterval: no NAK
+    0x09,                          // bInterval: 2^(9-1) microframes = 32ms (HS range is 1..16)
 
     9,                              // bLength
     USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
