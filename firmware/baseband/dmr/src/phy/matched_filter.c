@@ -51,7 +51,6 @@ void dmr_matched_filter_process(dmr_matched_filter_t* filter,
                                 const float* input,
                                 size_t count,
                                 float* output) {
-
     for (size_t i = 0; i < count; ++i) {
         unsigned int index = filter->head;
         filter->history[index] = input[i];

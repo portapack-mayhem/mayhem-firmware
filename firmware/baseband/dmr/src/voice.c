@@ -29,7 +29,6 @@ static size_t payload_bit(size_t index) {
 int dmr_voice_burst_extract(
     const dmr_burst_t* burst,
     uint8_t frames[DMR_VOICE_FRAME_COUNT * DMR_VOICE_FRAME_BYTES]) {
-
     if (!burst || !frames)
         return 0;
 

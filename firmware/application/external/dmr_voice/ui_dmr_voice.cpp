@@ -30,7 +30,6 @@ using namespace portapack;
 namespace ui::external_app::dmr_voice {
 DmrVoiceView::DmrVoiceView(NavigationView& nav)
     : nav_{nav} {
-
     add_children({&field_frequency, &field_rf_amp, &field_lna, &field_vga,
                   &volume, &status, &color, &source, &destination});
     baseband::run_dmr_voice_image();

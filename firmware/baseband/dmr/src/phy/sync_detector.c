@@ -91,7 +91,6 @@ void dmr_sync_detector_process(dmr_sync_detector_t* detector,
 
         for (dmr_sync_kind_t kind = DMR_SYNC_BS_VOICE;
              kind < DMR_SYNC_KIND_COUNT; ++kind) {
-
             if (!(candidates & (1u << kind))) continue;
 
             dmr_sync_fit_t fit;

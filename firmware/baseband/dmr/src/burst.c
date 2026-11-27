@@ -27,7 +27,6 @@ int dmr_burst_set_dibit(
     uint8_t data[DMR_BURST_BYTE_COUNT],
     size_t index,
     uint8_t dibit) {
-
     if (data == NULL || index >= DMR_BURST_DIBIT_COUNT || dibit > 3u)
         return 0;
 
@@ -42,7 +41,6 @@ int dmr_burst_set_dibit(
 uint8_t dmr_burst_get_bit(
     const uint8_t data[DMR_BURST_BYTE_COUNT],
     size_t index) {
-
     if (data == NULL || index >= DMR_BURST_BIT_COUNT)
         return UINT8_MAX;
 

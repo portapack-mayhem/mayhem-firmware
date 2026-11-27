@@ -48,5 +48,4 @@ application_information_t _application_information_dmr_voice = {
     {'P', 'D', 'V', 'O'},
     0,
 };
-
 }
