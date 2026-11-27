@@ -37,12 +37,8 @@
 #include "log_file.hpp"
 #include "radio_state.hpp"
 
-#include "dab/dab_blocks.hpp"
-#include "dab/dab_dls.hpp"
-#include "dab/dab_engage.hpp"
-#include "dab/dab_ensemble.hpp"
-#include "dab/dab_fig.hpp"
-#include "dab/dab_xpad.hpp"
+#include "dab/dab_si.hpp"
+#include "dab/dab_pad.hpp"
 
 #include <cstdint>
 #include <string>

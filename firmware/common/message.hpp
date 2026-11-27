@@ -2513,7 +2513,7 @@ struct DabStatusMessage : public Message {
      * transform, extraction); the rest is demapping and FEC. */
     uint32_t transform_cycles{0};
 
-    /* Reading of the ambiguous FIC steps behind fib_errors (dab_variant.hpp). */
+    /* Reading of the ambiguous FIC steps behind fib_errors (dab_common.hpp). */
     uint8_t decode_variant{0};
 
     /* Deepest power dip: samples from the symbol phase start, and depth as

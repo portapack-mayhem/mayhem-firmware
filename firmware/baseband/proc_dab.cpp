@@ -21,11 +21,6 @@
 
 #include "proc_dab.hpp"
 
-#include "dab/dab_phaseref.hpp"
-
-#include "dab/dab_freq_interleave.hpp"
-#include "dab/dab_variant.hpp"
-
 #include "audio_dma.hpp"
 #include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
@@ -920,7 +915,7 @@ void DabProcessor::transform_finish() {
                                                      : dab::frequency_map();
 
     /* An integer carrier offset moves every carrier by whole bins and is
-     * invisible to the guard correlation; see dab_variant.hpp. Not a table:
+     * invisible to the guard correlation; see dab_common.hpp. Not a table:
      * it would cost 3 KB of heap to save an add. */
     const int16_t shift = static_cast<int16_t>(dab::carrier_shift) - dab::kCarrierShiftBias;
 
@@ -1055,7 +1050,7 @@ void DabProcessor::on_symbol_complete() {
     }
 
     /* The reference is the symbol at fic_offset - 1 and the FIC the three after
-     * it; offset 1 is the specification's layout (dab_variant.hpp). */
+     * it; offset 1 is the specification's layout (dab_common.hpp). */
     const size_t fic_first = fic_start_;
 
     /* Only the symbols this frame's codeword is made of. A codeword is 2304

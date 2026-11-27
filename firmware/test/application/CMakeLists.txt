@@ -46,46 +46,20 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/test_utility.cpp
 
 	# DAB/DAB+ protocol and FEC tests
-	${PROJECT_SOURCE_DIR}/dab/test_dab_blocks.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_cache.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_charset.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_crc.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_deinterleave.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_dls.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_ensemble.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_fft.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_fic.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_fig.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_freq_interleave.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_msc.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_common.cpp
 	${PROJECT_SOURCE_DIR}/dab/test_dab_ofdm.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_prbs.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_protection.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_reed_solomon.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_superframe.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_viterbi.cpp
-	${PROJECT_SOURCE_DIR}/dab/test_dab_xpad.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_fec.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_plus.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_si.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_pad.cpp
 
 	# DAB/DAB+ implementation under test
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_blocks.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_cache.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_crc.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_deinterleave.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_dls.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_ensemble.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_fft_r4.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_fic.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_fig.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_charset.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_freq_interleave.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_msc.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_common.cpp
 	${PROJECT_SOURCE_DIR}/../../common/dab/dab_ofdm.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_prbs.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_protection.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_reed_solomon.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_superframe.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_viterbi.cpp
-	${PROJECT_SOURCE_DIR}/../../common/dab/dab_xpad.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_fec.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_plus.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_si.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_pad.cpp
 
 	${PROJECT_SOURCE_DIR}/../../application/file_reader.cpp
 	${PROJECT_SOURCE_DIR}/../../application/freqman_db.cpp

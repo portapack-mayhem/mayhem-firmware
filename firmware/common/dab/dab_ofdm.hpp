@@ -19,19 +19,105 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* OFDM front end for DAB mode I: null search, frequency offset, carrier
- * extraction and DQPSK demapping. Pure computation, so it builds on a host.
- * Soft bits: real parts are bits 0..1535, imaginary parts 1536..3071. */
+/* OFDM layer (M4): the 2048-point FFT, the phase reference symbol,
+ * frequency interleaving and the demapper to soft bits. */
 
 #ifndef __DAB_OFDM_H__
 #define __DAB_OFDM_H__
 
-#include "dab_constants.hpp"
+#include "dab_common.hpp"
 
 #include <cstddef>
 #include <cstdint>
 
 namespace dab {
+
+/* ---- FFT ---- */
+
+/* Fixed-point 2048-point FFT, 16-bit complex, Q15 twiddles (dab_ofdm.cpp).
+ * It halves at stages 3, 5, 7 and 9 and saturates elsewhere, so the true
+ * spectrum is output * 2^4. Halving every stage costs ~20 dB; halving later
+ * saturates. */
+
+struct FftComplex {
+    int16_t re{0};
+    int16_t im{0};
+};
+
+/* In place, natural order in and out. The unscaled spectrum is the output
+ * times 2^out_shift. */
+bool fft2048(FftComplex* data, uint8_t* out_shift = nullptr);
+
+/* fft2048() in kFftSteps pieces, so the per-buffer hook can advance it without
+ * monopolising the thread (a transform outlasts a symbol). Byte
+ * for byte fft2048()'s result; leave the buffer alone until advance() is true. */
+constexpr uint8_t kFftSteps = 7;
+
+struct FftProgress {
+    FftComplex* data{nullptr};
+    uint8_t step{kFftSteps}; /* == kFftSteps means idle or finished */
+    uint8_t shift{0};        /* set when the last step completes */
+};
+
+void fft2048_begin(FftProgress& progress, FftComplex* data);
+
+/* At most `budget` steps; true when complete. */
+bool fft2048_advance(FftProgress& progress, uint8_t budget);
+
+/* Exposed so a caller that copies its input can fold the reversal into it. */
+size_t fft_bit_reverse_index(size_t index);
+
+/* ---- Phase reference symbol ---- */
+
+/* Mode I phase reference symbol (EN 300 401 section 14.3), the only absolute
+ * timing and frequency reference: correlated against it, the spectrum gives the
+ * channel impulse response and the integer carrier offset. Phases are packed
+ * two bits per carrier (384 bytes) at compile time from tables 43 and 44. */
+
+/* The PRS is defined on carrier index k and is NOT frequency interleaved: do
+ * not push it through frequency_map(). */
+constexpr int16_t prs_carrier_at(size_t index) {
+    return carrier_at_position(index);
+}
+
+/* 0..3, meaning exp(j*pi/2*value); 0 past the end. */
+uint8_t prs_phase(size_t index);
+
+/* By signed carrier index; 0xFF outside [-768, 768] or at DC. */
+uint8_t prs_phase_of_carrier(int16_t k);
+
+/* Multiplies by the conjugate reference and zeroes the 512 empty bins; the
+ * inverse transform is the channel impulse response. `bin_shift` is added to
+ * every bin modulo kFftSize: kFftSize/4 for the receiver's fs/4 front end, 0
+ * for a raw HackRF capture. A wrong shift fails silently. */
+void prs_conjugate_multiply(FftComplex* bins, size_t bin_shift = 0);
+
+/* ---- Frequency interleaving ---- */
+
+/* DAB frequency interleaving (EN 300 401 section 14.6): iterate
+ * pi = (13 * pi + 511) mod 2048 and keep [256, 1792] except DC at 1024, exactly
+ * 1536 residues, one per active carrier. */
+
+/* `n` (must be 1536) carrier indices in [-768, 768] \ {0}, interleaved order.
+ * Returns the number written, 0 on bad input. */
+size_t build_frequency_map(int16_t* out, size_t n);
+
+/* Built on first use; 1536 entries. */
+const int16_t* frequency_map();
+
+/* The inverse permutation, for dab_common.hpp's variant sweep. */
+const int16_t* frequency_map_inverse();
+
+/* Bin 0 is DC; negative carriers wrap to the top half. */
+inline size_t carrier_to_fft_bin(int16_t carrier) {
+    return static_cast<size_t>((carrier + 2048) & 2047);
+}
+
+/* ---- OFDM demodulation ---- */
+
+/* OFDM front end for DAB mode I: null search, frequency offset, carrier
+ * extraction and DQPSK demapping. Pure computation, so it builds on a host.
+ * Soft bits: real parts are bits 0..1535, imaginary parts 1536..3071. */
 
 /* Layout matches complex16_t; this header stays free of hardware includes. */
 struct Iq16 {

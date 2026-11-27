@@ -20,7 +20,7 @@
  */
 
 #include "ui_dab.hpp"
-#include "dab/dab_msc.hpp"
+#include "dab/dab_fec.hpp"
 
 #include "audio.hpp"
 #include "baseband_api.hpp"

@@ -37,7 +37,7 @@
 #ifndef __DAB_FFT_TWIDDLES_H__
 #define __DAB_FFT_TWIDDLES_H__
 
-#include "dab_fft.hpp"
+#include "dab_ofdm.hpp"
 
 namespace dab {
 

@@ -890,7 +890,7 @@ DeclareTargets(PHRS horus_rx)
 #
 # PRALINE only: DabProcessor lives in the heap left in M4 bank 1 above .bss
 # (~104 KB), which HackRF One cannot spare. The subchannel cap
-# (dab::kMaxCodedBitsPerCif, dab_constants.hpp) sizes its largest members,
+# (dab::kMaxCodedBitsPerCif, dab_common.hpp) sizes its largest members,
 # ~2.3 KB per 512 coded bits; overrunning the heap is an M4 "Out of Memory"
 # guru.
 if(BOARD STREQUAL "PRALINE")
@@ -905,20 +905,11 @@ set(MODE_FLAGS "-Os -DBASEBAND_BUFFER_LOG2N=14 -DBASEBAND_TRANSFERS_LOG2N=5")
 
 set(MODE_CPPSRC
 	proc_dab.cpp
-	${COMMON}/dab/dab_phaseref.cpp
-	${COMMON}/dab/dab_crc.cpp
-	${COMMON}/dab/dab_deinterleave.cpp
-	${COMMON}/dab/dab_fft_r4.cpp
-	${COMMON}/dab/dab_aac_lc.cpp
-	${COMMON}/dab/dab_fic.cpp
-	${COMMON}/dab/dab_freq_interleave.cpp
-	${COMMON}/dab/dab_msc.cpp
+	${COMMON}/dab/dab_common.cpp
 	${COMMON}/dab/dab_ofdm.cpp
-	${COMMON}/dab/dab_prbs.cpp
-	${COMMON}/dab/dab_protection.cpp
-	${COMMON}/dab/dab_reed_solomon.cpp
-	${COMMON}/dab/dab_superframe.cpp
-	${COMMON}/dab/dab_viterbi.cpp
+	${COMMON}/dab/dab_fec.cpp
+	${COMMON}/dab/dab_plus.cpp
+	${COMMON}/dab/dab_aac.cpp
 )
 set(SHARED_OBJECTS baseband_shared_dab)
 DeclareTargets(PDAB dab_rx)

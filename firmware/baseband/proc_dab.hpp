@@ -32,18 +32,11 @@
 #include "rssi_thread.hpp"
 #include "message.hpp"
 
-#include "dab/dab_constants.hpp"
-#include "dab/dab_crc.hpp"
-#include "dab/dab_deinterleave.hpp"
-#include "dab/dab_fft.hpp"
-#include "dab/dab_fic.hpp"
-#include "dab/dab_msc.hpp"
-#include "dab/dab_aac_lc.hpp"
-#include "dab/dab_audio_ring.hpp"
+#include "dab/dab_common.hpp"
+#include "dab/dab_fec.hpp"
 #include "dab/dab_ofdm.hpp"
-#include "dab/dab_prbs.hpp"
-#include "dab/dab_superframe.hpp"
-#include "dab/dab_viterbi.hpp"
+#include "dab/dab_aac.hpp"
+#include "dab/dab_plus.hpp"
 
 #include <array>
 #include <cstdint>
@@ -256,7 +249,7 @@ class DabProcessor : public BasebandProcessor {
     void emit_aac_pad(const uint8_t* unit, size_t length);
     void publish_status(bool locked);
     bool msc_symbol_wanted(size_t index) const { return msc_wanted_.test(index); }
-    /* The subchannel's symbols and the trellis's keep-out window (dab_msc.hpp). */
+    /* The subchannel's symbols and the trellis's keep-out window (dab_fec.hpp). */
     dab::FrameSymbolMask msc_wanted_{};
     dab::FrameSymbolMask msc_window_{};
     bool prs_window_clash() const;
@@ -425,7 +418,7 @@ class DabProcessor : public BasebandProcessor {
     uint8_t fic_rotate_{0};
 
     /* Subchannel soft bits of the CIF being assembled, deinterleaved in place,
-     * as packed codes (dab_soft.hpp); +4: the depuncturer fetches groups as
+     * as packed codes (dab_fec.hpp); +4: the depuncturer fetches groups as
      * words. In .ram2, off bank 1 which the DMA ring competes for; static
      * because a section attribute cannot apply to a member. .ram2 is NOLOAD,
      * so the constructor fills these. */

@@ -22,16 +22,256 @@
 #include "doctest.h"
 
 #include "dab/dab_ofdm.hpp"
-#include "dab/dab_constants.hpp"
-#include "dab/dab_freq_interleave.hpp"
+#include "dab/dab_common.hpp"
 
 #include <cmath>
+#include <complex>
 #include <cstdint>
 #include <vector>
+#include <set>
+
+/* ---- FFT ---- */
 
 namespace {
 
-constexpr float kTwoPi = 6.283185307179586f;
+constexpr double kTwoPi = 6.283185307179586;
+
+/* The transform halves four times, so a tone of amplitude A peaks at
+ * kFftSize * A / 16: 200 keeps it under int16 full scale. */
+constexpr double kToneAmplitude = 200.0;
+
+std::vector<dab::FftComplex> tone(size_t bin, double amplitude) {
+    std::vector<dab::FftComplex> v(dab::kFftSize);
+    for (size_t n = 0; n < dab::kFftSize; n++) {
+        const double p = kTwoPi * bin * n / dab::kFftSize;
+        v[n].re = static_cast<int16_t>(std::lround(amplitude * std::cos(p)));
+        v[n].im = static_cast<int16_t>(std::lround(amplitude * std::sin(p)));
+    }
+    return v;
+}
+
+double magnitude(const dab::FftComplex& c) {
+    return std::hypot(static_cast<double>(c.re), static_cast<double>(c.im));
+}
+
+/* Straight DFT, for comparison. Only used on small subsets of bins. */
+std::complex<double> reference_bin(const std::vector<dab::FftComplex>& in, size_t k) {
+    std::complex<double> acc{0.0, 0.0};
+    for (size_t n = 0; n < in.size(); n++) {
+        const double p = -kTwoPi * k * n / in.size();
+        const std::complex<double> s{static_cast<double>(in[n].re), static_cast<double>(in[n].im)};
+        acc += s * std::complex<double>{std::cos(p), std::sin(p)};
+    }
+    return acc;
+}
+
+}  // namespace
+
+TEST_CASE("bit reversal is an involution over the transform size") {
+    for (size_t i = 0; i < dab::kFftSize; i++) {
+        const size_t r = dab::fft_bit_reverse_index(i);
+        CHECK(r < dab::kFftSize);
+        CHECK(dab::fft_bit_reverse_index(r) == i);
+    }
+}
+
+TEST_CASE("bit reversal known values") {
+    CHECK(dab::fft_bit_reverse_index(0) == 0);
+    CHECK(dab::fft_bit_reverse_index(1) == 1024);
+    CHECK(dab::fft_bit_reverse_index(2) == 512);
+    CHECK(dab::fft_bit_reverse_index(2047) == 2047);
+}
+
+TEST_CASE("null input is refused") {
+    CHECK_FALSE(dab::fft2048(nullptr));
+}
+
+TEST_CASE("a single tone lands in exactly one bin") {
+    for (size_t bin : {1u, 137u, 512u, 1500u}) {
+        auto data = tone(bin, kToneAmplitude);
+        REQUIRE(dab::fft2048(data.data()));
+
+        size_t peak_bin = 0;
+        double peak = 0.0;
+        for (size_t i = 0; i < dab::kFftSize; i++) {
+            const double m = magnitude(data[i]);
+            if (m > peak) {
+                peak = m;
+                peak_bin = i;
+            }
+        }
+
+        REQUIRE(peak_bin == bin);
+
+        /* Every other bin must be far below the peak. */
+        double next = 0.0;
+        for (size_t i = 0; i < dab::kFftSize; i++) {
+            if (i == bin)
+                continue;
+            next = std::max(next, magnitude(data[i]));
+        }
+        CHECK(next < peak * 0.05);
+    }
+}
+
+TEST_CASE("the reported shift reconstructs the unscaled peak") {
+    // The unscaled peak of a tone of amplitude A is N*A.
+    auto data = tone(300, kToneAmplitude);
+    uint8_t shift = 0;
+    REQUIRE(dab::fft2048(data.data(), &shift));
+
+    const double peak = magnitude(data[300]) * std::pow(2.0, shift);
+    const double expected = kToneAmplitude * dab::kFftSize;
+    CHECK(peak > expected * 0.8);
+    CHECK(peak < expected * 1.2);
+}
+
+TEST_CASE("no scaling is applied when the input cannot overflow") {
+    // A tiny input never reaches half scale, so no bits should be discarded.
+    auto data = tone(300, 4.0);
+    uint8_t shift = 0;
+    REQUIRE(dab::fft2048(data.data(), &shift));
+    CHECK(shift < dab::kFftSize);
+}
+
+TEST_CASE("two tones are resolved with the right amplitude ratio") {
+    std::vector<dab::FftComplex> data(dab::kFftSize);
+    for (size_t n = 0; n < dab::kFftSize; n++) {
+        const double pa = kTwoPi * 200 * n / dab::kFftSize;
+        const double pb = kTwoPi * 900 * n / dab::kFftSize;
+        data[n].re = static_cast<int16_t>(std::lround(kToneAmplitude * std::cos(pa) + kToneAmplitude / 2 * std::cos(pb)));
+        data[n].im = static_cast<int16_t>(std::lround(kToneAmplitude * std::sin(pa) + kToneAmplitude / 2 * std::sin(pb)));
+    }
+
+    REQUIRE(dab::fft2048(data.data()));
+
+    const double a = magnitude(data[200]);
+    const double b = magnitude(data[900]);
+    CHECK(a > b);
+    CHECK(b / a > 0.4);
+    CHECK(b / a < 0.6);
+}
+
+TEST_CASE("agrees with a direct DFT to better than 40 dB") {
+    // A broadband input exercises every stage rather than a single twiddle.
+    std::vector<dab::FftComplex> input(dab::kFftSize);
+    uint32_t x = 22222;
+    for (size_t n = 0; n < dab::kFftSize; n++) {
+        x = x * 1103515245u + 12345u;
+        input[n].re = static_cast<int16_t>((static_cast<int32_t>((x >> 16) & 0x7FF)) - 1024);
+        x = x * 1103515245u + 12345u;
+        input[n].im = static_cast<int16_t>((static_cast<int32_t>((x >> 16) & 0x7FF)) - 1024);
+    }
+
+    auto data = input;
+    uint8_t shift = 0;
+    REQUIRE(dab::fft2048(data.data(), &shift));
+    const double scale = std::pow(2.0, shift);
+
+    double signal = 0.0;
+    double error = 0.0;
+
+    for (size_t k = 0; k < dab::kFftSize; k += 61) {
+        const auto ref = reference_bin(input, k);
+        const std::complex<double> got{static_cast<double>(data[k].re) * scale,
+                                       static_cast<double>(data[k].im) * scale};
+
+        signal += std::norm(ref);
+        error += std::norm(got - ref);
+    }
+
+    REQUIRE(signal > 0.0);
+    const double snr_db = 10.0 * std::log10(signal / error);
+    CHECK(snr_db > 40.0);
+}
+
+TEST_CASE("a zero input stays zero") {
+    std::vector<dab::FftComplex> data(dab::kFftSize);
+    REQUIRE(dab::fft2048(data.data()));
+    for (const auto& c : data) {
+        CHECK(c.re == 0);
+        CHECK(c.im == 0);
+    }
+}
+
+TEST_CASE("DC input concentrates in bin zero") {
+    std::vector<dab::FftComplex> data(dab::kFftSize);
+    for (auto& c : data)
+        c = dab::FftComplex{4000, 0};
+
+    REQUIRE(dab::fft2048(data.data()));
+
+    CHECK(magnitude(data[0]) > 1000.0);
+    for (size_t k = 1; k < dab::kFftSize; k++)
+        REQUIRE(magnitude(data[k]) < 50.0);
+}
+
+/* ---- Frequency interleaving ---- */
+
+TEST_CASE("frequency map has one entry per active carrier") {
+    int16_t map[dab::kCarriers];
+    CHECK(dab::build_frequency_map(map, dab::kCarriers) == dab::kCarriers);
+}
+
+TEST_CASE("frequency map rejects a wrong-sized buffer") {
+    int16_t map[8];
+    CHECK(dab::build_frequency_map(map, 8) == 0);
+    CHECK(dab::build_frequency_map(nullptr, dab::kCarriers) == 0);
+}
+
+TEST_CASE("frequency map is a permutation of the active carriers") {
+    const int16_t* map = dab::frequency_map();
+
+    std::set<int16_t> seen;
+    for (size_t i = 0; i < dab::kCarriers; ++i) {
+        const int16_t c = map[i];
+        CHECK(c >= -768);
+        CHECK(c <= 768);
+        CHECK(c != 0);  // DC carrier is never used
+        seen.insert(c);
+    }
+    CHECK(seen.size() == dab::kCarriers);
+}
+
+TEST_CASE("frequency map actually interleaves") {
+    // A map that came out in natural order would decode nothing on air.
+    const int16_t* map = dab::frequency_map();
+    int adjacent_in_order = 0;
+    for (size_t i = 1; i < dab::kCarriers; ++i) {
+        if (map[i] == map[i - 1] + 1)
+            ++adjacent_in_order;
+    }
+    CHECK(adjacent_in_order < 100);
+}
+
+TEST_CASE("carrier to fft bin maps the spectrum around DC") {
+    CHECK(dab::carrier_to_fft_bin(1) == 1);
+    CHECK(dab::carrier_to_fft_bin(768) == 768);
+    CHECK(dab::carrier_to_fft_bin(-1) == 2047);
+    CHECK(dab::carrier_to_fft_bin(-768) == 1280);
+}
+
+TEST_CASE("every mapped carrier lands on a distinct fft bin") {
+    const int16_t* map = dab::frequency_map();
+    std::set<size_t> bins;
+    for (size_t i = 0; i < dab::kCarriers; ++i)
+        bins.insert(dab::carrier_to_fft_bin(map[i]));
+    CHECK(bins.size() == dab::kCarriers);
+}
+
+TEST_CASE("cached map matches a freshly built one") {
+    int16_t fresh[dab::kCarriers];
+    dab::build_frequency_map(fresh, dab::kCarriers);
+    const int16_t* cached = dab::frequency_map();
+    for (size_t i = 0; i < dab::kCarriers; ++i)
+        CHECK(fresh[i] == cached[i]);
+}
+
+/* ---- OFDM demodulation ---- */
+
+namespace {
+
+constexpr float kTwoPiF = 6.283185307179586f;
 
 /* The demapper puts a carrier at the symbol's mean level near 72; at 45
  * degrees each component is 72 * cos(45) ~ 51, less rounding. */
@@ -138,7 +378,7 @@ TEST_CASE("dqpsk demapping recovers the four phase quadrants") {
 
     // Differential phases of +45, +135, -135, -45 degrees put one sample in
     // each quadrant, which is exactly what the two soft bits encode.
-    const float deltas[4] = {kTwoPi / 8, 3 * kTwoPi / 8, -3 * kTwoPi / 8, -kTwoPi / 8};
+    const float deltas[4] = {kTwoPiF / 8, 3 * kTwoPiF / 8, -3 * kTwoPiF / 8, -kTwoPiF / 8};
     for (int k = 0; k < 4; ++k)
         curr[k] = from_phase(base + deltas[k], 6000.0f);
 
@@ -163,7 +403,7 @@ TEST_CASE("the demapped sign follows the standard's bit mapping") {
      * the transmitted sequence, which is not a codeword, and no FIB CRC can
      * ever pass -- a failure that only shows up on air. */
     dab::Iq16 prev[1] = {from_phase(0.0f, 6000.0f)};
-    dab::Iq16 curr[1] = {from_phase(kTwoPi / 8, 6000.0f)};
+    dab::Iq16 curr[1] = {from_phase(kTwoPiF / 8, 6000.0f)};
 
     int8_t soft[2];
     dab::dqpsk_demap(prev, curr, 1, soft);
@@ -178,11 +418,11 @@ TEST_CASE("dqpsk soft output is independent of absolute phase") {
     int8_t b[2];
 
     dab::Iq16 prev_a[1] = {from_phase(0.0f, 6000.0f)};
-    dab::Iq16 curr_a[1] = {from_phase(kTwoPi / 8, 6000.0f)};
+    dab::Iq16 curr_a[1] = {from_phase(kTwoPiF / 8, 6000.0f)};
     dab::dqpsk_demap(prev_a, curr_a, 1, a);
 
     dab::Iq16 prev_b[1] = {from_phase(2.5f, 6000.0f)};
-    dab::Iq16 curr_b[1] = {from_phase(2.5f + kTwoPi / 8, 6000.0f)};
+    dab::Iq16 curr_b[1] = {from_phase(2.5f + kTwoPiF / 8, 6000.0f)};
     dab::dqpsk_demap(prev_b, curr_b, 1, b);
 
     CHECK((a[0] > 0) == (b[0] > 0));
@@ -195,7 +435,7 @@ TEST_CASE("a faded carrier yields lower confidence than a strong one") {
     // within a symbol, which is what the receiver actually compares.
     // A 12 dB fade still decodes, but with much less weight.
     dab::Iq16 prev[2] = {from_phase(0.0f, 8000.0f), from_phase(0.0f, 2000.0f)};
-    dab::Iq16 curr[2] = {from_phase(kTwoPi / 8, 8000.0f), from_phase(kTwoPi / 8, 2000.0f)};
+    dab::Iq16 curr[2] = {from_phase(kTwoPiF / 8, 8000.0f), from_phase(kTwoPiF / 8, 2000.0f)};
 
     int8_t soft[4];
     dab::dqpsk_demap(prev, curr, 2, soft);
@@ -211,7 +451,7 @@ TEST_CASE("a deeply faded carrier gets almost no confidence") {
     // 28 dB down: the Viterbi decoder should be told "almost no information"
     // rather than handed a confident guess from noise.
     dab::Iq16 prev[2] = {from_phase(0.0f, 8000.0f), from_phase(0.0f, 300.0f)};
-    dab::Iq16 curr[2] = {from_phase(kTwoPi / 8, 8000.0f), from_phase(kTwoPi / 8, 300.0f)};
+    dab::Iq16 curr[2] = {from_phase(kTwoPiF / 8, 8000.0f), from_phase(kTwoPiF / 8, 300.0f)};
 
     int8_t soft[4];
     dab::dqpsk_demap(prev, curr, 2, soft);
@@ -223,7 +463,7 @@ TEST_CASE("a deeply faded carrier gets almost no confidence") {
 TEST_CASE("strong signals do not overflow into a wrong sign") {
     // Near full-scale input: the intermediate products exceed int32.
     dab::Iq16 prev[1] = {from_phase(0.0f, 32000.0f)};
-    dab::Iq16 curr[1] = {from_phase(kTwoPi / 8, 32000.0f)};
+    dab::Iq16 curr[1] = {from_phase(kTwoPiF / 8, 32000.0f)};
 
     int8_t soft[2];
     dab::dqpsk_demap(prev, curr, 1, soft);
