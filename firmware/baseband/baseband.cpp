@@ -23,6 +23,9 @@
 
 #include "lpc43xx_cpp.hpp"
 
+#ifdef BASEBAND_dab_rx
+#include "memory_map.hpp"
+#endif
 #include "portapack_shared_memory.hpp"
 #include "portapack_dma.hpp"
 
@@ -43,7 +46,21 @@ static void halt() {
 
 extern "C" {
 
+#ifdef BASEBAND_dab_rx
+void __early_init(void) {
+    /* First thing the M4 runs, before crt0 copies .data, so the shared_memory
+     * reference (itself in .data) cannot be used; the region base is
+     * constexpr. A stage still at 0 means the M4 never executed at all. */
+    reinterpret_cast<SharedMemory*>(portapack::memory::map::shared_memory.base())
+        ->set_m4_boot_stage(M4BootStage::reset);
+}
+#endif
+
 void __late_init(void) {
+#ifdef BASEBAND_dab_rx
+    shared_memory.set_m4_boot_stage(M4BootStage::segments);
+#endif
+
     /*
      * System initializations.
      * - HAL initialization, this also initializes the configured device drivers
@@ -52,12 +69,18 @@ void __late_init(void) {
      *   RTOS is active.
      */
     halInit();
+#ifdef BASEBAND_dab_rx
+    shared_memory.set_m4_boot_stage(M4BootStage::hal);
+#endif
 
     /* After this call, scheduler, systick, heap, etc. are available. */
     /* By doing chSysInit() here, it runs before C++ constructors, which may
      * require the heap.
      */
     chSysInit();
+#ifdef BASEBAND_dab_rx
+    shared_memory.set_m4_boot_stage(M4BootStage::kernel);
+#endif
 
     /* Baseband initialization */
     init();

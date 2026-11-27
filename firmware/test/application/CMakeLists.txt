@@ -45,6 +45,22 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/test_string_format.cpp
 	${PROJECT_SOURCE_DIR}/test_utility.cpp
 
+	# DAB/DAB+ protocol and FEC tests
+	${PROJECT_SOURCE_DIR}/dab/test_dab_common.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_ofdm.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_fec.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_plus.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_si.cpp
+	${PROJECT_SOURCE_DIR}/dab/test_dab_pad.cpp
+
+	# DAB/DAB+ implementation under test
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_common.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_ofdm.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_fec.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_plus.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_si.cpp
+	${PROJECT_SOURCE_DIR}/../../common/dab/dab_pad.cpp
+
 	${PROJECT_SOURCE_DIR}/../../application/file_reader.cpp
 	${PROJECT_SOURCE_DIR}/../../application/freqman_db.cpp
 	${PROJECT_SOURCE_DIR}/../../common/utility.cpp

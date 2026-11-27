@@ -151,8 +151,32 @@ static volatile const gpdma::channel::LLI* rx_next_lli = nullptr;
 static bool single_tx_buffer = false;
 static uint32_t beep_duration_downcounter = 0;
 
+#ifdef BASEBAND_dab_rx
+static volatile tx_refill_t tx_refill = nullptr;
+static size_t tx_last_refilled = 0;
+
+static void tx_refill_free_transfers(const tx_refill_t refill) {
+    const auto next_lli = tx_next_lli;
+    if (next_lli == nullptr)
+        return;
+    const size_t next_index = next_lli - &lli_tx_loop[0];
+    const size_t newest = tx_newest_free(next_index, transfers_mask);
+    for (size_t i = tx_refill_count(next_index, tx_last_refilled, transfers_mask); i > 0; i--) {
+        const size_t index = (newest + transfers_per_buffer + 1 - i) & transfers_mask;
+        refill(reinterpret_cast<sample_t*>(lli_tx_loop[index].srcaddr), transfer_samples);
+    }
+    tx_last_refilled = newest;
+}
+#endif
+
 static void tx_transfer_complete() {
     tx_next_lli = gpdma_channel_i2s0_tx.next_lli();
+
+#ifdef BASEBAND_dab_rx
+    const tx_refill_t refill = tx_refill;
+    if (refill && !single_tx_buffer && beep_duration_downcounter == 0)
+        tx_refill_free_transfers(refill);
+#endif
 
     if (beep_duration_downcounter != 0)
         if (--beep_duration_downcounter == 0)
@@ -286,6 +310,20 @@ buffer_t tx_empty_buffer() {
         return {nullptr, 0};
     }
 }
+
+#ifdef BASEBAND_dab_rx
+void set_tx_refill(tx_refill_t refill) {
+    /* Start one behind the free transfer, so the first interrupt fills it and
+     * the one just freed (both idle), never one in flight. The barrier orders
+     * the store to tx_last_refilled before the callback is published. */
+    const auto next_lli = tx_next_lli;
+    tx_refill = nullptr;
+    tx_last_refilled = next_lli ? tx_newest_free(next_lli - &lli_tx_loop[0], transfers_mask) - 1 : 0;
+    tx_last_refilled &= transfers_mask;
+    __asm__ volatile("" ::: "memory");
+    tx_refill = refill;
+}
+#endif
 
 buffer_t rx_empty_buffer() {
     const auto next_lli = rx_next_lli;

@@ -76,6 +76,11 @@ void set_tones_config(const uint32_t bw, const uint32_t pre_silence, const uint1
 void kill_tone();
 void set_sstv_data(const uint8_t vis_code, const uint32_t pixel_duration, const uint8_t modulation = 0);
 void set_sstvrx_data(const uint8_t code, const uint8_t modulation = 0);
+#ifdef PRALINE
+/* Selects the DAB subchannel the baseband should decode. A size_cu of 0 means
+ * FIC only: acquire and report the ensemble, decode no audio. */
+void set_dab_subchannel(const uint16_t start_cu, const uint16_t size_cu, const uint8_t protection_level, const bool protection_option_b, const bool is_dab_plus, const uint32_t carrier_hz = 0);
+#endif
 void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant);
 void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain, uint8_t audio_shift_bits_s16, uint8_t bits_per_sample, const uint32_t tone_key_delta, const bool am_enabled, const bool dsb_enabled, const bool usb_enabled, const bool lsb_enabled);
 void set_fifo_data(const int8_t* data);
@@ -136,6 +141,25 @@ bool is_image_running();
 bool supports_rx_fs4();
 void set_rx_fs4_direction(RxFs4Direction direction);
 void run_image(const portapack::spi_flash::image_tag_t image_tag, bool enforce_core_sync = true);
+
+#ifdef PRALINE
+/* How the last image load ended: an image that never reaches its event loop
+ * either faulted before getting there or never started at all. */
+enum class ImageLoadStatus : uint8_t {
+    ok = 0,
+    ready_timeout = 1,  // no panic, no readiness: the M4 never ran or hung
+    m4_panic = 2,       // the M4 ran and faulted; see last_image_panic()
+};
+
+ImageLoadStatus last_image_load_status();
+/* Milliseconds spent waiting for readiness, whether or not it arrived. */
+uint32_t last_image_ready_ms();
+/* The M4's panic message when the status is m4_panic, otherwise empty. */
+const char* last_image_panic();
+/* How far the M4 got, as an M4BootStage. Zero means it never executed. */
+uint32_t last_image_boot_stage();
+#endif
+
 void shutdown();
 
 void spectrum_streaming_start();

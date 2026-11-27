@@ -306,6 +306,21 @@ include(${RULESPATH}/rules.cmake)
 add_library(${PROJECT_NAME} OBJECT ${CSRC} ${CPPSRC} ${ASMSRC})
 include_directories(. ${INCDIR})
 
+# The shared objects DeclareTargets links; the DAB image swaps in its own copy.
+set(SHARED_OBJECTS baseband_shared)
+
+if(BOARD STREQUAL "PRALINE")
+    # MODE_FLAGS and DeclareTargets' BASEBAND_dab_rx reach only the image's own
+    # sources, never baseband_dma.cpp and the rest of CPPSRC. The DAB image
+    # links this copy, built with its ring and BASEBAND_dab_rx, which gates
+    # everything in the shared sources that only the DAB image runs.
+    # The ring is 2^14 samples (8 ms) in 2^5 transfers of 512 samples, which
+    # also sizes stage_. MODE_FLAGS below must match.
+    set(BASEBAND_SHARED_DAB_FLAGS "-DBASEBAND_dab_rx -DBASEBAND_BUFFER_LOG2N=14 -DBASEBAND_TRANSFERS_LOG2N=5")
+    add_library(baseband_shared_dab OBJECT ${CSRC} ${CPPSRC} ${ASMSRC})
+    set_target_properties(baseband_shared_dab PROPERTIES COMPILE_FLAGS "${BASEBAND_SHARED_DAB_FLAGS}")
+endif()
+
 #######################################################################
 
 set(BASEBAND_IMAGES)
@@ -316,7 +331,7 @@ macro(DeclareTargets chunk_tag name)
 
 	include(${RULESPATH}/rules.cmake)
 	set_source_files_properties(${MODE_CPPSRC} PROPERTIES COMPILE_FLAGS "${MODE_FLAGS}")
-	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:baseband_shared> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
+	add_executable(${PROJECT_NAME}.elf $<TARGET_OBJECTS:${SHARED_OBJECTS}> ${MODE_CPPSRC} ${HALSRC} ${PLATFORMSRC})
 	set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 	add_definitions(${DEFS})
 	target_compile_definitions(${PROJECT_NAME}.elf PUBLIC "-DBASEBAND_${name}")
@@ -870,6 +885,43 @@ set(MODE_CPPSRC
 	horus/horus_frame.cpp
 )
 DeclareTargets(PHRS horus_rx)
+
+### DAB Rx
+#
+# PRALINE only: DabProcessor lives in the heap left in M4 bank 1 above .bss
+# (~104 KB), which HackRF One cannot spare. The subchannel cap
+# (dab::kMaxCodedBitsPerCif, dab_common.hpp) sizes its largest members,
+# ~2.3 KB per 512 coded bits; overrunning the heap is an M4 "Out of Memory"
+# guru.
+if(BOARD STREQUAL "PRALINE")
+
+# Packed into the firmware rather than left on the SD card: the receiver is a
+# built-in app and looks its baseband up in the flash chunk list.
+set(add_to_firmware TRUE)
+
+# -Os: at -O3 the trellis is faster and the receiver stops locking. The ring
+# as in BASEBAND_SHARED_DAB_FLAGS.
+set(MODE_FLAGS "-Os -DBASEBAND_BUFFER_LOG2N=14 -DBASEBAND_TRANSFERS_LOG2N=5")
+
+set(MODE_CPPSRC
+	proc_dab.cpp
+	${COMMON}/dab/dab_common.cpp
+	${COMMON}/dab/dab_ofdm.cpp
+	${COMMON}/dab/dab_fec.cpp
+	${COMMON}/dab/dab_plus.cpp
+	${COMMON}/dab/dab_aac.cpp
+)
+set(SHARED_OBJECTS baseband_shared_dab)
+DeclareTargets(PDAB dab_rx)
+target_link_libraries(${PROJECT_NAME}.elf -Wl,--script=${CMAKE_CURRENT_SOURCE_DIR}/dab_ram2.ld)
+set_property(TARGET ${PROJECT_NAME}.elf APPEND PROPERTY LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/dab_ram2.ld)
+
+set(SHARED_OBJECTS baseband_shared)
+set(MODE_FLAGS "-O3")
+
+set(add_to_firmware FALSE)
+
+endif()
 
 ### SD over USB
 

@@ -1186,6 +1186,22 @@ static void cmd_sysinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
         "M4 stack: " + to_string_dec_uint(shared_memory.m4_stack_usage) + "\r\n" +
         "M0 cpu%: " + to_string_dec_uint(shared_memory.m4_performance_counter) + "\r\n" +
         "M4 miss: " + to_string_dec_uint(shared_memory.m4_buffer_missed) + "\r\n" +
+#ifdef PRALINE
+        "M4 xfr: " + to_string_dec_uint(shared_memory.m4_dma_xfr_count) + "\r\n" +
+        "M4 wait: " + to_string_dec_uint(shared_memory.m4_dma_wait_count) + "\r\n" +
+        "M4 loops: " + to_string_dec_uint(shared_memory.m4_baseband_loops) + "\r\n" +
+        "M4 busy: " + to_string_dec_uint(shared_memory.m4_busy_cycles) + "\r\n" +
+        "M4 wall: " + to_string_dec_uint(shared_memory.m4_wall_cycles) + "\r\n" +
+        "M4 jumps: " + to_string_dec_uint(shared_memory.m4_slot_jumps) + "\r\n" +
+        "M4 dropped: " + to_string_dec_uint(shared_memory.m4_transfers_dropped) + "\r\n" +
+        "M4 backmax: " + to_string_dec_uint(shared_memory.m4_backlog_max) + "\r\n" +
+        "M4 backhigh: " + to_string_dec_uint(shared_memory.m4_backlog_high) + "\r\n" +
+        "M4 slots: " + to_string_dec_uint(shared_memory.m4_slots_handed) + "\r\n" +
+        "M4 dropburst: " + to_string_dec_uint(shared_memory.m4_drop_in_burst) + "\r\n" +
+        "M4 dropother: " + to_string_dec_uint(shared_memory.m4_drop_elsewhere) + "\r\n" +
+        "M4 symburst: " + to_string_dec_uint(shared_memory.m4_symbols_in_burst) + "\r\n" +
+        "M4 symtotal: " + to_string_dec_uint(shared_memory.m4_symbols_total) + "\r\n" +
+#endif
         "uptime: " + to_string_dec_uint(chTimeNow() / CH_FREQUENCY) + "\r\n";
 
     fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)info.c_str(), info.length());

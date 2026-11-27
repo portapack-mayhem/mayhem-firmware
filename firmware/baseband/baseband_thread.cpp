@@ -80,8 +80,17 @@ void BasebandThread::run() {
     baseband_sgpio.init();
     baseband::dma::init();
 
-    const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
+#ifdef BASEBAND_dab_rx
+    /* Sized like buffer_samples in baseband_dma.cpp, which the DMA walks in
+     * full. Static, not on the heap: allocated after the processor, the ring
+     * moved with the processor's size, and one such move stopped DAB
+     * decoding. */
+    alignas(4) static std::array<baseband::sample_t, (1 << BASEBAND_BUFFER_LOG2N)> baseband_buffer;
+    baseband::dma::configure(baseband_buffer.data(), direction());
+#else
+    const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192> >();
     baseband::dma::configure(baseband_buffer->data(), direction());
+#endif
     // baseband::dma::allocate(4, 2048);
 
     baseband_sgpio.configure(direction());
@@ -91,6 +100,9 @@ void BasebandThread::run() {
     shared_memory.m4_streaming_marker = 0xAA;  // Phase 0 instrumentation
 #endif
     uint8_t buffer_drained = 0;  // to count how many dma buffers we already emptied
+#ifdef BASEBAND_dab_rx
+    uint32_t last_iteration_end_ = 0;
+#endif
     while (!chThdShouldTerminate()) {
 #ifdef PRALINE
         shared_memory.m4_baseband_loops++;  // Phase 0 instrumentation
@@ -118,7 +130,20 @@ void BasebandThread::run() {
 
             if (baseband_processor_) {
                 if (shared_memory.radio_tx_drain == 0) {  // only generate if not draining.
+#ifdef BASEBAND_dab_rx
+                    /* Busy against wall-clock DWT_CYCCNT (0xE0001004) cycles:
+                     * the processor's own figure assumes a 96 ms frame arrived
+                     * in 96 ms, so it reads low exactly when samples are lost. */
+                    const uint32_t busy_start = *reinterpret_cast<volatile uint32_t*>(0xE0001004);
                     baseband_processor_->execute(buffer);
+                    const uint32_t busy_end = *reinterpret_cast<volatile uint32_t*>(0xE0001004);
+                    shared_memory.m4_busy_cycles += busy_end - busy_start;
+                    if (last_iteration_end_ != 0)
+                        shared_memory.m4_wall_cycles += busy_end - last_iteration_end_;
+                    last_iteration_end_ = busy_end;
+#else
+                    baseband_processor_->execute(buffer);
+#endif
                 }
             }
             if (shared_memory.radio_tx_drain == 1) {

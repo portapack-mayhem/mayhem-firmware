@@ -48,6 +48,9 @@
 #include "ui_search.hpp"
 #include "ui_settings.hpp"
 #include "ui_textentry.hpp"
+#ifdef PRALINE
+#include "ui_dab.hpp"
+#endif
 #include "ui_sonde.hpp"
 #include "ui_ss_viewer.hpp"
 // #include "ui_test.hpp"
@@ -124,6 +127,9 @@ const NavigationView::AppList NavigationView::appList = {
     {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
     {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
+#ifdef PRALINE
+    {"dab", "DAB+ RX", RX, Color::green(), &bitmap_icon_soundboard, new ViewFactory<DabView>()},
+#endif
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},

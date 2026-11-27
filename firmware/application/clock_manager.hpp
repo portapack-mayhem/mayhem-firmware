@@ -119,6 +119,25 @@ class ClockManager {
     void portapack_tcxo_enable();
     void portapack_tcxo_disable();
 
+#ifdef PRALINE
+    /* What the codec is actually clocked at. BASE_AUDIO_CLK is IDIVD
+     * (PLL0AUDIO divided as audio::set_rate() set it) and the I2S divides that
+     * by 256, so fs = idivd * 25000 / 256; idivd/gp_clkin is immune to the
+     * IRC's +-1.5%.
+     *
+     * Fields are raw FREQ_MON counts (cycles in 480 IRC cycles), so a ratio
+     * quantises only once. The counter is in the CGU and needs no scheduling
+     * or DMA memory. */
+    struct AudioClockCounts {
+        uint32_t gp_clkin;
+        uint32_t pll0audio;
+        uint32_t idivd;
+        bool pll0audio_locked;
+    };
+
+    AudioClockCounts measure_audio_clock();
+#endif
+
    private:
 #ifdef PRALINE
     // CLKIN: datapath on A, system on B. XTAL: datapath on B, system on A.

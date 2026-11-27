@@ -53,6 +53,30 @@ void beep_stop();
 audio::buffer_t tx_empty_buffer();
 audio::buffer_t rx_empty_buffer();
 
+#ifdef BASEBAND_dab_rx
+/* Let the codec pull: the transfer-complete interrupt calls `refill` for every
+ * TX transfer freed since the last call, oldest first, so each is written once
+ * and in order whatever the processor does. Interrupt context: keep it short;
+ * nullptr turns it off. */
+using tx_refill_t = void (*)(sample_t* p, size_t count);
+void set_tx_refill(tx_refill_t refill);
+
+/* The transfer that has just finished, i.e. the newest writable one, when the
+ * DMA's next LLI is `next_index`. Same arithmetic as tx_empty_buffer(). */
+constexpr size_t tx_newest_free(size_t next_index, size_t mask) {
+    return (next_index + mask - 1) & mask;
+}
+
+/* Transfers to refill, ending at tx_newest_free(), after `last_refilled`. Only
+ * next + 1 and next + 2 are writable (next may be in flight), so at most two,
+ * and a missed interrupt replays stale transfers, never a torn one. Modulo
+ * four, four missed completions (~2.7 ms masked) read as none. */
+constexpr size_t tx_refill_count(size_t next_index, size_t last_refilled, size_t mask) {
+    const size_t behind = (tx_newest_free(next_index, mask) - last_refilled) & mask;
+    return behind > 2 ? 2 : behind;
+}
+#endif
+
 } /* namespace dma */
 } /* namespace audio */
 

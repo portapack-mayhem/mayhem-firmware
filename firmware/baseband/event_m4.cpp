@@ -56,6 +56,10 @@ EventDispatcher::EventDispatcher(
 void EventDispatcher::run() {
     thread_event_loop = chThdSelf();
 
+#ifdef BASEBAND_dab_rx
+    shared_memory.set_m4_boot_stage(M4BootStage::dispatching);
+#endif
+
     lpc43xx::creg::m0apptxevent::enable();
 
     // Indicate to the M0 thread that

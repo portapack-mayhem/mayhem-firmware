@@ -31,6 +31,9 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "core_control.hpp"
+#ifdef PRALINE
+#include "debug.hpp"
+#endif
 
 /* Set true to enable check for baseband messages getting stuck.
  * This implies the baseband thread is not dequeuing and has probably stalled.
@@ -167,6 +170,23 @@ void set_sstvrx_data(const uint8_t code, const uint8_t modulation) {
         modulation};
     send_message(&message);
 }
+
+#ifdef PRALINE
+void set_dab_subchannel(const uint16_t start_cu, const uint16_t size_cu, const uint8_t protection_level, const bool protection_option_b, const bool is_dab_plus, const uint32_t carrier_hz) {
+    const DabConfigureMessage message{
+        start_cu,
+        size_cu,
+        protection_level,
+        protection_option_b,
+        is_dab_plus,
+        carrier_hz};
+    send_message(&message);
+
+    /* Classic DAB carries MPEG Layer II at 48 kHz, which is what the decoder
+     * produces; the codec has to be told before any audio arrives. */
+    audio::set_rate(audio::Rate::Hz_48000);
+}
+#endif
 
 void set_sstvrx_phase_slant(const int16_t phase, const int16_t slant) {
     const SSTVRXPhaseSlantMessage message{
@@ -497,6 +517,92 @@ bool is_image_running() {
     return baseband_image_running;
 }
 
+#ifdef PRALINE
+/* Wait for the M4 to reach its event loop.
+ *
+ * The M0 blocks here rather than dispatching, so EventDispatcher::dispatch(),
+ * which is what normally notices shared_memory.m4_panic_msg and draws an M4
+ * guru, never runs during this window. Check for the M4's message here so a
+ * startup fault is reported as what went wrong, not as a sync timeout. */
+static ImageLoadStatus image_load_status = ImageLoadStatus::ok;
+static uint32_t image_ready_ms = 0;
+static uint32_t image_boot_stage = 0;
+static char image_panic[sizeof(shared_memory.m4_panic_msg)] = {0};
+
+uint32_t last_image_boot_stage() {
+    return image_boot_stage;
+}
+
+ImageLoadStatus last_image_load_status() {
+    return image_load_status;
+}
+
+uint32_t last_image_ready_ms() {
+    return image_ready_ms;
+}
+
+const char* last_image_panic() {
+    return image_panic;
+}
+
+/* @param report_on_screen draw the M4's guru for a failure rather than only
+ *        recording it. False for a load the caller can recover from: the M0
+ *        has to stay alive to run the fallback and write the reason down.
+ */
+static bool wait_for_baseband_ready(bool report_on_screen = true) {
+    constexpr uint32_t timeout_ms = 10'000;
+
+    image_panic[0] = 0;
+    image_ready_ms = 0;
+
+    while (image_ready_ms < timeout_ms) {
+        if (shared_memory.baseband_ready) {
+            image_load_status = ImageLoadStatus::ok;
+            image_boot_stage = shared_memory.m4_boot_stage;
+            return true;
+        }
+        if (shared_memory.m4_panic_msg[0] != 0)
+            break;
+        chThdSleepMilliseconds(1);
+        image_ready_ms++;
+    }
+
+    image_boot_stage = shared_memory.m4_boot_stage;
+
+    if (shared_memory.m4_panic_msg[0] != 0) {
+        image_load_status = ImageLoadStatus::m4_panic;
+        memcpy(image_panic, shared_memory.m4_panic_msg, sizeof(image_panic) - 1);
+        image_panic[sizeof(image_panic) - 1] = 0;
+
+        if (report_on_screen) {
+            if (shared_memory.bb_data.data[0] == 0)
+                draw_guru_meditation(CORTEX_M4, shared_memory.m4_panic_msg);
+            else
+                draw_guru_meditation(
+                    CORTEX_M4,
+                    shared_memory.m4_panic_msg,
+                    (struct extctx*)&shared_memory.bb_data.data[8],
+                    *(uint32_t*)&shared_memory.bb_data.data[4]);
+        }
+
+        /* Consume it. Nothing else ever clears this, and the M0's event loop
+         * gurus on any non-empty message it finds -- so a panic left in place
+         * would kill the fallback a few milliseconds after it started. */
+        shared_memory.m4_panic_msg[0] = 0;
+    } else {
+        image_load_status = ImageLoadStatus::ready_timeout;
+    }
+
+    /* A timeout is not fatal.
+     *
+     * Panicking here halts the M0 on a guru screen, and if the app reloads
+     * the same image at startup that becomes a boot loop with no way in --
+     * which is exactly how the DAB+ image bricked the unit. The caller is
+     * told instead, and can fall back to an image that works. */
+    return false;
+}
+#endif
+
 void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
     if (baseband_image_running) {
         chDbgPanic("BBRunning");
@@ -517,6 +623,10 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
 
     creg::m4txevent::enable();
 
+#ifdef PRALINE
+    if (enforce_core_sync)
+        wait_for_baseband_ready();
+#else
     if (enforce_core_sync) {
         // Wait up to 3 seconds for baseband to start handling events.
         auto count = 3'000u;
@@ -526,6 +636,7 @@ void run_image(const spi_flash::image_tag_t image_tag, bool enforce_core_sync) {
         if (count == 0)
             chDbgPanic("Baseband Sync Fail");
     }
+#endif
 }
 
 void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const spi_flash::image_tag_t prepared_image_tag) {
@@ -544,6 +655,10 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const sp
 
     creg::m4txevent::enable();
 
+#ifdef PRALINE
+    if (enforce_core_sync)
+        wait_for_baseband_ready();
+#else
     if (enforce_core_sync) {
         // Wait up to 3 seconds for baseband to start handling events.
         auto count = 3'000u;
@@ -553,6 +668,7 @@ void run_prepared_image(const uint32_t m4_code, bool enforce_core_sync, const sp
         if (count == 0)
             chDbgPanic("Baseband Sync Fail");
     }
+#endif
 }
 
 void shutdown() {
