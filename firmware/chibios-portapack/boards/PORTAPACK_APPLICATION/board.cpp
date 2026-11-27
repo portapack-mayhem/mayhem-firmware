@@ -456,7 +456,6 @@ const PALConfig pal_default_config = {
         {map_en_1v2.scu_port, map_en_1v2.scu_pin, scu_config_normal_drive_t{.mode = map_en_1v2.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                // P8_7: EN_1V2
         {map_aux_power_enable.scu_port, map_aux_power_enable.scu_pin, scu_config_normal_drive_t{.mode = map_aux_power_enable.gpio_mode, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},  // P6_7: !3.3V Aux Enable
         {map_aux_power_oc.scu_port, map_aux_power_oc.scu_pin, scu_config_normal_drive_t{.mode = map_aux_power_oc.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 1, .zif = 0}},              // P6_11: !3.3V Aux overcurrent input
-        {4, 9, scu_config_normal_drive_t{.mode = 4, .epd = 0, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                                                                                      // P4_9: TPS62410 mode
         {map_p1_ctrl0.scu_port, map_p1_ctrl0.scu_pin, scu_config_normal_drive_t{.mode = map_p1_ctrl0.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                          // P2_10: P1_CTRL0
         {map_p1_ctrl2.scu_port, map_p1_ctrl2.scu_pin, scu_config_normal_drive_t{.mode = map_p1_ctrl2.gpio_mode, .epd = 0, .epun = 0, .ehs = 0, .ezi = 0, .zif = 0}},                          // P6_9: P1_CTRL2 (Output VCC, PU ON,)
         {map_p2_ctrl0.scu_port, map_p2_ctrl0.scu_pin, scu_config_normal_drive_t{.mode = map_p2_ctrl0.gpio_mode, .epd = 1, .epun = 1, .ehs = 0, .ezi = 0, .zif = 0}},                          // PE_3: P2_CTRL0

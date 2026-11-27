@@ -52,7 +52,7 @@
  */
 
 #ifdef PRALINE
-#define SCU_ARRAY_SIZE 80
+#define SCU_ARRAY_SIZE 79
 #define PORTAPACK_SCU_ARRAY_SIZE 45
 #else
 #define SCU_ARRAY_SIZE 54
