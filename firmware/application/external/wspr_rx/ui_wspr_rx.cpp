@@ -176,25 +176,11 @@ void WSPRRxView::on_packet(const WSPRPacketMessage* message) {
     if (!session_gate_.packet_allowed(message->session_id))
         return;
 
-    // One decode may be a candidate, an ambiguous re-decode of one packet, a
-    // re-delivery, or an independent station report. StationTable is the ONLY
-    // authority for that decision: it is fed monotonic wall-clock seconds
-    // (candidate jobs and status heartbeats have no influence) plus the
-    // packet's physical TX identity (session generation + absolute start
-    // block-row + tone-0 column) and the dial it was received on, and returns
-    // the explicit outcome consumed below.
     const uint32_t now_s = chTimeNow() / CH_FREQUENCY;
-    const stations::ReportOutcome outcome = station_table_.report(
-        message->callsign, message->grid, message->dbm, message->freq_hz,
-        message->snr_db, message->agreement_pct, now_s, message->start_br,
-        message->col, message->session_id,
-        (uint32_t)receiver_model.target_frequency(), message->early_report);
-
-    // Duplicate/Ambiguous change no record: no repaint and no freshness
-    // refresh. Only an independent TX (Unique*) updates the standard table
-    // and the last-packet line.
-    if (outcome.result == stations::ReportResult::UniqueConfirmed ||
-        outcome.result == stations::ReportResult::UniqueUnconfirmed) {
+    if (station_table_.report(message->callsign, message->grid, message->dbm,
+                              message->snr_db, now_s, message->start_br,
+                              message->session_id, receiver_model.target_frequency(),
+                              message->early_report)) {
         station_list.set_dirty();
         update_empty_state();
         /* Snapshot the accepted payload for the last-packet line (duplicates

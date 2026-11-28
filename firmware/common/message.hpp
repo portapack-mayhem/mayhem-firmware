@@ -536,11 +536,7 @@ class WSPRPacketMessage : public Message {
         const char* message_grid,
         int8_t message_dbm,
         int8_t message_snr_db,
-        int16_t message_freq_hz,
-        int16_t message_drift_bins,
-        int8_t message_agreement_pct,
         uint32_t message_start_br = 0,
-        int16_t message_col = 0,
         uint32_t message_session_id = 0,
         bool message_early_report = false)
         : Message{ID::WSPRPacket},
@@ -548,11 +544,7 @@ class WSPRPacketMessage : public Message {
           grid{},
           dbm{message_dbm},
           snr_db{message_snr_db},
-          freq_hz{message_freq_hz},
-          drift_bins{message_drift_bins},
-          agreement_pct{message_agreement_pct},
           start_br{message_start_br},
-          col{message_col},
           early_report{message_early_report},
           session_id{message_session_id} {
         size_t i = 0;
@@ -568,22 +560,17 @@ class WSPRPacketMessage : public Message {
     char grid[5];
     int8_t dbm;  // Declared transmit power, dBm.
     int8_t snr_db;
-    int16_t freq_hz;  // Audio offset, Hz.
-    int16_t drift_bins;  // Drift in tone bins.
-    int8_t agreement_pct;  // Re-encode agreement, percent.
     uint32_t start_br;  // Absolute transmission-start block-row.
-    int16_t col;
     bool early_report;
     /* Capture-session generation the packet was decoded in. start_br restarts
-     * at 0 in every session, so (session_id, start_br, col) is the physical TX
+     * at 0 in every session, so (session_id, start_br) is the physical TX
      * identity; the session alone is not a station identity. */
     uint32_t session_id;
 };
 
 class WSPRRxStatusMessage : public Message {
    public:
-    /* Compact receiver status, sent in BOTH the ordinary and diagnostic
-     * builds. FILLING: the ring does not yet hold WSPR_RX_BLOCK_ROWS rows.
+    /* FILLING: the ring does not yet hold WSPR_RX_BLOCK_ROWS rows.
      * DECODING: a scan/decode pass is running (NOT a statement that FEC
      * succeeded). RECEIVING: the ring is full and the decode thread is idle.
      * No LOCKED/HEARD/SEARCHING wording: those mixed capture state with a
@@ -596,23 +583,17 @@ class WSPRRxStatusMessage : public Message {
 
     constexpr WSPRRxStatusMessage(
         SyncState sync_state,
-        uint8_t decodes,
-        int16_t message_sync_score,
         uint16_t message_ring_rows,
         uint32_t message_session_id = 0,
         uint16_t message_restart_ack = 0xFFFF)
         : Message{ID::WSPRRxStatus},
           state{sync_state},
-          decode_count{decodes},
-          sync_score{message_sync_score},
           ring_rows{message_ring_rows},
           session_id{message_session_id},
           restart_ack{message_restart_ack} {
     }
 
     SyncState state;
-    uint8_t decode_count;   // accepted decodes of this analysis; 0 for heartbeat
-    int16_t sync_score;     // Sync excess, 0.5 dB units.
     uint16_t ring_rows;     // absolute stream position % 352 (0..351)
     /* Capture-session generation this status belongs to (0 = first session of
      * the process launch). The producer increments it after an in-place reset. */

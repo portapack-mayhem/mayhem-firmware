@@ -37,8 +37,8 @@
 // matrix had. The ring never resets it: rows are simply overwritten in slot order.
 static uint8_t magnitude[WSPR_RX_MATRIX_SIZE];
 static float goertzel_coeff[WSPR_RX_NUM_BINS];
-static float goertzel_s1[WSPR_RX_TIME_OSR][WSPR_RX_NUM_BINS];
-static float goertzel_s2[WSPR_RX_TIME_OSR][WSPR_RX_NUM_BINS];
+static float goertzel_s1[WSPR_RX_BANKS][WSPR_RX_NUM_BINS];
+static float goertzel_s2[WSPR_RX_BANKS][WSPR_RX_NUM_BINS];
 
 // cos_unit_quadrant() and log2_from_bits() are the shared libm-free helpers in
 // wspr_lib/wspr_fast_math.h. For this coefficient table the highest bin is 1105, giving
@@ -163,16 +163,6 @@ bool wspr_portapack_feed_sample(wspr_portapack_state_t* state, float sample) {
         finish_row(state, 0);
     }
 
-#if WSPR_RX_TIME_OSR == 2
-    // OSR2-ONLY RING GEOMETRY: the ring decode pipeline (wspr_ring_scan_poll /
-    // wspr_ring_snapshot_candidate) assumes symbol n lives in block-row start + 2n,
-    // i.e. one WSPR symbol spans TWO block-rows of alternating parity. That holds only
-    // in this OSR2 configuration. An OSR1 producer (WSPR_RX_TIME_OSR == 1, block-row =
-    // symbol row, WSPR_RX_BLOCK_ROWS = 176) publishes consecutive symbols, so the ring
-    // math MUST NOT be pointed at it: the ring API rejects any ring smaller than a
-    // full packet plus the deadline margin (WSPR_RING_MIN_BLOCK_ROWS = 335 > 176), the
-    // firmware app build pins OSR2 with a static_assert in proc_wspr_rx.cpp, and the
-    // OSR1 host tests exercise only the producer and the non-ring matrix paths.
     // Bank 1 runs the same stream on a row grid shifted half a symbol: it starts
     // accumulating at stream sample 4096 and closes its rows at 4096 (mod 8192). A
     // transmission at an arbitrary sub-row phase is therefore within a quarter symbol of
@@ -192,7 +182,6 @@ bool wspr_portapack_feed_sample(wspr_portapack_state_t* state, float sample) {
             finish_row(state, 1);
         }
     }
-#endif
     state->total_samples++;
 
     // True when this sample completed a block-row (published: total_br moved past it).
@@ -218,29 +207,6 @@ uint32_t wspr_portapack_valid_rows(const wspr_portapack_state_t* state) {
     return br < (uint32_t)WSPR_RX_BLOCK_ROWS ? br : (uint32_t)WSPR_RX_BLOCK_ROWS;
 }
 
-const uint8_t* wspr_portapack_row_br(uint32_t br) {
-    // Wrap-safe: the modulo of the raw id stays within the ring even near 2^32. Callers
-    // that walk a packet's rows must apply the same id-then-slot order (see the ring
-    // snapshot reader), never (br + k) % ring on a raw id that can overflow.
-    return magnitude + (size_t)(br % (uint32_t)WSPR_RX_BLOCK_ROWS) * WSPR_RX_NUM_BINS;
-}
-
 const uint8_t* wspr_portapack_matrix(void) {
     return magnitude;
-}
-
-int wspr_portapack_rows(void) {
-    return WSPR_RX_NUM_ROWS;
-}
-
-int wspr_portapack_time_osr(void) {
-    return WSPR_RX_TIME_OSR;
-}
-
-int wspr_portapack_bins(void) {
-    return WSPR_RX_NUM_BINS;
-}
-
-int wspr_portapack_bin0_hz(void) {
-    return WSPR_RX_BIN0_HZ;
 }

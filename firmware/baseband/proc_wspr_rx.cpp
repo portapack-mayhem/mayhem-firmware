@@ -26,12 +26,6 @@
 
 #include <cstring>
 
-// The ring scan/snapshot geometry (symbol n at start + 2n, one start per block-row,
-// ring depth 352) exists only for the OSR2 producer; an OSR1 build must not compile
-// the decode loop against it (the wspr_lib ring functions also reject such a ring at
-// runtime - see WSPR_RING_MIN_BLOCK_ROWS).
-static_assert(WSPR_RX_TIME_OSR == 2, "ring capture is OSR2-only");
-
 // Dedicated decoder stack, matching the 4 KiB budget used by FT8 RX.
 // Keep decoding separate from the small main/event-loop stack; DMA and RSSI
 // processing also run on their own thread stacks.
@@ -93,10 +87,6 @@ void WSPRDecodeThread::signal_row() {
 }
 
 void WSPRDecodeThread::run() {
-    // The last known sync score rides on every status message: a quiet band keeps
-    // the previous value instead of flickering to zero.
-    int16_t last_sync_score = 0;
-
     // Periodic status heartbeat (no candidate needed). Ticks are milliseconds on
     // this baseband build; MS2ST keeps it correct if that ever changes.
     constexpr systime_t HEARTBEAT_INTERVAL = MS2ST(10000);  // one every 10 s
@@ -130,14 +120,13 @@ void WSPRDecodeThread::run() {
             session_known = true;
             wspr_ring_scan_init(&scan_);
             wspr_decode_reset_aggregation();
-            last_sync_score = 0;
             // ACK: this status carries the generation the reset produced and
             // the exact request id the producer serviced. The UI accepts
             // packets only after this message. A failed push is not retried
             // here; the ordinary statuses below repeat the same ack id, so the
             // next candidate or the 10 s heartbeat resolves it.
             (void)shared_memory.application_queue.push(WSPRRxStatusMessage{
-                processor_->sync_state_code(), (uint8_t)0, (int16_t)0,
+                processor_->sync_state_code(),
                 processor_->ring_rows(), session, session_ack});
         }
 
@@ -168,7 +157,7 @@ void WSPRDecodeThread::run() {
                 // producer has already rewritten.
                 total_br = wspr_portapack_total_br(state_);
                 if (!wspr_ring_scan_poll(wspr_portapack_matrix(),
-                                         wspr_portapack_bins(),
+                                         WSPR_RX_NUM_BINS,
                                          WSPR_RX_BLOCK_ROWS,
                                          total_br, &scan_,
                                          WSPR_RING_SCAN_MAX_STARTS_PER_POLL,
@@ -183,14 +172,11 @@ void WSPRDecodeThread::run() {
                 // raced the writer, so no rewritten byte can ever reach the decode.
                 wspr_snapshot_t snap;
                 if (!wspr_ring_snapshot_candidate(wspr_portapack_matrix(),
-                                                  wspr_portapack_bins(),
+                                                  WSPR_RX_NUM_BINS,
                                                   WSPR_RX_BLOCK_ROWS,
                                                   total_br, start_br, col,
-                                                  wspr_portapack_bin0_hz(), drift,
-                                                  excess, &snap,
-                                                  wspr_ring_live_cursor, state_,
-                                                  nullptr)) {
-                    scan_.snap_drops++;
+                                                  drift, &snap,
+                                                  wspr_ring_live_cursor, state_)) {
                     continue;
                 }
 
@@ -241,20 +227,13 @@ void WSPRDecodeThread::run() {
                 const bool early_report = contribution == WSPR_CONTRIBUTION_EARLY_REPORT;
                 const bool has_report = early_report || contribution == WSPR_CONTRIBUTION_REPORT;
                 if (has_report) {
-                    // Packet identity rides along: the absolute start block-row and the
-                    // tone-0 column identify the PHYSICAL transmission, so the UI can
-                    // tell a repeat of the same TX (same start_br) from a new one.
                     // Best-effort push: never block the decoder on the UI queue.
                     const bool pushed = shared_memory.application_queue.push(WSPRPacketMessage{
                         decoded.callsign,
                         decoded.grid,
                         decoded.dbm,
                         decoded.snr_db,
-                        decoded.freq_hz,
-                        decoded.drift_bins,
-                        decoded.agreement_pct,
                         start_br,
-                        col,
                         session,
                         early_report});
 #if defined(WSPR_RX_EARLY_REPORTS)
@@ -262,13 +241,10 @@ void WSPRDecodeThread::run() {
                         wspr_agg_ack_early_report();
 #endif
                     (void)pushed;
-                    last_sync_score = decoded.sync_score;
                 }
 
                 const bool status_pushed = shared_memory.application_queue.push(WSPRRxStatusMessage{
                     processor_->sync_state_code(),
-                    has_report,
-                    last_sync_score,
                     processor_->ring_rows(),
                     session,
                     session_ack});
@@ -294,7 +270,7 @@ void WSPRDecodeThread::run() {
         // Periodic heartbeat, rate-limited well below the per-row signal rate: a
         // quiet band produces NO candidate jobs, and without this the UI would sit
         // on whatever the last candidate-era status said with no way to tell a
-        // silent band from a wedged worker. decode_count is 0 here; the sync state
+        // silent band from a wedged worker. The sync state
         // and ring position are current. Never more often than one snapshot per
         // interval, and the pushes never block (a full queue drops, as elsewhere).
         const systime_t now = chTimeNow();
@@ -306,12 +282,9 @@ void WSPRDecodeThread::run() {
             // when nothing transmits (idempotent: wspr_agg_age_to recomputes ages
             // absolutely from each track's newest contribution).
             wspr_agg_age_to(wspr_portapack_total_br(state_));
-            // Heartbeat status snapshot: same fields as the per-attempt status,
-            // decode_count 0. Best-effort delivery.
+            // Heartbeat status snapshot for a quiet band.
             const bool hb_pushed = shared_memory.application_queue.push(WSPRRxStatusMessage{
                 processor_->sync_state_code(),
-                (uint8_t)0,
-                last_sync_score,
                 processor_->ring_rows(),
                 session,
                 session_ack});

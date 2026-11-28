@@ -151,7 +151,7 @@ class WSPRRxView : public View {
     /* A first decode remains a grey candidate. An identical callsign/grid/power
      * at a later physical onset becomes a green station report. StationTable is
      * the ONLY authority for that decision: on_packet consumes its explicit
-     * ReportOutcome and never keeps a second table or policy. Its timers run on
+     * station table and never keeps a second copy of its policy. Its timers run on
      * MONOTONIC SECONDS, never on message counts - those arrive per candidate
      * job and per heartbeat, so a message-counted age would retire records
      * after a handful of unrelated candidates and block the confirmation of a

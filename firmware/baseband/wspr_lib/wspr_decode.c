@@ -219,8 +219,6 @@ typedef struct {
     uint32_t last_slot_br;            // absolute start of the newest slot
     int16_t col0;                     // anchor tone-0 column (track identity)
     int16_t last_sync_score;          // newest slot's drift-refined excess
-    int8_t last_drift;                // newest slot's refined drift
-    int8_t last_bank;                 // newest slot's bank parity
     uint8_t count;                    // slots accumulated (capped at
                                       // WSPR_AGG_MAX_COUNT, never wraps)
     uint8_t failed;                   // gate-failing integrated decodes
@@ -1032,8 +1030,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     t->age = 0;
     t->last_slot_br = start_br;
     t->last_sync_score = snap->meta.sync_score;
-    t->last_drift = snap->meta.drift;
-    t->last_bank = snap->meta.bank;
     // Accepted contribution: record the packet identity so its ghost anchors can
     // never weigh the same TX again (see agg_events).
     agg_event_record(start_br, col);
@@ -1101,16 +1097,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // time. Integration raises decoding confidence, not the RF SNR figure of
     // a single slot, so no integration gain is added here.
     out->snr_db = estimate_snr_snapshot(snap, source);
-    out->freq_hz =
-        (int16_t)(snap->meta.bin0_hz + (col * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
-    // The newest slot's refined drift and sync excess: the accumulator has no
-    // alignment scan of its own.
-    out->drift_bins = (int16_t)t->last_drift;
-    out->sync_score = t->last_sync_score;
-    out->row_offset = (int16_t)start_br;
-    out->bank = t->last_bank;
-    out->metric = metric;
-    out->agreement_pct = (int8_t)agreement;
 
 #if defined(WSPR_RX_EARLY_REPORTS)
     if (early) {
@@ -1370,12 +1356,6 @@ void wspr_ring_scan_init(wspr_ring_scan_state_t* st) {
     st->pending_excess = 0;
     st->pending_drift = 0;
     st->pending_valid = false;
-    st->scanned = 0;
-    st->expired = 0;
-    st->scan_lag = 0;
-    st->max_lag = 0;
-    st->snap_drops = 0;
-    st->stale_scans = 0;
     memset(st->secondary, 0, sizeof(st->secondary));
 }
 
@@ -1515,9 +1495,6 @@ int wspr_ring_scan_poll(const uint8_t* mag,
             const uint32_t pending_lag = total_br - st->pending_br;
             if ((int32_t)pending_lag > release_limit) {
                 st->pending_valid = false;
-                st->expired++;
-                st->scan_lag = pending_lag;
-                if (pending_lag > st->max_lag) st->max_lag = pending_lag;
                 continue;
             }
             // Release the held candidate once its +-2 block-row comparison window is
@@ -1529,8 +1506,6 @@ int wspr_ring_scan_poll(const uint8_t* mag,
             // hand the decode a drift-shifted misalignment instead of the true one.
             if ((int32_t)pending_lag >= WSPR_CODED_BITS * 2 + 3) {
                 st->pending_valid = false;
-                st->scan_lag = pending_lag;
-                if (pending_lag > st->max_lag) st->max_lag = pending_lag;
                 if (out_start_br) *out_start_br = st->pending_br;
                 if (out_col) *out_col = st->pending_col;
                 if (out_excess) *out_excess = st->pending_excess;
@@ -1554,9 +1529,6 @@ int wspr_ring_scan_poll(const uint8_t* mag,
                 const uint32_t sec_lag = total_br - st->secondary[sec].br;
                 if ((int32_t)sec_lag > release_limit) {
                     st->secondary[sec].valid = false;
-                    st->expired++;
-                    st->scan_lag = sec_lag;
-                    if (sec_lag > st->max_lag) st->max_lag = sec_lag;
                     continue;
                 }
                 const wspr_ring_secondary_t emit = st->secondary[sec];
@@ -1585,17 +1557,13 @@ int wspr_ring_scan_poll(const uint8_t* mag,
         }
         const uint32_t s = st->next_scan_br++;
         starts_done++;
-        st->scan_lag = total_br - s;
-        if (st->scan_lag > st->max_lag) st->max_lag = st->scan_lag;
 
         // Release limit: scanning a start any later could only produce candidates
         // that expire before their release; drop it here (counted).
         if ((int32_t)(total_br - s) > release_limit) {
-            st->expired++;
             continue;
         }
 
-        st->scanned++;
         // ONE correlation pass per start; the ranked top-K columns (distinct
         // stations sharing the onset) fall out of the per-column best already
         // computed there. The strongest runs the pending best-of-window ranking;
@@ -1613,7 +1581,6 @@ int wspr_ring_scan_poll(const uint8_t* mag,
             // while the correlation ran, so its col/excess/drift describe garbage.
             // Discard BEFORE anything can enter pending/secondary and count it -
             // this is the scan's counterpart of the snapshot's OVERWRITTEN drop.
-            st->stale_scans++;
             continue;
         }
         if (found <= 0) continue;
@@ -1704,19 +1671,14 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
                                  uint32_t total_br,
                                  uint32_t start_br,
                                  int col0,
-                                 int bin0_hz,
                                  int8_t scan_drift,
-                                 int16_t scan_excess,
                                  wspr_snapshot_t* snap,
                                  wspr_ring_cursor_fn cursor_fn,
-                                 void* cursor_ctx,
-                                 int* out_fail) {
-    (void)scan_excess;  // Snapshot validation recomputes the score from captured tones.
-    if (out_fail) *out_fail = WSPR_SNAP_BAD_ARGS;
+                                 void* cursor_ctx) {
     if (mag == NULL || snap == NULL) return 0;
     if (num_bins < 8 || block_rows == 0) return 0;
     if (num_bins > WSPR_RING_SNAP_SCRATCH_BINS) return 0;
-    if (block_rows < (uint32_t)WSPR_RING_MIN_BLOCK_ROWS) return 0;  // OSR1 ring: rejected
+    if (block_rows < (uint32_t)WSPR_RING_MIN_BLOCK_ROWS) return 0;
     if (col0 < 0 || col0 + 3 >= num_bins) return 0;
 
     // The drift was refined during the incremental scan (stage 1 now searches
@@ -1735,7 +1697,6 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
     // Reject instead of reading rewritten bytes; the scan's own deadline check is the
     // first gate, this is the second (the refreshed one).
     if ((int32_t)(cur - start_br) > (int32_t)(block_rows - WSPR_RING_DEADLINE_ROWS)) {
-        if (out_fail) *out_fail = WSPR_SNAP_EXPIRED;
         return 0;
     }
 
@@ -1760,7 +1721,6 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
         const uint32_t row_br = start_br + 2u * (uint32_t)n;
         cur = ring_cursor_load(cursor_fn, cursor_ctx, total_br);
         if (!ring_row_safe(cur, row_br, block_rows)) {
-            if (out_fail) *out_fail = WSPR_SNAP_OVERWRITTEN;
             return 0;
         }
         const uint8_t* row = ring_row(mag, num_bins, block_rows, row_br);
@@ -1768,7 +1728,6 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
         memcpy(scratch, row, (size_t)num_bins);
         cur = ring_cursor_load(cursor_fn, cursor_ctx, total_br);
         if (!ring_row_safe(cur, row_br, block_rows)) {
-            if (out_fail) *out_fail = WSPR_SNAP_OVERWRITTEN;
             return 0;
         }
         for (int i = 0; i < 4; i++) snap->tones[n][i] = scratch[c + i];
@@ -1804,23 +1763,16 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
         const int32_t belt_score =
             tones_sync_excess(snap, col0, drift, num_bins, &belt_mean);
         if (belt_score < 0) {
-            if (out_fail) *out_fail = WSPR_SNAP_WEAK_SCORE;
             return 0;
         }
         const int32_t belt_excess = belt_score / WSPR_CODED_BITS - belt_mean;
         if (belt_excess < WSPR_RING_MIN_EXCESS) {
-            if (out_fail) *out_fail = WSPR_SNAP_WEAK_SCORE;
             return 0;
         }
         snap->meta.sync_score = (int16_t)belt_excess;
     }
-    snap->meta.start_row_abs = start_br;
     snap->meta.col0 = (int16_t)col0;
-    snap->meta.bin0_hz = (int16_t)bin0_hz;
-    snap->meta.bank = (int8_t)(start_br & 1u);
-    snap->meta.drift = (int8_t)drift;
     snap->meta.valid_symbols = WSPR_CODED_BITS;
-    if (out_fail) *out_fail = WSPR_SNAP_OK;
     return 1;
 }
 

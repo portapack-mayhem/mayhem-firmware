@@ -28,12 +28,8 @@
 
 #include "wspr_lib/wspr_constants.h"
 
-// The receiver bank. WSPR occupies 1400-1600 Hz of the USB audio, laid out in columns of
-// one tone spacing: 12000/8192 = 1.46484375 Hz. Column b is a Goertzel at absolute bin
-// 956 + b of an 8192-point transform at 12 kHz, so column 0 sits at 1400.39 Hz — rounded
-// to the WSPR_RX_BIN0_HZ = 1400 the decoder is told, a quarter bin off the nominal band
-// edge and far under the bin width — and the 137 columns cover the protocol band exactly
-// (the last column tops out at 1599.2 Hz).
+// Goertzel columns are spaced one WSPR tone apart (12000/8192 Hz).
+// Column b uses bin 956 + b, covering approximately 1400–1600 Hz.
 #define WSPR_RX_NUM_BINS 137
 #define WSPR_RX_NUM_ROWS 176
 
@@ -41,16 +37,10 @@
 // transmissions start at an arbitrary sub-row phase, and a row-quantized decoder misses
 // beyond roughly a quarter symbol of smear; with banks closing rows at sample 0 and
 // sample 4096 (mod 8192) every phase is within +-2048 samples of one bank's grid.
-#ifndef WSPR_RX_TIME_OSR
-#define WSPR_RX_TIME_OSR 2
-#endif
-#if WSPR_RX_TIME_OSR != 1 && WSPR_RX_TIME_OSR != 2
-#error "WSPR_RX_TIME_OSR must be 1 or 2"
-#endif
+#define WSPR_RX_BANKS 2
 #define WSPR_RX_BANK1_OFFSET (WSPR_SAMPLES_PER_SYMBOL / 2)  // 4096 samples
-#define WSPR_RX_BLOCK_ROWS (WSPR_RX_TIME_OSR * WSPR_RX_NUM_ROWS)
+#define WSPR_RX_BLOCK_ROWS (WSPR_RX_BANKS * WSPR_RX_NUM_ROWS)
 #define WSPR_RX_MATRIX_SIZE (WSPR_RX_BLOCK_ROWS * WSPR_RX_NUM_BINS)  // 48224 bytes
-#define WSPR_RX_BIN0_HZ 1400
 
 /*
  * Ring capture (ring architecture, stage 3).
@@ -122,17 +112,8 @@ uint32_t wspr_portapack_total_br(const wspr_portapack_state_t* state);
 // Rows currently held intact by the ring: min(total_br(), WSPR_RX_BLOCK_ROWS).
 uint32_t wspr_portapack_valid_rows(const wspr_portapack_state_t* state);
 
-// Pointer to the physical slot of absolute block-row br (uint32-wrap-safe). Valid once
-// total_br() > br; the bytes stay intact until total_br() > br + WSPR_RX_BLOCK_ROWS.
-const uint8_t* wspr_portapack_row_br(uint32_t br);
-
-// Base address of the ring (physical slot 0) and its geometry, for the ring scan and
-// the ring snapshot reader.
+// Base address of the ring for the scan and snapshot reader.
 const uint8_t* wspr_portapack_matrix(void);
-int wspr_portapack_rows(void);      // WSPR_RX_NUM_ROWS (symbol rows per bank)
-int wspr_portapack_time_osr(void);  // WSPR_RX_TIME_OSR (interleaved sub-row banks)
-int wspr_portapack_bins(void);      // WSPR_RX_NUM_BINS
-int wspr_portapack_bin0_hz(void);   // WSPR_RX_BIN0_HZ
 
 #ifdef __cplusplus
 }

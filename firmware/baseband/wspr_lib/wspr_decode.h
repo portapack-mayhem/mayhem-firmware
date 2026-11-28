@@ -99,15 +99,6 @@ typedef uint32_t (*wspr_ring_cursor_fn)(void* ctx);
     } while (0)
 #endif
 
-/* Why wspr_ring_snapshot_candidate() refused a candidate (out_fail reason codes). */
-enum {
-    WSPR_SNAP_OK = 0,          /* frozen successfully                       */
-    WSPR_SNAP_BAD_ARGS = 1,    /* NULL pointers / geometry outside the ring */
-    WSPR_SNAP_EXPIRED = 2,     /* packet reached the overwrite deadline     */
-    WSPR_SNAP_OVERWRITTEN = 3, /* a row was (or may have been) overwritten mid-copy */
-    WSPR_SNAP_WEAK_SCORE = 4   /* frozen bytes failed the recomputed sync-excess gate */
-};
-
 /* Guarded single-row copy scratch size (the receiver's row width is 137 bins; a wider
  * ring is rejected rather than copied unguarded). */
 #define WSPR_RING_SNAP_SCRATCH_BINS 256
@@ -164,12 +155,6 @@ typedef struct {
     int16_t pending_excess;
     int16_t pending_drift;
     bool pending_valid;
-    uint32_t scanned;     /* starts actually sync-scanned (diagnostics)         */
-    uint32_t expired;     /* starts/jobs dropped past the overwrite deadline    */
-    uint32_t scan_lag;    /* cursor distance of the last processed start        */
-    uint32_t max_lag;     /* worst cursor distance ever processed               */
-    uint32_t snap_drops;  /* candidates lost to the snapshot's expiry/race gate */
-    uint32_t stale_scans; /* sync scans discarded: rows raced the writer mid-scan */
     /* Secondary candidates of a scanned start (distinct stations sharing one
      * onset), excess-ranked, emitted before new starts are scanned. */
     wspr_ring_secondary_t secondary[WSPR_RING_MAX_SECONDARY];
@@ -188,58 +173,15 @@ typedef struct {
     char grid[5];          // 4 characters plus terminator
     int8_t dbm;            // 0..60
     int8_t snr_db;         // estimated SNR in a 2500 Hz reference bandwidth
-    int16_t freq_hz;       // audio frequency of tone 0, relative to the dial
-    int16_t drift_bins;    // total frequency walk over the window, in bins
-    int16_t row_offset;    // window row the transmission starts in; the slot
-                           // tracker steers this toward the middle of the slack
-    int16_t sync_score;    // raw sync-sum of this candidate, for display: a
-                           // quiet band scores a fraction of a noisy-signal one
-    int16_t metric;        // final sequential-decode path metric: real signals
-                           // accumulate a clear positive score, noise hovers
-                           // around zero - the decode-acceptance gate reads this
-    int8_t bank;           // sub-row bank of the decode, 0..time_osr-1; the
-                           // row_offset is a symbol row of that bank's grid
-    int8_t agreement_pct;  // hard-decision re-encoding agreement, not a
-                           // probability that the decoded callsign is correct
 } wspr_decode_result_t;
 
-/*
- * Candidate snapshot contract (ring-architecture stage 2).
- *
- * The window decoder above runs its coarse scan, drift refinement, soft
- * demodulation, SNR estimate and multi-slot accumulation directly against
- * the live magnitude matrix. The ring receiver will instead freeze the
- * chosen candidate into a small self-contained snapshot taken from the live
- * matrix, so the (potentially seconds-long) sequential decode no longer
- * depends on the matrix staying untouched. The snapshot carries everything
- * the decode reads from the matrix for ONE candidate at its CHOSEN drift:
- *
- *   - tones[162][4]: the four pair/parity bins of every symbol, extracted
- *     at col(n) = col0 + drift*n/161 (soft demod reads [sync[n]] and
- *     [sync[n]+2]; the SNR tone bin is [sync[n] + 2*decoded[n]]);
- *   - noise_histogram[64] uint16: the byte>>2 power histogram estimate_snr
- *     accumulates over the same 162 rows and all bins OUTSIDE the excluded
- *     band [c-4, c+7] around the same drifting column c - so the SNR from
- *     the snapshot is bit-identical to the matrix path's;
- *   - metadata: absolute start row, bank, col0, bin0_hz, the drift-refined
- *     sync excess, and the number of valid symbols.
- *
- * wspr_decode_window() stays the plain window path; the candidate API adds
- * to it and shares its internals, so a snapshot decode is bit-for-bit
- * equivalent to decoding the same (row, bank, col, drift) candidate
- * through the window - verified by the host equivalence test.
- */
+/* Guarded snapshot of one complete candidate and its noise floor. */
 #define WSPR_NOISE_HIST_BINS 64
 
 typedef struct {
-    uint32_t start_row_abs; /* absolute row id of symbol 0 in the stream */
     int16_t col0;           /* tone-0 column of the candidate            */
-    int16_t bin0_hz;        /* audio frequency of column 0               */
     int16_t sync_score;     /* drift-refined excess, result scale        */
-    int8_t bank;            /* sub-row bank the candidate came from      */
-    int8_t drift;           /* chosen drift, -3..+3                      */
     uint8_t valid_symbols;  /* symbols present; a full packet is 162     */
-    uint8_t reserved;       /* padding, zeroed                           */
 } wspr_snapshot_meta_t;
 
 typedef struct {
@@ -376,13 +318,8 @@ void wspr_decode_reset_aggregation(void);
  * wrap-safe: (br % block_rows + 2n) % block_rows, so a packet straddling the physical
  * seam and counters near the uint32 wrap both read the correct slots.
  *
- * OSR2-ONLY: the ring geometry (one start hypothesis per block-row, symbol n at
- * start + 2n, ring depth 352) exists for the OSR2 receiver, where a WSPR symbol
- * spans TWO block-rows. Under OSR1 the producer publishes one block-row per symbol
- * row, so a 176-row OSR1 ring cannot even contain a 323-block-row packet. The ring
- * functions therefore REJECT any block_rows smaller than a full packet plus the
- * deadline margin (return 0 / skip the session); the OSR1 host tests exercise only
- * the non-ring matrix/portapack paths.
+ * Two interleaved banks publish two block-rows per symbol. The ring must
+ * contain a complete packet plus the overwrite margin.
  */
 
 /* Reset a scan session: every start hypothesis from absolute id 0 on will be considered
@@ -400,7 +337,7 @@ void wspr_ring_scan_init(wspr_ring_scan_state_t* st);
  * pool and only the sharpest alignment reaches the decode.
  *
  * Skipped (not scanned): starts whose packet is truncated at the head of the stream,
- * starts past the overwrite deadline (counted in st->expired), and starts suppressed
+ * starts past the overwrite deadline, and starts suppressed
  * by a decoded packet's anchor: within +-20 block-rows of an anchor ON ITS OWN
  * frequency column +-2 — the sync correlation plateau of one transmission spans
  * several symbols of start shift, and those ghost anchors must not re-decode (or
@@ -415,8 +352,7 @@ void wspr_ring_scan_init(wspr_ring_scan_state_t* st);
  * decode thread in one unbounded call; the caller re-polls whenever the producer
  * moves or the thread is woken, so the scan keeps making progress independent of
  * the FEC budget. `total_br` must be read FRESH immediately before each call; the
- * snapshot step re-verifies every row against the live cursor anyway. Each call
- * updates st->scan_lag / st->max_lag with the cursor distance of what it processed.
+ * snapshot step re-verifies every row against the live cursor.
  *
  * MULTI-STATION (top-K): each start scans once and yields up to
  * 1 + WSPR_RING_MAX_SECONDARY excess-ranked candidates at distinct columns
@@ -428,7 +364,7 @@ void wspr_ring_scan_init(wspr_ring_scan_state_t* st);
  * RELEASE MARGIN: candidates are handed out no later than
  * block_rows - WSPR_RING_DEADLINE_ROWS - WSPR_RING_RELEASE_MARGIN_ROWS behind the
  * cursor (both the primary release and the secondary queue); anything later is
- * dropped and counted in st->expired. The snapshot keeps its harder deadline gate,
+ * dropped. The snapshot keeps its harder deadline gate,
  * so the released candidate carries the margin as preemption allowance.
  *
  * SCAN STALENESS: the correlation itself reads the live matrix over the whole
@@ -437,7 +373,7 @@ void wspr_ring_scan_init(wspr_ring_scan_state_t* st);
  * `total_br`, the same protocol as the snapshot's guarded reader). If the cursor at
  * scan end shows that any row of the span could have been overwritten or torn
  * (cursor - start_br > block_rows - 1), the whole scan result is DISCARDED before it
- * can become a pending/secondary candidate and st->stale_scans is counted. HONEST
+ * can become a pending/secondary candidate. HONEST
  * LIMIT: this closes the read window, but the residual assumption is that a healthy
  * scan finishes well inside one block-row (~341 ms) so it is never falsely stale -
  * that wall time is NOT yet measured on ARM; do not declare the race closed until
@@ -487,7 +423,7 @@ void wspr_ring_scan_mark_decoded(wspr_ring_scan_state_t* st, uint32_t start_br, 
  * pass; if at scan end any row of the span could have been overwritten or torn
  * (cursor - start_br > block_rows - 1, the same publication-protocol guard as the
  * snapshot's guarded copies), the result describes rewritten bytes and the caller
- * must discard it (counted in st->stale_scans by the poll). HONEST LIMIT: the
+ * must discard it. HONEST LIMIT: the
  * residual assumption is a scan wall time well inside one block-row (~341 ms),
  * unmeasured on ARM so far.
  * `total_br` bounds the packet: the caller must ensure
@@ -507,11 +443,8 @@ int wspr_ring_scan_start(const uint8_t* mag,
                          int8_t* out_drifts);
 
 /*
- * Freeze ONE candidate out of the RING buffer, the wrap-safe counterpart of
- * wspr_snapshot_candidate(): the packet's symbol n reads physical slot
- * (start_br % block_rows + 2n) % block_rows, whatever the ring seam and the uint32
- * counter position. Drift refinement over -3..+3 runs here on the same excess scale as
- * the window decoder's stage 2.
+ * Freeze the candidate at its chosen drift. Symbol n lives at absolute
+ * block-row start_br + 2n, with the ring producer’s wrap arithmetic.
  *
  * GUARDED READER: `total_br` is only the caller's last-known value; the LIVE cursor
  * comes through `cursor_fn(cursor_ctx)` (wspr_ring_cursor_fn, see the protocol note
@@ -525,8 +458,7 @@ int wspr_ring_scan_start(const uint8_t* mag,
  * open (see the protocol note for exactly what is and is not guaranteed).
  *
  * Returns 1 on success. Returns 0 on bad arguments/geometry or when the packet
- * expired or raced the writer; `*out_fail` (if non-NULL) then carries one of the
- * WSPR_SNAP_* reason codes so the caller can count expired vs overwritten drops.
+ * expired, raced the writer, or failed the frozen-snapshot sync check.
  */
 int wspr_ring_snapshot_candidate(const uint8_t* mag,
                                  int num_bins,
@@ -534,13 +466,10 @@ int wspr_ring_snapshot_candidate(const uint8_t* mag,
                                  uint32_t total_br,
                                  uint32_t start_br,
                                  int col0,
-                                 int bin0_hz,
                                  int8_t scan_drift,
-                                 int16_t scan_excess,
                                  wspr_snapshot_t* snap,
                                  wspr_ring_cursor_fn cursor_fn,
-                                 void* cursor_ctx,
-                                 int* out_fail);
+                                 void* cursor_ctx);
 
 #ifdef __cplusplus
 }
