@@ -416,6 +416,10 @@ set(EXTCPPSRC
 	external/ft8_rx/ui_ft8_rx.cpp
 	external/ft8_rx/ui_ft8_map.cpp
 
+	#wspr rx
+	external/wspr_rx/main.cpp
+	external/wspr_rx/ui_wspr_rx.cpp
+
 	#spectrum analyzer
 	external/spec_an/main.cpp
 	external/spec_an/ui_spec_an.cpp
@@ -547,6 +551,7 @@ set(EXTAPPLIST
 	aprs_rx
 	aprs_tx
 	ft8_rx
+	wspr_rx
 	spec_an
 	sdusb
   	rds_rx

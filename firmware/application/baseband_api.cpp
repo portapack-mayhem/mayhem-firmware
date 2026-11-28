@@ -622,6 +622,12 @@ void request_beep(RequestSignalMessage::Signal beep_type) {
     send_message(&message);
 }
 
+void request_wspr_restart(uint16_t request_id) {
+    static WSPRRestartMessage message;
+    message.request_id = request_id;
+    send_message(&message);
+}
+
 void request_roger_beep() {
     request_beep(RequestSignalMessage::Signal::RogerBeepRequest);
 }

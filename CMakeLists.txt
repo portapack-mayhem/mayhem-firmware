@@ -178,4 +178,5 @@ endif()
 message(STATUS "-------^ ccache info--------")
 
 enable_testing()
+
 add_subdirectory(firmware)

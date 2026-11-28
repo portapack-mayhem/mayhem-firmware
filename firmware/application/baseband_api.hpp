@@ -128,6 +128,10 @@ void set_hunter_config(uint32_t threshold, uint32_t hangtime_ms, bool start);
 void set_wmbus_config(uint8_t mode = 0);
 
 void request_roger_beep();
+/* Ask the WSPR baseband to start a new capture session. request_id is echoed
+ * in WSPRRxStatusMessage::restart_ack once the producer has actually reset at
+ * a buffer boundary; a status arriving for another reason does not confirm it. */
+void request_wspr_restart(uint16_t request_id);
 void request_rssi_beep();
 void request_beep_stop();
 void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms);

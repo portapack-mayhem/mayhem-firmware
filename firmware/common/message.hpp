@@ -184,6 +184,9 @@ class Message {
         SubGhzChatPacket = 125,
         HorusPacket = 126,
         HorusRxStatus = 127,
+        WSPRPacket = 128,
+        WSPRRxStatus = 129,
+        WSPRRestart = 132,
         MAX
     };
 
@@ -524,6 +527,81 @@ class HorusRxStatusMessage : public Message {
     int16_t snr_x10{0};       // per-symbol SNR, dB * 10
     int16_t signal_x10{0};    // tone power over the spectrum noise floor, dB * 10
     bool tones_valid{false};  // four tones have been found at least once
+};
+
+class WSPRPacketMessage : public Message {
+   public:
+    constexpr WSPRPacketMessage(
+        const char* message_callsign,
+        const char* message_grid,
+        int8_t message_dbm,
+        int8_t message_snr_db,
+        uint32_t message_start_br = 0,
+        uint32_t message_session_id = 0,
+        bool message_early_report = false)
+        : Message{ID::WSPRPacket},
+          callsign{},
+          grid{},
+          dbm{message_dbm},
+          snr_db{message_snr_db},
+          start_br{message_start_br},
+          early_report{message_early_report},
+          session_id{message_session_id} {
+        size_t i = 0;
+        for (; i < sizeof(callsign) - 1 && message_callsign[i] != '\0'; i++)
+            callsign[i] = message_callsign[i];
+        callsign[i] = '\0';
+        for (i = 0; i < sizeof(grid) - 1 && message_grid[i] != '\0'; i++)
+            grid[i] = message_grid[i];
+        grid[i] = '\0';
+    }
+
+    char callsign[13];
+    char grid[5];
+    int8_t dbm;  // Declared transmit power, dBm.
+    int8_t snr_db;
+    uint32_t start_br;  // Absolute transmission-start block-row.
+    bool early_report;
+    /* Capture-session generation the packet was decoded in. start_br restarts
+     * at 0 in every session, so (session_id, start_br) is the physical TX
+     * identity; the session alone is not a station identity. */
+    uint32_t session_id;
+};
+
+class WSPRRxStatusMessage : public Message {
+   public:
+    /* FILLING: the ring does not yet hold WSPR_RX_BLOCK_ROWS rows.
+     * DECODING: a scan/decode pass is running (NOT a statement that FEC
+     * succeeded). RECEIVING: the ring is full and the decode thread is idle.
+     * No LOCKED/HEARD/SEARCHING wording: those mixed capture state with a
+     * decoder verdict. */
+    enum class SyncState : uint8_t {
+        Filling = 0,
+        Decoding = 1,
+        Receiving = 2,
+    };
+
+    constexpr WSPRRxStatusMessage(
+        SyncState sync_state,
+        uint16_t message_ring_rows,
+        uint32_t message_session_id = 0,
+        uint16_t message_restart_ack = 0xFFFF)
+        : Message{ID::WSPRRxStatus},
+          state{sync_state},
+          ring_rows{message_ring_rows},
+          session_id{message_session_id},
+          restart_ack{message_restart_ack} {
+    }
+
+    SyncState state;
+    uint16_t ring_rows;     // absolute stream position % 352 (0..351)
+    /* Capture-session generation this status belongs to (0 = first session of
+     * the process launch). The producer increments it after an in-place reset. */
+    uint32_t session_id;
+    /* Request id the reset that produced session_id acknowledged; 0xFFFF when
+     * no restart has been acknowledged in this process. Repeated on ordinary
+     * statuses so a queue drop of the first ACK cannot wedge the UI. */
+    uint16_t restart_ack;
 };
 
 class TPMSPacketMessage : public Message {
@@ -2332,5 +2410,17 @@ struct WMBusPacketMessage : public Message {
 
     uint16_t length = 0;
     uint8_t data[500] = {0};
+};
+class WSPRRestartMessage : public Message {
+   public:
+    constexpr WSPRRestartMessage(uint16_t message_request_id = 0)
+        : Message{ID::WSPRRestart},
+          request_id{message_request_id} {
+    }
+
+    /* Monotonic M0 request id. The M4 echoes the id it actually serviced in
+     * WSPRRxStatusMessage::restart_ack; a status arriving for any other
+     * reason is NOT proof that a particular restart completed. */
+    uint16_t request_id;
 };
 #endif /*__MESSAGE_H__*/
