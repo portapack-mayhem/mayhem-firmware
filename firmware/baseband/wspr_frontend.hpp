@@ -38,14 +38,6 @@
 //   usb      FIRAndDecimateComplex   24 k   -> 24 k, complex USB taps
 //   demod    demodulate::SSB         24 k   -> 24 k real (Re{z} / 32768)
 //
-// WSPR_RX_USB_FILTER selects the T07 USB stage. It defaults to 1 (the
-// production fix). The host baseline target compiles this header with 0 to
-// reproduce the pre-T07 chain (real channel filter -> Re{}) on identical
-// fixtures; that is the measured baseline, not a separate float model.
-#ifndef WSPR_RX_USB_FILTER
-#define WSPR_RX_USB_FILTER 1
-#endif
-
 namespace wspr {
 
 // WSPR RX USB channel (T07) //////////////////////////////////////////////
@@ -159,9 +151,7 @@ class Frontend {
         decim_0_.configure(taps_11k0_decim_0.taps);
         decim_1_.configure(taps_11k0_decim_1.taps);
         channel_filter_.configure(taps_11k0_channel.taps, 2);
-#if WSPR_RX_USB_FILTER
         usb_filter_.configure(taps_wspr_usb_24k.taps, 1);
-#endif
     }
 
     /* Drop the streaming history at a capture-session boundary. Taps are
@@ -177,10 +167,8 @@ class Frontend {
         alignas(uint32_t) complex16_t zeros[32]{};
         alignas(uint32_t) complex16_t discard[32];
         channel_filter_.execute({zeros, 32, 48000}, {discard, 32, 24000});
-#if WSPR_RX_USB_FILTER
         usb_filter_.execute({zeros, 32, 24000}, {discard, 32, 24000});
         usb_filter_.execute({zeros, 32, 24000}, {discard, 32, 24000});
-#endif
     }
 
     /* Process one production DMA block. `dst` is the shared in-place work
@@ -193,23 +181,16 @@ class Frontend {
         const auto decim_0_out = decim_0_.execute(in, dst);
         const auto decim_1_out = decim_1_.execute(decim_0_out, dst);
         const auto channel_out = channel_filter_.execute(decim_1_out, dst);
-#if WSPR_RX_USB_FILTER
         const auto usb_out = usb_filter_.execute(channel_out, dst);
         const auto audio = demod_ssb_.execute(usb_out, audio_out);
         return {audio, usb_out};
-#else
-        const auto audio = demod_ssb_.execute(channel_out, audio_out);
-        return {audio, channel_out};
-#endif
     }
 
    private:
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1_{};
     dsp::decimate::FIRAndDecimateComplex channel_filter_{};
-#if WSPR_RX_USB_FILTER
     dsp::decimate::FIRAndDecimateComplex usb_filter_{};
-#endif
     dsp::demodulate::SSB demod_ssb_{};
 };
 

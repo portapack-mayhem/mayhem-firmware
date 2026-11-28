@@ -21,9 +21,6 @@
 
 #include "wspr_decode.h"
 
-#ifdef WSPR_HOST_DIAG
-#include <stdio.h>
-#endif
 #include "wspr_encode.h"
 #include "wspr_unpack.h"
 
@@ -73,7 +70,6 @@
 #define WSPR_METRIC_LIMIT 250
 // Crowded-band budget: eight stations in one real-ether recording out-compete
 // each other for six slots, so the weaker true peaks never reach the decode.
-#define WSPR_MAX_CANDIDATES 12
 #define WSPR_DRIFT_MIN (-3)
 #define WSPR_DRIFT_MAX 3
 
@@ -81,17 +77,6 @@
 // removes the built-in noise/CW bias; weak candidates still need the zero-tail,
 // unpack, path-metric and re-encoding gates before becoming reports.
 #define WSPR_CANDIDATE_MIN_EXCESS 1
-
-// Sync-only probe threshold, on the same mean sync-bin excess scale the decode
-// gates its candidates on but well below the decode's own path: a truncated
-// transmission (down to 146 of 162 symbols) scores proportionally lower, and
-// the probe must fire where the full decode cannot even try. Measured on the
-// host fixtures: pure noise never clears 4 over the whole 0..28 scan (29
-// start rows x 133 columns x banks of extremes), while a true -20 dB
-// transmission sits far above it and an on-air aligned signal scored 6-7 in
-// the quality logs. Steering on a noise blip only costs one dither-scale
-// phase move, and the next window's decode re-checks it.
-#define WSPR_PROBE_MIN_EXCESS 4
 
 // Sequential decoding without a CRC completes a path on pure noise roughly
 // one window in six (14% of random payloads unpack as structurally valid
@@ -277,30 +262,6 @@ void wspr_agg_ack_early_report(void) {
 // defined with the ring readers further down, declared here for the dedup table.
 static int ring_col_gap(int a, int b);
 
-#if WSPR_DECODE_DIAG_COUNTERS
-// Slots accumulated by the last successful integrated decode (diagnostics:
-// the track itself is reset on success, so this is the only trace of the
-// integration depth behind the report).
-static uint8_t agg_last_decode_slots = 0;
-
-// DIAGNOSTIC reason code of the last wspr_agg_track_contribute call (see
-// wspr_agg_last_result_code in the header).
-static int agg_dbg_reason = 0;
-
-// Real FEC-attempt counters (T01, see wspr_fec_calls in the header). These are
-// incremented at the ONE true FEC attempt - a stack_decode() entry - which both
-// the window/candidate path and the integrated-slot path go through. Stage
-// entries are a SEPARATE counter (the receiver's diag_stage_entries) and must
-// never be used to derive FEC failures. Observability only: no decision reads
-// them. Compiled out of the ordinary release (WSPR_DECODE_DIAG_COUNTERS == 0).
-//
-// The accessors are named wspr_fec_calls()/wspr_fec_no_path(), so the counters
-// themselves carry a different suffix: C has one identifier namespace, and a
-// file-scope variable named wspr_fec_calls could not coexist with the accessor.
-static uint32_t wspr_fec_calls_count = 0;
-static uint32_t wspr_fec_nopath_count = 0;
-#endif
-
 /*
  * Persistent EVENT dedup table (lives across candidate jobs, cleared only by
  * wspr_decode_reset_aggregation). Every ACCEPTED contribution records its packet
@@ -419,12 +380,6 @@ void wspr_decode_reset_aggregation(void) {
     memset(agg_tracks, 0, sizeof(agg_tracks));
     memset(agg_events, 0, sizeof(agg_events));
     agg_event_next = 0;
-#if WSPR_DECODE_DIAG_COUNTERS
-    agg_last_decode_slots = 0;
-    // Session reset of the real FEC-attempt counters (T01).
-    wspr_fec_calls_count = 0;
-    wspr_fec_nopath_count = 0;
-#endif
 }
 
 /*
@@ -599,12 +554,6 @@ static void heap_pop(wspr_stack_node_t* out) {
  * is the maximum-likelihood path within the explored effort.
  */
 static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYTES], int16_t* out_metric) {
-#if WSPR_DECODE_DIAG_COUNTERS
-    // ONE FEC attempt per entry (T01): counted here because this is the real
-    // call site, whichever path (window candidate or integrated slots) feeds it.
-    // Observability only; the search below is unchanged.
-    wspr_fec_calls_count++;
-#endif
 
     uint8_t path[WSPR_NODE_PATH_BYTES];
     memset(path, 0, sizeof(path));
@@ -677,61 +626,7 @@ static bool stack_decode(const int8_t* weights, uint8_t out_bits[WSPR_SOURCE_BYT
             heap_push((int16_t)m, (uint8_t)(node.depth + 1), child_path);
         }
     }
-    // Single exit point: count the no-path outcome here, next to the return,
-    // so it can never drift from what the caller sees. Diagnostic only.
-#if WSPR_DECODE_DIAG_COUNTERS
-    if (!have_best) wspr_fec_nopath_count++;
-#endif
     return have_best;
-}
-
-/*
- * Compare the strongest tone in the sync-selected parity pair against the
- * strongest tone in the opposite pair. Max-minus-own-pair-mean is positive
- * even on noise and is not synchronization evidence. Equal weighting of
- * sync-zero and sync-one groups also rejects stationary spectral peaks.
- * Return the balanced selected score as a sum; out_mean is the balanced
- * opposite-pair background, so score/162 - out_mean is a signed contrast.
- * `count` limits the number of leading symbols summed (162 for a full packet,
- * fewer for the acquisition probe's truncated tails); the score stays on the
- * full-162 scale either way, so the contrast expression is unchanged.
- */
-static int32_t sync_score(const uint8_t* mag,
-                          int num_bins,
-                          int base,
-                          int stride,
-                          int row0,
-                          int col0,
-                          int drift,
-                          int count,
-                          int32_t* out_mean) {
-    int32_t score[2] = {0, 0};
-    int32_t opposite_score[2] = {0, 0};
-    int pair_count[2] = {0, 0};
-    for (int n = 0; n < count; n++) {
-        const int row = row0 + n;
-        int col = col0;
-        if (drift != 0) {
-            col += (drift * n) / (WSPR_CODED_BITS - 1);
-        }
-        if (col < 0 || col + 3 >= num_bins) return -1;
-        const int opposite = col + 1 - wspr_sync_vector[n];
-        const uint8_t o0 = mag[row * stride + base + opposite];
-        const uint8_t o1 = mag[row * stride + base + opposite + 2];
-        const int group = wspr_sync_vector[n];
-        ++pair_count[group];
-        opposite_score[group] += o0 > o1 ? o0 : o1;
-        col += wspr_sync_vector[n];
-        const uint8_t e0 = mag[row * stride + base + col];
-        const uint8_t e1 = mag[row * stride + base + col + 2];
-        score[group] += (e0 > e1) ? e0 : e1;
-    }
-    // The sync vector is unbalanced (99 zeroes, 63 ones). Equal group
-    // weighting cancels a stationary carrier and static passband slope.
-    const int denominator = 2 * pair_count[0] * pair_count[1];
-    if (out_mean)
-        *out_mean = (opposite_score[0] * pair_count[1] + opposite_score[1] * pair_count[0]) / denominator;
-    return (score[0] * pair_count[1] + score[1] * pair_count[0]) * WSPR_CODED_BITS / denominator;
 }
 
 // Undo the bit-reversal interleave: the channel symbols carry the coded bits
@@ -764,9 +659,6 @@ static int reencode_agreement(const uint8_t* source) {
     return nonzero > 0 ? (100 * (nonzero - disagree)) / nonzero : 0;
 }
 
-#ifdef WSPR_DECODE_TEST_API
-static int8_t estimate_snr(const uint8_t* mag, int bins, int base, int stride, int row0, int col0, int drift, const uint8_t* source);
-#endif
 static int8_t estimate_snr_snapshot(const wspr_snapshot_t* snap, const uint8_t* source);
 
 /*
@@ -787,31 +679,6 @@ static int sym_col(int col0, int drift, int n) {
     return col;
 }
 
-// Stage-2 drift refinement: search d = -3..+3 on the excess scale, keep the
-// best. prior_excess is the stage-1 excess at drift 0 (recomputed exactly the
-// same way by the snapshot path); a drift whose sync walk leaves the matrix
-// (score < 0) is not eligible.
-static int refine_drift(const uint8_t* mag, int num_bins, int base, int stride, int row0, int col0, int32_t prior_excess, int32_t* out_excess) {
-    int best_drift = 0;
-    int32_t drift_excess = prior_excess;
-    for (int d = WSPR_DRIFT_MIN; d <= WSPR_DRIFT_MAX; d++) {
-        if (d == 0) continue;
-        int32_t dmean = 0;
-        const int32_t s =
-            sync_score(mag, num_bins, base, stride, row0, col0, d, WSPR_CODED_BITS, &dmean);
-        if (s < 0) continue;
-        const int32_t e = s / WSPR_CODED_BITS - dmean;
-        if (e > drift_excess) {
-            drift_excess = e;
-            best_drift = d;
-        }
-    }
-    *out_excess = drift_excess;
-    return best_drift;
-}
-
-// Pair-bin noise unit: mean and standard deviation over both bins of every
-// symbol's pair. The snapshot demod sums the SAME bytes, so sigma matches.
 static int pair_sigma(int32_t sum_pair, int32_t sum_sq) {
     const int count_pair = 2 * WSPR_CODED_BITS;
     const int mean = (int)(sum_pair / count_pair);
@@ -833,29 +700,6 @@ static void quantize_pair(int e0, int e1, int sigma, int8_t* out) {
 // Soft demodulation straight from the matrix: the window decoder's stage-2
 // demod, factored out so the snapshot path and the tests read the exact same
 // code. Returns false if the drifting pair walk leaves the matrix.
-#ifdef WSPR_DECODE_TEST_API
-static bool demod_weights_matrix(const uint8_t* mag, int num_bins, int base, int stride, int row0, int col0, int drift, int8_t* sym_weight) {
-    int32_t sum_pair = 0;
-    int32_t sum_sq = 0;
-    for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        const int col = sym_col(col0, drift, n) + wspr_sync_vector[n];
-        if (col < 0 || col + 2 >= num_bins) return false;
-        const int row = row0 + n;
-        const int e0 = mag[row * stride + base + col];
-        const int e1 = mag[row * stride + base + col + 2];
-        sum_pair += e0 + e1;
-        sum_sq += e0 * e0 + e1 * e1;
-    }
-    const int sigma = pair_sigma(sum_pair, sum_sq);
-    for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        const int col = sym_col(col0, drift, n) + wspr_sync_vector[n];
-        const int row = row0 + n;
-        quantize_pair(mag[row * stride + base + col],
-                      mag[row * stride + base + col + 2], sigma, &sym_weight[n]);
-    }
-    return true;
-}
-#endif  // WSPR_DECODE_TEST_API
 
 // Soft demodulation from the snapshot's frozen 4-bin symbol rows: e0 is the
 // sync-selected bit-0 bin, e1 the bit-1 bin - the same bytes the matrix demod
@@ -892,63 +736,6 @@ static bool demod_weights_snapshot(const wspr_snapshot_t* snap, int8_t* sym_weig
  *
  * Test-only: compiled only when the window decoder (also test-only) is.
  */
-#ifdef WSPR_DECODE_TEST_API
-static bool candidate_decode(int32_t drift_excess,
-                             int bin0_hz,
-                             int col0,
-                             int row0,
-                             int bank,
-                             int drift,
-                             const uint8_t* mag,
-                             int bins,
-                             int base,
-                             int stride,
-                             const wspr_snapshot_t* snap,
-                             wspr_decode_result_t* out) {
-    // Pre-gate: this candidate's sync bins must rise clearly above its own
-    // pair-bin noise mean before the decoder spends effort on it.
-    if (drift_excess < WSPR_CANDIDATE_MIN_EXCESS) return false;
-
-    // The channel symbols carry interleaved coded bits: undo the
-    // bit-reversal interleave so the stack decoder sees them in the
-    // encoder's natural (poly0, poly1) order.
-    deinterleave_weights(sym_weight, bit_weight);
-
-    uint8_t source[WSPR_SOURCE_BYTES];
-    int16_t metric = 0;
-    if (!stack_decode(bit_weight, source, &metric)) return false;
-
-    // Re-encode agreement, the impostor gate (see reencode_agreement).
-    const int agreement = reencode_agreement(source);
-    if (agreement < WSPR_MIN_AGREEMENT_PCT) return false;
-
-    wspr_message_t message;
-    if (!wspr_unpack_message(source, &message)) return false;
-
-    // Audio frequency of this candidate's tone 0.
-    const int16_t cand_freq =
-        (int16_t)(bin0_hz + (col0 * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
-    const int8_t snr_est = snap ? estimate_snr_snapshot(snap, source)
-                                : estimate_snr(mag, bins, base, stride, row0, col0, drift, source);
-
-    // A completed path on noise is not a report (see WSPR_REPORT_METRIC_MIN).
-    if (metric < WSPR_REPORT_METRIC_MIN) return false;
-
-    memset(out, 0, sizeof(*out));
-    memcpy(out->callsign, message.callsign, sizeof(message.callsign));
-    memcpy(out->grid, message.grid, sizeof(message.grid));
-    out->dbm = message.dbm;
-    out->snr_db = snr_est;
-    out->freq_hz = cand_freq;
-    out->drift_bins = (int16_t)drift;
-    out->sync_score = (int16_t)drift_excess;
-    out->row_offset = (int16_t)row0;
-    out->bank = (int8_t)bank;
-    out->metric = metric;
-    out->agreement_pct = (int8_t)agreement;
-    return true;
-}
-#endif  // WSPR_DECODE_TEST_API
 
 // Magnitudes use byte = 20*log10(power) + 240. Convert relative to byte 255
 // without pulling libm into the external image. All exponents are -43..0.
@@ -981,29 +768,6 @@ static int8_t estimate_snr_finish(float tone, int noise_count, const uint16_t* h
 // same expression in the matrix path and in the snapshot fill, so both
 // exclude exactly the same bins).
 // Test-only: only the test-only window candidate pipeline calls it.
-#ifdef WSPR_DECODE_TEST_API
-static int8_t estimate_snr(const uint8_t* mag, int bins, int base, int stride, int row0, int col0, int drift, const uint8_t* source) {
-    // The deinterleaved weights are dead after the completed search; the
-    // symbol-order weights remain intact for multi-slot accumulation.
-    uint8_t* coded = (uint8_t*)bit_weight;
-    uint16_t* histogram = search_workspace.noise_histogram;
-    memset(histogram, 0, sizeof(search_workspace.noise_histogram));
-    wspr_encode_bits(source, coded);
-    float tone = 0;
-    int noise_count = 0;
-    for (int n = 0; n < WSPR_CODED_BITS; ++n) {
-        const int c = col0 + drift * n / (WSPR_CODED_BITS - 1);
-        const uint8_t* row = mag + (row0 + n) * stride + base;
-        tone += magnitude_power(row[c + wspr_sync_vector[n] + 2 * coded[n]]);
-        for (int b = 0; b < bins; ++b) {
-            if (b >= c - 4 && b <= c + 7) continue;
-            ++histogram[row[b] >> 2];
-            ++noise_count;
-        }
-    }
-    return estimate_snr_finish(tone, noise_count, histogram);
-}
-#endif  // WSPR_DECODE_TEST_API
 
 // Shared median/noise-power tail of estimate_snr. The snapshot path calls it
 // with the tone sum read from the frozen tone bytes and the histogram
@@ -1078,9 +842,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // even after the track was reset by a successful decode in between. See the
     // block comment on agg_events.
     if (agg_event_duplicate(start_br, col)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_DUPLICATE;
-#endif
         return 0;
     }
 
@@ -1099,15 +860,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // own track, not a coincidence).
     wspr_agg_track_t* near = NULL;   // any active col-matching track
     wspr_agg_track_t* merge = NULL;  // window-accepting AND message-consistent
-    // DIAGNOSTIC ONLY (T01 reason split): remember WHY a col-matching track
-    // refused this candidate, so a rejection can be attributed to the earlier
-    // slot-window gate (3) or to the message-consistency gate (4). One bit per
-    // gate: bit0 = slot window refused, bit1 = message consistency refused.
-    // Recording a bit cannot reorder or change either gate; the gate order
-    // below is exactly the pre-T01 order. Compiled out of the ordinary release.
-#if WSPR_DECODE_DIAG_COUNTERS
-    unsigned refuse_mask = 0;
-#endif
     for (int i = 0; i < WSPR_AGG_TRACKS; i++) {
         wspr_agg_track_t* cand = &agg_tracks[i];
         if (!cand->active || cand->col0 < col - WSPR_AGG_COL_MATCH ||
@@ -1122,27 +874,13 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
         // block-rows). Anything closer than one slot is the same
         // transmission's anchor family; anything in between is junk.
         if (k < 1 || off < -WSPR_AGG_SLOT_TOL || off > WSPR_AGG_SLOT_TOL) {
-#if WSPR_DECODE_DIAG_COUNTERS
-            refuse_mask |= 1u;
-#endif
             continue;
         }
         if (!agg_message_consistent(cand->weight, sym_weight_in)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-            refuse_mask |= 2u;
-#endif
             continue;
         }
         if (merge == NULL || cand->count > merge->count) merge = cand;
     }
-    // Reason for a refusal with a col-matching track present: the EARLIER gate
-    // wins when both refused different candidate tracks (contract T01).
-    // Diagnostic only; the gate decisions above are unchanged.
-#if WSPR_DECODE_DIAG_COUNTERS
-    const int refuse_reason = (refuse_mask & 1u) ? WSPR_AGG_RESULT_SLOT_WINDOW
-                                                 : WSPR_AGG_RESULT_CORRELATION;
-#endif
-
     wspr_agg_track_t* t = merge;
     bool yielded = false;
     if (t != NULL) {
@@ -1224,9 +962,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
             }
         }
         if (!yielded) {
-#if WSPR_DECODE_DIAG_COUNTERS
-            agg_dbg_reason = refuse_reason;
-#endif
             return 0;
         }
     }
@@ -1234,9 +969,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
         if (snap->meta.sync_score < WSPR_AGG_OPEN_EXCESS_MIN) {
             // Junk-grade candidate with nothing nearby: drop before it can
             // pollute the table.
-#if WSPR_DECODE_DIAG_COUNTERS
-            agg_dbg_reason = WSPR_AGG_RESULT_OPEN_FLOOR;
-#endif
             return 0;
         }
         /* T09-C1: removed the (near != NULL) refuse block here: control-flow
@@ -1293,11 +1025,7 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     t->rejected_strong = 0;  // the yield counter is per streak, not per track
     t->has_reject = false;   // the streak's TX identity resets with it
     for (int n = 0; n < WSPR_CODED_BITS; n++) {
-#if defined(WSPR_DECODE_TEST_API) && (defined(WSPR_T09_NO_COMBINE) || defined(WSPR_T09_WINDOW1))
-        t->weight[n] = sym_weight_in[n];
-#else
         t->weight[n] += sym_weight_in[n];
-#endif
     }
     t->count++;  // capped: the decode below resets the track once this
                  // reaches WSPR_AGG_MAX_COUNT, so the uint8 never wraps
@@ -1315,15 +1043,8 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
 #else
     const bool early = false;
 #endif
-#if defined(WSPR_DECODE_TEST_API) && defined(WSPR_T09_NO_COMBINE)
-    const unsigned min_count = 1;
-#else
     const unsigned min_count = WSPR_AGG_MIN_COUNT;
-#endif
     if (t->count < min_count && !early) {
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_AWAIT_SLOT;
-#endif
         return 0;
     }
 
@@ -1345,32 +1066,20 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // count cap instead. At the count cap every failed attempt is terminal:
     // the track resets, so count can never exceed WSPR_AGG_MAX_COUNT.
     if (!stack_decode(bit_weight, source, &metric)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_FEC_NO_PATH;
-#endif
         if (t->count >= WSPR_AGG_MAX_COUNT || t->failed >= WSPR_AGG_MAX_FAILED_DECODES)
             agg_reset_track(t);
         return 0;
     }
     if (metric < (early ? 30 : WSPR_REPORT_METRIC_MIN)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_METRIC;
-#endif
         return early ? 0 : agg_decode_fail(t);
     }
     const int agreement = reencode_agreement(source);
     if (agreement < (early ? 90 : WSPR_MIN_AGREEMENT_PCT)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_AGREEMENT;
-#endif
         return early ? 0 : agg_decode_fail(t);
     }
 
     wspr_message_t message;
     if (!wspr_unpack_message(source, &message)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_UNPACK;
-#endif
         return early ? 0 : agg_decode_fail(t);
     }
 
@@ -1379,9 +1088,6 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
         memcmp(t->early_source, source, sizeof(t->early_source)) == 0) {
         // This decode reuses the shown slot. Keep scanner dedup, but send
         // no second UI report that could falsely confirm this payload.
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_dbg_reason = WSPR_AGG_RESULT_DUPLICATE;
-#endif
         agg_reset_track(t);
         return WSPR_CONTRIBUTION_ALREADY_REPORTED;
     }
@@ -1409,15 +1115,8 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
 #if defined(WSPR_RX_EARLY_REPORTS)
     if (early) {
         if (!stability_check(snap, &message)) {
-#if WSPR_DECODE_DIAG_COUNTERS
-            agg_dbg_reason = WSPR_AGG_RESULT_AWAIT_SLOT;
-#endif
             return WSPR_CONTRIBUTION_NONE;
         }
-#if WSPR_DECODE_DIAG_COUNTERS
-        agg_last_decode_slots = 1;
-        agg_dbg_reason = WSPR_AGG_RESULT_REPORT;
-#endif
         memcpy(t->early_source, source, sizeof(t->early_source));
         pending_early_track = t;
         return WSPR_CONTRIBUTION_EARLY_REPORT;
@@ -1427,338 +1126,7 @@ int wspr_agg_track_contribute(const wspr_snapshot_t* snap,
     // Successful decode: reset the track. The next slot of the same station
     // opens a fresh cycle, so a message change is never mixed with the old
     // weights and the same evidence cannot report twice.
-#if WSPR_DECODE_DIAG_COUNTERS
-    agg_last_decode_slots = t->count;
-#endif
     agg_reset_track(t);
-#if WSPR_DECODE_DIAG_COUNTERS
-    agg_dbg_reason = WSPR_AGG_RESULT_REPORT;
-#endif
-    return 1;
-}
-
-#if WSPR_DECODE_DIAG_COUNTERS
-int wspr_agg_last_result_code(void) {
-    return agg_dbg_reason;
-}
-
-uint32_t wspr_fec_calls(void) {
-    return wspr_fec_calls_count;
-}
-
-uint32_t wspr_fec_no_path(void) {
-    return wspr_fec_nopath_count;
-}
-
-uint8_t wspr_agg_last_decode_slots(void) {
-    return agg_last_decode_slots;
-}
-#endif
-
-/*
- * Test/diagnostic accessor: snapshot the track table. Returns the number of
- * entries written (at most min(WSPR_AGG_TRACKS, max_tracks)).
- */
-int wspr_agg_tracks(wspr_agg_track_info_t* out, int max_tracks) {
-    if (out == NULL || max_tracks <= 0) return 0;
-    int n = 0;
-    for (int i = 0; i < WSPR_AGG_TRACKS && n < max_tracks; i++) {
-        const wspr_agg_track_t* t = &agg_tracks[i];
-        out[n].col0 = t->col0;
-        out[n].count = t->count;
-        out[n].age = t->age;
-        out[n].active = t->active;
-        n++;
-    }
-    return n;
-}
-
-#ifdef WSPR_DECODE_TEST_API
-int wspr_decode_window(const uint8_t* mag,
-                       int num_rows,
-                       int num_bins,
-                       int bin0_hz,
-                       wspr_decode_result_t* results,
-                       int max_results,
-                       int time_osr) {
-    if (mag == NULL || results == NULL || max_results <= 0) return 0;
-    if (num_rows < WSPR_NUM_SYMBOLS || num_bins < 8) return 0;
-    if (time_osr != 1 && time_osr != 2) return 0;
-
-    // Per-bank geometry of the interleaved matrix: the address of (row, col)
-    // in bank `bank` is row * stride + base + col. time_osr = 1 degenerates
-    // to the plain single-grid matrix (base 0, stride num_bins).
-    const int stride = time_osr * num_bins;
-
-    // Accepted decodes from every bank land here first, get ranked, and only
-    // then go through the duplicate/frequency suppression. The two banks see
-    // the same transmission, and the misaligned bank decodes first with
-    // smeared symbols - a structurally valid impostor at the same audio
-    // frequency (no CRC protects the payload). Alignment sharpness separates
-    // them: the aligned bank's mean sync-bin excess runs about twice the
-    // smeared one's, so the pool is ranked on it before one decode per
-    // station/frequency is kept.
-    wspr_decode_result_t merged[WSPR_MAX_CANDIDATES * 2];
-    int n_merged = 0;
-
-    // Stage 1 + stage 2 run per sub-row bank: each bank is a full view of the
-    // window on its own row grid, with its own candidate list.
-    int count = 0;
-    for (int bank = 0; bank < time_osr; bank++) {
-        const int base = bank * num_bins;
-
-        // Stage 1: coarse scan, no drift. Track the best few, with a simple
-        // non-maximum suppression around each accepted peak. Candidates rank
-        // by EXCESS - the sync score per symbol over the candidate's own
-        // pair-bin mean - not by the raw score: the raw score carries the
-        // local noise background, and on a crowded band a hot patch of
-        // background (a strong neighbour's Goertzel skirts, say) would
-        // otherwise outrank a cooler-background station with the same signal
-        // excess and eat the candidate budget with its ridge.
-        int best_row[WSPR_MAX_CANDIDATES];
-        int best_col[WSPR_MAX_CANDIDATES];
-        int32_t best_excess[WSPR_MAX_CANDIDATES];  // ranking key
-        int n_cand = 0;
-        const int t_max = num_rows - WSPR_NUM_SYMBOLS;
-
-        for (int t = 0; t <= t_max; t++) {
-            for (int c = 0; c + 3 < num_bins; c++) {
-                int32_t mean = 0;
-                const int32_t score = sync_score(mag, num_bins, base, stride, t, c, 0, WSPR_CODED_BITS, &mean);
-                if (score < 0) continue;
-                const int32_t excess = score / WSPR_CODED_BITS - mean;
-                bool suppressed = false;
-                for (int k = 0; k < n_cand; k++) {
-                    if (t >= best_row[k] - 1 && t <= best_row[k] + 1 &&
-                        c >= best_col[k] - 1 && c <= best_col[k] + 1 &&
-                        excess <= best_excess[k]) {
-                        suppressed = true;
-                        break;
-                    }
-                }
-                if (suppressed) continue;
-                // Insert into the descending top list. When the list is full the
-                // last entry is the insertion point; otherwise append and bubble
-                // the new score up.
-                int pos;
-                if (n_cand == WSPR_MAX_CANDIDATES) {
-                    if (excess <= best_excess[WSPR_MAX_CANDIDATES - 1]) continue;
-                    pos = WSPR_MAX_CANDIDATES - 1;
-                } else {
-                    pos = n_cand++;
-                }
-                while (pos > 0 && best_excess[pos - 1] < excess) {
-                    best_row[pos] = best_row[pos - 1];
-                    best_col[pos] = best_col[pos - 1];
-                    best_excess[pos] = best_excess[pos - 1];
-                    pos--;
-                }
-                best_row[pos] = t;
-                best_col[pos] = c;
-                best_excess[pos] = excess;
-            }
-        }
-
-        // Stage 2: drift refinement, soft demodulation and decoding, best first.
-        // The refinement, demodulation and decode pipeline are the shared
-        // candidate internals (see candidate_decode above) - the snapshot
-        // candidate API runs the exact same code on its frozen copy.
-        for (int k = 0; k < n_cand && n_merged < (int)(sizeof(merged) / sizeof(merged[0])); k++) {
-            // Drift refinement on the same excess scale as the ranking: a raw
-            // score comparison would walk the alignment toward whatever drift
-            // lands its pair bins on the hottest patch of background, and the
-            // demodulation that follows reads a smeared signal.
-            int32_t drift_excess = 0;
-            const int best_drift =
-                refine_drift(mag, num_bins, base, stride, best_row[k], best_col[k],
-                             best_excess[k], &drift_excess);
-
-            // Soft demodulation of this candidate's 162 weights (see
-            // demod_weights_matrix); a drift walk that leaves the matrix
-            // disqualifies the alignment.
-            if (!demod_weights_matrix(mag, num_bins, base, stride,
-                                      best_row[k], best_col[k], best_drift, sym_weight)) {
-                continue;
-            }
-
-            wspr_decode_result_t cand_out;
-            if (candidate_decode(drift_excess, bin0_hz, best_col[k], best_row[k], bank,
-                                 best_drift, mag, num_bins, base, stride, NULL,
-                                 &cand_out)) {
-                // Park the decode in the merge pool; ranking and duplicate
-                // suppression across candidates and banks happen once every
-                // bank has decoded (see merged above).
-                merged[n_merged++] = cand_out;
-            }
-        }
-    }
-
-    // Rank the merge pool by alignment sharpness (the mean sync-bin excess
-    // stored in sync_score): the aligned bank of a transmission outranks its
-    // smeared twin. The duplicate pass below keeps the first entry, so it
-    // keeps the true decode over the impostor the misaligned bank produced
-    // alongside it. Stable insertion sort over a pool of at most
-    // 2 * WSPR_MAX_CANDIDATES entries.
-    for (int i = 1; i < n_merged; i++) {
-        const wspr_decode_result_t key = merged[i];
-        int j = i - 1;
-        while (j >= 0 && merged[j].sync_score < key.sync_score) {
-            merged[j + 1] = merged[j];
-            j--;
-        }
-        merged[j + 1] = key;
-    }
-
-    // Duplicate suppression across candidates and banks: an identical payload
-    // is the same station found twice, and so is a different payload at the
-    // same audio frequency - the no-CRC code lets one transmission decode
-    // into two valid-shaped impostors, and wsprnet has no room for either the
-    // second copy or the misprint. Keep the first, now the sharpest aligned.
-    for (int i = 0; i < n_merged && count < max_results; i++) {
-        bool duplicate = false;
-        for (int j = 0; j < count; j++) {
-            if (strcmp(results[j].callsign, merged[i].callsign) == 0 &&
-                strcmp(results[j].grid, merged[i].grid) == 0 &&
-                results[j].dbm == merged[i].dbm) {
-                duplicate = true;
-                break;
-            }
-        }
-        if (duplicate) continue;
-        results[count++] = merged[i];
-    }
-    return count;
-}
-#endif  // WSPR_DECODE_TEST_API
-
-int32_t wspr_probe_skip_samples(int probe_row) {
-    // Land the NEXT window's transmission near row 4 (full packet plus slack),
-    // ignoring the 1792-sample window overhang (0.22 rows - it only moves the
-    // landing spot, not the coverage). Rows at or below the landing row need
-    // no correction. The full skip (up to 196608 samples for row 28, 16.4 s of
-    // dead air) is carried by the tracker's int32 pending_skip; only the debug
-    // telemetry saturates at 32767 - capping the real skip there would land
-    // row 28 back at row 24 and burn four more windows re-anchoring.
-    int32_t skip = (int32_t)(probe_row - WSPR_PROBE_LAND_ROW) * WSPR_SAMPLES_PER_SYMBOL;
-    if (skip < 0) skip = 0;
-    return skip;
-}
-
-#ifdef WSPR_DECODE_TEST_API
-int wspr_decode_probe_sync(const uint8_t* mag,
-                           int num_rows,
-                           int num_bins,
-                           int time_osr,
-                           int16_t* out_row,
-                           int16_t* out_score,
-                           int8_t* out_bank) {
-    if (mag == NULL) return 0;
-    if (num_rows < WSPR_NUM_SYMBOLS || num_bins < 8) return 0;
-    if (time_osr != 1 && time_osr != 2) return 0;
-
-    // Start rows past WSPR_PROBE_MAX_ROW leave fewer than
-    // WSPR_PROBE_MIN_SYMBOLS of the 162 sync symbols in the window; the
-    // truncated correlation there is too weak to anchor on, so they are not
-    // scanned.
-    int t_max = num_rows - WSPR_PROBE_MIN_SYMBOLS;
-    if (t_max > WSPR_PROBE_MAX_ROW) t_max = WSPR_PROBE_MAX_ROW;
-
-    int best_row = -1;
-    int32_t best_excess = 0;
-    int best_bank = 0;
-
-    for (int bank = 0; bank < time_osr; bank++) {
-        const int base = bank * num_bins;
-        const int stride = time_osr * num_bins;
-        // The tracker only steers on rows the full decode cannot reach, but the
-        // scan covers 0..t_max so the telemetry also shows anchor candidates in
-        // the decodable range on windows where the decode itself found nothing.
-        for (int t = 0; t <= t_max; t++) {
-            // Symbols of the packet that still fit past row t.
-            const int count = num_rows - t < WSPR_CODED_BITS ? num_rows - t : WSPR_CODED_BITS;
-            for (int c = 0; c + 3 < num_bins; c++) {
-                int32_t mean = 0;
-                const int32_t score =
-                    sync_score(mag, num_bins, base, stride, t, c, 0, count, &mean);
-                if (score < 0) continue;
-                const int32_t excess = score / WSPR_CODED_BITS - mean;
-                if (excess <= best_excess) continue;
-                best_excess = excess;
-                best_row = t;
-                best_bank = bank;
-            }
-        }
-    }
-
-    if (best_row < 0 || best_excess < WSPR_PROBE_MIN_EXCESS) return 0;
-    if (out_row) *out_row = (int16_t)best_row;
-    if (out_score) *out_score = (int16_t)best_excess;
-    if (out_bank) *out_bank = (int8_t)best_bank;
-    return 1;
-}
-#endif  // WSPR_DECODE_TEST_API
-
-/*
- * Candidate snapshot API (ring architecture stage 2; see wspr_decode.h).
- * The window decoder above remains the plain matrix path until the ring
- * producer lands; these functions ADD the candidate contract without
- * changing it.
- */
-
-int wspr_snapshot_candidate(const uint8_t* mag,
-                            int num_rows,
-                            int num_bins,
-                            int time_osr,
-                            int start_row,
-                            int bank,
-                            int col0,
-                            int bin0_hz,
-                            uint32_t start_row_abs,
-                            wspr_snapshot_t* snap) {
-    if (mag == NULL || snap == NULL) return 0;
-    if (num_rows < WSPR_NUM_SYMBOLS || num_bins < 8) return 0;
-    if (time_osr != 1 && time_osr != 2) return 0;
-    if (bank < 0 || bank >= time_osr) return 0;
-    // A full packet must fit: this stage freezes complete candidates only
-    // (the window decoder's stage-1 scan never proposes anything else).
-    if (start_row < 0 || start_row > num_rows - WSPR_NUM_SYMBOLS) return 0;
-
-    const int base = bank * num_bins;
-    const int stride = time_osr * num_bins;
-
-    // Drift refinement over -3..+3 on the live matrix, exactly the window
-    // decoder's stage 2: the stage-1 excess at drift 0 is recomputed the same
-    // way sync_score computes it during the scan.
-    int32_t mean = 0;
-    const int32_t score0 =
-        sync_score(mag, num_bins, base, stride, start_row, col0, 0, WSPR_CODED_BITS, &mean);
-    if (score0 < 0) return 0;  // coarse alignment leaves the matrix
-    int32_t drift_excess = 0;
-    const int drift =
-        refine_drift(mag, num_bins, base, stride, start_row, col0,
-                     score0 / WSPR_CODED_BITS - mean, &drift_excess);
-
-    // Freeze the 4-bin symbol rows at the chosen drift and accumulate the
-    // noise histogram over the same rows and the same exclusion band
-    // [c-4, c+7] around the same drifting column c that estimate_snr uses.
-    memset(snap, 0, sizeof(*snap));
-    for (int n = 0; n < WSPR_CODED_BITS; n++) {
-        const int c = sym_col(col0, drift, n);
-        if (c < 0 || c + 3 >= num_bins) return 0;  // disqualify, like stage 2
-        const uint8_t* row = mag + (start_row + n) * stride + base;
-        for (int i = 0; i < 4; i++) snap->tones[n][i] = row[c + i];
-        for (int b = 0; b < num_bins; b++) {
-            if (b >= c - 4 && b <= c + 7) continue;
-            ++snap->noise_histogram[row[b] >> 2];
-        }
-    }
-    snap->meta.start_row_abs = start_row_abs;
-    snap->meta.col0 = (int16_t)col0;
-    snap->meta.bin0_hz = (int16_t)bin0_hz;
-    snap->meta.sync_score = (int16_t)drift_excess;
-    snap->meta.bank = (int8_t)bank;
-    snap->meta.drift = (int8_t)drift;
-    snap->meta.valid_symbols = WSPR_CODED_BITS;
     return 1;
 }
 
@@ -1766,50 +1134,6 @@ int wspr_snapshot_demod_weights(const wspr_snapshot_t* snap, int8_t* sym_weight)
     if (snap == NULL || sym_weight == NULL) return 0;
     return demod_weights_snapshot(snap, sym_weight) ? 1 : 0;
 }
-
-#ifdef WSPR_DECODE_TEST_API
-int wspr_decode_demod_matrix_weights(const uint8_t* mag,
-                                     int num_rows,
-                                     int num_bins,
-                                     int time_osr,
-                                     int start_row,
-                                     int bank,
-                                     int col0,
-                                     int drift,
-                                     int8_t* sym_weight) {
-    if (mag == NULL || sym_weight == NULL) return 0;
-    if (num_rows < WSPR_NUM_SYMBOLS || num_bins < 8) return 0;
-    if (time_osr != 1 && time_osr != 2) return 0;
-    if (bank < 0 || bank >= time_osr) return 0;
-    if (start_row < 0 || start_row > num_rows - WSPR_NUM_SYMBOLS) return 0;
-    const int base = bank * num_bins;
-    const int stride = time_osr * num_bins;
-    return demod_weights_matrix(mag, num_bins, base, stride, start_row, col0, drift,
-                                sym_weight)
-               ? 1
-               : 0;
-}
-
-int wspr_decode_candidate(const wspr_snapshot_t* snap,
-                          wspr_decode_result_t* results,
-                          int max_results) {
-    if (snap == NULL || results == NULL || max_results <= 0) return 0;
-    // A truncated snapshot cannot contribute: the demodulation would read
-    // missing symbols.
-    int8_t weights[WSPR_CODED_BITS];
-    if (!demod_weights_snapshot(snap, weights)) return 0;
-    // Slot-aligned accumulation: the candidate's weights fold into its
-    // frequency track; only an INTEGRATED decode (two or more accumulated
-    // slots) can report. A single slot never produces a result here.
-    wspr_decode_result_t out;
-    const int contribution = wspr_agg_track_contribute(snap, weights, snap->meta.start_row_abs, &out);
-    if (contribution != WSPR_CONTRIBUTION_REPORT &&
-        contribution != WSPR_CONTRIBUTION_EARLY_REPORT)
-        return 0;
-    results[0] = out;
-    return 1;
-}
-#endif  // WSPR_DECODE_TEST_API
 
 /*
  * ---- Ring scan / ring snapshot (ring architecture, stage 3; see wspr_decode.h) ----
@@ -1927,7 +1251,6 @@ static int32_t tones_sync_excess(const wspr_snapshot_t* snap, int col0, int drif
         *out_mean = (opposite_score[0] * pair_count[1] + opposite_score[1] * pair_count[0]) / denominator;
     return (score[0] * pair_count[1] + score[1] * pair_count[0]) * WSPR_CODED_BITS / denominator;
 }
-
 
 // Column distance on the linear band axis (columns never wrap in frequency).
 static int ring_col_gap(int a, int b) {
@@ -2263,10 +1586,6 @@ int wspr_ring_scan_poll(const uint8_t* mag,
         const uint32_t s = st->next_scan_br++;
         starts_done++;
         st->scan_lag = total_br - s;
-#ifdef WSPR_HOST_DIAG
-        printf("CONS br=%u lag=%u total=%u\n", s, st->scan_lag, total_br);
-        fflush(stdout);
-#endif
         if (st->scan_lag > st->max_lag) st->max_lag = st->scan_lag;
 
         // Release limit: scanning a start any later could only produce candidates

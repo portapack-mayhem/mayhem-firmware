@@ -179,18 +179,4 @@ message(STATUS "-------^ ccache info--------")
 
 enable_testing()
 
-# WSPR RX diagnostic selector. OFF is the ordinary release build: no telemetry
-# message producers/consumers, no diagnostic screen state, no SD file objects.
-# ON builds BOTH the M0 external app and the M4 baseband with the same flags so
-# the shared message layout/IDs always agree. This is the single build switch;
-# the sources' #ifndef defaults are 0.
-option(WSPR_DIAGNOSTIC "Build WSPR RX with on-air diagnostics" OFF)
-if(WSPR_DIAGNOSTIC)
-    message(STATUS "WSPR RX: diagnostic build (WSPR_RX_DIAG=1, WSPR_SD_LOGGING=1)")
-    add_compile_definitions(WSPR_RX_DIAG=1 WSPR_SD_LOGGING=1)
-else()
-    message(STATUS "WSPR RX: ordinary release build (WSPR_RX_DIAG=0, WSPR_SD_LOGGING=0)")
-    add_compile_definitions(WSPR_RX_DIAG=0 WSPR_SD_LOGGING=0)
-endif()
-
 add_subdirectory(firmware)

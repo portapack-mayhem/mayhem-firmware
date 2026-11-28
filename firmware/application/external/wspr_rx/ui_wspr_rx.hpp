@@ -36,40 +36,6 @@
 #include "ui_station_list.hpp"
 #include "wspr_session.hpp"
 
-/* WSPR_RX_DIAG: on-air diagnostics build (the SD win line). The ordinary
- * release build (the default, and what CMake's WSPR_DIAGNOSTIC=OFF selects)
- * leaves it at 0: no diagnostic types, state, symbols or strings are compiled.
- * The diagnostic build defines WSPR_RX_DIAG=1 on the compiler command line on
- * BOTH sides (application + baseband); the #ifndef default stays 0 so a source
- * tree built without the CMake selector is the ordinary build. */
-#ifndef WSPR_RX_DIAG
-#define WSPR_RX_DIAG 0
-#endif
-
-/* WSPR_SD_LOGGING: master compile-time gate for EVERYTHING this app writes to
- * the SD card - LOGS/WSPR.TXT (confirmed reports) and LOGS/WSPR_DEBUG.TXT
- * (the diagnostic win line and "unconf" lines). 0 (the ordinary build) removes
- * the LogFile objects, the open/append calls, the formatting and every write/
- * sync at compile time: the app CANNOT create or append any log, and existing
- * SD logs are left untouched. 1 (the diagnostic build) restores the documented
- * logging behaviour. No CMake option of its own: the WSPR_DIAGNOSTIC selector
- * defines it on the compiler command line. */
-#ifndef WSPR_SD_LOGGING
-#define WSPR_SD_LOGGING 0
-#endif
-
-/* The ordinary build has no file objects at all: the header is not even
- * included. */
-#if WSPR_SD_LOGGING
-#include "log_file.hpp"
-#endif
-
-/* The diagnostic formatter state is compiled only for the diagnostic build;
- * the release build has no wspr_diag.hpp dependency. */
-#if WSPR_RX_DIAG
-#include "wspr_diag.hpp"
-#endif
-
 namespace ui::external_app::wspr_rx {
 
 class WSPRRxView : public View {
@@ -118,9 +84,6 @@ class WSPRRxView : public View {
      * Records a fresh request id, stops accepting reports until the matching
      * ACK status arrives, and leaves the actual producer reset to the M4. */
     void request_session_restart();
-#if WSPR_RX_DIAG
-    void on_telemetry(const WSPRTelemetryMessage* message);
-#endif
     /* The 1 Hz tick is registered in BOTH configurations: the status line
      * age, the last-packet display and the status staleness override all need
      * it. It carries no diagnostic state. */
@@ -182,62 +145,8 @@ class WSPRRxView : public View {
          wspr_layout::status_height},
         ""};
 
-#if WSPR_RX_DIAG
-    /* Win-line source state. The diagnostic SD line is emitted from the
-     * single WSPRTelemetryMessage snapshot, keyed ONLY by analysis_index: no
-     * status/debug message pairing and no adjacency assumption. The fields
-     * below are the bounded formatter state; cumulative counters are copied
-     * from VALID_DIAG telemetry and diag_reports_ is the M0-side packet
-     * count (NOT the station model's N, which dedups physical TXs). */
-    diag::WinLineFields win_fields_{};
 
-    /* analysis_index of the last snapshot that produced a win line. The
-     * producer increments it once per analysis; periodic telemetry keeps the
-     * current index and does not set VALID_ANALYSIS, so it never retriggers. */
-    uint16_t last_analysis_index_{0};
-    bool analysis_seen_{false};
 
-    /* M0-side count of WSPRPacket messages handled (one per accepted decode
-     * delivery). Diagnostics only. */
-    uint32_t diag_reports_{0};
-
-    /* Cached status word for the win line ("RECEIVING", "DECODING",
-     * "FILLING"). Fed by the latest on_status message; it is only a display
-     * label and no analysis depends on it arriving next to anything. */
-    char win_state_word_[10]{"WAIT M4"};
-
-    /* The win log line is written at most once per DEBUG_MIN_INTERVAL_S of
-     * quiet traffic unless the analysis carried a decode. The gate itself is
-     * diag::debug_line_due and is host-tested. */
-    static constexpr uint32_t DEBUG_MIN_INTERVAL_S = 60;
-#endif
-
-#if WSPR_SD_LOGGING
-    /* Decodes land in LOGS/WSPR.TXT and diagnostic lines in
-     * LOGS/WSPR_DEBUG.TXT. Diagnostic builds only: the ordinary build has no
-     * file objects at all - nothing can be created, opened or written. */
-    LogFile log_file_{};
-    LogFile debug_log_file_{};
-    bool debug_log_ok_{false};
-
-#if WSPR_RX_DIAG
-    /* Per-interval deltas of the cumulative counters, re-baselined on every
-     * actual write (IntervalDelta is reset-safe across RX RESTART). */
-    diag::IntervalDelta delta_sel_;
-    diag::IntervalDelta delta_stage_;
-    diag::IntervalDelta delta_rep_;
-    diag::IntervalDelta delta_fec_;
-    systime_t debug_last_write_tick_{0};
-#endif
-#endif
-
-#if WSPR_RX_DIAG
-    MessageHandlerRegistration message_handler_telemetry{
-        Message::ID::WSPRTelemetry,
-        [this](const Message* const p) {
-            this->on_telemetry(static_cast<const WSPRTelemetryMessage*>(p));
-        }};
-#endif
 
     /* A first decode remains a grey candidate. An identical callsign/grid/power
      * at a later physical onset becomes a green station report. StationTable is

@@ -50,15 +50,6 @@ static uint32_t wspr_ring_live_cursor(void* ctx) {
     return wspr_portapack_total_br(reinterpret_cast<wspr_portapack_state_t*>(ctx));
 }
 
-#if WSPR_RX_DIAG
-// Saturate an int16 into the byte-sized telemetry candidate slots.
-static inline int8_t saturate_i8(const int16_t value) {
-    if (value > 127) return 127;
-    if (value < -128) return -128;
-    return (int8_t)value;
-}
-#endif
-
 WSPRDecodeThread::WSPRDecodeThread(wspr_portapack_state_t* state, WSPRRxProcessor* processor)
     : state_{state}, processor_{processor} {
     wspr_ring_scan_init(&scan_);
@@ -126,7 +117,7 @@ void WSPRDecodeThread::run() {
 
         // Boundary: the producer may have completed one or more resets while
         // this thread was busy. Reset everything THIS thread owns (ring scan
-        // session, slot accumulator, diagnostic counters) and publish the ACK
+        // session and slot accumulator) and publish the ACK
         // status for the new generation. Any candidate computed across the
         // boundary is dropped before publication by the generation checks
         // below - memory safety never depends on that (fixed arrays).
@@ -140,22 +131,6 @@ void WSPRDecodeThread::run() {
             wspr_ring_scan_init(&scan_);
             wspr_decode_reset_aggregation();
             last_sync_score = 0;
-#if WSPR_RX_DIAG
-            processor_->diag_decode_ms_valid.store(false, std::memory_order_relaxed);
-            processor_->diag_analysis_index.store(0, std::memory_order_relaxed);
-            processor_->diag_probe_row.store(-1, std::memory_order_relaxed);
-            processor_->diag_probe_br.store(0, std::memory_order_relaxed);
-            // Session reset of THIS thread's observational counters.
-            diag_cand_released = 0;
-            diag_stage_entries = 0;
-            diag_snap_expired = 0;
-            diag_snap_overwritten = 0;
-            diag_snap_weak = 0;
-            diag_snap_bad_args = 0;
-            wspr::diag_counters::reset(agg_counters);
-            obs_freq_hz = 0;
-            cand_pending = false;
-#endif
             // ACK: this status carries the generation the reset produced and
             // the exact request id the producer serviced. The UI accepts
             // packets only after this message. A failed push is not retried
@@ -177,9 +152,6 @@ void WSPRDecodeThread::run() {
         bool restart = false;
         uint32_t total_br = wspr_portapack_total_br(state_);
         do {
-#if WSPR_RX_DIAG
-            const systime_t decode_t0 = chTimeNow();
-#endif
             uint32_t start_br = 0;
             int16_t col = 0;
             int16_t excess = 0;
@@ -203,28 +175,6 @@ void WSPRDecodeThread::run() {
                                          wspr_ring_live_cursor, state_,
                                          &start_br, &col, &excess, &drift))
                     break;
-                // NOTE: the per-analysis telemetry (replacing the old debug
-                // message) is published AFTER the candidate has been processed,
-                // below, because it reports decode_count/best_metric/results.
-#if WSPR_RX_DIAG
-                // Observational only: a candidate was RELEASED by the scan
-                // (this is the single site all four release paths funnel
-                // through). Frequency uses the same conversion as the decode
-                // result (wspr_decode.c): bin0_hz + col * 12000 / 8192 Hz.
-                obs_freq_hz = (uint16_t)(int16_t)(wspr_portapack_bin0_hz() + (col * WSPR_SAMPLE_RATE) / WSPR_SAMPLES_PER_SYMBOL);
-                cand_pending = true;
-                // Honest candidate count: this funnel is the ONE place every
-                // released candidate passes (all four scan release paths
-                // return through wspr_ring_scan_poll here).
-                diag_cand_released++;
-                processor_->diag_probe_row.store((int16_t)start_br, std::memory_order_relaxed);
-                processor_->diag_probe_score.store(excess, std::memory_order_relaxed);
-                // The absolute id anchors the probe's FRESHNESS: publish_telemetry
-                // reports VALID_PROBE only while the stream has moved less than one
-                // full ring past this id, so an old anchor cannot live forever.
-                processor_->diag_probe_br.store(start_br, std::memory_order_relaxed);
-#endif
-
                 // Freeze the candidate out of the published ring (wrap- and seam-safe),
                 // then run the stage-2 snapshot decode on the frozen copy. The ring
                 // keeps capturing meanwhile; the snapshot re-checks EVERY row against
@@ -232,7 +182,6 @@ void WSPRDecodeThread::run() {
                 // reason - any candidate that expired past the overwrite deadline or
                 // raced the writer, so no rewritten byte can ever reach the decode.
                 wspr_snapshot_t snap;
-                int snap_fail = WSPR_SNAP_BAD_ARGS;
                 if (!wspr_ring_snapshot_candidate(wspr_portapack_matrix(),
                                                   wspr_portapack_bins(),
                                                   WSPR_RX_BLOCK_ROWS,
@@ -240,33 +189,8 @@ void WSPRDecodeThread::run() {
                                                   wspr_portapack_bin0_hz(), drift,
                                                   excess, &snap,
                                                   wspr_ring_live_cursor, state_,
-                                                  &snap_fail)) {
-                    // Expired (the FEC delay let the producer reach the packet's rows),
-                    // overwritten mid-copy, refused by the weak-score gate or rejected
-                    // for bad arguments/geometry; either way the candidate is dropped
-                    // and counted, never decoded. scan_.snap_drops stays the total; the
-                    // category split feeds the diagnostics only. Exhaustive: there is
-                    // no catch-all "else -> overwritten" bucket any more.
+                                                  nullptr)) {
                     scan_.snap_drops++;
-#if WSPR_RX_DIAG
-                    switch (snap_fail) {
-                        case WSPR_SNAP_EXPIRED:
-                            diag_snap_expired++;
-                            break;
-                        case WSPR_SNAP_OVERWRITTEN:
-                            diag_snap_overwritten++;
-                            break;
-                        case WSPR_SNAP_WEAK_SCORE:
-                            diag_snap_weak++;
-                            break;
-                        case WSPR_SNAP_BAD_ARGS:
-                        default:
-                            // WSPR_SNAP_BAD_ARGS is also the initialised value, so
-                            // an unexpected code is honestly reported as bad args.
-                            diag_snap_bad_args++;
-                            break;
-                    }
-#endif
                     continue;
                 }
 
@@ -280,17 +204,6 @@ void WSPRDecodeThread::run() {
                     break;
                 }
 
-                // The candidate ENTERED the demod/aggregate stage (snapshot
-                // admitted it). This is a stage-entry count, NOT a count of
-                // FEC decode calls or FEC failures: everything downstream of
-                // this point (demod, aggregation, dedup, association, the
-                // >=2-slot report gate) can still drop the candidate. No
-                // failure figure may be derived from it by subtracting the
-                // M0's report count.
-#if WSPR_RX_DIAG
-                diag_stage_entries++;
-#endif
-
                 // Fold the snapshot's soft weights into the current track.
                 // A tentative single-slot report keeps the track available
                 // for the ordinary multislot decode.
@@ -300,23 +213,6 @@ void WSPRDecodeThread::run() {
                 if (wspr_snapshot_demod_weights(&snap, sym_weight)) {
                     contribution = wspr_agg_track_contribute(&snap, sym_weight, start_br,
                                                               &decoded);
-#if WSPR_RX_DIAG
-                    /* Diagnostic only: where the candidate died. ONE shared
-                     * classifier (wspr_diag_counters.hpp) maps the code to the
-                     * published buckets, so the firmware and the host tests can
-                     * never disagree. Code 1 (accepted, awaiting the next slot)
-                     * is NEVER a reject. fec_no_path is deliberately not
-                     * published from this struct: the real FEC attempt is
-                     * counted inside the decoder at stack_decode(), so counting
-                     * it here too would double count. */
-                    const int agg_result = wspr_agg_last_result_code();
-                    wspr::diag_counters::classify((uint8_t)agg_result, agg_counters);
-#endif
-                } else {
-#if WSPR_RX_DIAG
-                    // Demod failure: no agg result code exists for it.
-                    agg_counters.other++;
-#endif
                 }
 
                 // Final stale-session check: the (possibly seconds-long) FEC
@@ -340,9 +236,6 @@ void WSPRDecodeThread::run() {
                     wspr_ring_scan_mark_decoded(&scan_, start_br, col);
                     // An accepted REPORT answers the latest selected candidate.
                     // (reports are counted by the M0 from WSPRPacketMessages.)
-#if WSPR_RX_DIAG
-                    cand_pending = false;
-#endif
                 }
 
                 const bool early_report = contribution == WSPR_CONTRIBUTION_EARLY_REPORT;
@@ -351,8 +244,7 @@ void WSPRDecodeThread::run() {
                     // Packet identity rides along: the absolute start block-row and the
                     // tone-0 column identify the PHYSICAL transmission, so the UI can
                     // tell a repeat of the same TX (same start_br) from a new one.
-                    // Best-effort push: the release build neither retries nor blocks;
-                    // the diagnostic build also counts a refusal.
+                    // Best-effort push: never block the decoder on the UI queue.
                     const bool pushed = shared_memory.application_queue.push(WSPRPacketMessage{
                         decoded.callsign,
                         decoded.grid,
@@ -369,57 +261,10 @@ void WSPRDecodeThread::run() {
                     if (pushed && early_report)
                         wspr_agg_ack_early_report();
 #endif
-#if WSPR_RX_DIAG
-                    if (!pushed)
-                        processor_->diag_push_fail_report.fetch_add(1, std::memory_order_relaxed);
-#else
                     (void)pushed;
-#endif
                     last_sync_score = decoded.sync_score;
                 }
 
-#if WSPR_RX_DIAG
-                // Wall time of the scan + snapshot + decode just finished.
-                const systime_t decode_ms = chTimeNow() - decode_t0;
-                processor_->diag_decode_ms.store(
-                    decode_ms > 65535 ? 65535 : (uint16_t)decode_ms, std::memory_order_relaxed);
-                processor_->diag_decode_ms_valid.store(true, std::memory_order_relaxed);
-#endif
-
-                // ---- Diagnostic per-analysis observation -------------------
-                // The single diagnostic snapshot: the per-analysis observation
-                // (decode count, sync score, best metric, scanned candidate,
-                // result slots) and the session counters travel in the SAME
-                // WSPRTelemetryMessage, keyed only by analysis_index. There is no
-                // WSPRDebugMessage any more.
-#if WSPR_RX_DIAG
-                WSPRRxProcessor::AnalysisSnapshot obs{};
-                // Increments once per analysis snapshot; the pre-increment value
-                // is this analysis's pairing key.
-                obs.analysis_index = processor_->diag_analysis_index.fetch_add(
-                    1, std::memory_order_relaxed);
-                obs.decode_count = has_report;
-                obs.sync_score = last_sync_score;
-                obs.num_candidates = has_report;
-                obs.best_metric = has_report ? decoded.metric : (int16_t)0;
-                // The absolute start block-row does not fit the int8 probe slot;
-                // the low 8 bits are a coarse log hint and the authoritative
-                // identity is the WSPRPacketMessage's uint32 start_br above.
-                obs.probe_row = (int8_t)(start_br & 0xFFu);
-                obs.probe_score = saturate_i8(excess);
-                obs.candidate_count = has_report;
-                if (has_report) {
-                    obs.candidates[0].sync_excess = saturate_i8(decoded.sync_score);
-                    obs.candidates[0].row_offset = saturate_i8(decoded.row_offset);
-                    obs.candidates[0].freq_hz = decoded.freq_hz;
-                }
-                processor_->publish_telemetry(WSPRTelemetryMessage::Phase::Decode, &obs);
-#endif
-
-                // RELEASE STATUS: after every admitted candidate attempt, in both
-                // builds. DECODING means a scan/decode pass is running, NOT FEC
-                // success. The push result is checked; a refusal is only counted
-                // in the diagnostic build and is never retried or waited on.
                 const bool status_pushed = shared_memory.application_queue.push(WSPRRxStatusMessage{
                     processor_->sync_state_code(),
                     has_report,
@@ -427,13 +272,7 @@ void WSPRDecodeThread::run() {
                     processor_->ring_rows(),
                     session,
                     session_ack});
-#if WSPR_RX_DIAG
-                if (!status_pushed)
-                    processor_->diag_push_fail_aux.fetch_add(
-                        1, std::memory_order_relaxed);
-#else
                 (void)status_pushed;
-#endif
             }
             // Re-read the counter: rows completed while we scanned/decoded.
             total_br = wspr_portapack_total_br(state_);
@@ -467,33 +306,8 @@ void WSPRDecodeThread::run() {
             // when nothing transmits (idempotent: wspr_agg_age_to recomputes ages
             // absolutely from each track's newest contribution).
             wspr_agg_age_to(wspr_portapack_total_br(state_));
-#if WSPR_RX_DIAG
-            // Decode-thread OWN-stack FREE margin at the heartbeat sample point:
-            // take the address of a run()-loop local (the CURRENT SP) and
-            // subtract the bottom of this thread's working area. This is ONE
-            // sample, NOT a high-water mark: the deeper snapshot/FEC call
-            // frames are not part of it, so the sampled free margin can be
-            // LARGER than the true minimum free margin. Peak USED stack is only
-            // lower-bounded by this sample; the value is not a lower bound on
-            // the minimum free margin and not an FEC-chain high-water mark.
-            // shared_memory.m4_stack_usage tracks the MAIN M4 thread
-            // (debug.cpp), never this one. True stack adequacy is T06/T10.
-            volatile const uint8_t sp_marker = 0;
-            const uint32_t free_now =
-                (uint32_t)&sp_marker - (uint32_t)wspr_decode_thread_wa;
-            const uint16_t prev = processor_->diag_decode_sp_free_min.load(
-                std::memory_order_relaxed);
-            if (!processor_->diag_decode_sp_valid.load(std::memory_order_relaxed) ||
-                free_now < prev) {
-                processor_->diag_decode_sp_free_min.store(
-                    free_now > 65535 ? (uint16_t)65535 : (uint16_t)free_now,
-                    std::memory_order_relaxed);
-                processor_->diag_decode_sp_valid.store(true,
-                                                       std::memory_order_relaxed);
-            }
-#endif
             // Heartbeat status snapshot: same fields as the per-attempt status,
-            // decode_count 0. Checked, never retried; counted only in the diag build.
+            // decode_count 0. Best-effort delivery.
             const bool hb_pushed = shared_memory.application_queue.push(WSPRRxStatusMessage{
                 processor_->sync_state_code(),
                 (uint8_t)0,
@@ -501,16 +315,7 @@ void WSPRDecodeThread::run() {
                 processor_->ring_rows(),
                 session,
                 session_ack});
-#if WSPR_RX_DIAG
-            if (!hb_pushed)
-                processor_->diag_push_fail_aux.fetch_add(
-                    1, std::memory_order_relaxed);
-            // ~1 Hz telemetry: carries phase/rows/captured/counters/cand but
-            // leaves the analysis index unchanged (no VALID_ANALYSIS).
-            processor_->publish_telemetry(WSPRTelemetryMessage::Phase::Capture);
-#else
             (void)hb_pushed;
-#endif
         }
     }
 }
@@ -576,15 +381,6 @@ void WSPRRxProcessor::execute(const buffer_c8_t& buffer) {
     if (session_.take_reset(request_id)) {
         reset_capture_chain();
         session_.commit_reset(request_id);
-#if WSPR_RX_DIAG
-        // Session counters owned by the producer side. Benign to reset while
-        // the decode thread may still be finishing an old push: these are
-        // atomics and the old result is about to be dropped by generation.
-        diag_probe_br.store(0, std::memory_order_relaxed);
-        diag_probe_row.store(-1, std::memory_order_relaxed);
-        diag_push_fail_report.store(0, std::memory_order_relaxed);
-        diag_push_fail_aux.store(0, std::memory_order_relaxed);
-#endif
         decode_thread.signal_row();
     }
 
@@ -637,172 +433,8 @@ void WSPRRxProcessor::process_wspr_audio(const buffer_f32_t& audio) {
             decode_thread.signal_row();
         }
 
-#if WSPR_RX_DIAG
-        // Periodic live telemetry, at most one message per second, published
-        // from this baseband (DMA) thread context - never from an ISR, and
-        // publish_telemetry never waits on the queue. The ring captures through
-        // the decode, so the phase reads Capture unless a scan/decode is running.
-        if (++diag_tick_samples >= 12000) {
-            diag_tick_samples = 0;
-            publish_telemetry(decode_thread.is_busy() ? WSPRTelemetryMessage::Phase::Decode
-                                                      : WSPRTelemetryMessage::Phase::Capture);
-        }
-#endif
     }
 }
-
-#if WSPR_RX_DIAG
-void WSPRRxProcessor::publish_telemetry(WSPRTelemetryMessage::Phase phase,
-                                        const AnalysisSnapshot* analysis) {
-    /* The flags word MUST be 16-bit: VALID_DIAG is bit 8, and an 8-bit word
-     * silently truncates it to 0 - the M0's gated copy of the d_* counters
-     * then never runs and every M4 stage counter reads zero forever (the
-     * "zero M4 stage counters despite successful reports" defect fixed
-     * 2026-11-19). The static_assert keeps the bit honest. */
-    static_assert(WSPRTelemetryMessage::VALID_DIAG > 0xFFu,
-                  "VALID_DIAG is bit 8: the published flags word must be 16-bit");
-    uint16_t flags = 0;
-    // Ring progress: the physical slot position of the newest block-row, moving once
-    // per ~341 ms — the UI's heartbeat that capture is alive. VALID_ROWS keeps its
-    // meaning ("capture progress"), now of the ring rather than a window.
-    const uint32_t total_br = wspr_portapack_total_br(&decoder_state);
-    const uint16_t rows = (uint16_t)(total_br % (uint32_t)WSPR_RX_BLOCK_ROWS);
-    // Audio samples fed since launch, the session-elapsed readout.
-    const uint32_t captured = decoder_state.total_samples;
-    flags |= WSPRTelemetryMessage::VALID_ROWS | WSPRTelemetryMessage::VALID_CAPTURED;
-
-    // Decode wall time: the flag rides on the same "was it ever measured" bit the
-    // value does, so the UI shows the number instead of a permanent dm--.
-    if (diag_decode_ms_valid.load(std::memory_order_relaxed))
-        flags |= WSPRTelemetryMessage::VALID_DECODE_MS;
-
-    // Probe. The per-analysis snapshot carries the candidate just scanned
-    // (probe_row is its low 8 bits, probe_score its sync excess). The periodic
-    // snapshot has no fresh probe, so it falls back to the anchor with a
-    // one-ring freshness window: an anchor older than 120 s of stream is gone
-    // from the ring and must not arm the UI's SYNC CAND family.
-    int8_t probe_row = -1;
-    int8_t probe_score = 0;
-    if (analysis != nullptr) {
-        probe_row = analysis->probe_row;
-        probe_score = analysis->probe_score;
-        flags |= WSPRTelemetryMessage::VALID_PROBE;
-    } else {
-        const int16_t anchor_row = diag_probe_row.load(std::memory_order_relaxed);
-        const uint32_t probe_br = diag_probe_br.load(std::memory_order_relaxed);
-        const bool probe_live =
-            anchor_row >= 0 &&
-            (int32_t)(total_br - probe_br) >= 0 &&
-            (int32_t)(total_br - probe_br) <= (int32_t)WSPR_RX_BLOCK_ROWS;
-        if (probe_live) {
-            probe_row = saturate_i8(anchor_row);
-            probe_score = saturate_i8(diag_probe_score.load(std::memory_order_relaxed));
-            flags |= WSPRTelemetryMessage::VALID_PROBE;
-        }
-    }
-
-    // Ring scan health: scanned / expired / worst lag / snapshot drops, read
-    // unsynchronized from the decode thread's session (counters only).
-    const wspr_ring_scan_state_t& sc = decode_thread.scan_state();
-    flags |= WSPRTelemetryMessage::VALID_LOSS;
-    if (diag_decode_sp_valid.load(std::memory_order_relaxed))
-        flags |= WSPRTelemetryMessage::VALID_STACK;
-
-    // Latest selected-candidate observation (VALID_CAND): the flag IS the
-    // pending state ("M4 selected a candidate, no accepted REPORT yet"); the
-    // 150 s freshness/expiry window is owned by the M0/UI side (age from the
-    // message arrival tick). ONE field: cand_freq_hz.
-    if (decode_thread.cand_pending) flags |= WSPRTelemetryMessage::VALID_CAND;
-
-    // Bounded aggregate counters (VALID_DIAG): always meaningful (cumulative
-    // since session start), published every time.
-    flags |= WSPRTelemetryMessage::VALID_DIAG;
-
-    // Per-analysis fields (VALID_ANALYSIS). analysis_index is the only pairing
-    // key; the periodic snapshot reads the current index and never advances it.
-    uint16_t analysis_index = 0;
-    uint8_t decode_count = 0;
-    int16_t sync_score = 0;
-    uint8_t num_candidates = 0;
-    int16_t best_metric = 0;
-    const WSPRTelemetryMessage::Candidate* candidate_values = nullptr;
-    size_t candidate_count = 0;
-    if (analysis != nullptr) {
-        flags |= WSPRTelemetryMessage::VALID_ANALYSIS;
-        analysis_index = analysis->analysis_index;
-        decode_count = analysis->decode_count;
-        sync_score = analysis->sync_score;
-        num_candidates = analysis->num_candidates;
-        best_metric = analysis->best_metric;
-        candidate_values = analysis->candidates;
-        candidate_count = analysis->candidate_count;
-    } else {
-        analysis_index = diag_analysis_index.load(std::memory_order_relaxed);
-    }
-
-    const WSPRTelemetryMessage message{
-        phase,
-        flags,
-        diag_seq.fetch_add(1, std::memory_order_relaxed),
-        rows,
-        captured,
-        diag_decode_ms_valid.load(std::memory_order_relaxed)
-            ? diag_decode_ms.load(std::memory_order_relaxed)
-            : (uint16_t)0,
-        (uint16_t)diag_telem_dropped.load(std::memory_order_relaxed),
-        analysis_index,
-        decode_count,
-        sync_score,
-        num_candidates,
-        best_metric,
-        probe_row,
-        probe_score,
-        sc.scanned,
-        sc.expired,
-        sc.max_lag,
-        sc.snap_drops,
-        diag_decode_sp_valid.load(std::memory_order_relaxed)
-            ? diag_decode_sp_free_min.load(std::memory_order_relaxed)
-            : (uint16_t)0,
-        decode_thread.obs_freq_hz,
-        candidate_values,
-        candidate_count,
-        // VALID_DIAG: candidates released by the scan (counted at the single
-        // release funnel - NOT derivable from message counts, because the
-        // periodic heartbeat also publishes telemetry) and the
-        // demod/aggregate stage entries. Snapshot/drop totals ride VALID_LOSS.
-        decode_thread.diag_cand_released,
-        decode_thread.diag_stage_entries,
-        decode_thread.diag_snap_expired,
-        decode_thread.diag_snap_overwritten,
-        // T01 reasons: d_agg_reject is the BEFORE-FEC refusal total (slot
-        // window + correlation); d_agg_fail is the COMPLETED-path gate total
-        // (metric + agreement + unpack); d_agg_other is unclassified/demod
-        // failure. code 1 (await) is published separately and is never a
-        // reject.
-        decode_thread.agg_counters.slot_window +
-            decode_thread.agg_counters.correlation,
-        decode_thread.agg_counters.metric +
-            decode_thread.agg_counters.agreement +
-            decode_thread.agg_counters.unpack,
-        decode_thread.agg_counters.other,
-        // Real FEC attempts, counted inside the decoder at stack_decode()
-        // (candidate_decode and the integrated-slot path both feed it). NOT
-        // stage entries and NOT derivable from d_agg_* counts.
-        wspr_fec_calls(),
-        wspr_fec_no_path(),
-        decode_thread.agg_counters.await_slot,
-        decode_thread.agg_counters.duplicate,
-        decode_thread.agg_counters.open_floor,
-        decode_thread.agg_counters.report,
-        diag_push_fail_report.load(std::memory_order_relaxed),
-        diag_push_fail_aux.load(std::memory_order_relaxed),
-        decode_thread.diag_snap_weak,
-        decode_thread.diag_snap_bad_args};
-    if (!shared_memory.application_queue.push(message))
-        diag_telem_dropped.fetch_add(1, std::memory_order_relaxed);
-}
-#endif
 
 WSPRRxStatusMessage::SyncState WSPRRxProcessor::sync_state_code() const {
     // Filling while the ring does not yet hold a full 352 rows; otherwise
